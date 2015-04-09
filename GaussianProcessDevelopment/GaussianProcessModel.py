@@ -4,6 +4,8 @@ import scipy.linalg as la
 import kernels
 import time
 
+VERBOSE = False
+
 # This finds the lower cholesky decomposition of a matrix and provides jittering if needed
 def choleskyjitter(A):
 	
@@ -16,7 +18,9 @@ def choleskyjitter(A):
     maxscale = 10*np.sum(A.diagonal())
     minscale = min(1/64, maxscale/1024)
     scale = minscale
-    print('\t', 'Jittering...')
+
+    if VERBOSE:
+    	print('\t', 'Jittering...')
 
     while scale < maxscale:
 
@@ -45,8 +49,6 @@ class GaussianProcessRegression:
 	# Previously, I had 'None' as the default value of 'kernel',
 	# but I think it may make more sense to just default it to a commonly used kernel,
 	# such as Squared Exponential Kernel or Matern 3/2 Kernel
-	# Here, I defaulted it to the Matern 3/2 Kernel
-	# Okay, I changed it back to defaulting at 'None' afterall... 
 	def __init__(self, X, y, kernel = kernels.se):
 
 		# Set the data 
@@ -56,11 +58,11 @@ class GaussianProcessRegression:
 		self.setKernelFunction(kernel)
 
 		# Initial hyperparameters and noise level to start off from during learning
-		self.initialParams = None
-		self.initialSigma = None
+		self.kernelHyperparamsInitial = None
+		self.sigmaInitial = None
 
 		# Actual hyperparameters and noise level to be used for prediction
-		self.kernelparams = None
+		self.kernelHyperparams = None
 		self.sigma = None
 
 		# The matrix S is defined to be
@@ -95,6 +97,11 @@ class GaussianProcessRegression:
 		# If the user wants to use the previous learning result, let them do it
 		# Otherwise, reset the class state to INITIALISED
 		
+	def setResponseData(self, y):
+
+		# This will assume that the length of 'y' is the same as the number of data points we have
+		self.yMean = np.mean(y)
+		self.y = y.copy() - self.yMean
 
 	# This adds new data on top of the original data into the model 
 	def addData(self, X, y):
@@ -150,7 +157,7 @@ class GaussianProcessRegression:
 	def usePreviousLearningResult(self):
 
 		# We can only force the model state to be LEARNED it has actually been trained before
-		if self.kernelparams != None & self.sigma != None:
+		if self.kernelHyperparams != None & self.sigma != None:
 
 			# If so, we would have to recompute the cholesky decomposition again
 			self._prepareCholesky()
@@ -170,31 +177,20 @@ class GaussianProcessRegression:
 		kernels.setNumberOfParams(self._kernel, self.k)
 
 		# For convenience, we will store our own copy of the names of the kernel hyperparameters
-		self.kernelParamNames = self._kernel.thetaNames
-
-		# When we set a new kernel, any previous learning result should not really make much sense, so we would reset the model state to INITIALISED
-		# However, if the user really wants to use a previous learning result, they are welcome to use 'self.usePreviousLearningResult()'
-		self.state = INITIALISED
+		self.kernelHyperparamNames = self._kernel.thetaNames
 
 	# This function can be called before 'self.learn()' to set starting point of the hyperparameters of the kernel before training
-	def setInitialKernelParams(self, params):
-
-		# If no kernel has been specified, raise an error
-		if self._kernel == None:
-			raise ValueError(MISSING_KERNEL_MSG)
+	def setInitialKernelHyperparams(self, hyperparams):
 
 		# Just to be safe, we will make sure the number of hyperparameters have been set correctly
 		kernels.setNumberOfParams(self._kernel, self.k)
 		
 		# If the number of initial parameters supplied does not match the numbers needed, raise an error
-		if len(params) != len(self._kernel.thetaInitial):
+		if len(hyperparams) != len(self._kernel.thetaInitial):
 			raise ValueError(WRONG_PARAM_LENGTH_MSG)
 		
 		# Otherwise, simply set the initial parameters
-		self.initialParams = params.copy()
-
-		# It is assumed that when the user calls this function, they would like to train the model soon, so we will start with an INITIALISED state
-		self.state = INITIALISED
+		self.kernelHyperparamsInitial = hyperparams.copy()
 
 	# This function can be called before 'self.learn()' to set starting point of the noise level before training
 	def setInitialSigma(self, sigma):
@@ -204,56 +200,39 @@ class GaussianProcessRegression:
 			raise ValueError(POSITIVE_SIGMA_REQUIRED_MSG)
 
 		# Simply set the starting noise level
-		self.initialSigma = sigma
-
-		# It is assumed that when the user calls this function, they would like to train the model soon, so we will start with an INITIALISED state
-		self.state = INITIALISED
+		self.sigmaInitial = sigma
 
 	# This function returns the current or lastly used starting point of the initial kernel hyperparameters
 	def getInitialKernelParams(self):
 
-		return(self.initialParams.copy())
+		return(self.kernelHyperparamsInitial.copy())
 
 	# This function returns the current or lastly used starting point of the initial noise level
 	def getInitialSigma(self):
 
-		return(self.initialSigma)
+		return(self.sigmaInitial)
 
 	# This function returns the name of the kernel used
 	def getKernelName(self):
 
-		# If no kernel has been specified, raise an error
-		if self._kernel == None:
-			raise ValueError(MISSING_KERNEL_MSG)
-
-		# Otherwise, just return the name of the kernel
-		else:
-			return(self._kernel.name)
+		# Return the name of the kernel
+		return(self._kernel.name)
 
 	# This function returns the name of the kernel hyperparameters
-	def getKernelParamNames(self):
+	def getKernelHyperparamNames(self):
 
-		# If no kernel has been specified, raise an error
-		if self._kernel == None:
-			raise ValueError(MISSING_KERNEL_MSG)
-
-		# Otherwise, just return the name of the kernel hyperparameters
-		else:
-			return(self.kernelParamNames.copy())
+		# Return the name of the kernel hyperparameters
+		return(self.kernelHyperparamNames.copy())
 
 	# This function can be called to directly set a particular training or learning result (hyperparameters and noise level) to the model
 	# A common usage of this function is when the user already knows the appropriate hyperparameters and noise levels for experience, and want to skip the potentially lengthy training time
-	def setLearningResult(self, params, sigma):
-
-		# Make sure a kernel is already selected
-		if self._kernel == None:
-			raise ValueError(MISSING_KERNEL_MSG)
+	def setLearningResult(self, hyperparams, sigma):
 
 		# Just to be safe, we will make sure the number of hyperparameters have been set correctly
 		kernels.setNumberOfParams(self._kernel, self.k)
 
 		# Make sure the number of hyperparameters proposed is correct
-		if len(params) != len(self._kernel.theta):
+		if len(hyperparams) != len(self._kernel.theta):
 			raise ValueError(WRONG_PARAM_LENGTH_MSG)
 
 		# Make sure the value of noise level proposed is valid
@@ -261,8 +240,8 @@ class GaussianProcessRegression:
 			raise ValueError(POSITIVE_SIGMA_REQUIRED_MSG)
 
 		# Set the learning results (hyperparameters)
-		self.kernelParams = params.copy()
-		self._kernel.theta = params.copy()
+		self.kernelHyperparams = hyperparams.copy()
+		self._kernel.theta = hyperparams.copy()
 
 		# Set the learning results (noise level)
 		self.sigma = sigma
@@ -276,65 +255,21 @@ class GaussianProcessRegression:
 	# This function is the training part of the gaussian process model
 	# The keyword 'sigma' can be set to a particular value so that the noise level is kept the same during learning and the hyperparameters will be trained to this particular noise level
 	# The keyword 'sigmaMax' can be set to a particular value to make sure the gaussian process will never train to a noise level above this threshold
-	def learn(self, sigma = None, sigmaMax = None):
+	def learn(self, sigma = None, sigmaMax = None, thetaLowerBound = None):
 
 		# VERBOSE
-		np.set_printoptions(precision = 2)
+		if VERBOSE:
+			np.set_printoptions(precision = 2)
 
 		# If the model has already been trained before, we can start off our learning from these values
 		if self.state == LEARNED:
-			self.initialParams = self.kernelParams.copy()
-			self.initialSigma = self.sigma
-
-		# Obviously, the kernel needs to be specified beforehand
-		if self._kernel == None:
-			raise ValueError(MISSING_KERNEL_MSG)
+			self.kernelHyperparamsInitial = self.kernelHyperparams.copy()
+			self.sigmaInitial = self.sigma
 
 		# If there is no initial starting hyperparameters provided, we will just use the default one from the kernels
-		if self.initialParams == None:
+		if self.kernelHyperparamsInitial == None:
 			kernels.setNumberOfParams(self._kernel, self.k)
-
-		# This function calculates the negative log(evidence) without the constant term
-		def negLogEvidence(theta, grad):
-
-			self._kernel.theta = theta[0:-1].copy()
-			self.sigma = theta[-1]
-
-			self._prepareCholesky()
-			alpha = la.solve_triangular(self.L.T, la.solve_triangular(self.L, self.y, lower = True, check_finite = False), check_finite = False)
-			negLogEvidenceValue = 0.5 * self.y.dot(alpha) + np.sum(np.log(self.L.diagonal()))
-			
-			# VERBOSE
-			if negLogEvidence.lastPrintedSec != time.gmtime().tm_sec:
-				negLogEvidence.lastPrintedSec = time.gmtime().tm_sec
-				print('\t', theta, negLogEvidenceValue)
-
-			return(negLogEvidenceValue)
-
-		# VERBOSE
-		negLogEvidence.lastPrintedSec = -1
-
-		# This function calculates the negative log(evidence) without the constant term while keeping sigma fixed
-		def negLogEvidenceNoSigma(theta, grad):
-
-			self._kernel.theta = theta.copy()
-
-			self._prepareCholesky()
-			alpha = la.solve_triangular(self.L.T, la.solve_triangular(self.L, self.y, lower = True, check_finite = False), check_finite = False)
-			negLogEvidenceValue = 0.5 * self.y.dot(alpha) + np.sum(np.log(self.L.diagonal()))
-			
-			# VERBOSE
-			if negLogEvidenceNoSigma.lastPrintedSec != time.gmtime().tm_sec:
-				negLogEvidenceNoSigma.lastPrintedSec = time.gmtime().tm_sec
-				print('\t', theta, negLogEvidenceValue)
-
-			return(negLogEvidenceValue)
-
-		# VERBOSE
-		negLogEvidenceNoSigma.lastPrintedSec = -1
-
-		# This is the constant involved in the computation of the log(evidence)
-		evidenceConst = (self.n * np.log(2 * np.pi) / 2)
+			self.kernelHyperparamsInitial = self._kernel.theta.copy()
 
 		# If the user did not specify to fix the noise level, then do the following
 		if sigma == None:
@@ -343,12 +278,12 @@ class GaussianProcessRegression:
 			kparam = self._kernel.theta.shape[0] + 1
 
 			# If the user did not specify a initial noise level to start from, default it to some arbitary value
-			if self.initialSigma == None:
+			if self.sigmaInitial == None:
 				sigmaInitial = np.std(self.y) * 1e-3
 
 			# Otherwise, use the user-provided value
 			else:
-				sigmaInitial = self.initialSigma
+				sigmaInitial = self.sigmaInitial
 
 		# Otherwise, if the user did specify to fix the noise level, then do the following
 		else:
@@ -363,23 +298,66 @@ class GaussianProcessRegression:
 			# Fix the noise level
 			self.sigma = sigma
 
+		# This function calculates the negative log(evidence) without the constant term
+		def negLogEvidence(theta, grad):
+
+			self._kernel.theta = theta[0:-1].copy()
+			self.sigma = theta[-1]
+
+			self._prepareCholesky()
+			alpha = la.solve_triangular(self.L.T, la.solve_triangular(self.L, self.y, lower = True, check_finite = False), check_finite = False)
+			negLogEvidenceValue = 0.5 * self.y.dot(alpha) + np.sum(np.log(self.L.diagonal()))
+			
+			# VERBOSE
+			if VERBOSE:
+				if negLogEvidence.lastPrintedSec != time.gmtime().tm_sec:
+					negLogEvidence.lastPrintedSec = time.gmtime().tm_sec
+					print('\t', theta, negLogEvidenceValue)
+
+			return(negLogEvidenceValue)
+
+		# VERBOSE
+		if VERBOSE:
+			negLogEvidence.lastPrintedSec = -1
+
+		# This function calculates the negative log(evidence) without the constant term while keeping sigma fixed
+		def negLogEvidenceNoSigma(theta, grad):
+
+			self._kernel.theta = theta.copy()
+
+			self._prepareCholesky()
+			alpha = la.solve_triangular(self.L.T, la.solve_triangular(self.L, self.y, lower = True, check_finite = False), check_finite = False)
+			negLogEvidenceValue = 0.5 * self.y.dot(alpha) + np.sum(np.log(self.L.diagonal()))
+			
+			# VERBOSE
+			if VERBOSE:
+				if negLogEvidenceNoSigma.lastPrintedSec != time.gmtime().tm_sec:
+					negLogEvidenceNoSigma.lastPrintedSec = time.gmtime().tm_sec
+					print('\t', theta, negLogEvidenceValue)
+
+			return(negLogEvidenceValue)
+
+		# VERBOSE
+		if VERBOSE:
+			negLogEvidenceNoSigma.lastPrintedSec = -1
+
+		# This is the constant involved in the computation of the log(evidence)
+		evidenceConst = (self.n * np.log(2 * np.pi) / 2)
+
+
+
 		# Initialise our optimiser with the right amount of parameters
 		opt = nlopt.opt(nlopt.LN_BOBYQA, kparam)
 
 		# Set a non-zero but small lower bound for computational safety
-		opt.set_lower_bounds(1e-8 * np.ones(kparam))
+		if thetaLowerBound == None:
+			opt.set_lower_bounds(1e-5 * np.ones(kparam))
+		else:
+			opt.set_lower_bounds(thetaLowerBound)
 
 		# Set an appropriate tolerance level
 		opt.set_ftol_rel(1e-3)
 		opt.set_xtol_rel(1e-3)
-
-		# If the user did not specify initial parameters to use, use the default one from the kernel
-		if self.initialParams == None:
-			paramsInitial = self._kernel.thetaInitial.copy()
-
-		# Otherwise, use the user-specified one
-		else:
-			paramsInitial = self.initialParams.copy()
 
 		# If the user did not fix the noise level, do the following
 		if sigma == None:
@@ -394,18 +372,19 @@ class GaussianProcessRegression:
 			opt.set_min_objective(negLogEvidence)
 
 			# Set the initial parameters to be optimised
-			thetaInitial = np.append(paramsInitial, sigmaInitial)
+			thetaInitial = np.append(self.kernelHyperparamsInitial, sigmaInitial) + 1e-7
 
 			# VERBOSE
-			print('Params:\t', self.getKernelParamNames())
-			print('Format:\t [(--kernel-parameters--) (sigma)] negative(log(evidence) + ' + str(round(evidenceConst, 3)) + ')')
+			if VERBOSE:
+				print('Params:\t', self.getKernelHyperparamNames())
+				print('Format:\t [(--kernel-parameters--) (sigma)] negative(log(evidence) + ' + str(round(evidenceConst, 3)) + ')')
 
 			# Obtain the final optimal parameters
 			thetaFinal = opt.optimize(thetaInitial)
 
 			# Obtain the optimal hyperparameters
 			self._kernel.theta = thetaFinal[0:-1].copy()
-			self.kernelParams = self._kernel.theta.copy()
+			self.kernelHyperparams = self._kernel.theta.copy()
 
 			# Obtain the optimal noise level
 			self.sigma = thetaFinal[-1]
@@ -419,16 +398,17 @@ class GaussianProcessRegression:
 			opt.set_min_objective(negLogEvidenceNoSigma)
 
 			# VERBOSE
-			print('Sigma has been set to', sigma)
-			print('Params:\t', self.getKernelParamNames())
-			print('Format:\t [(--kernel-parameters--) (sigma)] negative(log(evidence) + ' + str(round(evidenceConst, 3)) + ')')
+			if VERBOSE:
+				print('Sigma has been set to', sigma)
+				print('Params:\t', self.getKernelHyperparamNames())
+				print('Format:\t [(--kernel-parameters--)] negative(log(evidence) + ' + str(round(evidenceConst, 3)) + ')')
 
 			# Obtain the final optimal hyperparameters
-			self._kernel.theta = opt.optimize(paramsInitial)
-			self.kernelParams = self._kernel.theta.copy()
+			self.kernelHyperparams = opt.optimize(self.kernelHyperparamsInitial)
+			self._kernel.theta = self.kernelHyperparams.copy()
 
 			# Store the final log(evidence) value
-			self.logevidence = -negLogEvidenceNoSigma(self.kernelParams, self.kernelParams) - evidenceConst
+			self.logevidence = -negLogEvidenceNoSigma(self.kernelHyperparams, self.kernelHyperparams) - evidenceConst
 
 		# Compute and prepare the lower cholesky decomposition matrix
 		self._prepareCholesky()
@@ -437,7 +417,8 @@ class GaussianProcessRegression:
 		self.state = LEARNED
 
 		# VERBOSE
-		print('Learned:\t Kernel HyperParameters:', self.kernelParams, '| Sigma:', self.sigma, '| log(evidence):', self.logevidence)
+		if VERBOSE:
+			print('Learned:\t Kernel HyperParameters:', self.kernelHyperparams, '| Sigma:', self.sigma, '| log(evidence):', self.logevidence)
 
 	# This function is the prediction part of the gaussian process model
 	# Use this on a query data matrix to find either the predicted expected latent function and its covariance or the expected output function and its covariance
@@ -449,14 +430,16 @@ class GaussianProcessRegression:
 		self.requireLearned()
 
 		# Set the learned result
-		self._kernel.theta = self.kernelParams.copy()
+		self._kernel.theta = self.kernelHyperparams.copy()
 
 		# Compute the prediction using the standard Gaussian Process Prediction Algorithm
 		alpha = la.solve_triangular(self.L.T, la.solve_triangular(self.L, self.y, lower = True, check_finite = False), check_finite = False)
 		Kq = self._kernel(self.X, Xq)
 		fqExp = np.dot(Kq.T, alpha) + self.yMean
 
+		# Compute the covariance matrix using the standard Gaussian Process Prediction Algorithm if requested
 		if predictUncertainty:
+
 			v = la.solve_triangular(self.L, Kq, lower = True, check_finite = False)
 			Kqq = self._kernel(Xq, Xq)
 			fqVar = Kqq - np.dot(v.T, v)
@@ -471,10 +454,10 @@ class GaussianProcessRegression:
 			return(fqExp)
 
 	# This returns the hyperparameters of the kernel if the model has been trained
-	def getKernelParams(self):
+	def getKernelHyperparams(self):
 
 		if self.state == LEARNED:
-			return(self.kernelParams.copy())
+			return(self.kernelHyperparams.copy())
 		else:
 			raise ValueError(HAS_NOT_LEARNED_MSG)
 
@@ -528,6 +511,64 @@ class GaussianProcessRegression:
 
 		self.S = self._kernel(self.X, self.X) + self.sigma**2 * self.I
 		self.L = choleskyjitter(self.S)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #### Research Code Below...
@@ -656,7 +697,8 @@ class GaussianProcessBinaryClassifier:
 			# Compute the log-marginal-liklihood or log-evidence of the learning result
 			logEvidenceValue = -0.5 * a.dot(logEvidence.f) + self._response.logLikelihood(self.y, logEvidence.f) - np.sum(np.log(logEvidence.L.diagonal()))
 			# logEvidenceValue2 = -0.5 * logEvidence.f.dot(la.solve(self.K, logEvidence.f, check_finite = False)) + np.log(self._response.likelihood(self.y, logEvidence.f)) - 0.5 * np.linalg.slogdet(B)[1]
-			print(logEvidenceValue, theta)
+			if VERBOSE:
+				print(logEvidenceValue, theta)
 			return(logEvidenceValue)
 
 		# Initialise the latent function as a zero function
@@ -753,8 +795,24 @@ class GaussianProcessBinaryClassifier:
 ## MORE RESEARCH CODE
 from scipy.spatial.distance import cdist
 
-from scipy.interpolate import LinearNDInterpolator
+def clipQuantiles(array, qs, qf):
 
+	arraySorted = np.sort(array)
+	iMin = int(0.1 * arraySorted.shape[0]) + 1
+	iMax = int(0.9 * arraySorted.shape[0])
+	arrayMin = arraySorted[iMin]
+	arrayMax = arraySorted[iMax]
+	array = np.clip(array, arrayMin, arrayMax)
+	return(array)
+
+LENGTHSCALEFACTOR = 50
+MINLENGTHSCALEFACTOR = 5
+
+## class 'NonStationaryGaussianProcessRegression'
+# 
+#  --Description--
+#  This class implements the non-stationary version of the Gaussian Process Regression.
+#  The model specifically uses a non-stationary squared exponential kernel
 class NonStationaryGaussianProcessRegression:
 
 	def __init__(self, X, y):
@@ -762,18 +820,21 @@ class NonStationaryGaussianProcessRegression:
 		# Set the data 
 		self.setData(X, y)
 
-		self.computeGradient()
-		self.prepareLengthScaleKriging()
+		# Model the data with a stationary GP first
+		self.learnStationaryModel()
 
-		self.initialiseKernelHyperparameters()
-		self.initialiseNoiseLevel()
+		# Initialise the maximum length scale
+		self.setMaxLengthScale(np.Inf)
 
+		# Initialise the minimum length scale
+		self.setMinLengthScale(self.stationaryLengthScale/50)
+
+		# Prepare a stationary Gaussian Process Regression Model for kriging the underlying length scale function
+		self.updateLengthScaleModel()
 
 	# This sets the data of the Gaussian Process Model
 	# This is called once automatically during the class initialisation
 	# So, if you call it again, by implementation this means that you are overwriting the original data
-	# By default, the class state will go back to being INITIALISED, even if it has LEARNED before
-	# If the model has learned already and you would like to use the previous learning result (if you expect the previous model will work well with this new data), you can just set 'learned' to 'True'
 	def setData(self, X, y):
 
 		# Set the data matrix X and observed output data vector y
@@ -781,130 +842,190 @@ class NonStationaryGaussianProcessRegression:
 		# We only add the mean back during the prediction stage
 		# Otherwise, all analysis is done on the slightly whitened data vector y
 		self.X = X.copy()
-		self.yMean = np.mean(y)
-		self.y = y.copy() - self.yMean
+		self.yMean = y.mean()
+		self.y = (y.copy() - self.yMean)
 
 		# This is the number of observed data points and number of features from the data matrix
 		(self.n, self.k) = np.shape(X)
 
 		# We can initialise the appropriate identity matrix here for later use
-		self.I = np.eye(self.n)	
+		self.I = np.eye(self.n)
 
-	def initialiseKernelHyperparameters(self):
+	def setSensitivity(self, alpha):
 
-		# alpha and a
-		self.kernelHyperparams = np.array([1, 1])
+		# Set the sensitivity
+		self.alpha = alpha
 
-		self.maxLengthScale = (self.X.max(0) - self.X.min(0)).mean()/2
+	def setNoiseLevel(self, sigma):
 
-	def initialiseNoiseLevel(self):
+		# Set the noise level
+		self.sigma = sigma
 
-		self.sigma = 0
+	def setMaxLengthScale(self, maxLengthScale):
 
-	def computeGradient(self):
+		# Set the maximum length scale bound
+		self.maxLengthScale = maxLengthScale
 
-		gps = GaussianProcessRegression(self.X, self.y, kernels.se)
-		gps.learn()
-		originalKernelHyperparameters = gps.getKernelParams()
-		# lengthSteps = 0.5 * originalKernelHyperparameters[1:]
-		distances = cdist(self.X, self.X)
-		distances = distances + np.diag(np.Inf * np.ones(distances.shape[0]))
-		lengthSteps = distances.min() * np.ones(self.k)
+	def setMinLengthScale(self, minLengthScale):
 
+		# Set the minimum length scale bound
+		self.minLengthScale = minLengthScale
+
+	def setStationaryLengthScale(self, stationaryLengthScale):
+
+		# Set the stationary length scale
+		self.stationaryLengthScale = stationaryLengthScale
+
+	def getSensitivity(self):
+
+		# Return the sensitivity
+		return(self.alpha)
+
+	def getNoiseLevel(self):
+
+		# Return the noise level
+		return(self.sigma)
+
+	def getMaxLengthScale(self):
+
+		# Return the maximum length scale bound
+		return(self.maxLengthScale)
+
+	def getMinLengthScale(self):
+
+		# Return the minimum length scale bound
+		return(self.minLengthScale)
+
+	def getStationaryLengthScale(self):
+
+		# Return the stationary length scale
+		return(self.stationaryLengthScale)
+
+	def getLengthScaleKernelHyperparams(self):
+
+		return(self.gpLengthScale.kernelHyperparams)
+
+	def getLengthScaleNoiseLevel(self):
+
+		return(self.gpLengthScale.sigma)
+
+	def learnStationaryModel(self):
+
+		# Generate a stationary gaussian process regression model on the data
+		self.gpStationary = GaussianProcessRegression(self.X, self.y + self.yMean, kernels.seiso)
+
+		# Let the process learn
+		# self.gpStationary.setInitialKernelParams(np.array([1, self.maxLengthScale/2]))
+		self.gpStationary.learn()
+
+		# Initialise the non-stationary GP model with the results of the stationary GP model
+		stationaryHyperparams = self.gpStationary.getKernelHyperparams()
+		self.setSensitivity(stationaryHyperparams[0])
+		self.setStationaryLengthScale(stationaryHyperparams[1])
+		self.setNoiseLevel(self.gpStationary.getSigma())
+		self.L = self.gpStationary.L.copy()
+
+		# Initialise the non-stationary GP model with the length scales of the stationary GP model
+		self.lengthScale = self.stationaryLengthScale * np.ones(self.y.shape)
+
+		# Initialise a GP on the length scale
+		self.gpLengthScale = GaussianProcessRegression(self.X, self.lengthScale, kernel = kernels.seiso)
+		self.gpLengthScale.setLearningResult(self.gpStationary.getKernelHyperparams() * np.array([1, LENGTHSCALEFACTOR]), 2)
+
+	# Given model with length scale, compute gradient
+	def updateGradient(self):
+
+		# Initialise the gradient matrix (gradient vector for each observation)
 		self.yGradient = np.zeros(self.X.shape)
 
+		lengthSteps = self.stationaryLengthScale * np.ones(self.y.shape)
+
+		# This is the finite difference coefficients for first derivative approximation with accuracy level 2
 		cuu = -1/12
 		cu = 2/3
 		cl = -cu
 		cll = -cuu
 
+		# Go through each feature dimension
 		for i in range(self.k):
 
-			oneLengthStep = np.zeros(lengthSteps.shape)
-			h = lengthSteps[i]
-			oneLengthStep[i] = h
+			# Initialise a step vector (which should contain zeros everywhere except the spatial step size at the dimension we are looking at)
+			oneLengthStep = np.zeros(self.X.shape)
+			oneLengthStep[:, i] = lengthSteps
 
+			# Obtain the query points for gradient computation
 			Xuu = self.X + 2*oneLengthStep
-			Xu = self.X + oneLengthStep
-			Xl = self.X - oneLengthStep
+			Xu  = self.X +   oneLengthStep
+			Xl  = self.X -   oneLengthStep
 			Xll = self.X - 2*oneLengthStep
 
-			yuu = gps.predict(Xuu, predictUncertainty = False)
-			yu = gps.predict(Xu, predictUncertainty = False)
-			yl = gps.predict(Xl, predictUncertainty = False)
-			yll = gps.predict(Xll, predictUncertainty = False)
+			# Estimate the latent function at these query locations
+			yuu = self.predict(Xuu, predictUncertainty = False)
+			yu = self.predict(Xu, predictUncertainty = False)
+			yl = self.predict(Xl, predictUncertainty = False)
+			yll = self.predict(Xll, predictUncertainty = False)
 
-			self.yGradient[:, i] = (cuu*yuu + cu*yu + cl*yl + cll*yll)/h
+			# Estimate the gradient vector at these locations
+			gradient = (cuu*yuu + cu*yu + cl*yl + cll*yll)/lengthSteps
 
-			self.unscaledLengthScale = 1./(self.yGradient**2).sum(1)
+			self.yGradient[:, i] = clipQuantiles(gradient, 0.1, 0.9)
 
-	def prepareLengthScaleKriging(self):
+	def updateLengthScaleModel(self):
 
-		if self.X.shape[0] != self.unscaledLengthScale.shape[0]:
-			raise ValueError('WTF')
+		# Update the length scale GP model and train the model
+		self.gpLengthScale.setResponseData(self.lengthScale)
 
-		self.gpLengthScale = GaussianProcessRegression(self.X, self.unscaledLengthScale, kernel = kernels.se)
-		self.gpLengthScale.learn()
+		# Update the new length scale estimates
+		self.lengthScale = self.predictLengthScales(self.X)
 
+	def predictLengthScales(self, Xq):
 
-	def computeUnscaledLengthScales(self, Xq):
+		lengthScaleQuery = self.gpLengthScale.predict(Xq, predictUncertainty = False)
 
-		self.gpLengthScale.setData(self.X, np.clip(self.kernelHyperparams[1] * self.unscaledLengthScale, 1e-8, self.maxLengthScale) / self.kernelHyperparams[1])
-		unscaledLengthScaleQ = self.gpLengthScale.predict(Xq, predictUncertainty = False)
-
-		return(unscaledLengthScaleQ)
-
-	def getLengthScales(self, Xq = None):
-
-		if Xq == None:
-			return(np.clip(self.kernelHyperparams[1] * self.unscaledLengthScale, 1e-8, self.maxLengthScale))
-		else:
-			return(np.clip(self.kernelHyperparams[1] * self.computeUnscaledLengthScales(Xq), 1e-8, self.maxLengthScale))
-
-	# def K(self):
-
-	# 	lengthScales = np.clip(self.kernelHyperparams[1] * self.unscaledLengthScale, 1e-8, self.maxLengthScale)	
-
-	# 	(detLengthScales1, detLengthScales2) = np.meshgrid(lengthScales, lengthScales)
-
-	# 	detLengthScales1 = (detLengthScales1.T) ** self.k
-	# 	detLengthScales2 = (detLengthScales2.T) ** self.k
-	# 	averageLengthScales = (lengthScales[:, np.newaxis] + lengthScales[:, np.newaxis].T)/2
-	# 	detAverageLengthScales = averageLengthScales ** self.k
-
-	# 	a = cdist(self.X, self.X, 'sqeuclidean')/averageLengthScales
-
-	# 	multiplier = self.kernelHyperparams[0] * np.sqrt(np.sqrt(detLengthScales1 * detLengthScales2) / detAverageLengthScales)
-
-	# 	return(multiplier * np.exp(-a))
+		return(np.clip(lengthScaleQuery, self.minLengthScale, self.maxLengthScale))
 
 	def kernel(self, X1, X2):
 
-		lengthScales1 = np.clip(self.kernelHyperparams[1] * self.computeUnscaledLengthScales(X1), 1e-8, self.maxLengthScale)
-		lengthScales2 = np.clip(self.kernelHyperparams[1] * self.computeUnscaledLengthScales(X2), 1e-8, self.maxLengthScale)
+		# Find the length scales at X1 and X2
+		lengthScalesSq1 = self.predictLengthScales(X1)**2
+		lengthScalesSq2 = self.predictLengthScales(X2)**2
 
-		(detLengthScales1, detLengthScales2) = np.meshgrid(lengthScales1, lengthScales2)
+		# Find the determinant of the length scale matrix at X1 and X2
+		(detLengthScalesSq1, detLengthScalesSq2) = np.meshgrid(lengthScalesSq1, lengthScalesSq2)
+		detLengthScalesSq1 = (detLengthScalesSq1.T) ** self.k
+		detLengthScalesSq2 = (detLengthScalesSq2.T) ** self.k
 
-		detLengthScales1 = (detLengthScales1.T) ** self.k
-		detLengthScales2 = (detLengthScales2.T) ** self.k
-		averageLengthScales = (lengthScales1[:, np.newaxis] + lengthScales2[:, np.newaxis].T)/2
-		detAverageLengthScales = averageLengthScales ** self.k
+		# Find the average length scales between X1 and X2
+		averageLengthScalesSq = (lengthScalesSq1[:, np.newaxis] + lengthScalesSq2[:, np.newaxis].T)/2
 
-		a = cdist(X1, X2, 'sqeuclidean')/averageLengthScales
+		# Find the determinant of the average length scale matrix between X1 and X2
+		detAverageLengthScalesSq = averageLengthScalesSq ** self.k
 
-		multiplier = self.kernelHyperparams[0] * np.sqrt(np.sqrt(detLengthScales1 * detLengthScales2) / detAverageLengthScales)
+		# This is the exponent of the squared exponential kernel
+		a = 0.5 * cdist(X1, X2, 'sqeuclidean')/averageLengthScalesSq
 
+		# This is the sensitivity of the squared exponential kernel
+		multiplier = self.alpha**2 * np.sqrt(np.sqrt(detLengthScalesSq1 * detLengthScalesSq2) / detAverageLengthScalesSq)
+
+		# This is the non-stationary squared exponential kernel matrix
 		return(multiplier * np.exp(-a))
 
-	def learn(self):
+	def learn(self, theta = None, maxtime = 30, relearn = 0, optimiseLengthHyperparams = False, optimiseLengthSigma = False):
 
-
+		if relearn > 0:
+			optimiseLengthHyperparams = False
+			optimiseLengthSigma = False
 
 		# This function calculates the negative log(evidence) without the constant term
 		def negLogEvidence(theta, grad):
 
-			self.kernelHyperparams = theta[0:-1].copy()
-			self.sigma = theta[-1]
+			if optimiseLengthHyperparams:
+				self.lengthScale = theta[:-2]
+				self.gpLengthScale.setLearningResult(theta[-2:], 0)
+			else:
+				self.lengthScale = theta.copy()
+
+			self.updateLengthScaleModel()
 
 			self.S = self.kernel(self.X, self.X) + self.sigma**2 * self.I
 			self.L = choleskyjitter(self.S)
@@ -913,40 +1034,80 @@ class NonStationaryGaussianProcessRegression:
 			negLogEvidenceValue = 0.5 * self.y.dot(alpha) + np.sum(np.log(self.L.diagonal()))
 			
 			# VERBOSE
-			if negLogEvidence.lastPrintedSec != time.gmtime().tm_sec:
-				negLogEvidence.lastPrintedSec = time.gmtime().tm_sec
-				print('\t', theta, negLogEvidenceValue)
+			if VERBOSE:
+				negLogEvidence.counter += 1
+
+				if negLogEvidence.lastPrintedSec != time.gmtime().tm_sec:
+					negLogEvidence.lastPrintedSec = time.gmtime().tm_sec
+					if optimiseLengthHyperparams:
+						print(negLogEvidence.counter, '\t', self.lengthScale, self.stationaryLengthScale, self.gpLengthScale.kernelHyperparams, negLogEvidenceValue)
+					else:
+						print(negLogEvidence.counter, '\t', self.lengthScale, self.stationaryLengthScale, negLogEvidenceValue)
 
 			return(negLogEvidenceValue)
 
 		# VERBOSE
-		negLogEvidence.lastPrintedSec = -1
+		if VERBOSE:
+			negLogEvidence.lastPrintedSec = -1
+			negLogEvidence.counter = 0
 
-		# Initialise our optimiser with the right amount of parameters
-		opt = nlopt.opt(nlopt.LN_COBYLA, 3)
+		if VERBOSE:
+			if optimiseLengthHyperparams:
+				print('Format: (Iteration Counter) \t (--Length Scales--) (Stationary Length Scale) (--Length Scale Hyperparameters--) (negative-log-marginal-likelihood)')
+			else:
+				print('Format: (Iteration Counter) \t (--Length Scales--) (Stationary Length Scale) (negative-log-marginal-likelihood)')
 
-		# Set a non-zero but small lower bound for computational safety
-		opt.set_lower_bounds(np.array([1e-8, 1e-8, 0]))
+		if theta == None:
 
-		# Set an appropriate tolerance level
-		opt.set_ftol_rel(1e-5)
-		opt.set_xtol_rel(1e-2)
+			if optimiseLengthHyperparams:
+				thetaInitial = np.append(self.lengthScale.copy(), self.gpLengthScale.getKernelHyperparams())
+				lowerBounds = np.append(self.minLengthScale * np.ones(self.lengthScale.shape[0]), np.array([1e-8, self.stationaryLengthScale]))
+			else:
+				thetaInitial = self.lengthScale.copy()
+				lowerBounds = self.minLengthScale * np.ones(self.lengthScale.shape[0])
 
-		# We want to maximise the log-marginal-likelihood or log-evidence
-		opt.set_min_objective(negLogEvidence)
+			# Initialise our optimiser with the right amount of parameters
+			opt = nlopt.opt(nlopt.LN_COBYLA, thetaInitial.shape[0])
 
-		# Learn the hyper-parameters
-		thetaFinal = opt.optimize(np.append(self.kernelHyperparams, self.sigma))
+			# Set a non-zero but small lower bound for computational safety
 
-		# Obtain the log-marginal-likelihood
-		self.logMaginalLikelihood = -opt.last_optimum_value()
+			opt.set_lower_bounds(lowerBounds)
 
-		# Set the hyper-parameters
-		self.kernelHyperparams = thetaFinal[0:-1]
-		self.sigma =  thetaFinal[-1]
+			# Set an appropriate tolerance level
+			opt.set_ftol_rel(1e-2)
+			opt.set_xtol_rel(1e-2)
 
-		print('Finished Learning:')
-		print(self.kernelHyperparams, self.sigma)
+			# Don't let the optimiser run too long
+			opt.set_maxtime(maxtime)
+
+			# We want to maximise the log-marginal-likelihood or log-evidence
+			opt.set_min_objective(negLogEvidence)
+
+			# Learn the hyper-parameters
+			thetaFinal = opt.optimize(thetaInitial)
+
+			for i in range(relearn):
+				self.gpLengthScale.learn(sigma = 0, thetaLowerBound = self.gpLengthScale.getKernelHyperparams() * np.array([1, MINLENGTHSCALEFACTOR/LENGTHSCALEFACTOR]))
+				thetaFinal = opt.optimize(thetaFinal)
+
+			# Obtain the log-marginal-likelihood
+			self.logMaginalLikelihood = -opt.last_optimum_value()
+
+		else:
+
+			self.logMaginalLikelihood = -negLogEvidence(theta, np.zeros(theta.shape))
+
+
+		if VERBOSE:
+			if optimiseLengthHyperparams:
+				print('Finished Learning: (--Length Scales--) (Stationary Length Scale) (--Length Scale Hyperparameters--) (log-marginal-likelihood)')
+				print(self.lengthScale, self.stationaryLengthScale, self.gpLengthScale.kernelHyperparams, self.logMaginalLikelihood)
+			else:
+				print('Finished Learning: (--Length Scales--) (Stationary Length Scale) (log-marginal-likelihood)')
+				print(self.lengthScale, self.stationaryLengthScale, self.logMaginalLikelihood)
+
+		# Compute the gradient of the model for the sake of it
+		self.updateGradient()
 
 	def predict(self, Xq, predictUncertainty = True, predictObservations = False):
 
@@ -955,10 +1116,11 @@ class NonStationaryGaussianProcessRegression:
 		Kq = self.kernel(self.X, Xq)
 		fqExp = np.dot(Kq.T, alpha) + self.yMean
 
+		# Compute the prediction covariance using the standard Gaussian Process Prediction Algorithm if requested
 		if predictUncertainty:
 			v = la.solve_triangular(self.L, Kq, lower = True, check_finite = False)
 			Kqq = self.kernel(Xq, Xq)
-			fqVar = Kqq - np.dot(v.T, v)
+			fqVar = (Kqq - np.dot(v.T, v))
 
 		# Depending on if the user wants the one for latent function or output function, return the correct expected values and covariance matrix
 		if predictUncertainty:
@@ -968,204 +1130,3 @@ class NonStationaryGaussianProcessRegression:
 				return(fqExp, fqVar)
 		else:
 			return(fqExp)
-
-
-
-
-
-
-
-
-
-
-
-class NonStationaryAnisotropicGaussianProcessRegression:
-
-	def __init__(self, X, y):
-
-		# Set the data 
-		self.setData(X, y)
-
-		self.computeGradient()
-		self.prepareLengthScaleKriging()
-
-
-		self.initialiseKernelHyperparameters()
-		self.initialiseNoiseLevel()
-
-	# This sets the data of the Gaussian Process Model
-	# This is called once automatically during the class initialisation
-	# So, if you call it again, by implementation this means that you are overwriting the original data
-	# By default, the class state will go back to being INITIALISED, even if it has LEARNED before
-	# If the model has learned already and you would like to use the previous learning result (if you expect the previous model will work well with this new data), you can just set 'learned' to 'True'
-	def setData(self, X, y):
-
-		# Set the data matrix X and observed output data vector y
-		# We do some basic whitening here by just making sure our output data has zero mean
-		# We only add the mean back during the prediction stage
-		# Otherwise, all analysis is done on the slightly whitened data vector y
-		self.X = X.copy()
-		self.yMean = np.mean(y)
-		self.y = y.copy() - self.yMean
-
-		# This is the number of observed data points and number of features from the data matrix
-		(self.n, self.k) = np.shape(X)
-
-		# We can initialise the appropriate identity matrix here for later use
-		self.I = np.eye(self.n)	
-
-	def initialiseKernelHyperparameters(self):
-
-		# alpha and a
-		self.kernelHyperparams = np.array([1, 1])
-
-	def initialiseNoiseLevel(self):
-
-		self.sigma = 0
-
-	def computeGradient(self):
-
-		gps = GaussianProcessRegression(self.X, self.y, kernels.se)
-		gps.learn()
-		originalKernelHyperparameters = gps.getKernelParams()
-		lengthSteps = 0.5 * originalKernelHyperparameters[1:]
-		
-		self.yGradient = np.zeros(self.X.shape)
-
-		cuu = -1/12
-		cu = 2/3
-		cl = -cu
-		cll = -cuu
-
-		for i in range(self.k):
-
-			oneLengthStep = np.zeros(lengthSteps.shape)
-			h = lengthSteps[i]
-			oneLengthStep[i] = h
-
-			Xuu = self.X + 2*oneLengthStep
-			Xu = self.X + oneLengthStep
-			Xl = self.X - oneLengthStep
-			Xll = self.X - 2*oneLengthStep
-
-			yuu = gps.predict(Xuu, predictUncertainty = False)
-			yu = gps.predict(Xu, predictUncertainty = False)
-			yl = gps.predict(Xl, predictUncertainty = False)
-			yll = gps.predict(Xll, predictUncertainty = False)
-
-			self.yGradient[:, i] = (cuu*yuu + cu*yu + cl*yl + cll*yll)/h
-
-			self.unscaledLengthScales = 1/self.yGradient**2
-
-
-	def prepareLengthScaleKriging(self):
-
-		self.gpLengthScales = []
-
-		for i in range(self.k):
-
-			gp = GaussianProcessRegression(self.X, self.unscaledLengthScales[:, i], kernel = kernels.se)
-			gp.learn(sigma = 0)
-			self.gpLengthScales += [gp]
-
-	def getUnscaledLengthScales(self, Xq):
-
-		lengthScales = np.zeros(Xq.shape)
-
-		for i in range(self.k):
-
-			lengthScales[:, i] = self.gpLengthScales[i].predict(Xq, predictUncertainty = False)
-
-		return(lengthScales)
-
-	# This is incorrect
-	def kernel(self, X1, X2):
-
-		lengthScales1 = self.kernelHyperparams[1] * self.getUnscaledLengthScales(X1)
-		lengthScales2 = self.kernelHyperparams[1] * self.getUnscaledLengthScales(X2)
-
-		averageLengthScales = (lengthScales1 + lengthScales2)/2
-		detAverageLengthScales = np.prod(averageLengthScales)
-		detLengthScales1 = np.prod(lengthScales1)
-		detLengthScales2 = np.prod(lengthScales2)
-
-		a = cdist(X1, X2, 'sqeuclidean')/averageLengthScales
-
-		multiplier = self.kernelHyperparams[0] * np.sqrt(np.sqrt(detLengthScales1 * detLengthScales2) / detAverageLengthScales)
-
-		return(multiplier * np.exp(-a))
-
-	def learn(self):
-
-
-
-		# This function calculates the negative log(evidence) without the constant term
-		def negLogEvidence(theta, grad):
-
-			self.kernelHyperparams = theta[0:-1].copy()
-			self.sigma = theta[-1]
-
-			self.K = self.kernel(self.X, self.X)
-			self.S = self.K + self.sigma**2 * self.I
-			self.L = choleskyjitter(self.S)
-
-			alpha = la.solve_triangular(self.L.T, la.solve_triangular(self.L, self.y, lower = True, check_finite = False), check_finite = False)
-			negLogEvidenceValue = 0.5 * self.y.dot(alpha) + np.sum(np.log(self.L.diagonal()))
-			
-			# VERBOSE
-			if negLogEvidence.lastPrintedSec != time.gmtime().tm_sec:
-				negLogEvidence.lastPrintedSec = time.gmtime().tm_sec
-				print('\t', theta, negLogEvidenceValue)
-
-			return(negLogEvidenceValue)
-
-		# VERBOSE
-		negLogEvidence.lastPrintedSec = -1
-
-		# Initialise our optimiser with the right amount of parameters
-		opt = nlopt.opt(nlopt.LN_COBYLA, 3)
-
-		# Set a non-zero but small lower bound for computational safety
-		opt.set_lower_bounds(np.array([1e-8, 1e-8, 0]))
-
-		# Set an appropriate tolerance level
-		opt.set_ftol_rel(1e-7)
-		opt.set_xtol_rel(1e-7)
-
-		# We want to maximise the log-marginal-likelihood or log-evidence
-		opt.set_min_objective(negLogEvidence)
-
-		# Learn the hyper-parameters
-		thetaFinal = opt.optimize(np.append(self.kernelHyperparams, self.sigma))
-
-		# Obtain the log-marginal-likelihood
-		self.logMaginalLikelihood = -opt.last_optimum_value()
-
-		# Set the hyper-parameters
-		self.kernelHyperparams = thetaFinal[0:-1]
-		self.sigma =  thetaFinal[-1]
-
-		print('Finished Learning:')
-		print(self.kernelHyperparams, self.sigma)
-
-	def predict(self, Xq, predictUncertainty = True, predictObservations = False):
-
-		# Compute the prediction using the standard Gaussian Process Prediction Algorithm
-		alpha = la.solve_triangular(self.L.T, la.solve_triangular(self.L, self.y, lower = True, check_finite = False), check_finite = False)
-		Kq = self.kernel(self.X, Xq)
-		fqExp = np.dot(Kq.T, alpha) + self.yMean
-
-		if predictUncertainty:
-			v = la.solve_triangular(self.L, Kq, lower = True, check_finite = False)
-			Kqq = self.kernel(Xq, Xq)
-			fqVar = Kqq - np.dot(v.T, v)
-
-		# Depending on if the user wants the one for latent function or output function, return the correct expected values and covariance matrix
-		if predictUncertainty:
-			if predictObservations:
-				return(fqExp, fqVar + self.sigma**2 * np.eye(fqVar.shape[0]))
-			else:
-				return(fqExp, fqVar)
-		else:
-			return(fqExp)
-

@@ -5,13 +5,14 @@ import kernels
 
 x = np.linspace(-5, 5, num = 20)
 x = np.append(x, x)
+
 y = x**2 * np.sin(x) + 2*np.random.randn(x.shape[0])
 xq = np.linspace(-5, 5, num = 100)
 
 X = x[:, np.newaxis]
 Xq = xq[:, np.newaxis]
 
-gpr = GaussianProcessModel.GaussianProcessRegression(X, y)
+gpr = GaussianProcessModel.GaussianProcessRegression(X, y, kernel = kernels.seiso)
 
 gpr.learn()
 

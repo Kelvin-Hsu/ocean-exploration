@@ -125,6 +125,17 @@ m52.name = 'Matern 5/2 Kernel'
 m52.thetaNames = s + l
 m52.type = ANISOTROPIC
 
+def seiso(X1, X2):
+
+	return( (seiso.theta[0])**2 * np.exp( -0.5 * cdist(X1, X2, 'sqeuclidean') / (seiso.theta[1])**2 ) )
+
+seiso.k = 1
+seiso.theta = np.ones(2)
+seiso.thetaInitial = np.ones(2)
+seiso.name = 'Squared Exponential Isotropic Kernel'
+seiso.thetaNames = s + l
+seiso.type = ISOTROPIC
+
 def m12iso(X1, X2):
 
 	return( m12.theta[0]**2 * np.exp(-cdist(X1, X2, 'euclidean')/m12.theta[1]) )
@@ -149,7 +160,7 @@ m32iso.type = ISOTROPIC
 
 def m52iso(X1, X2):
 
-	a2 = 5 * cdist(X1, X2, 'euclidean')/(m52.theta[1]**2)
+	a2 = 5 * cdist(X1, X2, 'sqeuclidean')/(m52.theta[1]**2)
 
 	a = np.sqrt(a2)
 
