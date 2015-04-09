@@ -61,30 +61,30 @@ yqStdStat = np.sqrt(yqVarStat.diagonal())
 yqLStat = yqExpStat - 2 * yqStdStat
 yqUStat = yqExpStat + 2 * yqStdStat
 
+yqTrue = func(xq)
+
 NUMPLTS = 5
 
 plt.figure(1)
 plt.subplot(NUMPLTS, 1, 1)
 plt.scatter(x, y, c = 'g', label = 'Raw Data')
-yqTrue = func(xq)
 plt.plot(xq, yqTrue, c = 'g', label = 'Actual Function')
 plt.plot(xq, yqExp, c = 'b', label = 'GP Predicted Function')
 plt.fill_between(xq, yqU, yqL, facecolor = 'cyan', alpha = 0.2)
 plt.title('Non-Stationary Gaussian Process Result')
 plt.xlabel('x')
 plt.ylabel('y')
-plt.legend()
+plt.legend(loc = 'upper left')
 
 plt.subplot(NUMPLTS, 1, 2)
 plt.scatter(x, y, c = 'g', label = 'Raw Data')
-yqTrue = func(xq)
 plt.plot(xq, yqTrue, c = 'g', label = 'Actual Function')
 plt.plot(xq, yqExpStat, c = 'b', label = 'GP Predicted Function')
 plt.fill_between(xq, yqUStat, yqLStat, facecolor = 'cyan', alpha = 0.2)
 plt.title('Stationary Gaussian Process Result')
 plt.xlabel('x')
 plt.ylabel('y')
-plt.legend()
+plt.legend(loc = 'upper left')
 
 plt.subplot(NUMPLTS, 1, 3)
 plt.scatter(x, lengthScales, c = 'c')

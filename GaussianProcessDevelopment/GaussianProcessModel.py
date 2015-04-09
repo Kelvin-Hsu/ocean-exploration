@@ -805,8 +805,8 @@ def clipQuantiles(array, qs, qf):
 	array = np.clip(array, arrayMin, arrayMax)
 	return(array)
 
-LENGTHSCALEFACTOR = 50
-MINLENGTHSCALEFACTOR = 5
+LENGTHSCALEFACTOR = 15
+MINLENGTHSCALEFACTOR = 0.1
 
 ## class 'NonStationaryGaussianProcessRegression'
 # 
