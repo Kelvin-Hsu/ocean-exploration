@@ -50,6 +50,18 @@ def data2mesh(data, meshshape, zs = None):
 # 	y[x1 > 1] = y[x1 > 1] - 20
 # 	return(y)
 
+def getBounds(fqExp, fqVar, std = 2, returnStd = False):
+
+	fqStd = np.sqrt(fqVar.diagonal())
+
+	fqU = fqExp + std*fqStd
+	fqL = fqExp - std*fqStd
+
+	if returnStd:
+		return(fqU, fqL, fqStd)
+	else:
+		return(fqU, fqL)
+
 def func(X):
 
 	x1 = X[:, 0]
@@ -58,16 +70,24 @@ def func(X):
 	y[x1 + x2 > 0] = y[x1 + x2 > 0] + 10
 	return(y)
 
-noiseLevel = 1
-numberOfTrainingPoints = 250
-numberOfValidationPoints = 500
+noiseLevel = 0
+numberOfTrainingPoints = 100
+numberOfValidationPoints = 800
+
+np.random.seed(300)
 
 halfRange = 5
 k = 2
 X = 2 * halfRange * (1 - (np.random.rand(numberOfTrainingPoints, k))) - halfRange
+x1add = np.linspace(-0.2, 0.4, num = 2)
+x2add = np.zeros(x1add.shape)
+Xadd = np.concatenate((x1add[:, np.newaxis], x2add[:, np.newaxis]), axis = 1)
+X = np.concatenate((X, Xadd), axis = 0)
+
 x1 = X[:, 0]
 x2 = X[:, 1]
-y = func(X) # + # noiseLevel * np.random.randn(x.shape[0])
+yTrue = func(X)
+y = yTrue+ noiseLevel * np.random.randn(yTrue.shape[0])
 
 xq = np.linspace(-halfRange, halfRange, num = int(np.sqrt(numberOfValidationPoints)))
 
@@ -78,24 +98,21 @@ Xq = mesh2data(xq1Mesh, xq2Mesh)
 yqTrue = func(Xq)
 
 gpr = GaussianProcessModel.NonStationaryGaussianProcessRegression(X, y)
+gpr.setInitialHyperLengthScale(15, relative = True)
 
 GaussianProcessModel.VERBOSE = True
 np.set_printoptions(precision = 2)
-gpr.learn(relearn = 1, optimiseLengthHyperparams = False)
+gpr.learn(relearn = 1, optimiseLengthHyperparams = True)
 np.set_printoptions(precision = 10)
 
 lengthScales = gpr.predictLengthScales(X)
 lengthScalesQ = gpr.predictLengthScales(Xq)
 
 (yqExp, yqVar) = gpr.predict(Xq)
-yqStd = np.sqrt(yqVar.diagonal())
-yqL = yqExp - 2 * yqStd
-yqU = yqExp + 2 * yqStd
+(yqU, yqL, yqStd) = getBounds(yqExp, yqVar, returnStd = True)
 
 (yqExpStat, yqVarStat) = gpr.gpStationary.predict(Xq)
-yqStdStat = np.sqrt(yqVarStat.diagonal())
-yqLStat = yqExpStat - 2 * yqStdStat
-yqUStat = yqExpStat + 2 * yqStdStat
+(yqUStat, yqLStat, yqStdStat) = getBounds(yqExpStat, yqVarStat, returnStd = True)
 
 NUMPLTS = 5
 
@@ -113,7 +130,7 @@ minYplt = np.min(np.array([yqTrueMesh.min(), yqExpMesh.min(), yqExpStatMesh.min(
 fig1 = plt.figure(1)
 ax1 = fig1.add_subplot(111, projection = '3d')
 ax1.scatter(x1, x2, y, c = 'g', label = 'Raw Data')
-ax1.plot_surface(xq1Mesh, xq2Mesh, yqTrueMesh, color = 'green', label = 'True Surface')
+ax1.plot_surface(xq1Mesh, xq2Mesh, yqTrueMesh, rstride = 1, cstride = 1, color = 'green', linewidth = 0, antialiased = False, alpha = 0.5, label = 'True Surface')
 plt.title('Ground Truth')
 ax1.set_xlabel('x1')
 ax1.set_ylabel('x2')
@@ -123,7 +140,7 @@ ax1.legend()
 fig2 = plt.figure(2)
 ax2 = fig2.add_subplot(111, projection = '3d')
 ax2.scatter(x1, x2, y, c = 'g', label = 'Raw Data')
-ax2.plot_surface(xq1Mesh, xq2Mesh, yqExpMesh, cmap = cm.coolwarm, label = 'GP Predicted Surface')
+ax2.plot_surface(xq1Mesh, xq2Mesh, yqExpMesh, rstride = 1, cstride = 1, cmap = cm.coolwarm, linewidth = 0, antialiased = False, label = 'GP Predicted Surface')
 ax2.plot_surface(xq1Mesh, xq2Mesh, yqTrueMesh, color = 'green', alpha = 0.1, label = 'True Surface')
 levels = np.linspace(np.min(yqStdMesh),np.max(yqStdMesh), 50)
 contourPlt = ax2.contour(xq1Mesh, xq2Mesh, yqStdMesh, levels, zdir = 'z', offset = minYplt, cmap = cm.coolwarm)
@@ -137,7 +154,7 @@ ax2.legend()
 fig3 = plt.figure(3)
 ax3 = fig3.add_subplot(111, projection = '3d')
 ax3.scatter(x1, x2, y, c = 'g', label = 'Raw Data')
-ax3.plot_surface(xq1Mesh, xq2Mesh, yqExpStatMesh, cmap = cm.coolwarm, label = 'GP Predicted Surface')
+ax3.plot_surface(xq1Mesh, xq2Mesh, yqExpStatMesh, rstride = 1, cstride = 1, cmap = cm.coolwarm, linewidth = 0, antialiased = False, label = 'GP Predicted Surface')
 ax3.plot_surface(xq1Mesh, xq2Mesh, yqTrueMesh, color = 'green', alpha = 0.1, label = 'True Surface')
 levels = np.linspace(np.min(yqStdStatMesh),np.max(yqStdStatMesh), 50)
 contourPlt = ax3.contour(xq1Mesh, xq2Mesh, yqStdStatMesh, levels, zdir = 'z', offset = minYplt, cmap = cm.coolwarm)
@@ -150,8 +167,8 @@ ax3.legend()
 
 fig4 = plt.figure(4)
 ax4 = fig4.add_subplot(111, projection = '3d')
-ax4.plot_surface(xq1Mesh, xq2Mesh, lengthScalesQMesh, cmap = cm.coolwarm)
-ax4.plot_surface(xq1Mesh, xq2Mesh, gpr.getStationaryLengthScale() * np.ones(lengthScalesQMesh.shape), color = 'green', alpha = 0.1)
+ax4.plot_surface(xq1Mesh, xq2Mesh, lengthScalesQMesh, rstride = 1, cstride = 1, cmap = cm.coolwarm, linewidth = 0, antialiased = False, label = 'GP Underlying Length Scale')
+ax4.plot_surface(xq1Mesh, xq2Mesh, gpr.getStationaryLengthScale() * np.ones(lengthScalesQMesh.shape), color = 'green', alpha = 0.1, label = 'Stationary GP Underlying Length Scale')
 plt.title('Underlying Length Scale')
 ax4.set_xlabel('x1')
 ax4.set_ylabel('x2')
@@ -170,14 +187,10 @@ Xq_1D = np.concatenate((x1q_1D[:, np.newaxis], x2q_1D[:, np.newaxis]), axis = 1)
 yqTrue_1D = func(Xq_1D)
 
 (yqExp_1D, yqVar_1D) = gpr.predict(Xq_1D)
-yqStd_1D = np.sqrt(yqVar_1D.diagonal())
-yqL_1D = yqExp_1D - 2 * yqStd_1D
-yqU_1D = yqExp_1D + 2 * yqStd_1D
+(yqU_1D, yqL_1D, yqStd_1D) = getBounds(yqExp_1D, yqVar_1D, returnStd = True)
 
 (yqExpStat_1D, yqVarStat_1D) = gpr.gpStationary.predict(Xq_1D)
-yqStdStat_1D = np.sqrt(yqVarStat_1D.diagonal())
-yqLStat_1D = yqExpStat_1D - 2 * yqStdStat_1D
-yqUStat_1D = yqExpStat_1D + 2 * yqStdStat_1D
+(yqUStat_1D, yqLStat_1D, yqStdStat_1D) = getBounds(yqExpStat_1D, yqVarStat_1D, returnStd = True)
 
 lengthScales_1D = gpr.predictLengthScales(X_1D)
 lengthScalesQ_1D = gpr.predictLengthScales(Xq_1D)
@@ -217,10 +230,16 @@ plt.ylabel('Length Scale')
 cbar = plt.colorbar()
 cbar.set_label('x2')
 
-print('Sensitivity:', gpr.getSensitivity())
-print('Stationary Length Scale:', gpr.getStationaryLengthScale())
-print('Noise Level:', gpr.getNoiseLevel())
-print('Length Scale Kernel Hyperparameters:', gpr.getLengthScaleKernelHyperparams())
-print('Length Scale Noise Level:', gpr.getLengthScaleNoiseLevel())
-print('Length Scale GP Length Scale Factor From Stationary GP Length Scale:', gpr.getLengthScaleKernelHyperparams()[1]/gpr.getStationaryLengthScale())
+print('Stationary & Non-Stationary GP Kernel Sensitivity:', gpr.getSensitivity())
+print('Stationary GP Length Scale:', gpr.getStationaryLengthScale())
+print('Stationary & Non-Stationary GP Noise Level:', gpr.getNoiseLevel())
+print('Length Scale GP Kernel Hyperparameters:', gpr.getLengthScaleKernelHyperparams())
+print('Length Scale GP Noise Level:', gpr.getLengthScaleNoiseLevel())
+print('Initial Hyper Length Scale Factor:', gpr.getInitialHyperLengthScale())
+print('Minimum Hyper Length Scale Factor:', gpr.getMinHyperLengthScale())
+print('Hyper Length Scale Factor:', gpr.getCurrentHyperLengthScale())
+print('Initial Hyper Length Scale Factor (Relative):', gpr.getInitialHyperLengthScale(relative = True))
+print('Minimum Hyper Length Scale Factor (Relative):', gpr.getMinHyperLengthScale(relative = True))
+print('Hyper Length Scale Factor (Relative):', gpr.getCurrentHyperLengthScale(relative = True))
+
 plt.show()

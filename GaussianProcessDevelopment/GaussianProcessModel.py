@@ -805,9 +805,6 @@ def clipQuantiles(array, qs, qf):
 	array = np.clip(array, arrayMin, arrayMax)
 	return(array)
 
-LENGTHSCALEFACTOR = 15
-MINLENGTHSCALEFACTOR = 0.1
-
 ## class 'NonStationaryGaussianProcessRegression'
 # 
 #  --Description--
@@ -822,6 +819,9 @@ class NonStationaryGaussianProcessRegression:
 
 		# Model the data with a stationary GP first
 		self.learnStationaryModel()
+
+		self.setInitialHyperLengthScale(15, relative = True)
+		self.setMinHyperLengthScale(0.1, relative = True)
 
 		# Initialise the maximum length scale
 		self.setMaxLengthScale(np.Inf)
@@ -850,6 +850,22 @@ class NonStationaryGaussianProcessRegression:
 
 		# We can initialise the appropriate identity matrix here for later use
 		self.I = np.eye(self.n)
+
+	def setInitialHyperLengthScale(self, hyperLengthScaleInitial, relative = False):
+
+		if relative:
+			self.hyperLengthScaleInitial = self.gpStationary.getKernelHyperparams()[1] * hyperLengthScaleInitial
+		else:
+			self.hyperLengthScaleInitial =  hyperLengthScaleInitial
+
+		self.gpLengthScale.setLearningResult(np.array([self.gpLengthScale.getKernelHyperparams()[0], self.hyperLengthScaleInitial]), 2)
+
+	def setMinHyperLengthScale(self, hyperLengthScaleMin, relative = False):
+
+		if relative:
+			self.hyperLengthScaleMin = self.gpStationary.getKernelHyperparams()[1] * hyperLengthScaleMin
+		else:
+			self.hyperLengthScaleMin =  hyperLengthScaleMin
 
 	def setSensitivity(self, alpha):
 
@@ -909,6 +925,34 @@ class NonStationaryGaussianProcessRegression:
 
 		return(self.gpLengthScale.sigma)
 
+	def getInitialHyperLengthScale(self, relative = False):
+
+		if relative:
+			return(self.hyperLengthScaleInitial/self.getStationaryLengthScale())
+		else:
+			return(self.hyperLengthScaleInitial)
+
+	def getInitialHyperLengthScale(self, relative = False):
+
+		if relative:
+			return(self.hyperLengthScaleInitial/self.getStationaryLengthScale())
+		else:
+			return(self.hyperLengthScaleInitial)
+
+	def getMinHyperLengthScale(self, relative = False):
+
+		if relative:
+			return(self.hyperLengthScaleMin/self.getStationaryLengthScale())
+		else:
+			return(self.hyperLengthScaleMin)
+
+	def getCurrentHyperLengthScale(self, relative = False):
+
+		if relative:
+			return(self.getLengthScaleKernelHyperparams()[1]/self.getStationaryLengthScale())
+		else:
+			return(self.getLengthScaleKernelHyperparams()[1])
+			
 	def learnStationaryModel(self):
 
 		# Generate a stationary gaussian process regression model on the data
@@ -930,7 +974,7 @@ class NonStationaryGaussianProcessRegression:
 
 		# Initialise a GP on the length scale
 		self.gpLengthScale = GaussianProcessRegression(self.X, self.lengthScale, kernel = kernels.seiso)
-		self.gpLengthScale.setLearningResult(self.gpStationary.getKernelHyperparams() * np.array([1, LENGTHSCALEFACTOR]), 2)
+		self.gpLengthScale.setLearningResult(self.gpStationary.getKernelHyperparams() * np.array([1, 50]), 2)
 
 	# Given model with length scale, compute gradient
 	def updateGradient(self):
@@ -1010,16 +1054,17 @@ class NonStationaryGaussianProcessRegression:
 		# This is the non-stationary squared exponential kernel matrix
 		return(multiplier * np.exp(-a))
 
-	def learn(self, theta = None, maxtime = 30, relearn = 0, optimiseLengthHyperparams = False, optimiseLengthSigma = False):
+	def learn(self, theta = None, maxtime = 30, relearn = 0, optimiseLengthHyperparams = False, _optimiseLengthHyperparams = False, _optimiseLengthSigma = False):
 
 		if relearn > 0:
 			optimiseLengthHyperparams = False
-			optimiseLengthSigma = False
+			_optimiseLengthHyperparams = False
+			_optimiseLengthSigma = False
 
 		# This function calculates the negative log(evidence) without the constant term
 		def negLogEvidence(theta, grad):
 
-			if optimiseLengthHyperparams:
+			if _optimiseLengthHyperparams:
 				self.lengthScale = theta[:-2]
 				self.gpLengthScale.setLearningResult(theta[-2:], 0)
 			else:
@@ -1039,7 +1084,7 @@ class NonStationaryGaussianProcessRegression:
 
 				if negLogEvidence.lastPrintedSec != time.gmtime().tm_sec:
 					negLogEvidence.lastPrintedSec = time.gmtime().tm_sec
-					if optimiseLengthHyperparams:
+					if _optimiseLengthHyperparams:
 						print(negLogEvidence.counter, '\t', self.lengthScale, self.stationaryLengthScale, self.gpLengthScale.kernelHyperparams, negLogEvidenceValue)
 					else:
 						print(negLogEvidence.counter, '\t', self.lengthScale, self.stationaryLengthScale, negLogEvidenceValue)
@@ -1052,14 +1097,14 @@ class NonStationaryGaussianProcessRegression:
 			negLogEvidence.counter = 0
 
 		if VERBOSE:
-			if optimiseLengthHyperparams:
+			if _optimiseLengthHyperparams:
 				print('Format: (Iteration Counter) \t (--Length Scales--) (Stationary Length Scale) (--Length Scale Hyperparameters--) (negative-log-marginal-likelihood)')
 			else:
 				print('Format: (Iteration Counter) \t (--Length Scales--) (Stationary Length Scale) (negative-log-marginal-likelihood)')
 
 		if theta == None:
 
-			if optimiseLengthHyperparams:
+			if _optimiseLengthHyperparams:
 				thetaInitial = np.append(self.lengthScale.copy(), self.gpLengthScale.getKernelHyperparams())
 				lowerBounds = np.append(self.minLengthScale * np.ones(self.lengthScale.shape[0]), np.array([1e-8, self.stationaryLengthScale]))
 			else:
@@ -1087,9 +1132,12 @@ class NonStationaryGaussianProcessRegression:
 			thetaFinal = opt.optimize(thetaInitial)
 
 			for i in range(relearn):
-				self.gpLengthScale.learn(sigma = 0, thetaLowerBound = self.gpLengthScale.getKernelHyperparams() * np.array([1, MINLENGTHSCALEFACTOR/LENGTHSCALEFACTOR]))
+				self.gpLengthScale.learn(sigma = 0, thetaLowerBound =  np.array([self.gpLengthScale.getKernelHyperparams()[0], self.hyperLengthScaleMin]))
 				thetaFinal = opt.optimize(thetaFinal)
 
+			if optimiseLengthHyperparams:
+				self.learn(_optimiseLengthHyperparams = True)
+				
 			# Obtain the log-marginal-likelihood
 			self.logMaginalLikelihood = -opt.last_optimum_value()
 
@@ -1099,7 +1147,7 @@ class NonStationaryGaussianProcessRegression:
 
 
 		if VERBOSE:
-			if optimiseLengthHyperparams:
+			if _optimiseLengthHyperparams:
 				print('Finished Learning: (--Length Scales--) (Stationary Length Scale) (--Length Scale Hyperparameters--) (log-marginal-likelihood)')
 				print(self.lengthScale, self.stationaryLengthScale, self.gpLengthScale.kernelHyperparams, self.logMaginalLikelihood)
 			else:

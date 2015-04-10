@@ -23,17 +23,15 @@ def func(x):
 # 	y = x**2
 # 	return(y)
 
-noiseLevel = 1
-numberOfTrainingPoints = 100
+noiseLevel = 0.1
+numberOfTrainingPoints = 80
 halfRange = 5
 x = 2 * halfRange * (1 - (np.random.rand(numberOfTrainingPoints))) - halfRange
 x = np.append(x, np.array([-1.1, -0.9, 0.9, 1.1]))
-y = func(x) # + # noiseLevel * np.random.randn(x.shape[0])
+y = func(x) + noiseLevel * np.random.randn(x.shape[0])
 
 
-print(y)
-
-xq = np.linspace(x.min(), x.max(), num = 200)
+xq = np.linspace(x.min(), x.max(), num = 400)
 
 X = x[:, np.newaxis]
 Xq = xq[:, np.newaxis]
