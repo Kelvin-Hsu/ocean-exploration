@@ -16,6 +16,7 @@ import scipy as sp
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from computers import gp
+import computers.unsupervised.whitening as pre
 import time
 
 import logging
@@ -23,6 +24,8 @@ import sys
 import os
 
 logging.basicConfig(stream = sys.stdout, level = logging.DEBUG)
+
+DEBUG = True
 
 def remove_nan_queries(query_locations_old, query_features_old):
 
@@ -32,12 +35,12 @@ def remove_nan_queries(query_locations_old, query_features_old):
     query_locations_new = query_locations_old.copy()
     query_features_new = query_features_old.copy()
 
-    for ikq in range(kq):
+    valid_indices = ~np.isnan(query_features_new.mean(axis = 1))
 
-        q_feature = query_features_new[:, ikq]
-        query_locations_new = query_locations_new[~np.isnan(q_feature)]
-        query_features_new = query_features_new[~np.isnan(q_feature)]
+    query_locations_new = query_locations_new[valid_indices]
+    query_features_new = query_features_new[valid_indices]
 
+    assert ~np.any(np.isnan(query_features_new))
     logging.debug('removed nan queries.')
 
     return query_locations_new, query_features_new
@@ -77,9 +80,9 @@ def main():
     directory_data = 'C:/Users/kkeke_000/Dropbox/Thesis/Data/'
     directory_bathymetry_raw_data = directory_data + \
     	'scott_reef_wrangled_bathymetry3.pkl'
-    directory_training_data = directory_data + 'bathAndLabels_10.npz'
-    directory_query_points = directory_data + 'queryPoints.npz'
-    directory_query_points_clean = directory_data + 'queryPointsClean.npz'
+    directory_training_data = directory_data + 'training_data.npz'
+    directory_query_points = directory_data + 'query_points.npz'
+    directory_query_points_clean = directory_data + 'query_points_clean.npz'
 
     training_data = np.load(directory_training_data)
 
@@ -92,12 +95,12 @@ def main():
 
     if os.path.isfile(directory_query_points_clean):
 
-        query_data = np.load(directory_query_points)
+        query_data = np.load(directory_query_points_clean)
 
         print('loading query locations...')
         query_locations_raw = query_data['locations']
         print('loading query features...')
-        query_features_raw = query_data['query']
+        query_features_raw = query_data['features']
 
         query_locations = query_locations_raw
         query_features  = query_features_raw
@@ -109,14 +112,15 @@ def main():
         print('loading query locations...')
         query_locations_raw = query_data['locations']
         print('loading query features...')
-        query_features_raw = query_data['query']
+        query_features_raw = query_data['features']
 
         print('removing nan queries...')
         (query_locations, query_features) = \
             remove_nan_queries(query_locations_raw, query_features_raw)
 
+        print('saving cleaned data to "%s"' % directory_query_points_clean)
         np.savez(directory_query_points_clean, 
-            locations = query_locations, query = query_features)
+            locations = query_locations, features = query_features)
 
     print('Data Loading Done.')
 
@@ -158,54 +162,87 @@ def main():
     print('Sampled Number of Query Points: %d' % n_query_sample)
 
     """
-    Visualise Sampled Training and Query Locations
+    Loading and Sampling Assertions
+    """
+
+    assert ~np.any(np.isnan(query_features))
+    assert ~np.any(np.isnan(query_features_sample))
+
+    """
+    Whiten the feature space
+    """
+
+    print('Applying whitening on training and query features...')
+    (training_features_sample_whiten, whiten_params) = \
+        pre.standardise(training_features_sample)
+
+    query_features_sample_whiten = \
+        pre.standardise(query_features_sample, params = whiten_params)
+
+    print('Whitening Parameters:')
+    print(whiten_params)
+
+    """
+    Visualise Sampled Training Locations
     """
 
     fig = plt.figure()
     plt.scatter(
         training_locations_sample[:, 0], training_locations_sample[:, 1], 
-        marker = 'x', c = training_labels_sample, cmap = mycmap)
+        marker = 'x', c = training_labels_sample, 
+        vmin = unique_labels_sample[0], vmax = unique_labels_sample[-1], 
+        cmap = mycmap)
     plt.title('Training Labels')
     plt.xlabel('x [Eastings (m)]')
     plt.ylabel('y [Northings (m)]')
+
     cbar = plt.colorbar()
     cbar.set_ticks(unique_labels_sample)
     cbar.set_ticklabels(unique_labels_sample)
     if vis_fix_range:
         plt.xlim((vis_x_min, vis_x_max))
         plt.ylim((vis_y_min, vis_y_max))
-
-    fig = plt.figure()
-    plt.scatter(
-        query_locations_sample[:, 0], query_locations_sample[:, 1], 
-        marker = 'x', c = [0.5, 0, 1], cmap = mycmap)
-    plt.title('Query Locations')
-    plt.xlabel('x [Eastings (m)]')
-    plt.ylabel('y [Northings (m)]')
-    if vis_fix_range:
-        plt.xlim((vis_x_min, vis_x_max))
-        plt.ylim((vis_y_min, vis_y_max))
-
+    plt.gca().set_aspect('equal', adjustable = 'box')
     plt.show(block = False)
 
     """
-    Visualise Sampled Features at Query Locations
+    Visualise Features at Sampled Query Locations
     """
 
     for k in range(k_features):
-        fig = plt.figure()
+        fig = plt.figure(figsize = (16, 8))
         plt.scatter(
             query_locations_sample[:, 0], query_locations_sample[:, 1], 
             marker = 'x', c = query_features_sample[:, k], cmap = mycmap)
+        cbar1 = plt.colorbar()
+        plt.scatter(
+            query_locations_sample[:, 0], query_locations_sample[:, 1], 
+            marker = 'x', c = query_features_sample_whiten[:, k], 
+            cmap = mycmap)
+        cbar2 = plt.colorbar()
         plt.title('Feature: %s at Query Points' % feature_names[k])
         plt.xlabel('x [Eastings (m)]')
         plt.ylabel('y [Northings (m)]')
-        cbar = plt.colorbar()
+
         if vis_fix_range:
             plt.xlim((vis_x_min, vis_x_max))
             plt.ylim((vis_y_min, vis_y_max))
+        plt.gca().set_aspect('equal', adjustable = 'box')
 
-    plt.show(block = False)    
+        if DEBUG:
+            print('Feature %d' % k)
+            print('\tPre-Whiten')
+            print('\t\tTraining:', training_features_sample[:, k].min(), training_features_sample[:, k].max())
+            print('\t\tQuery:', query_features_sample[:, k].min(), query_features_sample[:, k].max())
+
+            print('\tWhiten')
+            print('\t\tTraining:', training_features_sample_whiten[:, k].min(), training_features_sample_whiten[:, k].max())
+            print('\t\tQuery:', query_features_sample_whiten[:, k].min(), query_features_sample_whiten[:, k].max())
+
+
+
+
+    plt.show(block = False)
 
     """
     Classifier Training
@@ -224,7 +261,7 @@ def main():
     learning_hyperparams.walltime = 100.0
     start_time = time.clock()
     learned_classifier = gp.classifier.learn(
-        training_features_sample, training_labels_sample, 
+        training_features_sample_whiten, training_labels_sample, 
         kerneldef, gp.classifier.responses.logistic, learning_hyperparams, 
         train = True, ftol = 1e-10, method = method)
     logging.info('Learning Time: %f' % (time.clock() - start_time))
@@ -256,7 +293,7 @@ def main():
     """
 
     query_labels_prob = gp.classifier.predict(
-                            query_features_sample, learned_classifier, 
+                            query_features_sample_whiten, learned_classifier, 
                             fusemethod = fusemethod)
 
     query_labels_pred = gp.classifier.classify(query_labels_prob, 
@@ -282,6 +319,7 @@ def main():
     if vis_fix_range:
         plt.xlim((vis_x_min, vis_x_max))
         plt.ylim((vis_y_min, vis_y_max))
+    plt.gca().set_aspect('equal', adjustable = 'box')
 
     fig = plt.figure()
     plt.scatter(
@@ -294,7 +332,8 @@ def main():
     if vis_fix_range:
         plt.xlim((vis_x_min, vis_x_max))
         plt.ylim((vis_y_min, vis_y_max))
-
+    plt.gca().set_aspect('equal', adjustable = 'box')
+    
     plt.show()
 
 if __name__ == "__main__":
