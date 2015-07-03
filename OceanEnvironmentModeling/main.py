@@ -58,10 +58,10 @@ def main():
     Model Options
     """
 
-    method = 'AVA' # 'AVA' or 'OVA', ignored for binary problem
+    method = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
     fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary 
 
-    n_train_sample = 500
+    n_train_sample = 1000
     n_query_sample = 5000
 
     mycmap = cm.jet
@@ -258,7 +258,7 @@ def main():
 
     learning_hyperparams = gp.LearningParams()
     learning_hyperparams.sigma = gp.auto_range(kerneldef)
-    learning_hyperparams.walltime = 100.0
+    learning_hyperparams.walltime = 300.0
     start_time = time.clock()
     learned_classifier = gp.classifier.learn(
         training_features_sample_whiten, training_labels_sample, 
