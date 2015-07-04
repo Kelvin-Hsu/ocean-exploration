@@ -58,11 +58,14 @@ def main():
     Model Options
     """
 
+    SAVE_FIGURES = True
+
     method = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
     fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary 
 
-    n_train_sample = 1000
-    n_query_sample = 5000
+    n_train_sample = 250
+    n_query_sample = 10000
+    walltime = 60
 
     mycmap = cm.jet
 
@@ -186,7 +189,7 @@ def main():
     Visualise Sampled Training Locations
     """
 
-    fig = plt.figure()
+    fig = plt.figure(figsize = (19.2, 10.8))
     plt.scatter(
         training_locations_sample[:, 0], training_locations_sample[:, 1], 
         marker = 'x', c = training_labels_sample, 
@@ -199,27 +202,29 @@ def main():
     cbar = plt.colorbar()
     cbar.set_ticks(unique_labels_sample)
     cbar.set_ticklabels(unique_labels_sample)
+    cbar.set_label('Habitat Labels')
     if vis_fix_range:
         plt.xlim((vis_x_min, vis_x_max))
         plt.ylim((vis_y_min, vis_y_max))
     plt.gca().set_aspect('equal', adjustable = 'box')
-    plt.show(block = False)
 
     """
     Visualise Features at Sampled Query Locations
     """
 
     for k in range(k_features):
-        fig = plt.figure(figsize = (16, 8))
+        fig = plt.figure(figsize = (19.2, 10.8))
         plt.scatter(
             query_locations_sample[:, 0], query_locations_sample[:, 1], 
             marker = 'x', c = query_features_sample[:, k], cmap = mycmap)
         cbar1 = plt.colorbar()
+        cbar1.set_label('%s (Raw)' % feature_names[k])
         plt.scatter(
             query_locations_sample[:, 0], query_locations_sample[:, 1], 
             marker = 'x', c = query_features_sample_whiten[:, k], 
             cmap = mycmap)
         cbar2 = plt.colorbar()
+        cbar2.set_label('%s (Whitened)' % feature_names[k])
         plt.title('Feature: %s at Query Points' % feature_names[k])
         plt.xlabel('x [Eastings (m)]')
         plt.ylabel('y [Northings (m)]')
@@ -239,10 +244,7 @@ def main():
             print('\t\tTraining:', training_features_sample_whiten[:, k].min(), training_features_sample_whiten[:, k].max())
             print('\t\tQuery:', query_features_sample_whiten[:, k].min(), query_features_sample_whiten[:, k].max())
 
-
-
-
-    plt.show(block = False)
+    # plt.show(block = False)
 
     """
     Classifier Training
@@ -258,7 +260,7 @@ def main():
 
     learning_hyperparams = gp.LearningParams()
     learning_hyperparams.sigma = gp.auto_range(kerneldef)
-    learning_hyperparams.walltime = 300.0
+    learning_hyperparams.walltime = walltime
     start_time = time.clock()
     learned_classifier = gp.classifier.learn(
         training_features_sample_whiten, training_labels_sample, 
@@ -305,7 +307,7 @@ def main():
     Visualise Query Prediction and Entropy
     """
 
-    fig = plt.figure()
+    fig = plt.figure(figsize = (19.2, 10.8))
     plt.scatter(
         query_locations_sample[:, 0], query_locations_sample[:, 1], 
         marker = 'x', c = query_labels_pred, vmin = unique_labels_sample[0], 
@@ -314,6 +316,7 @@ def main():
     plt.xlabel('x [Eastings (m)]')
     plt.ylabel('y [Northings (m)]')
     cbar = plt.colorbar()
+    cbar.set_label('Habitat Labels')
     cbar.set_ticks(unique_labels_sample)
     cbar.set_ticklabels(unique_labels_sample)
     if vis_fix_range:
@@ -321,7 +324,7 @@ def main():
         plt.ylim((vis_y_min, vis_y_max))
     plt.gca().set_aspect('equal', adjustable = 'box')
 
-    fig = plt.figure()
+    fig = plt.figure(figsize = (19.2, 10.8))
     plt.scatter(
         query_locations_sample[:, 0], query_locations_sample[:, 1], 
         marker = 'x', c = query_labels_entropy, cmap = mycmap)
@@ -329,11 +332,55 @@ def main():
     plt.xlabel('x [Eastings (m)]')
     plt.ylabel('y [Northings (m)]')
     cbar = plt.colorbar()
+    cbar.set_label('Prediction Entropy')
     if vis_fix_range:
         plt.xlim((vis_x_min, vis_x_max))
         plt.ylim((vis_y_min, vis_y_max))
     plt.gca().set_aspect('equal', adjustable = 'box')
     
+    if SAVE_FIGURES:
+
+        # Directory names
+        figure_directory_name = "C:/Users/kkeke_000/" \
+        "Dropbox/Thesis/Results/OceanTerrainExploration/"
+        figure_sub_directory_name = "scott_reef__training_%d" \
+        "_query_%d_walltime_%d_datetime_%s_method_%s_fusemethod_%s/" \
+            % ( n_train_sample, n_query_sample, walltime, 
+                time.strftime("%Y%m%d_%H%M%S", time.gmtime()), 
+                method, fusemethod)
+        figure_full_directory_name = '%s%s' \
+            % (figure_directory_name, figure_sub_directory_name)
+
+        # Create directories
+        if not os.path.isdir(figure_directory_name):
+            os.mkdir(figure_directory_name)
+        if not os.path.isdir(figure_full_directory_name):
+            os.mkdir(figure_full_directory_name)
+
+        # Go through each figure and save them
+        for i in plt.get_fignums():
+            plt.figure(i)
+            plt.savefig('%sFigure%d.png' % (figure_full_directory_name, i))
+
+        print('Figures Saved')
+
+        # textfilename = '%s_log.txt' % (figure_full_directory_name)
+        # textfile = open(textfilename, 'w')
+        # sys.stdout = textfile
+
+        # # Print output statistics
+        # print(kernel_descriptions)
+        # np.set_printoptions(threshold = np.inf)
+        # print('===Prediction Results===')
+        # print('---Prediction Features---')
+        # print(Xq)
+        # print('---Predicted Probabilities---')
+        # print(yq_prob.T)
+        # print('---Predicted Labels---')
+        # print(yq_pred)
+        # print('---Entropy---')
+        # print(yq_entropy)
+
     plt.show()
 
 if __name__ == "__main__":
