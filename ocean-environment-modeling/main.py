@@ -27,28 +27,10 @@ logging.basicConfig(stream = sys.stdout, level = logging.DEBUG)
 
 DEBUG = True
 
-def remove_nan_queries(query_locations_old, query_features_old):
-
-    kq = query_features_old.shape[1]
-
-    # Initialise copies of 
-    query_locations_new = query_locations_old.copy()
-    query_features_new = query_features_old.copy()
-
-    valid_indices = ~np.isnan(query_features_new.mean(axis = 1))
-
-    query_locations_new = query_locations_new[valid_indices]
-    query_features_new = query_features_new[valid_indices]
-
-    assert ~np.any(np.isnan(query_features_new))
-    logging.debug('removed nan queries.')
-
-    return query_locations_new, query_features_new
-
 def kerneldef(h, k):
 
     # Define the kernel used in the classifier
-    return 	h(1e-3, 1e3, 1)*k('gaussian', 
+    return  h(1e-3, 1e3, 1)*k('gaussian', 
             [h(1e-3, 1e3, 1), h(1e-3, 1e3, 1), h(1e-3, 1e3, 1), 
             h(1e-3, 1e3, 1), h(1e-3, 1e3, 1)])
 
@@ -78,54 +60,8 @@ def main():
     """
     Load Data
     """
-
-    # directory_data = 'Y:/BigDataKnowledgeDiscovery/AUV_data/'
-    directory_data = 'C:/Users/kkeke_000/Dropbox/Thesis/Data/'
-    directory_bathymetry_raw_data = directory_data + \
-    	'scott_reef_wrangled_bathymetry3.pkl'
-    directory_training_data = directory_data + 'training_data.npz'
-    directory_query_points = directory_data + 'query_points.npz'
-    directory_query_points_clean = directory_data + 'query_points_clean.npz'
-
-    training_data = np.load(directory_training_data)
-
-    print('loading training locations...')
-    training_locations = training_data['locations']
-    print('loading training labels...')
-    training_labels = training_data['labels']
-    print('loading training features...')
-    training_features = training_data['features']
-
-    if os.path.isfile(directory_query_points_clean):
-
-        query_data = np.load(directory_query_points_clean)
-
-        print('loading query locations...')
-        query_locations_raw = query_data['locations']
-        print('loading query features...')
-        query_features_raw = query_data['features']
-
-        query_locations = query_locations_raw
-        query_features  = query_features_raw
-
-    else:
-
-        query_data = np.load(directory_query_points)
-
-        print('loading query locations...')
-        query_locations_raw = query_data['locations']
-        print('loading query features...')
-        query_features_raw = query_data['features']
-
-        print('removing nan queries...')
-        (query_locations, query_features) = \
-            remove_nan_queries(query_locations_raw, query_features_raw)
-
-        print('saving cleaned data to "%s"' % directory_query_points_clean)
-        np.savez(directory_query_points_clean, 
-            locations = query_locations, features = query_features)
-
-    print('Data Loading Done.')
+    (training_locations, training_features, training_labels, \
+            query_locations, query_features) = load()
 
     n_train = training_features.shape[0]
     n_query = query_features.shape[0]
@@ -140,36 +76,17 @@ def main():
     print('Raw Number of Query Points: %d' % n_query)
 
     """
-    Sample Training Data
+    Sample Training Data and Query Points
     """
-    indices_train_sample = np.random.choice(np.arange(n_train), 
-                            size = n_train_sample, replace = False)
 
-    training_locations_sample = training_locations[indices_train_sample]
-    training_features_sample = training_features[indices_train_sample]
-    training_labels_sample = training_labels[indices_train_sample]
+    (training_locations_sample, training_features_sample, 
+    training_labels_sample, 
+    query_locations_sample, query_features_sample) \
+        = sample(training_locations, training_features, training_labels, 
+        query_locations, query_features, 
+        n_train_sample = n_train_sample, n_query_sample = n_query_sample)
 
     unique_labels_sample = np.unique(training_labels_sample)
-
-    print('Sampled Number of Training Points: %d' % n_train_sample)
-
-    """
-    Sample Query Data
-    """
-    indices_query_sample = np.random.choice(np.arange(n_query), 
-                            size = n_query_sample, replace = False)
-
-    query_locations_sample = query_locations[indices_query_sample]
-    query_features_sample = query_features[indices_query_sample]
-
-    print('Sampled Number of Query Points: %d' % n_query_sample)
-
-    """
-    Loading and Sampling Assertions
-    """
-
-    assert ~np.any(np.isnan(query_features))
-    assert ~np.any(np.isnan(query_features_sample))
 
     """
     Whiten the feature space
@@ -269,26 +186,8 @@ def main():
     logging.info('Learning Time: %f' % (time.clock() - start_time))
 
     # Print the learnt kernel with its hyperparameters
-    kernel_descriptions = ''
-    if isinstance(learned_classifier, list):
-        n_results = len(learned_classifier)
-        for i_results in range(n_results):
-            i_class = learned_classifier[i_results].cache.get('i_class')
-            j_class = learned_classifier[i_results].cache.get('j_class')
-            class1 = unique_labels_sample[i_class]
-            if j_class == -1:
-                class2 = 'all'
-                descript = '(Labels %d v.s. %s)' % (class1, class2)
-            else:
-                class2 = unique_labels_sample[j_class]
-                descript = '(Labels %d v.s. %d)' % (class1, class2)
-            kernel_descriptions += 'Final Kernel %s: %s\n' \
-                % (descript, my_print_function(
-                    [learned_classifier[i_results].hyperparams]))
-    else:
-        kernel_descriptions = 'Final Kernel: %s\n' \
-            % (my_print_function([learned_classifier.hyperparams]))
-    print(kernel_descriptions)
+    print_learned_kernels(my_print_function, learned_classifier, 
+        unique_labels_sample)
 
     """
     Classifier Prediction
@@ -382,6 +281,145 @@ def main():
         # print(yq_entropy)
 
     plt.show()
+
+def remove_nan_queries(query_locations_old, query_features_old):
+
+    kq = query_features_old.shape[1]
+
+    # Initialise copies of 
+    query_locations_new = query_locations_old.copy()
+    query_features_new = query_features_old.copy()
+
+    valid_indices = ~np.isnan(query_features_new.mean(axis = 1))
+
+    query_locations_new = query_locations_new[valid_indices]
+    query_features_new = query_features_new[valid_indices]
+
+    assert ~np.any(np.isnan(query_features_new))
+    logging.debug('removed nan queries.')
+
+    return query_locations_new, query_features_new
+
+def load():
+
+    """
+    Load Data
+    """
+
+    # directory_data = 'Y:/BigDataKnowledgeDiscovery/AUV_data/'
+    directory_data = 'C:/Users/kkeke_000/Dropbox/Thesis/Data/'
+    directory_bathymetry_raw_data = directory_data + \
+        'scott_reef_wrangled_bathymetry3.pkl'
+    directory_training_data = directory_data + 'training_data.npz'
+    directory_query_points = directory_data + 'query_points.npz'
+    directory_query_points_clean = directory_data + 'query_points_clean.npz'
+
+    training_data = np.load(directory_training_data)
+
+    print('loading training locations...')
+    training_locations = training_data['locations']
+    print('loading training labels...')
+    training_labels = training_data['labels']
+    print('loading training features...')
+    training_features = training_data['features']
+
+    if os.path.isfile(directory_query_points_clean):
+
+        query_data = np.load(directory_query_points_clean)
+
+        print('loading query locations...')
+        query_locations_raw = query_data['locations']
+        print('loading query features...')
+        query_features_raw = query_data['features']
+
+        query_locations = query_locations_raw
+        query_features  = query_features_raw
+
+    else:
+
+        query_data = np.load(directory_query_points)
+
+        print('loading query locations...')
+        query_locations_raw = query_data['locations']
+        print('loading query features...')
+        query_features_raw = query_data['features']
+
+        print('removing nan queries...')
+        (query_locations, query_features) = \
+            remove_nan_queries(query_locations_raw, query_features_raw)
+
+        print('saving cleaned data to "%s"' % directory_query_points_clean)
+        np.savez(directory_query_points_clean, 
+            locations = query_locations, features = query_features)
+
+    print('Data Loading Done.')
+
+    return training_locations, training_features, training_labels, \
+            query_locations, query_features
+
+def sample(training_locations, training_features, training_labels, 
+    query_locations, query_features, 
+    n_train_sample = 1000, n_query_sample = 10000):
+
+    """
+    Sample Training Data
+    """
+    n_train = training_locations.shape[0]
+    indices_train_sample = np.random.choice(np.arange(n_train), 
+                            size = n_train_sample, replace = False)
+
+    training_locations_sample = training_locations[indices_train_sample]
+    training_features_sample = training_features[indices_train_sample]
+    training_labels_sample = training_labels[indices_train_sample]
+
+    print('Sampled Number of Training Points: %d' % n_train_sample)
+
+    """
+    Sample Query Data
+    """
+    n_query = query_locations.shape[0]
+    indices_query_sample = np.random.choice(np.arange(n_query), 
+                            size = n_query_sample, replace = False)
+
+    query_locations_sample = query_locations[indices_query_sample]
+    query_features_sample = query_features[indices_query_sample]
+
+    print('Sampled Number of Query Points: %d' % n_query_sample)
+
+    """
+    Loading and Sampling Assertions
+    """
+
+    assert ~np.any(np.isnan(query_features))
+    assert ~np.any(np.isnan(query_features_sample))   
+
+    return  training_locations_sample, training_features_sample, \
+            training_labels_sample, \
+            query_locations_sample, query_features_sample
+
+def print_learned_kernels(my_print_function, learned_classifier, 
+    unique_labels_sample):
+
+    kernel_descriptions = ''
+    if isinstance(learned_classifier, list):
+        n_results = len(learned_classifier)
+        for i_results in range(n_results):
+            i_class = learned_classifier[i_results].cache.get('i_class')
+            j_class = learned_classifier[i_results].cache.get('j_class')
+            class1 = unique_labels_sample[i_class]
+            if j_class == -1:
+                class2 = 'all'
+                descript = '(Labels %d v.s. %s)' % (class1, class2)
+            else:
+                class2 = unique_labels_sample[j_class]
+                descript = '(Labels %d v.s. %d)' % (class1, class2)
+            kernel_descriptions += 'Final Kernel %s: %s\n' \
+                % (descript, my_print_function(
+                    [learned_classifier[i_results].hyperparams]))
+    else:
+        kernel_descriptions = 'Final Kernel: %s\n' \
+            % (my_print_function([learned_classifier.hyperparams]))
+    print(kernel_descriptions)
 
 if __name__ == "__main__":
     main()
