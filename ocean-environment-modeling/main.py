@@ -27,35 +27,44 @@ logging.basicConfig(stream = sys.stdout, level = logging.DEBUG)
 
 DEBUG = True
 
+"""
+Model Options
+"""
+
+SAVE_FIGURES = True
+
+method = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
+fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary
+responsename = 'probit'
+approxmethod = 'pls'
+
+n_train_sample = 200
+n_query_sample = 10000
+walltime = 900
+
+mycmap = cm.jet
+
+vis_fix_range = True
+vis_x_min = 365000
+vis_x_max = 390000
+vis_y_min = 8430000
+vis_y_max = 8448000
+
+if responsename == 'probit':
+    responsefunction = gp.classifier.responses.probit
+elif responsename == 'logistic':
+    responsefunction = gp.classifier.responses.logistic
+else:
+    raise ValueError
+
 def kerneldef(h, k):
 
     # Define the kernel used in the classifier
-    return  h(1e-3, 1e3, 1)*k('gaussian', 
-            [h(1e-3, 1e3, 1), h(1e-3, 1e3, 1), h(1e-3, 1e3, 1), 
-            h(1e-3, 1e3, 1), h(1e-3, 1e3, 1)])
+    return  h(1e-3, 1e3, 10)*k('gaussian', 
+            [h(1e-3, 1e3, 0.1), h(1e-3, 1e3, 0.1), h(1e-3, 1e3, 0.1), 
+            h(1e-3, 1e3, 0.1), h(1e-3, 1e3, 0.1)])
 
 def main():
-
-    """
-    Model Options
-    """
-
-    SAVE_FIGURES = True
-
-    method = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
-    fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary 
-
-    n_train_sample = 250
-    n_query_sample = 10000
-    walltime = 60
-
-    mycmap = cm.jet
-
-    vis_fix_range = True
-    vis_x_min = 365000
-    vis_x_max = 390000
-    vis_y_min = 8430000
-    vis_y_max = 8448000
 
     """
     Load Data
@@ -167,10 +176,6 @@ def main():
     Classifier Training
     """
 
-    # Compose the kernel defn into a callable function
-    my_kernel_function = gp.compose(kerneldef)
-    my_print_function = gp.describer(kerneldef)
-
     # Training
     print('===Begin Classifier Training===')
     print('Number of training points: %d' % n_train_sample)
@@ -181,11 +186,15 @@ def main():
     start_time = time.clock()
     learned_classifier = gp.classifier.learn(
         training_features_sample_whiten, training_labels_sample, 
-        kerneldef, gp.classifier.responses.logistic, learning_hyperparams, 
-        train = True, ftol = 1e-10, method = method)
-    logging.info('Learning Time: %f' % (time.clock() - start_time))
+        kerneldef, responsefunction, learning_hyperparams, 
+        approxmethod = approxmethod, train = True, ftol = 1e-10, 
+        method = method)
+    end_time = time.clock()
+    learning_time = end_time - start_time
+    print('Learning Time: %f' % learning_time)
 
     # Print the learnt kernel with its hyperparameters
+    my_print_function = gp.describer(kerneldef)
     print_learned_kernels(my_print_function, learned_classifier, 
         unique_labels_sample)
 
@@ -241,10 +250,11 @@ def main():
 
         # Directory names
         figure_directory_name = "C:/Users/kkeke_000/" \
-        "Dropbox/Thesis/Results/OceanTerrainExploration/"
-        figure_sub_directory_name = "scott_reef__training_%d" \
-        "_query_%d_walltime_%d_datetime_%s_method_%s_fusemethod_%s/" \
-            % ( n_train_sample, n_query_sample, walltime, 
+        "Dropbox/Thesis/Results/ocean-exploration/"
+        figure_sub_directory_name = "scott_reef__response_%s_approxmethod_%s" \
+        "_training_%d_query_%d_walltime_%d_datetime_%s_method_%s_fusemethod_%s/" \
+            % ( responsename, approxmethod, 
+                n_train_sample, n_query_sample, walltime, 
                 time.strftime("%Y%m%d_%H%M%S", time.gmtime()), 
                 method, fusemethod)
         figure_full_directory_name = '%s%s' \
@@ -263,24 +273,33 @@ def main():
 
         print('Figures Saved')
 
-        # textfilename = '%s_log.txt' % (figure_full_directory_name)
-        # textfile = open(textfilename, 'w')
-        # sys.stdout = textfile
+        textfilename = '%slog.txt' % (figure_full_directory_name)
+        textfile = open(textfilename, 'w')
+        sys.stdout = textfile
 
-        # # Print output statistics
-        # print(kernel_descriptions)
-        # np.set_printoptions(threshold = np.inf)
-        # print('===Prediction Results===')
-        # print('---Prediction Features---')
-        # print(Xq)
-        # print('---Predicted Probabilities---')
-        # print(yq_prob.T)
-        # print('---Predicted Labels---')
-        # print(yq_pred)
-        # print('---Entropy---')
-        # print(yq_entropy)
+        print('Learning Time: %f' % learning_time)
+        print_learned_kernels(my_print_function, learned_classifier, 
+            unique_labels_sample)
+
+        textfilename.close()
 
     plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def remove_nan_queries(query_locations_old, query_features_old):
 
@@ -310,7 +329,7 @@ def load():
     directory_data = 'C:/Users/kkeke_000/Dropbox/Thesis/Data/'
     directory_bathymetry_raw_data = directory_data + \
         'scott_reef_wrangled_bathymetry3.pkl'
-    directory_training_data = directory_data + 'training_data.npz'
+    directory_training_data = directory_data + 'training_data_unmerged.npz'
     directory_query_points = directory_data + 'query_points.npz'
     directory_query_points_clean = directory_data + 'query_points_clean.npz'
 
@@ -413,13 +432,146 @@ def print_learned_kernels(my_print_function, learned_classifier,
             else:
                 class2 = unique_labels_sample[j_class]
                 descript = '(Labels %d v.s. %d)' % (class1, class2)
-            kernel_descriptions += 'Final Kernel %s: %s\n' \
+            kernel_descriptions += 'Final Kernel %s: %s \t | \t '\
+                'Log Marginal Likelihood: %.8f \n' \
                 % (descript, my_print_function(
-                    [learned_classifier[i_results].hyperparams]))
+                    [learned_classifier[i_results].hyperparams]), 
+                     learned_classifier[i_results].log_marginal_likelihood)
     else:
         kernel_descriptions = 'Final Kernel: %s\n' \
             % (my_print_function([learned_classifier.hyperparams]))
     print(kernel_descriptions)
+
+def cross_validation(training_locations, training_features, training_labels, 
+    n_sample):
+
+    (training_locations_sample, training_features_sample, 
+    training_labels_sample, 
+    _, _) \
+        = sample(training_locations, training_features, training_labels, 
+                [0], [0], 
+                n_train_sample = n_sample, n_query_sample = 0)
+
+    k_location = 2
+    k_features = 5
+
+    indices = np.arange(n_sample)
+
+    for i_sample in indices:
+
+        i_sample_not = indices[indices != i_sample]
+
+        X = training_features_sample[i_sample_not]
+        y = training_labels_sample[i_sample_not]
+        Xq = training_features_sample[[i_sample]]
+        yq = training_labels_sample[[i_sample]]
+
+        y_unique = np.unique(y)
+
+        print('Set %d: Applying whitening on training and query features...' % i_sample)
+        (Xw, whiten_params) = pre.standardise(X)
+        Xqw = pre.standardise(Xq, params = whiten_params)
+
+        print('\tWhitening Parameters:\n\t')
+        print(whiten_params)
+
+        # Training
+        print('Set %d: Begin training for cross validation' % i_sample)
+
+        learning_hyperparams = gp.LearningParams()
+        learning_hyperparams.sigma = gp.auto_range(kerneldef)
+        learning_hyperparams.walltime = walltime
+        start_time = time.clock()
+        learned_classifier = gp.classifier.learn(Xw, y, 
+            kerneldef, responsefunction, learning_hyperparams, 
+            approxmethod = approxmethod, train = True, ftol = 1e-10, 
+            method = method)
+        end_time = time.clock()
+        learning_time = end_time - start_time
+        print('Set %d: Learning Time: %f' % (i_sample, learning_time))
+
+        # Print the learnt kernel with its hyperparameters
+        my_print_function = gp.describer(kerneldef)
+        print_learned_kernels(my_print_function, learned_classifier, y_unique)
+
+        # Prediction
+        yq_prob = gp.classifier.predict(
+                                Xqw, learned_classifier,
+                                fusemethod = fusemethod)
+
+        yq_pred = gp.classifier.classify(yq_prob, y_unique)
+
+        yq_entropy = gp.classifier.entropy(yq_prob)
+
+# def cross_validation(training_locations, training_features, training_labels, 
+#     n_size = 200, n_set = 5):
+
+#     n_total = n_size * n_set
+
+#     (training_locations_sample, training_features_sample, 
+#     training_labels_sample, 
+#     _, _) \
+#         = sample(training_locations, training_features, training_labels, 
+#                 [0], [0], 
+#                 n_train_sample = n_total, n_query_sample = 0)
+
+#     k_location = 2
+#     k_features = 5
+#     training_locations_sample.reshape(n_set, n_size, k_location)
+#     training_features_sample.reshape(n_set, n_size, k_features)
+#     training_labels_sample.reshape(n_set, n_size)
+
+#     indices = np.arange(n_set)
+
+#     for i_sample in indices:
+
+#         i_sample_not = indices[indices != i_sample]
+
+#         X = training_features_sample[i_sample_not].reshape((n_set - 1) * n_size, 
+#                                                          k_features)
+#         y = training_labels_sample[i_sample_not].reshape((n_set - 1) * n_size)
+
+#         Xq = training_features_sample[i_sample]
+
+#         yq = training_labels_sample[i_sample]
+
+#         y_unique = np.unique(y)
+
+#         print('Set %d: Applying whitening on training and query features...' % i_sample)
+#         (Xw, whiten_params) = pre.standardise(X)
+#         Xqw = pre.standardise(Xq, params = whiten_params)
+
+#         print('\tWhitening Parameters:\n\t')
+#         print(whiten_params)
+
+#         # Training
+#         print('Set %d: Begin training for cross validation' % i_sample)
+
+#         learning_hyperparams = gp.LearningParams()
+#         learning_hyperparams.sigma = gp.auto_range(kerneldef)
+#         learning_hyperparams.walltime = walltime
+#         start_time = time.clock()
+#         learned_classifier = gp.classifier.learn(Xw, y, 
+#             kerneldef, responsefunction, learning_hyperparams, 
+#             approxmethod = approxmethod, train = True, ftol = 1e-10, 
+#             method = method)
+#         end_time = time.clock()
+#         learning_time = end_time - start_time
+#         print('Set %d: Learning Time: %f' % (i_sample, learning_time))
+
+#         # Print the learnt kernel with its hyperparameters
+#         my_print_function = gp.describer(kerneldef)
+#         print_learned_kernels(my_print_function, learned_classifier, y_unique)
+
+#         # Prediction
+#         yq_prob = gp.classifier.predict(
+#                                 Xqw, learned_classifier,
+#                                 fusemethod = fusemethod)
+
+#         yq_pred = gp.classifier.classify(yq_prob, y_unique)
+
+#         yq_entropy = gp.classifier.entropy(yq_prob)
+
 
 if __name__ == "__main__":
     main()
