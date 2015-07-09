@@ -1,0 +1,64 @@
+I have two local branches
+
+kelvin
+master
+
+There are two remote branches I am interested in
+
+Kelvin
+master
+
+Typical work process:
+
+git pull origin master:master (to synchronise master)
+git pull origin master:kelvin (to start working on my own local branch)
+
+From here on I will work on my local kelvin branch
+The local master branch is for me to have a local copy of the current remote master branch in case I need it (probably I don't)
+
+After I'm done working, do
+
+git push origin kelvin:Kelvin (to update my own remote branch)
+
+Depending on the circumstances, either merge with master or push to master
+
+git push origin kelvin:master
+git push kelvin:master (update my own local master)
+
+To merge...
+
+git merge something (check up later)
+
+
+
+Do the following to setup the current local branch to track the remote branch "Kelvin" 
+git branch -u origin/Kelvin
+
+PUSHING:
+
+when different names
+git push origin kelvin:Kelvin
+
+to remove upstream
+git branch --unset-upstream
+
+git branch --set-upstream-to=origin/Kelvin LOCALKELVIN
+git branch --set-upstream-to=origin/Kelvin Kelvin
+
+git reset --hard origin/Kelvin
+
+
+rebase instead of merge if working separately
+
+If my local master is a few commits ahead and I want it to match remote:
+git fetch origin
+git reset --hard origin/master
+
+pg. 148 for probabilistic least squares
+
+To check the whole history of your branch status:
+git reflog
+
+UTM coordinates
+
+Whiten Data

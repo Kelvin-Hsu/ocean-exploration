@@ -23,6 +23,10 @@ import logging
 import sys
 import os
 
+"""
+Logging Options
+"""
+
 def kerneldef(h, k):
 
     # Define the kernel used in the classifier
@@ -35,17 +39,17 @@ def main():
     """
     Model Options
     """
-    DEBUG = True
-    SAVE_FIGURES = True
+    
+    SAVE_RESULTS = True
 
     approxmethod = 'laplace' # 'laplace' or 'pls'
     method = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
     fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary
     responsename = 'probit' # 'probit' or 'logistic'
-    batchstart = True
+    batchstart = False
     walltime = 300.0
 
-    n_train_sample = 1500
+    n_train_sample = 100
     n_query_sample = 10000
     
     """
@@ -60,13 +64,52 @@ def main():
     vis_y_max = 8448000
 
     """
+    Initialise Result Logging
+    """
+
+    if SAVE_RESULTS:
+
+        # Directory names
+        home_directory = "C:/Users/kkeke_000/" \
+        "Dropbox/Thesis/Results/ocean-exploration/"
+        save_directory = "scott_reef__response_%s_approxmethod_%s" \
+        "_training_%d_query_%d_walltime_%d" \
+        "_method_%s_fusemethod_%s/" \
+            % ( responsename, approxmethod, 
+                n_train_sample, n_query_sample, walltime, 
+                method, fusemethod)
+        full_directory = gp.classifier.utils.create_directories(save_directory, 
+            home_directory = home_directory, append_time = True)
+
+        textfilename = '%slog.txt' % full_directory
+
+    """
+    Logging Options
+    """
+    logging.basicConfig(level = logging.DEBUG,
+                        format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                        datefmt = '%m-%d %H:%M',
+                        filename = textfilename,
+                        filemode = 'a')
+    gp.classifier.set_multiclass_logging_level(logging.DEBUG)
+
+    # gp.classifier.parmap.multiprocessing.get_logger().addHandler(logging.FileHandler(textfilename))
+
+    # define a Handler which writes INFO messages or higher to the sys.stderr
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    # set a format which is simpler for console use
+    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+    # tell the handler to use this format
+    console.setFormatter(formatter)
+    # add the handler to the root logger
+    logging.getLogger().addHandler(console)
+
+    """
     Process Options
     """
-    if DEBUG:
-        logging_level = logging.DEBUG
-    else:
-        logging_level = logging.INFO
-    logging.basicConfig(stream = sys.stdout, level = logging_level)
+
+    
     model_options = {   'approxmethod': approxmethod,
                         'method': method,
                         'fusemethod': fusemethod,
@@ -88,8 +131,8 @@ def main():
                         'Aspect (Long Scale)',
                         'Rugosity (Long Scale)']
 
-    print('Raw Number of Training Points: %d' % n_train)
-    print('Raw Number of Query Points: %d' % n_query)
+    logging.info('Raw Number of Training Points: %d' % n_train)
+    logging.info('Raw Number of Query Points: %d' % n_query)
 
     """
     Sample Training Data and Query Points
@@ -108,15 +151,15 @@ def main():
     Whiten the feature space
     """
 
-    print('Applying whitening on training and query features...')
+    logging.info('Applying whitening on training and query features...')
     (training_features_sample_whiten, whiten_params) = \
         pre.standardise(training_features_sample)
 
     query_features_sample_whiten = \
         pre.standardise(query_features_sample, params = whiten_params)
 
-    print('Whitening Parameters:')
-    print(whiten_params)
+    logging.info('Whitening Parameters:')
+    logging.info(whiten_params)
 
     """
     Visualise Sampled Training Locations
@@ -167,19 +210,22 @@ def main():
             plt.ylim((vis_y_min, vis_y_max))
         plt.gca().set_aspect('equal', adjustable = 'box')
 
-        if DEBUG:
-            print('Feature %d' % k)
-            print('\tPre-Whiten')
-            print('\t\tTraining:', training_features_sample[:, k].min(), 
-                training_features_sample[:, k].max())
-            print('\t\tQuery:', query_features_sample[:, k].min(), 
-                query_features_sample[:, k].max())
+        logging.info('Feature %d' % k)
+        logging.info('\tPre-Whiten')
+        logging.info('\t\tTraining: [%.4f, %.4f]' % \
+            (training_features_sample[:, k].min(), 
+            training_features_sample[:, k].max()))
+        logging.info('\t\tQuery: [%.4f, %.4f]' % \
+            (query_features_sample[:, k].min(), 
+            query_features_sample[:, k].max()))
 
-            print('\tWhiten')
-            print('\t\tTraining:', training_features_sample_whiten[:, k].min(), 
-                training_features_sample_whiten[:, k].max())
-            print('\t\tQuery:', query_features_sample_whiten[:, k].min(), 
-                query_features_sample_whiten[:, k].max())
+        logging.info('\tWhiten')
+        logging.info('\t\tTraining: [%.4f, %.4f]' % \
+            (training_features_sample_whiten[:, k].min(), 
+            training_features_sample_whiten[:, k].max()))
+        logging.info('\t\tQuery: [%.4f, %.4f]' % \
+            (query_features_sample_whiten[:, k].min(), 
+            query_features_sample_whiten[:, k].max()))
 
     # plt.show(block = False)
 
@@ -188,8 +234,8 @@ def main():
     """
 
     # Training
-    print('===Begin Classifier Training===')
-    print('Number of training points: %d' % n_train_sample)
+    logging.info('===Begin Classifier Training===')
+    logging.info('Number of training points: %d' % n_train_sample)
 
     optimiser_config = gp.OptConfig()
     optimiser_config.sigma = gp.auto_range(kerneldef)
@@ -218,6 +264,23 @@ def main():
                                          [6.8656058871459358, 0.14586155295444572, 0.11541498593225026, 0.21253314132809673, 0.14500100712799271, 0.1679293236112373] , \
                                          [9.8517922483773628, 0.22298789683018275, 0.12227721088963638, 0.15789826477250088, 0.15116214340027495, 0.16302850785498746] , \
                                          [5.2272797159926947, 0.56354443728562975, 0.43930686698721211, 0.82201168824644344, 0.99138717882224914, 0.42977019748043727] ]
+
+            # initial_hyperparams = [      [399.05308562273723, 1.1626890983021034, 11.057620223047245, 6.008405994132195, 9.0817575776979513, 13.899793403684312] , \
+            #                              [3.9049433452381388, 3.4477798764588794, 3.6834907323124946, 3.1638814294727382, 1.2003489191663976, 3.8490589684483938] , \
+            #                              [6.1983205523058711, 12.001229589617758, 6.6855766813102884, 4.7755879239116519, 9.9829246983761788, 15.764859618598203] , \
+            #                              [3.7846762120107869, 0.8496977875404238, 3.5856900258094919, 3.3308564119107738, 2.8367347070492799, 2.7776117008801573] , \
+            #                              [9.8224224556525783, 0.68771324750828899, 8.9490588226383956, 8.5707607552869298, 5.6550141640404279, 10.612547411758507] , \
+            #                              [2.7558303832776696, 1.7954878854085916, 2.0617502662287603, 3.5930008475256563, 2.1311090224899791, 2.6274675430890198] , \
+            #                              [2.3336699484643351, 0.90196078153363857, 1.4733898894093542, 1.582099060319307, 1.9247573440337757, 1.3181219261275474] , \
+            #                              [2.3234805518013553, 2.0885474170008584, 1.7271669642137126, 1.4953900709784282, 1.4045693375833486, 2.0671591753518079] , \
+            #                              [1.4724505050987888, 0.78616109378468646, 0.9821885399700605, 0.97611050616558137, 1.3818733133023293, 1.5773337390165068] , \
+            #                              [7.2711722857067231, 1.2215472047715199, 5.8881954816154956, 7.104914279782002, 4.0605049662663202, 7.5552984410164017] , \
+            #                              [2.5674440835588626, 2.8935381712981636, 2.0672422461452697, 3.1473143622661088, 1.747201113677721, 1.5801685454009098] , \
+            #                              [3.0726351612382494, 1.5328236766496599, 4.1007581182696802, 3.8791592119088554, 3.0007265426296139, 3.2688133710706206] , \
+            #                              [2.4606819987888953, 2.8583175442800179, 1.9883189513127952, 2.4110344154759629, 1.5622317191012578, 2.0264390690899292] , \
+            #                              [5.7265833778953006, 2.0836582747942467, 4.5502979081177424, 5.8121346633504194, 6.4797823047740817, 6.3236927747995972] , \
+            #                              [718.11185381141695, 1.2626806249002931, 5.2874209278331117, 16.827815365376928, 11.179633295870836, 12.97469466684799] , \
+            #                              [3.7450324555704495, 2.3761629129163531, 2.9022000532835888, 2.1708805052764899, 2.0547427642740828, 2.353080594993604] ]
         elif method == 'AVA':
             initial_hyperparams = [ [14.967, 0.547, 0.402],  \
                                     [251.979, 1.583, 1.318], \
@@ -228,17 +291,19 @@ def main():
         else:
             raise ValueError
         batch_config = gp.batch_start(optimiser_config, initial_hyperparams)
+        logging.info('Using Batch Start Configuration')
+        logging.info('There are %d unique labels' % unique_labels_sample.shape[0])
     else:
         batch_config = optimiser_config
 
     # Obtain the response function
     responsefunction = gp.classifier.responses.get(responsename)
 
-    print('Learning...')
+    logging.info('Learning...')
     # Train the classifier!
     learned_classifier = gp.classifier.learn(
         training_features_sample_whiten, training_labels_sample, 
-        kerneldef, responsefunction, optimiser_config, 
+        kerneldef, responsefunction, batch_config, 
         approxmethod = approxmethod, train = True, ftol = 1e-10, 
         method = method)
 
@@ -248,7 +313,7 @@ def main():
         learned_classifier, unique_labels_sample)
 
     # Print the matrix of learned classifier hyperparameters
-    print('Matrix of learned hyperparameters')
+    logging.info('Matrix of learned hyperparameters')
     gp.classifier.utils.print_hyperparam_matrix(learned_classifier)
 
     """
@@ -299,28 +364,8 @@ def main():
         plt.ylim((vis_y_min, vis_y_max))
     plt.gca().set_aspect('equal', adjustable = 'box')
     
-    if SAVE_FIGURES:
-
-        # Directory names
-        home_directory = "C:/Users/kkeke_000/" \
-        "Dropbox/Thesis/Results/ocean-exploration/"
-        save_directory = "scott_reef__response_%s_approxmethod_%s" \
-        "_training_%d_query_%d_walltime_%d" \
-        "_method_%s_fusemethod_%s/" \
-            % ( responsename, approxmethod, 
-                n_train, n_query, walltime, 
-                method, fusemethod)
-        full_directory = gp.classifier.utils.save_all_figures(save_directory, 
-            home_directory = home_directory, append_time = True)
-
-        textfilename = '%slog.txt' % full_directory
-        textfile = open(textfilename, 'w')
-        sys.stdout = textfile
-
-        gp.classifier.utils.print_learned_kernels(print_function, 
-            learned_classifier, unique_labels_sample)
-
-        textfile.close()
+    if SAVE_RESULTS:
+        gp.classifier.utils.save_all_figures(full_directory)
 
     plt.show()
 
@@ -374,20 +419,20 @@ def load():
 
     training_data = np.load(directory_training_data)
 
-    print('loading training locations...')
+    logging.info('loading training locations...')
     training_locations = training_data['locations']
-    print('loading training labels...')
+    logging.info('loading training labels...')
     training_labels = training_data['labels']
-    print('loading training features...')
+    logging.info('loading training features...')
     training_features = training_data['features']
 
     if os.path.isfile(directory_query_points_clean):
 
         query_data = np.load(directory_query_points_clean)
 
-        print('loading query locations...')
+        logging.info('loading query locations...')
         query_locations_raw = query_data['locations']
-        print('loading query features...')
+        logging.info('loading query features...')
         query_features_raw = query_data['features']
 
         query_locations = query_locations_raw
@@ -397,20 +442,20 @@ def load():
 
         query_data = np.load(directory_query_points)
 
-        print('loading query locations...')
+        logging.info('loading query locations...')
         query_locations_raw = query_data['locations']
-        print('loading query features...')
+        logging.info('loading query features...')
         query_features_raw = query_data['features']
 
-        print('removing nan queries...')
+        logging.info('removing nan queries...')
         (query_locations, query_features) = \
             remove_nan_queries(query_locations_raw, query_features_raw)
 
-        print('saving cleaned data to "%s"' % directory_query_points_clean)
+        logging.info('saving cleaned data to "%s"' % directory_query_points_clean)
         np.savez(directory_query_points_clean, 
             locations = query_locations, features = query_features)
 
-    print('Data Loading Done.')
+    logging.info('Data Loading Done.')
 
     return training_locations, training_features, training_labels, \
             query_locations, query_features
@@ -430,7 +475,7 @@ def sample(training_locations, training_features, training_labels,
     training_features_sample = training_features[indices_train_sample]
     training_labels_sample = training_labels[indices_train_sample]
 
-    print('Sampled Number of Training Points: %d' % n_train_sample)
+    logging.info('Sampled Number of Training Points: %d' % n_train_sample)
 
     """
     Sample Query Data
@@ -442,7 +487,7 @@ def sample(training_locations, training_features, training_labels,
     query_locations_sample = query_locations[indices_query_sample]
     query_features_sample = query_features[indices_query_sample]
 
-    print('Sampled Number of Query Points: %d' % n_query_sample)
+    logging.info('Sampled Number of Query Points: %d' % n_query_sample)
 
     """
     Loading and Sampling Assertions
@@ -481,16 +526,16 @@ def cross_validation(training_locations, training_features, training_labels,
 
         y_unique = np.unique(y)
 
-        print('Sample %d: Applying whitening on training and query features...'\
+        logging.info('Sample %d: Applying whitening on training and query features...'\
                         % i_sample)
         (Xw, whiten_params) = pre.standardise(X)
         Xqw = pre.standardise(Xq, params = whiten_params)
 
-        print('\tWhitening Parameters:\n\t')
-        print(whiten_params)
+        logging.info('\tWhitening Parameters:\n\t')
+        logging.info(whiten_params)
 
         # Training
-        print('Sample %d: Begin training for cross validation' % i_sample)
+        logging.info('Sample %d: Begin training for cross validation' % i_sample)
 
         optimiser_config = gp.LearningParams()
         optimiser_config.sigma = gp.auto_range(kerneldef)
@@ -502,7 +547,7 @@ def cross_validation(training_locations, training_features, training_labels,
             method = method)
         end_time = time.clock()
         learning_time = end_time - start_time
-        print('Sample %d: Learning Time: %f' % (i_sample, learning_time))
+        logging.info('Sample %d: Learning Time: %f' % (i_sample, learning_time))
 
         # Print the learnt kernel with its hyperparameters
         print_function = gp.describer(kerneldef)

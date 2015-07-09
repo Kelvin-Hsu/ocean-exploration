@@ -1,0 +1,21 @@
+PYTHON NOTES
+
+Topic: Sparse matrices - Diagonal matrices
+
+If you have a diagonal matrix W and a normal matrix B and they have the same size, 
+suppose w = W.diagonal()
+
+then we have 
+
+B.dot(W) == w * B == B * w
+
+W.dot(B) == (w * B.T).T == (B.T * w).T
+
+Using from scipy.sparse import dia_matrix, suppose Wsp = dia_matrix(W)
+
+Then W.dot(B) == Wsp.dot(B), also this is the same as Wsp * B
+
+HOWEVER, B.dot(W) != B.dot(Wsp)
+
+Instead, use B * Wsp
+
