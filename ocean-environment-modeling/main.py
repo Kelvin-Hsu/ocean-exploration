@@ -43,13 +43,13 @@ def main():
     SAVE_RESULTS = True
 
     approxmethod = 'laplace' # 'laplace' or 'pls'
-    method = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
+    multimethod = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
     fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary
     responsename = 'probit' # 'probit' or 'logistic'
-    batchstart = False
+    batchstart = True
     walltime = 300.0
 
-    n_train_sample = 100
+    n_train_sample = 2000
     n_query_sample = 10000
     
     """
@@ -74,10 +74,10 @@ def main():
         "Dropbox/Thesis/Results/ocean-exploration/"
         save_directory = "scott_reef__response_%s_approxmethod_%s" \
         "_training_%d_query_%d_walltime_%d" \
-        "_method_%s_fusemethod_%s/" \
+        "_multimethod_%s_fusemethod_%s/" \
             % ( responsename, approxmethod, 
                 n_train_sample, n_query_sample, walltime, 
-                method, fusemethod)
+                multimethod, fusemethod)
         full_directory = gp.classifier.utils.create_directories(save_directory, 
             home_directory = home_directory, append_time = True)
 
@@ -111,7 +111,7 @@ def main():
 
     
     model_options = {   'approxmethod': approxmethod,
-                        'method': method,
+                        'multimethod': multimethod,
                         'fusemethod': fusemethod,
                         'responsename': responsename,
                         'batchstart': batchstart,
@@ -246,7 +246,7 @@ def main():
     if batchstart:
         if unique_labels_sample.shape[0] == 2:
             initial_hyperparams = [10, 0.1, 0.1]
-        elif method == 'OVA':
+        elif multimethod == 'OVA':
             initial_hyperparams = [      [6.8492834685818949, 0.14477735405874059, 0.11505973940953167, 0.16784579685852091, 0.14579818470438116, 0.2126379583720453] , \
                                          [1.3181854532161061, 0.09258211993254517, 0.11450045228885905, 0.11790388819451199, 0.1086982479299507, 0.10245724216413707] , \
                                          [9.7791686090410455, 0.22374784076872187, 0.12267756127614503, 0.15689385039161796, 0.15053194893192773, 0.16407979658658001] , \
@@ -281,7 +281,7 @@ def main():
             #                              [5.7265833778953006, 2.0836582747942467, 4.5502979081177424, 5.8121346633504194, 6.4797823047740817, 6.3236927747995972] , \
             #                              [718.11185381141695, 1.2626806249002931, 5.2874209278331117, 16.827815365376928, 11.179633295870836, 12.97469466684799] , \
             #                              [3.7450324555704495, 2.3761629129163531, 2.9022000532835888, 2.1708805052764899, 2.0547427642740828, 2.353080594993604] ]
-        elif method == 'AVA':
+        elif multimethod == 'AVA':
             initial_hyperparams = [ [14.967, 0.547, 0.402],  \
                                     [251.979, 1.583, 1.318], \
                                     [420.376, 1.452, 0.750], \
@@ -304,8 +304,8 @@ def main():
     learned_classifier = gp.classifier.learn(
         training_features_sample_whiten, training_labels_sample, 
         kerneldef, responsefunction, batch_config, 
-        approxmethod = approxmethod, train = True, ftol = 1e-10, 
-        method = method)
+        multimethod = multimethod, approxmethod = approxmethod, 
+        train = False, ftol = 1e-10)
 
     # Print the learnt kernel with its hyperparameters
     print_function = gp.describer(kerneldef)
@@ -544,7 +544,7 @@ def cross_validation(training_locations, training_features, training_labels,
         learned_classifier = gp.classifier.learn(Xw, y, 
             kerneldef, responsefunction, optimiser_config, 
             approxmethod = approxmethod, train = True, ftol = 1e-10, 
-            method = method)
+            multimethod = multimethod)
         end_time = time.clock()
         learning_time = end_time - start_time
         logging.info('Sample %d: Learning Time: %f' % (i_sample, learning_time))
@@ -554,12 +554,9 @@ def cross_validation(training_locations, training_features, training_labels,
         print_learned_kernels(print_function, learned_classifier, y_unique)
 
         # Prediction
-        yq_prob = gp.classifier.predict(
-                                Xqw, learned_classifier,
+        yq_prob = gp.classifier.predict(Xqw, learned_classifier,
                                 fusemethod = fusemethod)
-
         yq_pred = gp.classifier.classify(yq_prob, y_unique)
-
         yq_entropy = gp.classifier.entropy(yq_prob)
 
 if __name__ == "__main__":
