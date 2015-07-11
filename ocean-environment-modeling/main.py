@@ -18,28 +18,19 @@ from matplotlib import cm
 from computers import gp
 import computers.unsupervised.whitening as pre
 import time
-
 import logging
 import sys
 import os
 
-"""
-Logging Options
-"""
-
 def kerneldef(h, k):
-
-    # Define the kernel used in the classifier
+    """Define the kernel used in the classifier"""
     return  h(1e-3, 1e3, 10)*k('gaussian', 
             [h(1e-3, 1e3, 0.1), h(1e-3, 1e3, 0.1), h(1e-3, 1e3, 0.1), 
             h(1e-3, 1e3, 0.1), h(1e-3, 1e3, 0.1)])
 
 def main():
 
-    """
-    Model Options
-    """
-    
+    """Model Options"""
     SAVE_RESULTS = True
 
     approxmethod = 'laplace' # 'laplace' or 'pls'
@@ -48,79 +39,76 @@ def main():
     responsename = 'probit' # 'probit' or 'logistic'
     batchstart = True
     walltime = 300.0
+    train = True
 
-    n_train_sample = 2000
+    n_train_sample = 200
     n_query_sample = 10000
     
-    """
-    Visualisation Options
-    """
+    """Visualisation Options"""
     mycmap = cm.jet
-
     vis_fix_range = True
     vis_x_min = 365000
     vis_x_max = 390000
     vis_y_min = 8430000
     vis_y_max = 8448000
 
-    """
-    Initialise Result Logging
-    """
-
+    """Initialise Result Logging"""
     if SAVE_RESULTS:
 
-        # Directory names
         home_directory = "C:/Users/kkeke_000/" \
         "Dropbox/Thesis/Results/ocean-exploration/"
+
         save_directory = "scott_reef__response_%s_approxmethod_%s" \
         "_training_%d_query_%d_walltime_%d" \
-        "_multimethod_%s_fusemethod_%s/" \
+        "_multimethod_%s_fusemethod_%s_train_%s/" \
             % ( responsename, approxmethod, 
                 n_train_sample, n_query_sample, walltime, 
-                multimethod, fusemethod)
+                multimethod, fusemethod, str(train))
+
         full_directory = gp.classifier.utils.create_directories(save_directory, 
             home_directory = home_directory, append_time = True)
 
         textfilename = '%slog.txt' % full_directory
 
-    """
-    Logging Options
-    """
+    """Logging Options"""
     logging.basicConfig(level = logging.DEBUG,
-                        format = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                        format =    '%(asctime)s %(name)-12s '\
+                                    '%(levelname)-8s %(message)s',
                         datefmt = '%m-%d %H:%M',
                         filename = textfilename,
                         filemode = 'a')
     gp.classifier.set_multiclass_logging_level(logging.DEBUG)
 
-    # gp.classifier.parmap.multiprocessing.get_logger().addHandler(logging.FileHandler(textfilename))
-
-    # define a Handler which writes INFO messages or higher to the sys.stderr
+    # Define a Handler which writes INFO messages or higher to the sys.stderr
     console = logging.StreamHandler()
     console.setLevel(logging.DEBUG)
-    # set a format which is simpler for console use
+
+    # Set a format which is simpler for console use
     formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-    # tell the handler to use this format
+
+    # Tell the handler to use this format
     console.setFormatter(formatter)
-    # add the handler to the root logger
+
+    # Add the handler to the root logger
     logging.getLogger().addHandler(console)
 
-    """
-    Process Options
-    """
-
-    
+    """Process Options"""
     model_options = {   'approxmethod': approxmethod,
                         'multimethod': multimethod,
                         'fusemethod': fusemethod,
                         'responsename': responsename,
                         'batchstart': batchstart,
-                        'walltime': walltime}
-    """
-    Load Data
-    """
+                        'walltime': walltime,
+                        'train': train}
+    """File Locations"""
+    directory_data = 'C:/Users/kkeke_000/Dropbox/Thesis/Data/'
+    filename_training_data = 'training_data_unmerged.npz'
+    filename_query_points = 'query_points.npz'
+
+    """Load Data"""
     (training_locations, training_features, training_labels, \
-            query_locations, query_features) = load()
+        query_locations, query_features) = \
+            load(directory_data, filename_training_data, filename_query_points)
 
     n_train = training_features.shape[0]
     n_query = query_features.shape[0]
@@ -134,10 +122,7 @@ def main():
     logging.info('Raw Number of Training Points: %d' % n_train)
     logging.info('Raw Number of Query Points: %d' % n_query)
 
-    """
-    Sample Training Data and Query Points
-    """
-
+    """Sample Training Data and Query Points"""
     (training_locations_sample, training_features_sample, 
     training_labels_sample, 
     query_locations_sample, query_features_sample) \
@@ -147,10 +132,7 @@ def main():
 
     unique_labels_sample = np.unique(training_labels_sample)
 
-    """
-    Whiten the feature space
-    """
-
+    """Whiten the feature space"""
     logging.info('Applying whitening on training and query features...')
     (training_features_sample_whiten, whiten_params) = \
         pre.standardise(training_features_sample)
@@ -161,10 +143,7 @@ def main():
     logging.info('Whitening Parameters:')
     logging.info(whiten_params)
 
-    """
-    Visualise Sampled Training Locations
-    """
-
+    """Visualise Sampled Training Locations"""
     fig = plt.figure(figsize = (19.2, 10.8))
     plt.scatter(
         training_locations_sample[:, 0], training_locations_sample[:, 1], 
@@ -184,10 +163,7 @@ def main():
         plt.ylim((vis_y_min, vis_y_max))
     plt.gca().set_aspect('equal', adjustable = 'box')
 
-    """
-    Visualise Features at Sampled Query Locations
-    """
-
+    """Visualise Features at Sampled Query Locations"""
     for k in range(k_features):
         fig = plt.figure(figsize = (19.2, 10.8))
         plt.scatter(
@@ -227,13 +203,7 @@ def main():
             (query_features_sample_whiten[:, k].min(), 
             query_features_sample_whiten[:, k].max()))
 
-    # plt.show(block = False)
-
-    """
-    Classifier Training
-    """
-
-    # Training
+    """Classifier Training"""
     logging.info('===Begin Classifier Training===')
     logging.info('Number of training points: %d' % n_train_sample)
 
@@ -299,13 +269,13 @@ def main():
     # Obtain the response function
     responsefunction = gp.classifier.responses.get(responsename)
 
-    logging.info('Learning...')
     # Train the classifier!
+    logging.info('Learning...')
     learned_classifier = gp.classifier.learn(
         training_features_sample_whiten, training_labels_sample, 
         kerneldef, responsefunction, batch_config, 
         multimethod = multimethod, approxmethod = approxmethod, 
-        train = False, ftol = 1e-10)
+        train = train, ftol = 1e-10)
 
     # Print the learnt kernel with its hyperparameters
     print_function = gp.describer(kerneldef)
@@ -316,10 +286,7 @@ def main():
     logging.info('Matrix of learned hyperparameters')
     gp.classifier.utils.print_hyperparam_matrix(learned_classifier)
 
-    """
-    Classifier Prediction
-    """
-
+    """Classifier Prediction"""
     query_labels_prob = gp.classifier.predict(
                             query_features_sample_whiten, learned_classifier, 
                             fusemethod = fusemethod)
@@ -329,10 +296,7 @@ def main():
 
     query_labels_entropy = gp.classifier.entropy(query_labels_prob)    
 
-    """
-    Visualise Query Prediction and Entropy
-    """
-
+    """Visualise Query Prediction and Entropy"""
     fig = plt.figure(figsize = (19.2, 10.8))
     plt.scatter(
         query_locations_sample[:, 0], query_locations_sample[:, 1], 
@@ -389,7 +353,6 @@ def remove_nan_queries(query_locations_old, query_features_old):
 
     kq = query_features_old.shape[1]
 
-    # Initialise copies of 
     query_locations_new = query_locations_old.copy()
     query_features_new = query_features_old.copy()
 
@@ -403,19 +366,17 @@ def remove_nan_queries(query_locations_old, query_features_old):
 
     return query_locations_new, query_features_new
 
-def load():
+def load(directory_data, filename_training_data, filename_query_points):
+    """Loads training and query data"""
 
-    """
-    Load Data
-    """
+    assert directory_data[-1] == '/'
+    assert filename_training_data[-4:] == '.npz'
+    assert filename_query_points[-4:] == '.npz'
 
-    # directory_data = 'Y:/BigDataKnowledgeDiscovery/AUV_data/'
-    directory_data = 'C:/Users/kkeke_000/Dropbox/Thesis/Data/'
-    directory_bathymetry_raw_data = directory_data + \
-        'scott_reef_wrangled_bathymetry3.pkl'
-    directory_training_data = directory_data + 'training_data_unmerged.npz'
-    directory_query_points = directory_data + 'query_points.npz'
-    directory_query_points_clean = directory_data + 'query_points_clean.npz'
+    directory_training_data = directory_data + filename_training_data
+    directory_query_points = directory_data + filename_query_points
+    directory_query_points_clean = directory_data + \
+                            filename_query_points.split('.')[0] + '_clean.npz'
 
     training_data = np.load(directory_training_data)
 
@@ -451,7 +412,8 @@ def load():
         (query_locations, query_features) = \
             remove_nan_queries(query_locations_raw, query_features_raw)
 
-        logging.info('saving cleaned data to "%s"' % directory_query_points_clean)
+        logging.info('saving cleaned data to "%s"' % 
+            directory_query_points_clean)
         np.savez(directory_query_points_clean, 
             locations = query_locations, features = query_features)
 
@@ -464,9 +426,7 @@ def sample(training_locations, training_features, training_labels,
     query_locations, query_features, 
     n_train_sample = 1000, n_query_sample = 10000):
 
-    """
-    Sample Training Data
-    """
+    """Sample Training Data"""
     n_train = training_locations.shape[0]
     indices_train_sample = np.random.choice(np.arange(n_train), 
                             size = n_train_sample, replace = False)
@@ -477,9 +437,7 @@ def sample(training_locations, training_features, training_labels,
 
     logging.info('Sampled Number of Training Points: %d' % n_train_sample)
 
-    """
-    Sample Query Data
-    """
+    """Sample Query Data"""
     n_query = query_locations.shape[0]
     indices_query_sample = np.random.choice(np.arange(n_query), 
                             size = n_query_sample, replace = False)
@@ -489,10 +447,7 @@ def sample(training_locations, training_features, training_labels,
 
     logging.info('Sampled Number of Query Points: %d' % n_query_sample)
 
-    """
-    Loading and Sampling Assertions
-    """
-
+    """Loading and Sampling Assertions"""
     assert ~np.any(np.isnan(query_features))
     assert ~np.any(np.isnan(query_features_sample))   
 
