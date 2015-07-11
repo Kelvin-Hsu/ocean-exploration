@@ -38,10 +38,10 @@ def main():
     fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary
     responsename = 'probit' # 'probit' or 'logistic'
     batchstart = True
-    walltime = 300.0
+    walltime = 10*3600.0
     train = True
 
-    n_train_sample = 200
+    n_train_sample = 5000
     n_query_sample = 10000
     
     """Visualisation Options"""
@@ -55,15 +55,11 @@ def main():
     """Initialise Result Logging"""
     if SAVE_RESULTS:
 
-        home_directory = "C:/Users/kkeke_000/" \
-        "Dropbox/Thesis/Results/ocean-exploration/"
+    	#"C:/Users/kkeke_000/Dropbox/Thesis/" \
+        home_directory = "../../../Results/ocean-exploration/"
 
-        save_directory = "scott_reef__response_%s_approxmethod_%s" \
-        "_training_%d_query_%d_walltime_%d" \
-        "_multimethod_%s_fusemethod_%s_train_%s/" \
-            % ( responsename, approxmethod, 
-                n_train_sample, n_query_sample, walltime, 
-                multimethod, fusemethod, str(train))
+        save_directory = "scott_reef__training_%d_query_%d/" % \
+        				(n_train_sample, n_query_sample)
 
         full_directory = gp.classifier.utils.create_directories(save_directory, 
             home_directory = home_directory, append_time = True)
@@ -93,15 +89,20 @@ def main():
     logging.getLogger().addHandler(console)
 
     """Process Options"""
-    model_options = {   'approxmethod': approxmethod,
+    model_options = {   'trainingsample': n_train_sample,
+    					'querysample': n_query_sample,
+    					'approxmethod': approxmethod,
                         'multimethod': multimethod,
                         'fusemethod': fusemethod,
                         'responsename': responsename,
                         'batchstart': batchstart,
                         'walltime': walltime,
                         'train': train}
+
+    logging.info(model_options)
+
     """File Locations"""
-    directory_data = 'C:/Users/kkeke_000/Dropbox/Thesis/Data/'
+    directory_data = '../../../Data/'
     filename_training_data = 'training_data_unmerged.npz'
     filename_query_points = 'query_points.npz'
 
