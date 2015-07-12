@@ -4,11 +4,6 @@ File    : main.py
 
 Author  : Kelvin Hsu
 Date    : 1st July 2015
-
---Description--
-	
-    Task 1: Read data from pickle file
-    Task 2: Apply GP Classification to investigate environment modeling
 """
 
 import numpy as np
@@ -34,14 +29,14 @@ def main():
     SAVE_RESULTS = True
 
     approxmethod = 'laplace' # 'laplace' or 'pls'
-    multimethod = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
+    multimethod = 'AVA' # 'AVA' or 'OVA', ignored for binary problem
     fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary
     responsename = 'probit' # 'probit' or 'logistic'
-    batchstart = True
+    batchstart = False
     walltime = 10*3600.0
     train = True
 
-    n_train_sample = 5000
+    n_train_sample = 10000
     n_query_sample = 10000
     
     """Visualisation Options"""
@@ -263,10 +258,11 @@ def main():
             raise ValueError
         batch_config = gp.batch_start(optimiser_config, initial_hyperparams)
         logging.info('Using Batch Start Configuration')
-        logging.info('There are %d unique labels' % unique_labels_sample.shape[0])
+        
     else:
         batch_config = optimiser_config
-
+    logging.info('There are %d unique labels' % unique_labels_sample.shape[0])
+    
     # Obtain the response function
     responsefunction = gp.classifier.responses.get(responsename)
 
