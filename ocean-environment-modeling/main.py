@@ -29,15 +29,22 @@ def main():
     SAVE_RESULTS = True
 
     approxmethod = 'laplace' # 'laplace' or 'pls'
-    multimethod = 'AVA' # 'AVA' or 'OVA', ignored for binary problem
+    multimethod = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
     fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary
     responsename = 'probit' # 'probit' or 'logistic'
     batchstart = False
     walltime = 10*3600.0
     train = True
 
-    n_train_sample = 10000
-    n_query_sample = 10000
+    n_train_sample = 200
+    n_query_sample = 1000
+    n_draws = 1
+    rows_subplot = 1
+    cols_subplot = 1
+
+    assert rows_subplot * cols_subplot >= n_draws
+
+    generate_draw = True
     
     """Visualisation Options"""
     mycmap = cm.jet
@@ -284,14 +291,32 @@ def main():
     gp.classifier.utils.print_hyperparam_matrix(learned_classifier)
 
     """Classifier Prediction"""
-    query_labels_prob = gp.classifier.predict(
-                            query_features_sample_whiten, learned_classifier, 
-                            fusemethod = fusemethod)
 
+    if generate_draw:
+        predictors = gp.classifier.query(learned_classifier, 
+            query_features_sample_whiten)
+        logging.info('Cached Predictor')
+        query_latent_exp = gp.classifier.expectance(learned_classifier, 
+            predictors)
+        logging.info('Computed Expectance')
+        query_latent_cov = gp.classifier.covariance(learned_classifier, 
+            predictors)
+        logging.info('Computed Covariance')
+        query_draws = gp.classifier.draws(n_draws, 
+            query_latent_exp, query_latent_cov, learned_classifier)
+        logging.info('Sampled Draws')
+        query_labels_prob = gp.classifier.predict_from_latent(query_latent_exp, 
+            query_latent_cov, learned_classifier, fusemethod = fusemethod)
+    else:
+        query_labels_prob = gp.classifier.predict(
+            query_features_sample_whiten, learned_classifier, 
+            fusemethod = fusemethod)
+    logging.info('Computed Prediction Probabilities')
     query_labels_pred = gp.classifier.classify(query_labels_prob, 
                                                 unique_labels_sample)
-
+    logging.info('Computed Prediction')
     query_labels_entropy = gp.classifier.entropy(query_labels_prob)    
+    logging.info('Computed Prediction Entropy')
 
     """Visualise Query Prediction and Entropy"""
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -324,7 +349,29 @@ def main():
         plt.xlim((vis_x_min, vis_x_max))
         plt.ylim((vis_y_min, vis_y_max))
     plt.gca().set_aspect('equal', adjustable = 'box')
-    
+
+    """Visualise Query Draws"""
+
+    if generate_draw:
+        fig = plt.figure()
+        for i in range(n_draws):
+            plt.subplot(rows_subplot, cols_subplot, i + 1)
+            plt.scatter(
+                query_locations_sample[:, 0], query_locations_sample[:, 1], 
+                marker = 'x', c = query_draws, cmap = mycmap)
+            plt.title('Query Label Draws')
+            plt.xlabel('x [Eastings (m)]')
+            plt.ylabel('y [Northings (m)]')
+            cbar = plt.colorbar()
+            cbar.set_label('Habitat Labels')
+            cbar.set_ticks(unique_labels_sample)
+            cbar.set_ticklabels(unique_labels_sample)
+            if vis_fix_range:
+                plt.xlim((vis_x_min, vis_x_max))
+                plt.ylim((vis_y_min, vis_y_max))
+            plt.gca().set_aspect('equal', adjustable = 'box')
+        logging.info('Plotted Sample Query Draws')
+
     if SAVE_RESULTS:
         gp.classifier.utils.save_all_figures(full_directory)
 
