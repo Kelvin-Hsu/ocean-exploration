@@ -29,15 +29,15 @@ def main():
     SAVE_RESULTS = True
 
     approxmethod = 'laplace' # 'laplace' or 'pls'
-    multimethod = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
+    multimethod = 'AVA' # 'AVA' or 'OVA', ignored for binary problem
     fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary
     responsename = 'probit' # 'probit' or 'logistic'
     batchstart = False
     walltime = 10*3600.0
     train = True
 
-    n_train_sample = 200
-    n_query_sample = 1000
+    n_train_sample = 1000
+    n_query_sample = 2000
     n_draws = 1
     rows_subplot = 1
     cols_subplot = 1
@@ -353,7 +353,7 @@ def main():
     """Visualise Query Draws"""
 
     if generate_draw:
-        fig = plt.figure()
+        fig = plt.figure(figsize = (19.2, 10.8))
         for i in range(n_draws):
             plt.subplot(rows_subplot, cols_subplot, i + 1)
             plt.scatter(
