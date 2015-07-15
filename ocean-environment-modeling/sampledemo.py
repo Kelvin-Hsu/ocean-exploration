@@ -8,6 +8,7 @@ classification or multiclass classification using binary classifiers
 Author: Kelvin
 """
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import computers.gp as gp
@@ -15,6 +16,7 @@ import computers.unsupervised.whitening as pre
 import sys
 import logging
 
+plt.ion()
 
 # Define the kernel used for classification
 def kerneldef(h, k):
@@ -32,7 +34,7 @@ def main():
     # logging level
     gp.classifier.set_multiclass_logging_level(logging.DEBUG)
 
-    # np.random.seed(200)
+    np.random.seed(200)
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = False # We don't want to make files everywhere for a demo.
     SHOW_RAW_BINARY = False
@@ -105,10 +107,10 @@ def main():
         if y_unique.shape[0] == 2:
             initial_hyperparams = [10, 0.1, 0.1]
         elif multimethod == 'OVA':
-            initial_hyperparams = [ [70.8780, 0.754, 0.462],  \
-                                    [152.485, 0.737, 0.623], \
-                                    [781.625, 1.395, 1.678], \
-                                    [455.537, 1.477, 0.767]]
+            initial_hyperparams = [  [356.46828146743388, 0.7628014361167047, 0.53093943834222967], \
+                                     [356.55639115411111, 0.8360802461779917, 0.76369284639761281], \
+                                     [472.00684107153467, 1.6484025983516082, 1.5502023765326216], \
+                                     [239.72087459618402, 1.3077546793647976, 0.72127460091935158] ]
         elif multimethod == 'AVA':
             initial_hyperparams = [ [14.9670, 0.547, 0.402],  \
                                     [251.979, 1.583, 1.318], \
@@ -135,6 +137,10 @@ def main():
     print_function = gp.describer(kerneldef)
     gp.classifier.utils.print_learned_kernels(print_function, 
                                             learned_classifier, y_unique)
+
+    # Print the matrix of learned classifier hyperparameters
+    logging.info('Matrix of learned hyperparameters')
+    gp.classifier.utils.print_hyperparam_matrix(learned_classifier)
     
     """
     Classifier Prediction
@@ -158,10 +164,6 @@ def main():
     logging.info('Drawing from GP...')
     yq_draws = gp.classifier.draws(n_draws, yq_exp_list, yq_cov_list, 
         learned_classifier)
-    # logging.info('Computing Group Entropy from GP...')
-    # group_entropy_latent = gp.classifier.entropy_latent(yq_cov_list[0])
-    # print(group_entropy_latent)
-    # return
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
                         THE GAP BETWEEN ANALYSIS AND PLOTS
@@ -256,10 +258,15 @@ def main():
 
     logging.info('Caching Predictor...')
     predictor_plt = gp.classifier.query(learned_classifier, Xq_plt)
+    logging.info('Compuating Expectance...')
+    expectance_latent_plt = gp.classifier.expectance(learned_classifier, 
+        predictor_plt)
     logging.info('Compuating Variance...')
-    variance_latent_plt = gp.classifier.variance(learned_classifier, predictor_plt)
+    variance_latent_plt = gp.classifier.variance(learned_classifier, 
+        predictor_plt)
     logging.info('Computing Latent Entropy...')
-    entropy_latent_plt = gp.classifier.entropy_latent(variance_latent_plt)
+    entropy_latent_plt = gp.classifier.joint_entropy(expectance_latent_plt,
+        variance_latent_plt, learned_classifier)
 
     # Query (Entropy) and Training Set
     fig = plt.figure()
@@ -308,7 +315,7 @@ def main():
     """  
 
     # Visualise Predictions
-    fig = plt.figure()
+    fig = plt.figure(figsize = (19.2, 10.8))
     for i in range(n_draws):
         plt.subplot(rows_subplot, cols_subplot, i + 1)
         gp.classifier.utils.visualise_decision_boundary(
@@ -345,10 +352,11 @@ def main():
     Path Planning
     """
 
-    xq_start = np.array([-1.5, -1.5])
-    thetas = np.linspace(0, 2*np.pi, num = 72 + 1)[:, np.newaxis][:, np.newaxis]
+    xq_start = np.array([0.0, 0.0])
+    thetas = np.linspace(0, 2*np.pi, num = 10 + 1)[:-1][:, np.newaxis][:, np.newaxis]
     horizon = 0.5
-    steps = np.linspace(0, horizon, num = 10 + 1)[:, np.newaxis]
+    n_steps = 10
+    steps = np.linspace(horizon/n_steps, horizon, num = n_steps)[:, np.newaxis]
 
     xq_now = xq_start.copy()
 
@@ -357,28 +365,98 @@ def main():
     Xq_hyper[:, :, [1]] = steps * np.sin(thetas)
     Xq_extend = Xq_hyper.reshape(thetas.shape[0] * steps.shape[0], n_dims)
 
+    X_now = X.copy()
+    y_now = y.copy()
+
+    xq1_nows = np.array([])
+    xq2_nows = np.array([])
+
     i = 0
-    fig = plt.figure()
-    while True:
+    fig = plt.figure(figsize = (15, 15))
+    plt.scatter(xq_now[0], xq_now[1], marker = '+', s = 80, 
+        cmap = mycmap)
+    plt.xlabel('x1')
+    plt.ylabel('x2')
+    plt.xlim((test_range_min, test_range_max))
+    plt.ylim((test_range_min, test_range_max))
+    i_trials = 0
+    while i_trials < 100:
 
+        # Train the classifier!
+        logging.info('Learning Classifier...')
+        batch_config = gp.classifier.batch_start(optimiser_config, 
+            learned_classifier)
+        learned_classifier = gp.classifier.learn(X_now, y_now, kerneldef,
+            responsefunction, batch_config, 
+            multimethod = multimethod, approxmethod = approxmethod,
+            train = True, ftol = 1e-10, processes = n_cores)
+
+        logging.info('Caching Predictor...')
+        predictor_plt = gp.classifier.query(learned_classifier, Xq_plt)
+        logging.info('Compuating Expectance...')
+        expectance_latent_plt = gp.classifier.expectance(learned_classifier, 
+            predictor_plt)
+        logging.info('Compuating Variance...')
+        variance_latent_plt = gp.classifier.variance(learned_classifier, 
+            predictor_plt)
+        logging.info('Computing Latent Entropy...')
+        entropy_latent_plt = gp.classifier.joint_entropy(expectance_latent_plt,
+            variance_latent_plt, learned_classifier)
+
+        # Query (Entropy) and Training Set
+        gp.classifier.utils.visualise_entropy(test_range_min, test_range_max, 
+                None, entropy_threshold = entropy_threshold, 
+                yq_entropy = entropy_latent_plt)
+        if i_trials == 0:
+            plt.colorbar()
+        plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+
+        # Obtain where to query
         Xq_now = xq_now + Xq_extend
+        Xq_now_paths = Xq_now.reshape(thetas.shape[0], steps.shape[0], n_dims)
 
-        yq_prob = prediction_function(Xq_now)
-        yq_pred = gp.classifier.classify(yq_prob, y)
-        yq_entropy = gp.classifier.entropy(yq_prob)
-            
-        # xq1_now = Xq_now[:, 0]
-        # xq2_now = Xq_now[:, 1]
-        # plt.scatter(xq1_now, xq2_now, marker = 'x', cmap = mycmap)
-        # plt.draw()
-        wait = input('PRESS ENTER TO CONTINUE.')
+        xq_now = go_highest_entropy_path(Xq_now_paths, learned_classifier)
+
+        Xq_now = np.array([xq_now])
+        yq_now = gp.classifier.utils.make_decision(Xq_now, decision_boundary)
+
+        X_now = np.concatenate((X_now, Xq_now), axis = 0)
+        y_now = np.append(y_now, yq_now)
+
+        xq1_nows = np.append(xq1_nows, xq_now[0])
+        xq2_nows = np.append(xq2_nows, xq_now[1])
+        plt.scatter(xq1_nows, xq2_nows, c = 'k', marker = '+', s = 80)
+
+        i_trials += 1
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('figure%d.png' % i_trials)
 
     # Show everything!
     plt.show()
 
 
+def go_highest_entropy_path(Xq_now_paths, learned_classifier):
 
+    n_paths = Xq_now_paths.shape[0]
+    yq_path_entropy = np.zeros(n_paths)
+    for i_paths in range(n_paths):
 
+        logging.info('Caching Predictor...')
+        predictors = gp.classifier.query(learned_classifier, 
+            Xq_now_paths[i_paths])
+        logging.info('Computing Expectance...')
+        yq_exp = gp.classifier.expectance(learned_classifier, predictors)
+        logging.info('Computing Covariance...')
+        yq_cov = gp.classifier.covariance(learned_classifier, predictors)
+        logging.info('Computing Entropy...')
+        yq_path_entropy[i_paths] = \
+            gp.classifier.joint_entropy(yq_exp, yq_cov, learned_classifier)
+        logging.info(i_paths)
+
+    i_path_max_entropy = yq_path_entropy.argmax()
+
+    xq_next = Xq_now_paths[i_path_max_entropy, 0, :]
+    return xq_next
 
 if __name__ == "__main__":
     main()
