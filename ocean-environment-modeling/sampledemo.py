@@ -15,6 +15,7 @@ import computers.gp as gp
 import computers.unsupervised.whitening as pre
 import sys
 import logging
+import shutil
 
 # Talk about why linearising keeps the squashed probability 
 # distributed as a gaussian (yes, the probability itself is a random variable)
@@ -37,13 +38,13 @@ def main():
     # logging level
     gp.classifier.set_multiclass_logging_level(logging.DEBUG)
 
-    np.random.seed(30)
+    np.random.seed(100)
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True # We don't want to make files everywhere for a demo.
     SHOW_RAW_BINARY = True
     test_range_min = -1.75
     test_range_max = +1.75
-    n_train = 50
+    n_train = 200
     n_query = 250
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
@@ -261,14 +262,14 @@ def main():
 
     logging.info('Caching Predictor...')
     predictor_plt = gp.classifier.query(learned_classifier, Xq_plt)
-    logging.info('Compuating Expectance...')
+    logging.info('Computing Expectance...')
     expectance_latent_plt = gp.classifier.expectance(learned_classifier, 
         predictor_plt)
-    logging.info('Compuating Variance...')
+    logging.info('Computing Variance...')
     variance_latent_plt = gp.classifier.variance(learned_classifier, 
         predictor_plt)
     logging.info('Computing Linearised Entropy...')
-    entropy_latent_plt = gp.classifier.joint_entropy(expectance_latent_plt,
+    entropy_latent_plt = gp.classifier.linearised_entropy(expectance_latent_plt,
         variance_latent_plt, learned_classifier)
 
     # Query (Entropy) and Training Set
@@ -349,7 +350,7 @@ def main():
         full_directory = gp.classifier.utils.create_directories(
             save_directory, home_directory = 'Figures/', append_time = True)
         gp.classifier.utils.save_all_figures(full_directory)
-
+        shutil.copy2('./sampledemo.py', full_directory)
 
 
     print('Modeling Done')
@@ -359,11 +360,12 @@ def main():
     """
 
     # Pick a starting point
-    xq_start = np.array([0.5, 0.0])
+    xq_start = np.array([0.0, 0.25])
 
     # The directions the vehicle can travel
+    n_paths = 24
     thetas = np.linspace(0, 2*np.pi, 
-        num = 24 + 1)[:-1][:, np.newaxis][:, np.newaxis]
+        num = n_paths + 1)[:-1][:, np.newaxis][:, np.newaxis]
 
     # The steps the vehicle can travel
     horizon = 1.0
@@ -394,7 +396,15 @@ def main():
     yq_nows = np.array([yq_now])
 
     # Plot the current situation
-    fig = plt.figure(figsize = (15, 15))
+    fig1 = plt.figure(figsize = (15, 15))
+    plt.scatter(xq_now[0], xq_now[1], c = yq_now, s = 60, 
+        vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+    plt.xlabel('x1')
+    plt.ylabel('x2')
+    plt.xlim((test_range_min, test_range_max))
+    plt.ylim((test_range_min, test_range_max))
+
+    fig2 = plt.figure(figsize = (15, 15))
     plt.scatter(xq_now[0], xq_now[1], c = yq_now, s = 60, 
         vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
     plt.xlabel('x1')
@@ -404,6 +414,7 @@ def main():
 
     # Start exploring
     i_trials = 0
+    i_path_chosen = None
     while i_trials < 1000:
 
         # Train the classifier!
@@ -417,20 +428,26 @@ def main():
 
         logging.info('Caching Predictor...')
         predictor_plt = gp.classifier.query(learned_classifier, Xq_plt)
-        logging.info('Compuating Expectance...')
+        logging.info('Computing Expectance...')
         expectance_latent_plt = gp.classifier.expectance(learned_classifier, 
             predictor_plt)
-        logging.info('Compuating Variance...')
+        logging.info('Computing Variance...')
         variance_latent_plt = gp.classifier.variance(learned_classifier, 
             predictor_plt)
         logging.info('Computing Linearised Entropy...')
-        entropy_latent_plt = gp.classifier.joint_entropy(expectance_latent_plt,
+        entropy_latent_plt = gp.classifier.linearised_entropy(expectance_latent_plt,
             variance_latent_plt, learned_classifier)
+
+        if i_trials == 0:
+            vmin = entropy_latent_plt.min()
+            vmax = entropy_latent_plt.max()
+
+        plt.figure(fig1.number)
 
         # Query (Entropy) and Training Set
         gp.classifier.utils.visualise_entropy(test_range_min, test_range_max, 
                 None, entropy_threshold = entropy_threshold, 
-                yq_entropy = entropy_latent_plt)
+                yq_entropy = entropy_latent_plt, vmin = vmin, vmax = vmax)
         if i_trials == 0:
             plt.colorbar()
         plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
@@ -441,7 +458,8 @@ def main():
             n_dims)
 
         # Pick the point towards the highest entropy path
-        xq_now = go_highest_entropy_region(Xq_now_paths, learned_classifier)
+        (xq_now, i_path_chosen) = \
+            go_highest_entropy_region(Xq_now_paths, learned_classifier, i_path_last = i_path_chosen)
 
         # Observe the current location
         Xq_now = np.array([xq_now])
@@ -464,10 +482,38 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
 
         # Save the current situation
-        i_trials += 1
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%sstep%d.png' % (full_directory, i_trials))
+        plt.savefig('%sstep%d.png' % (full_directory, i_trials + 1))
 
+        plt.figure(fig2.number)
+        # Also plot actual entropy
+        entropy_plt = gp.classifier.entropy(gp.classifier.predict_from_latent(expectance_latent_plt, 
+            variance_latent_plt, learned_classifier, fusemethod = fusemethod))
+
+        if i_trials == 0:
+            vmin2 = entropy_plt.min()
+            vmax2 = entropy_plt.max()
+
+        # Query (Entropy) and Training Set
+        gp.classifier.utils.visualise_entropy(test_range_min, test_range_max, 
+                None, entropy_threshold = entropy_threshold, 
+                yq_entropy = entropy_plt, vmin = vmin2, vmax = vmax2)
+        if i_trials == 0:
+            plt.colorbar()
+        plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+
+        # Plot the current situation
+        plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
+            facecolors = 'none',
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.scatter(xq_now[0], xq_now[1], c = yq_now, s = 60, 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('%sstep_true_entropy%d.png' % (full_directory, i_trials + 1))
+
+
+        i_trials += 1
     # Show everything!
     plt.show()
 
@@ -492,7 +538,7 @@ def go_highest_entropy_path(Xq_now_paths, learned_classifier):
         yq_cov = gp.classifier.covariance(learned_classifier, predictors)
         logging.info('Computing Entropy...')
         yq_path_entropy[i_paths] = \
-            gp.classifier.joint_entropy(yq_exp, yq_cov, learned_classifier)
+            gp.classifier.linearised_entropy(yq_exp, yq_cov, learned_classifier)
         logging.info(i_paths)
 
     # Find the path of maximum joint entropy
@@ -500,25 +546,28 @@ def go_highest_entropy_path(Xq_now_paths, learned_classifier):
 
     # Move towards that path
     xq_next = Xq_now_paths[i_path_max_entropy, 0, :]
-    return xq_next
+    return xq_next, i_path_max_entropy
 
-def go_highest_entropy_region(Xq_now_paths, learned_classifier):
+def go_highest_entropy_region(Xq_now_paths, learned_classifier, i_path_last = None):
 
     # Xq_now_paths.shape = (n_paths, n_steps, n_dims)
-    n_paths = Xq_now_paths.shape[0]
+    (n_paths, n_steps, n_dims) = Xq_now_paths.shape
 
     # The array store the entropy for each region
-    yq_region_entropy = np.zeros(n_paths)
+    yq_region_entropy = -np.inf * np.ones(n_paths)
+
+    if i_path_last is not None:
+        n_path_to_check = 13 # must be odd 
+        assert n_path_to_check % 2 == 1
+        side = int((n_path_to_check - 1)/2)
+        i_path_to_check = (i_path_last + np.arange(-side, side + 1)) % n_paths
+    else:
+        i_path_to_check = np.arange(n_paths)
 
     # For each region, compute the joint entropy for that region
-    for i_paths in range(n_paths):
+    for i_paths in i_path_to_check:
 
-        Xq_now_middle = Xq_now_paths[i_paths]
-        Xq_now_left = Xq_now_paths[i_paths - 1]
-        Xq_now_right = Xq_now_paths[0 if i_paths == n_paths - 1 else i_paths + 1]
-
-        Xq_now_region = np.concatenate(
-            (Xq_now_left, Xq_now_middle, Xq_now_right), axis = 0)
+        Xq_now_region = Xq_now_paths[(i_paths + np.arange(-1, 2)) % 3].reshape(3 * n_steps, 2)
 
         logging.info('Caching Predictor...')
         predictors = gp.classifier.query(learned_classifier, Xq_now_region)
@@ -528,7 +577,7 @@ def go_highest_entropy_region(Xq_now_paths, learned_classifier):
         yq_cov = gp.classifier.covariance(learned_classifier, predictors)
         logging.info('Computing Entropy...')
         yq_region_entropy[i_paths] = \
-            gp.classifier.joint_entropy(yq_exp, yq_cov, learned_classifier)
+            gp.classifier.linearised_entropy(yq_exp, yq_cov, learned_classifier)
         logging.info(i_paths)
 
     # Find the region of maximum joint entropy
@@ -536,7 +585,7 @@ def go_highest_entropy_region(Xq_now_paths, learned_classifier):
 
     # Move towards that region
     xq_next = Xq_now_paths[i_path_max_entropy, 0, :]
-    return xq_next
+    return xq_next, i_path_max_entropy
 
 def compose_roads(thetas, steps):
 
