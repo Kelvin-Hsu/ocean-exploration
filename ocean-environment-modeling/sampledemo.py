@@ -1,9 +1,5 @@
 """
-Test 'generalClassifier'
-Demonstration of general gp classifiers
-Depending on the number of unique labels, this performs either binary 
-classification or multiclass classification using binary classifiers 
-(AVA or OVA)
+Demonstration of simple exploration algorithms using generated data
 
 Author: Kelvin
 """
@@ -581,6 +577,65 @@ def main():
     # Show everything!
     plt.show()
 
+def restrain_paths(i_path_last, n_paths, n_restrain):
+
+    if i_path_last is not None:
+        assert n_restrain % 2 == 1
+        n_side = int((n_restrain - 1)/2)
+        i_paths_restrained = \
+            (i_path_last + np.arange(-n_side, n_side + 1)) % n_paths
+    else:
+        i_paths_restrained = np.arange(n_paths)
+
+    return i_paths_restrained
+
+def go_regional_entropy_reduction(x, Xq_region, Xq_directions, n_steps, d_step, learned_classifier, i_path_last = None):
+
+    (n_paths, n_dims) = Xq_directions.shape
+
+    Xq_consider = x + Xq_directions
+
+    
+
+
+
+
+
+
+
+
+
+    # The array store the regional entropy for each path
+    yq_region_entropy = -np.inf * np.ones(n_paths)
+
+    # Restrain the AUV to turn smoothly
+    n_restrain = 5
+    i_paths_restrained = restrain_paths(i_path_last, n_paths, n_restrain)
+
+    # For each region, compute the joint entropy for that region
+    for i_paths in i_paths_restrained:
+
+        try:
+            logging.info('Caching Predictor...')
+            predictors = gp.classifier.query(learned_classifier, 
+                Xq_paths[i_paths])
+            logging.info('Computing Expectance...')
+            yq_exp = gp.classifier.expectance(learned_classifier, predictors)
+            logging.info('Computing Covariance...')
+            yq_cov = gp.classifier.covariance(learned_classifier, predictors)
+            logging.info('Computing Entropy...')
+            yq_region_entropy[i_paths] = \
+                gp.classifier.linearised_entropy(yq_exp, yq_cov, learned_classifier)
+        except:
+            yq_region_entropy[i_paths] = -np.inf
+        logging.info(i_paths)
+
+    # Find the path of maximum joint entropy
+    i_path_max_entropy = yq_region_entropy.argmax()
+
+    # Move towards that path
+    xq_next = Xq_paths[i_path_max_entropy, 0, :]
+    return xq_next, i_path_max_entropy
 
 def go_highest_entropy_path(Xq_now_paths, learned_classifier, i_path_last = None):
 
