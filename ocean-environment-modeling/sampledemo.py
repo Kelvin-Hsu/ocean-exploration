@@ -79,7 +79,10 @@ def main():
     db1b = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & ((x1/2)**2 + (x2)**2 > 0.4**2) & \
             ((x1 + x2) < 1.5) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.4**2) | ((x1 + x2) > 2.25) & (x1 < 1.75) & (x2 < 1.75) # | (((x1 + 0.25)/4)**2 + (x2 + 1.5)**2 < 0.32**2) # & (((x1 + 0.25)/4)**2 + (x2 + 1.5)**2 > 0.18**2)
-    decision_boundary  = db1b # [db5a, db5b, db1a, db5, db4a]
+    db8 = lambda x1, x2: (np.sin(5*x1 + 2*x2) > 0) | (((x1 - 1)**2 + x2**2/4) * 
+            (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
+            ((x1 + x2) < 1.5) | (x1 < -1.75) | (x1 > +1.75) | (x2 < -1.75) | (x2 > +1.75) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
+    decision_boundary  = db8 # [db5a, db5b, db1a, db5, db4a]
 
     """
     Data Generation
@@ -448,7 +451,7 @@ def main():
     # Start exploring
     i_trials = 0
     i_path_chosen = None
-    while i_trials < 401:
+    while i_trials < 1001:
 
         # Train the classifier!
         logging.info('Learning Classifier...')
@@ -589,11 +592,11 @@ def restrain_paths(i_path_last, n_paths, n_restrain):
 
     return i_paths_restrained
 
-def go_regional_entropy_reduction(x, Xq_region, Xq_directions, n_steps, d_step, learned_classifier, i_path_last = None):
+# def go_regional_entropy_reduction(x, Xq_region, Xq_directions, n_steps, d_step, learned_classifier, i_path_last = None):
 
-    (n_paths, n_dims) = Xq_directions.shape
+#     (n_paths, n_dims) = Xq_directions.shape
 
-    Xq_consider = x + Xq_directions
+#     Xq_consider = x + Xq_directions
 
     
 
@@ -605,37 +608,37 @@ def go_regional_entropy_reduction(x, Xq_region, Xq_directions, n_steps, d_step, 
 
 
 
-    # The array store the regional entropy for each path
-    yq_region_entropy = -np.inf * np.ones(n_paths)
+#     # The array store the regional entropy for each path
+#     yq_region_entropy = -np.inf * np.ones(n_paths)
 
-    # Restrain the AUV to turn smoothly
-    n_restrain = 5
-    i_paths_restrained = restrain_paths(i_path_last, n_paths, n_restrain)
+#     # Restrain the AUV to turn smoothly
+#     n_restrain = 5
+#     i_paths_restrained = restrain_paths(i_path_last, n_paths, n_restrain)
 
-    # For each region, compute the joint entropy for that region
-    for i_paths in i_paths_restrained:
+#     # For each region, compute the joint entropy for that region
+#     for i_paths in i_paths_restrained:
 
-        try:
-            logging.info('Caching Predictor...')
-            predictors = gp.classifier.query(learned_classifier, 
-                Xq_paths[i_paths])
-            logging.info('Computing Expectance...')
-            yq_exp = gp.classifier.expectance(learned_classifier, predictors)
-            logging.info('Computing Covariance...')
-            yq_cov = gp.classifier.covariance(learned_classifier, predictors)
-            logging.info('Computing Entropy...')
-            yq_region_entropy[i_paths] = \
-                gp.classifier.linearised_entropy(yq_exp, yq_cov, learned_classifier)
-        except:
-            yq_region_entropy[i_paths] = -np.inf
-        logging.info(i_paths)
+#         try:
+#             logging.info('Caching Predictor...')
+#             predictors = gp.classifier.query(learned_classifier, 
+#                 Xq_paths[i_paths])
+#             logging.info('Computing Expectance...')
+#             yq_exp = gp.classifier.expectance(learned_classifier, predictors)
+#             logging.info('Computing Covariance...')
+#             yq_cov = gp.classifier.covariance(learned_classifier, predictors)
+#             logging.info('Computing Entropy...')
+#             yq_region_entropy[i_paths] = \
+#                 gp.classifier.linearised_entropy(yq_exp, yq_cov, learned_classifier)
+#         except:
+#             yq_region_entropy[i_paths] = -np.inf
+#         logging.info(i_paths)
 
-    # Find the path of maximum joint entropy
-    i_path_max_entropy = yq_region_entropy.argmax()
+#     # Find the path of maximum joint entropy
+#     i_path_max_entropy = yq_region_entropy.argmax()
 
-    # Move towards that path
-    xq_next = Xq_paths[i_path_max_entropy, 0, :]
-    return xq_next, i_path_max_entropy
+#     # Move towards that path
+#     xq_next = Xq_paths[i_path_max_entropy, 0, :]
+#     return xq_next, i_path_max_entropy
 
 def go_highest_entropy_path(Xq_now_paths, learned_classifier, i_path_last = None):
 
