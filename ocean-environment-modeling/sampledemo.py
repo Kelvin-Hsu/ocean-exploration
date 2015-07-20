@@ -38,8 +38,8 @@ def main():
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True # We don't want to make files everywhere for a demo.
     SHOW_RAW_BINARY = True
-    test_range_min = -2
-    test_range_max = +2
+    test_range_min = -2.5
+    test_range_max = +2.5
     n_train = 200
     n_query = 250
     n_dims  = 2   # <- Must be 2 for vis
@@ -411,8 +411,8 @@ def main():
         num = n_paths + 1)[:-1][:, np.newaxis][:, np.newaxis]
 
     # The steps the vehicle can travel
-    horizon = 0.5
-    n_steps = 10
+    horizon = 1.0
+    n_steps = 15
     steps = np.linspace(horizon/n_steps, horizon, num = n_steps)[:, np.newaxis]
 
     # Where the vehicle is right now
