@@ -35,13 +35,13 @@ def main():
     # logging level
     gp.classifier.set_multiclass_logging_level(logging.DEBUG)
 
-    # np.random.seed(220)
+    np.random.seed(220)
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True # We don't want to make files everywhere for a demo.
     SHOW_RAW_BINARY = True
-    test_range_min = -2.8
-    test_range_max = +2.8
-    n_train = 100
+    test_range_min = -2
+    test_range_max = +2
+    n_train = 150
     n_query = 250
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
@@ -331,6 +331,27 @@ def main():
     plt.ylim((test_range_min, test_range_max))
     print('Plotted Prediction Entropy on Training Set')
 
+
+    # entropy_sampled_plt = np.zeros(expectance_latent_plt.shape[0])
+    # for i in range(expectance_latent_plt.shape[0]):
+    #     entropy_sampled_plt[i] = gp.classifier.joint_entropy(expectance_latent_plt[[i]], variance_latent_plt[[i]][:, np.newaxis], learned_classifier, n_draws = 1000, processes = None)
+
+
+    # # Query (Entropy) and Training Set
+    # fig = plt.figure()
+    # gp.classifier.utils.visualise_entropy(test_range_min, test_range_max, 
+    #     lambda Xq: gp.classifier.entropy(prediction_function(Xq)), 
+    #     entropy_threshold = entropy_threshold, yq_entropy = entropy_sampled_plt)
+    # plt.title('Sampled Prediction Entropy and Training Set')
+    # plt.xlabel('x1')
+    # plt.ylabel('x2')
+    # plt.colorbar()
+    # plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    # plt.xlim((test_range_min, test_range_max))
+    # plt.ylim((test_range_min, test_range_max))
+    # print('Plotted Prediction Entropy on Training Set')
+
+
     """
     Plot: Prediction Probabilities from Binary Classifiers
     """    
@@ -405,7 +426,7 @@ def main():
     """
 
     """ Setup Path Planning """
-    xq_now = np.array([0.7, 0.7])
+    xq_now = np.array([-0.7, -0.7])
     horizon = 1.25
     n_steps = 15
 
@@ -453,8 +474,7 @@ def main():
         xq_abs_opt, theta_add_opt, entropy_opt = \
             go_optimised_path(theta_add_init, learned_classifier, xq_now, r, 
                 theta_add_low = theta_add_low, theta_add_high = theta_add_high, 
-                walltime = choice_walltime, ftol_rel = ftol_rel, 
-                x_min = test_range_min, x_max = test_range_max)
+                walltime = choice_walltime, ftol_rel = ftol_rel)
 
         xq_now = xq_abs_opt[0]
 
@@ -655,11 +675,20 @@ def path_entropy_model(theta_add, r, x, memory):
     #     return -1e-8
 
     try:
+
+        # Method 1
         # logging.info('Computing linearised entropy...')
         predictors = gp.classifier.query(memory, Xq)
         yq_exp = gp.classifier.expectance(memory, predictors)
         yq_cov = gp.classifier.covariance(memory, predictors)
-        entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
+        # entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
+
+        # # Method 2
+        # entropy = gp.classifier.entropy(gp.classifier.predict(Xq, memory)).sum()
+
+        # Method 3
+        entropy = gp.classifier.joint_entropy(yq_exp, yq_cov, memory, n_draws = 1000)
+
     except:
         # logging.warning('Failed to compute linearised entropy')
         entropy = -1e-8
@@ -668,17 +697,12 @@ def path_entropy_model(theta_add, r, x, memory):
 
 def go_optimised_path(theta_add_init, memory, x, r, 
     theta_add_low = None, theta_add_high = None, walltime = None, 
-    ftol_rel = 1e-2, x_min = -1.0, x_max = +1.0, globalopt = False):
+    ftol_rel = 1e-2, globalopt = False):
 
     ##### OPTIMISATION #####
     try:
         def objective(theta_add, grad):
             return path_entropy_model(theta_add, r, x, memory)
-
-        def constraint(theta_add, grad):
-            Xq = forward_path_model(theta_add, r, x)
-            return -np.append(   x_min - Xq[:, 0], x_min - Xq[:, 1], 
-                                Xq[:, 0] - x_max, Xq[:, 1] - x_max)
 
         n_params = theta_add_init.shape[0]
 
@@ -698,7 +722,6 @@ def go_optimised_path(theta_add_init, memory, x, r,
         opt.set_maxtime(walltime)
         opt.set_ftol_rel(ftol_rel)
 
-        opt.add_inequality_constraint(constraint, 1e-2)
         opt.set_max_objective(objective)
 
         theta_add_opt = opt.optimize(theta_add_init)
