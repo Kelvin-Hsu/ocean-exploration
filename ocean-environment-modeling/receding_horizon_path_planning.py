@@ -39,8 +39,8 @@ def main():
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True # We don't want to make files everywhere for a demo.
     SHOW_RAW_BINARY = True
-    test_range_min = -2
-    test_range_max = +2
+    test_range_min = -2.8
+    test_range_max = +2.8
     n_train = 100
     n_query = 250
     n_dims  = 2   # <- Must be 2 for vis
@@ -84,7 +84,7 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = [db5b, db1a, db4a]
+    decision_boundary  = db1b # [db5b, db1a, db4a]
 
     """
     Data Generation
@@ -395,7 +395,7 @@ def main():
         full_directory = gp.classifier.utils.create_directories(
             save_directory, home_directory = 'Figures/', append_time = True)
         gp.classifier.utils.save_all_figures(full_directory)
-        shutil.copy2('./sampledemo.py', full_directory)
+        shutil.copy2('./receding_horizon_path_planning.py', full_directory)
 
 
     print('Modeling Done')
@@ -405,11 +405,11 @@ def main():
     """
 
     """ Setup Path Planning """
-    xq_now = np.array([0.0, 0.0])
+    xq_now = np.array([0.7, 0.7])
     horizon = 1.25
     n_steps = 15
 
-    theta_bound = np.deg2rad(30)
+    theta_bound = np.deg2rad(45)
     theta_add_init = np.zeros(n_steps)
     theta_add_init[0] = np.deg2rad(90)
     theta_add_low = -theta_bound * np.ones(n_steps)
@@ -418,7 +418,7 @@ def main():
     theta_add_high[0] = 2 * np.pi
     r = horizon/n_steps
     choice_walltime = 60.0
-    ftol_rel = 1e-6
+    ftol_rel = 1e-2
 
     """ Initialise Values """
 
@@ -445,7 +445,7 @@ def main():
 
     # Start exploring
     i_trials = 0
-    while i_trials < 1001:
+    while i_trials < 2001:
 
         """ Path Planning """
 
@@ -453,7 +453,9 @@ def main():
         xq_abs_opt, theta_add_opt, entropy_opt = \
             go_optimised_path(theta_add_init, learned_classifier, xq_now, r, 
                 theta_add_low = theta_add_low, theta_add_high = theta_add_high, 
-                walltime = choice_walltime, ftol_rel = ftol_rel)
+                walltime = choice_walltime, ftol_rel = ftol_rel, 
+                x_min = test_range_min, x_max = test_range_max)
+
         xq_now = xq_abs_opt[0]
 
         theta_add_init = initiate_with_continuity(theta_add_opt)
@@ -544,7 +546,7 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
 
         # Plot the proposed path
-        plt.scatter(xq1_proposed, xq2_proposed, c = 'k', s = 60, marker = 'D')
+        plt.scatter(xq1_proposed, xq2_proposed, c = 'w', s = 60, marker = 'D')
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now, horizon, c = 'k', marker = '.')
@@ -581,7 +583,7 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
 
         # Plot the proposed path
-        plt.scatter(xq1_proposed, xq2_proposed, c = 'k', s = 60, marker = 'D')
+        plt.scatter(xq1_proposed, xq2_proposed, c = 'w', s = 60, marker = 'D')
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now, horizon, c = 'k', marker = '.')
@@ -618,7 +620,18 @@ def initiate_with_continuity(theta_add_opt):
 
     return theta_add_next
 
-def forward_path_model(theta_add, r, x, memory):
+def boundary_map(Xq): 
+
+    test_range_min = -2.0
+    test_range_max = +2.0
+    return True if  np.any(Xq[:, 0] < test_range_min) | \
+                    np.any(Xq[:, 0] > test_range_max) | \
+                    np.any(Xq[:, 1] < test_range_min) | \
+                    np.any(Xq[:, 1] > test_range_max)   \
+                else False
+
+
+def forward_path_model(theta_add, r, x):
 
     theta = np.cumsum(theta_add)
 
@@ -632,6 +645,14 @@ def forward_path_model(theta_add, r, x, memory):
     x_rel = np.array([x1_rel, x2_rel]).T
 
     Xq = x + x_rel
+    return Xq
+
+def path_entropy_model(theta_add, r, x, memory):
+
+    Xq = forward_path_model(theta_add, r, x)
+
+    # if boundary_map(Xq):
+    #     return -1e-8
 
     try:
         # logging.info('Computing linearised entropy...')
@@ -641,26 +662,43 @@ def forward_path_model(theta_add, r, x, memory):
         entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
     except:
         # logging.warning('Failed to compute linearised entropy')
-        entropy = -1e8
+        entropy = -1e-8
 
     return entropy
 
-def go_optimised_path(theta_add_init, memory, x, r, theta_add_low = None, theta_add_high = None, walltime = None, ftol_rel = 1e-2):
+def go_optimised_path(theta_add_init, memory, x, r, 
+    theta_add_low = None, theta_add_high = None, walltime = None, 
+    ftol_rel = 1e-2, x_min = -1.0, x_max = +1.0, globalopt = False):
 
     ##### OPTIMISATION #####
     try:
-        objective = lambda theta_add, grad: forward_path_model(
-            theta_add, r, x, memory)
+        def objective(theta_add, grad):
+            return path_entropy_model(theta_add, r, x, memory)
+
+        def constraint(theta_add, grad):
+            Xq = forward_path_model(theta_add, r, x)
+            return -np.append(   x_min - Xq[:, 0], x_min - Xq[:, 1], 
+                                Xq[:, 0] - x_max, Xq[:, 1] - x_max)
 
         n_params = theta_add_init.shape[0]
 
-        opt = nlopt.opt(nlopt.LN_BOBYQA, n_params)
+        if globalopt:
+
+            opt = nlopt.opt(nlopt.G_MLSL_LDS, n_params)
+            local_opt = nlopt.opt(nlopt.LN_BOBYQA, n_params)
+            opt.set_local_optimizer(local_opt)
+
+        else:
+
+            opt = nlopt.opt(nlopt.LN_BOBYQA, n_params)
+
 
         opt.set_lower_bounds(theta_add_low)
         opt.set_upper_bounds(theta_add_high)
         opt.set_maxtime(walltime)
         opt.set_ftol_rel(ftol_rel)
 
+        opt.add_inequality_constraint(constraint, 1e-2)
         opt.set_max_objective(objective)
 
         theta_add_opt = opt.optimize(theta_add_init)
@@ -671,21 +709,11 @@ def go_optimised_path(theta_add_init, memory, x, r, theta_add_low = None, theta_
 
         theta_add_opt = initiate_with_continuity(theta_add_init)
         entropy_opt = np.nan
-        logging.warning('Problem with optimisation. Continuing on planned route.')
+        logging.warning('Problem with optimisation. Continuing planned route.')
         logging.debug('Initial parameters: {0}'.format(theta_add_init))
 
     ##### PATH COMPUTATION #####
-    theta_opt = np.cumsum(theta_add_opt)
-
-    x1_add_opt = r * np.cos(theta_opt)
-    x2_add_opt = r * np.sin(theta_opt)
-
-    x1_rel_opt = np.cumsum(x1_add_opt)
-    x2_rel_opt = np.cumsum(x2_add_opt)
-
-    x_rel_opt = np.array([x1_rel_opt, x2_rel_opt]).T
-
-    x_abs_opt = x + x_rel_opt
+    x_abs_opt = forward_path_model(theta_add_opt, r, x)
 
     return x_abs_opt, theta_add_opt, entropy_opt
 
