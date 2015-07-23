@@ -41,6 +41,7 @@ def main():
     SHOW_RAW_BINARY = True
     test_range_min = -2.5
     test_range_max = +2.5
+    test_ranges = (test_range_min, test_range_max)
     n_train = 150
     n_query = 250
     n_dims  = 2   # <- Must be 2 for vis
@@ -126,8 +127,6 @@ def main():
 
     if y_unique.shape[0] == 2:
         mycmap = cm.get_cmap(name = 'BrBG', lut = None)
-        mycmap = cm.get_cmap(name = 'PRGn', lut = None)
-        mycmap = cm.get_cmap(name = 'bone', lut = None)
     else:
         mycmap = cm.get_cmap(name = 'gist_rainbow', lut = None)
 
@@ -238,7 +237,7 @@ def main():
     Classifier Prediction Results (Plots)
     """
 
-    print('Plotting... please wait')
+    logging.info('Plotting... please wait')
 
     """
     Plot: Training Set
@@ -259,14 +258,14 @@ def main():
     plt.xlim((test_range_min, test_range_max))
     plt.ylim((test_range_min, test_range_max))
     plt.gca().patch.set_facecolor('gray')
-    print('Plotted Training Set')
+    logging.info('Plotted Training Set')
 
     """
     Plot: Prediction Probabilities
     """
 
     # Visualise the prediction probabilities
-    (yq_prob_plt, Xq_plt, _, _, _) = \
+    yq_prob_plt, Xq_plt, _, _, _ = \
         gp.classifier.utils.visualise_prediction_probabilities_multiclass(
         test_range_min, test_range_max, prediction_function, y)
 
@@ -274,7 +273,7 @@ def main():
     # find the entropy and predictions here
     yq_entropy_plt = gp.classifier.entropy(yq_prob_plt)
     yq_pred_plt = gp.classifier.classify(yq_prob_plt, y)
-    print('Plotted Prediction Probabilities')
+    logging.info('Plotted Prediction Probabilities')
 
     """
     Plot: Prediction Labels
@@ -282,27 +281,24 @@ def main():
 
     # Query (Prediction Map)
     fig = plt.figure()
-    gp.classifier.utils.visualise_prediction(test_range_min, test_range_max, 
-        lambda Xq: gp.classifier.classify(prediction_function(Xq), y), 
-        cmap = mycmap, yq_pred = yq_pred_plt)
-
+    gp.classifier.utils.visualise_map(yq_pred_plt, test_ranges, 
+        boundaries = True, cmap = mycmap)
     plt.title('Prediction')
     plt.xlabel('x1')
     plt.ylabel('x2')
     cbar = plt.colorbar()
     cbar.set_ticks(y_unique)
     cbar.set_ticklabels(y_unique)
-    print('Plotted Prediction Labels')
+    logging.info('Plotted Prediction Labels')
 
     """
     Plot: Prediction Entropy onto Training Set
     """
 
-    # Query (Entropy) and Training Set
+    # Query (Prediction Entropy) and Training Set
     fig = plt.figure()
-    gp.classifier.utils.visualise_entropy(test_range_min, test_range_max, 
-        lambda Xq: gp.classifier.entropy(prediction_function(Xq)), 
-        entropy_threshold = entropy_threshold, yq_entropy = yq_entropy_plt)
+    gp.classifier.utils.visualise_map(yq_entropy_plt, test_ranges, 
+        threshold = entropy_threshold, cmap = cm.coolwarm)
     plt.title('Prediction Entropy and Training Set')
     plt.xlabel('x1')
     plt.ylabel('x2')
@@ -310,7 +306,7 @@ def main():
     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
     plt.xlim((test_range_min, test_range_max))
     plt.ylim((test_range_min, test_range_max))
-    print('Plotted Prediction Entropy on Training Set')
+    logging.info('Plotted Prediction Entropy on Training Set')
 
     """
     Plot: Linearised Prediction Entropy onto Training Set
@@ -328,11 +324,10 @@ def main():
     entropy_linearised_plt = gp.classifier.linearised_entropy(expectance_latent_plt,
         variance_latent_plt, learned_classifier)
 
-    # Query (Entropy) and Training Set
+    # Query (Linearised Entropy) and Training Set
     fig = plt.figure()
-    gp.classifier.utils.visualise_entropy(test_range_min, test_range_max, 
-        lambda Xq: gp.classifier.entropy(prediction_function(Xq)), 
-        entropy_threshold = entropy_threshold, yq_entropy = entropy_linearised_plt)
+    gp.classifier.utils.visualise_map(entropy_linearised_plt, test_ranges, 
+        threshold = entropy_threshold, cmap = cm.coolwarm)
     plt.title('Linearised Prediction Entropy and Training Set')
     plt.xlabel('x1')
     plt.ylabel('x2')
@@ -340,7 +335,7 @@ def main():
     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
     plt.xlim((test_range_min, test_range_max))
     plt.ylim((test_range_min, test_range_max))
-    print('Plotted Prediction Entropy on Training Set')
+    logging.info('Plotted Prediction Entropy on Training Set')
 
 
     # entropy_sampled_plt = np.zeros(expectance_latent_plt.shape[0])
@@ -390,7 +385,7 @@ def main():
     plt.xlim((test_range_min, test_range_max))
     plt.ylim((test_range_min, test_range_max))
     plt.gca().patch.set_facecolor('gray')
-    print('Plotted Sample Query Labels')
+    logging.info('Plotted Sample Query Labels')
 
     """
     Plot: Sample Query Draws
@@ -412,7 +407,7 @@ def main():
         plt.xlim((test_range_min, test_range_max))
         plt.ylim((test_range_min, test_range_max))
         plt.gca().patch.set_facecolor('gray')
-        print('Plotted Sample Query Draws')
+        logging.info('Plotted Sample Query Draws')
 
     """
     Save Outputs
@@ -432,7 +427,7 @@ def main():
         shutil.copy2('./receding_horizon_path_planning.py', full_directory)
 
 
-    print('Modeling Done')
+    logging.info('Modeling Done')
 
     """
     Path Planning
@@ -478,6 +473,7 @@ def main():
     # Plot the current situation
     fig1 = plt.figure(figsize = (15, 15))
     fig2 = plt.figure(figsize = (15, 15))
+    fig3 = plt.figure(figsize = (15, 15))
 
     # Start exploring
     i_trials = 0
@@ -532,7 +528,7 @@ def main():
                 multimethod = multimethod, approxmethod = approxmethod,
                 train = False, ftol = 1e-4, processes = n_cores)      
 
-        """ Plots """
+        """ Computing Analysis Maps """
 
         # Compute Linearised and True Entropy for plotting
         logging.info('Plot: Caching Predictor...')
@@ -546,16 +542,22 @@ def main():
         logging.info('Plot: Computing Linearised Entropy...')
         entropy_linearised_plt = gp.classifier.linearised_entropy(
             expectance_latent_plt, variance_latent_plt, learned_classifier)
-        logging.info('Plot: Computing True Entropy...')
-        entropy_plt = gp.classifier.entropy(gp.classifier.predict_from_latent(
+        logging.info('Plot: Computing Prediction Probabilities...')
+        probabilities_plt = gp.classifier.predict_from_latent(
             expectance_latent_plt, variance_latent_plt, learned_classifier, 
-            fusemethod = fusemethod))
+            fusemethod = fusemethod)
+        logging.info('Plot: Computing True Entropy...')
+        entropy_plt = gp.classifier.entropy(probabilities_plt)
+        logging.info('Plot: Computing Class Predicitons')
+        class_plt = gp.classifier.classify(probabilities_plt, y_unique)
 
         # Find the bounds of the entropy predictions
         vmin1 = entropy_linearised_plt.min()
         vmax1 = entropy_linearised_plt.max()
         vmin2 = entropy_plt.min()
         vmax2 = entropy_plt.max()
+
+        """ Linearised Entropy Map """
 
         # Prepare Figure 1
         plt.figure(fig1.number)
@@ -568,9 +570,8 @@ def main():
         plt.ylim((test_range_min, test_range_max))
 
         # Plot linearised entropy
-        gp.classifier.utils.visualise_entropy(test_range_min, test_range_max, 
-                None, entropy_threshold = entropy_threshold, 
-                yq_entropy = entropy_linearised_plt, vmin = vmin1, vmax = vmax1)
+        gp.classifier.utils.visualise_map(entropy_linearised_plt, test_ranges, 
+            cmap = cm.coolwarm, vmin = vmin1, vmax = vmax1)
         plt.colorbar()
 
         # Plot training set on top
@@ -580,8 +581,9 @@ def main():
         plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
             facecolors = 'none',
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 150, 
-            marker = 'H', vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
 
         # Plot the proposed path
         plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
@@ -597,6 +599,8 @@ def main():
         plt.savefig('%sentropy_linearised_step%d.png' 
             % (full_directory, i_trials + 1))
 
+        """ True Entropy Map """
+
         # Prepare Figure 2
         plt.figure(fig2.number)
         plt.clf()
@@ -608,9 +612,8 @@ def main():
         plt.ylim((test_range_min, test_range_max))
 
         # Plot true entropy
-        gp.classifier.utils.visualise_entropy(test_range_min, test_range_max, 
-                None, entropy_threshold = entropy_threshold, 
-                yq_entropy = entropy_plt, vmin = vmin2, vmax = vmax2)
+        gp.classifier.utils.visualise_map(entropy_plt, test_ranges, 
+            cmap = cm.coolwarm, vmin = vmin2, vmax = vmax2)
         plt.colorbar()
 
         # Plot training set on top
@@ -620,8 +623,9 @@ def main():
         plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
             facecolors = 'none',
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 150, 
-            marker = 'H', vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
 
         # Plot the proposed path
         plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
@@ -635,6 +639,49 @@ def main():
         # Save the plot
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%sentropy_true_step%d.png' 
+            % (full_directory, i_trials + 1))
+
+        """ Class Prediction Map """
+
+        # Prepare Figure 3
+        plt.figure(fig3.number)
+        plt.clf()
+        plt.title('Exploration track and class predictions [horizon = %.2f]' 
+            % horizon)
+        plt.xlabel('x1')
+        plt.ylabel('x2')
+        plt.xlim((test_range_min, test_range_max))
+        plt.ylim((test_range_min, test_range_max))
+
+        # Plot class predictions
+        gp.classifier.utils.visualise_map(class_plt, test_ranges, 
+            boundaries = True, cmap = mycmap)
+        cbar = plt.colorbar()
+        cbar.set_ticks(y_unique)
+        cbar.set_ticklabels(y_unique)
+
+        # Plot training set on top
+        plt.scatter(x1, x2, c = y, s = 40, marker = 'v', cmap = mycmap)
+
+        # Plot the path on top
+        plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, marker = 'o', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+
+        # Plot the proposed path
+        plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+
+        # Plot the horizon
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            marker = '.')
+
+        # Save the plot
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('%sclass_prediction_step%d.png' 
             % (full_directory, i_trials + 1))
 
         # Move on to the next step
