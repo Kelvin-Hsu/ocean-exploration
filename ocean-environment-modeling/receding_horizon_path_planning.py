@@ -41,7 +41,7 @@ def main():
     SHOW_RAW_BINARY = True
     test_range_min = -2.5
     test_range_max = +2.5
-    n_train = 300
+    n_train = 150
     n_query = 250
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
@@ -440,7 +440,7 @@ def main():
 
     """ Setup Path Planning """
     xq_now = np.array([0.0, 0.0])
-    horizon = (test_range_max - test_range_min) / 2
+    horizon = (test_range_max - test_range_min) / 3
     n_steps = 15
 
     theta_bound = np.deg2rad(60)
@@ -451,8 +451,10 @@ def main():
     theta_add_low[0] = 0.0
     theta_add_high[0] = 2 * np.pi
     r = horizon/n_steps
-    choice_walltime = 120.0
-    ftol_rel = 1e-6
+    choice_walltime = 300.0
+    ftol_rel = 1e-8
+
+    k_step = 5
 
     """ Initialise Values """
 
@@ -485,35 +487,35 @@ def main():
 
         # Propose a place to observe
         xq_abs_opt, theta_add_opt, entropy_opt = \
-            go_optimised_path(theta_add_init, learned_classifier, xq_now, r, 
+            go_optimised_path(theta_add_init, learned_classifier, xq_now[-1], r, 
                 theta_add_low = theta_add_low, theta_add_high = theta_add_high, 
                 walltime = choice_walltime, ftol_rel = ftol_rel)
         logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
-        xq_now = xq_abs_opt[0]
+        xq_now = xq_abs_opt[:k_step]
 
         theta_add_init = initiate_with_continuity(theta_add_opt)
         np.clip(theta_add_init, theta_add_low + 1e-4, theta_add_high - 1e-4, 
             out = theta_add_init)
 
         # Observe the current location
-        yq_now = gp.classifier.utils.make_decision(np.array([xq_now]), 
+        yq_now = gp.classifier.utils.make_decision(xq_now, 
             decision_boundary)
 
         # Add the observed data to the training set
-        X_now = np.concatenate((X_now, np.array([xq_now])), axis = 0)
+        X_now = np.concatenate((X_now, xq_now), axis = 0)
         y_now = np.append(y_now, yq_now)
 
         # Add the new location to the array of travelled coordinates
-        xq1_nows = np.append(xq1_nows, xq_now[0])
-        xq2_nows = np.append(xq2_nows, xq_now[1])
+        xq1_nows = np.append(xq1_nows, xq_now[:, 0])
+        xq2_nows = np.append(xq2_nows, xq_now[:, 1])
         yq_nows = np.append(yq_nows, yq_now)
 
         # This is the finite horizon optimal route
-        xq1_proposed = xq_abs_opt[:, 0][1:]
-        xq2_proposed = xq_abs_opt[:, 1][1:]
+        xq1_proposed = xq_abs_opt[:, 0][k_step:]
+        xq2_proposed = xq_abs_opt[:, 1][k_step:]
         yq_proposed = gp.classifier.classify(gp.classifier.predict(xq_abs_opt, 
-            learned_classifier), y_unique)[1:]
+            learned_classifier), y_unique)[k_step:]
 
         # Update that into the model
         logging.info('Learning Classifier...')
@@ -578,8 +580,8 @@ def main():
         plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
             facecolors = 'none',
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        plt.scatter(xq_now[0], xq_now[1], c = yq_now, s = 120, marker = 'H', 
-            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 150, 
+            marker = 'H', vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
 
         # Plot the proposed path
         plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
@@ -587,7 +589,8 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
 
         # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now, horizon, c = 'k', marker = '.')
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            marker = '.')
 
         # Save the plot
         plt.gca().set_aspect('equal', adjustable = 'box')
@@ -617,8 +620,8 @@ def main():
         plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
             facecolors = 'none',
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        plt.scatter(xq_now[0], xq_now[1], c = yq_now, s = 120, marker = 'H', 
-            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 150, 
+            marker = 'H', vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
 
         # Plot the proposed path
         plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
@@ -626,7 +629,8 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
 
         # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now, horizon, c = 'k', marker = '.')
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            marker = '.')
 
         # Save the plot
         plt.gca().set_aspect('equal', adjustable = 'box')
