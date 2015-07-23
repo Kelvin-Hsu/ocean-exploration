@@ -39,9 +39,9 @@ def main():
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True # We don't want to make files everywhere for a demo.
     SHOW_RAW_BINARY = True
-    test_range_min = -2
-    test_range_max = +2
-    n_train = 150
+    test_range_min = -2.5
+    test_range_max = +2.5
+    n_train = 120
     n_query = 250
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
@@ -52,7 +52,6 @@ def main():
     responsename = 'probit' # 'probit' or 'logistic'
     batch_start = False
     entropy_threshold = None
-    mycmap = cm.jet
 
     n_draws = 6
     rows_subplot = 2
@@ -80,35 +79,38 @@ def main():
     db1b = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & ((x1/2)**2 + (x2)**2 > 0.4**2) & \
             ((x1 + x2) < 1.5) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.4**2) | ((x1 + x2) > 2.25) & (x1 < 1.75) & (x2 < 1.75) # | (((x1 + 0.25)/4)**2 + (x2 + 1.5)**2 < 0.32**2) # & (((x1 + 0.25)/4)**2 + (x2 + 1.5)**2 > 0.18**2)
+    db1c = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
+            (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & ((x1/2)**2 + (x2)**2 > 0.4**2) & \
+            ((x1 + x2) < 1.5) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.4**2) | ((x1 + x2) > 2.25) & (x1 < 1.75) & (x2 < 1.75) | (((x1 + 0.25)/4)**2 + (x2 + 1.75)**2 < 0.32**2) & (((x1 + 0.25)/4)**2 + (x2 + 1.75)**2 > 0.18**2)
     db8 = lambda x1, x2: (np.sin(2*x1 + 3*x2) > 0) | (((x1 - 1)**2 + x2**2/4) * 
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = db1b # [db5b, db1a, db4a]
+    decision_boundary  = db1c # [db5b, db1a, db4a]
 
     """
     Data Generation
     """
 
     # # # Training Points
-    # shrink = 0.8
-    # test_range_min *= shrink
-    # test_range_max *= shrink
-    # X1 = np.random.normal(loc = np.array([test_range_min, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    # X2 = np.random.normal(loc = np.array([test_range_min, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    # X3 = np.random.normal(loc = np.array([test_range_max, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    # X4 = np.random.normal(loc = np.array([test_range_max, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    # X5 = np.random.normal(loc = np.array([0, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    # X6 = np.random.normal(loc = np.array([test_range_min, 0]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    # X7 = np.random.normal(loc = np.array([test_range_max, 0]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    # X8 = np.random.normal(loc = np.array([0, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    # test_range_min /= shrink
-    # test_range_max /= shrink
+    shrink = 0.8
+    test_range_min *= shrink
+    test_range_max *= shrink
+    X1 = np.random.normal(loc = np.array([test_range_min, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    X2 = np.random.normal(loc = np.array([test_range_min, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    X3 = np.random.normal(loc = np.array([test_range_max, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    X4 = np.random.normal(loc = np.array([test_range_max, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    X5 = np.random.normal(loc = np.array([0, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    X6 = np.random.normal(loc = np.array([test_range_min, 0]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    X7 = np.random.normal(loc = np.array([test_range_max, 0]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    X8 = np.random.normal(loc = np.array([0, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    test_range_min /= shrink
+    test_range_max /= shrink
 
-    # X = np.concatenate((X1, X2, X3, X4, X5, X6, X7, X8), axis = 0)
+    X = np.concatenate((X1, X2, X3, X4, X5, X6, X7, X8), axis = 0)
 
-    X = np.random.uniform(test_range_min, test_range_max, 
-        size = (n_train, n_dims))
+    # X = np.random.uniform(test_range_min - 1, test_range_max + 1, 
+    #     size = (n_train, n_dims))
     x1 = X[:, 0]
     x2 = X[:, 1]
     
@@ -121,6 +123,13 @@ def main():
     # Training Labels
     y = gp.classifier.utils.make_decision(X, decision_boundary)
     y_unique = np.unique(y)
+
+    if y_unique.shape[0] == 2:
+        mycmap = cm.get_cmap(name = 'BrBG', lut = None)
+        mycmap = cm.get_cmap(name = 'PRGn', lut = None)
+        mycmap = cm.get_cmap(name = 'bone', lut = None)
+    else:
+        mycmap = cm.get_cmap(name = 'gist_rainbow', lut = None)
 
     """
     Classifier Training
@@ -140,6 +149,7 @@ def main():
     cbar.set_ticklabels(y_unique)
     plt.xlim((test_range_min, test_range_max))
     plt.ylim((test_range_min, test_range_max))
+    plt.gca().patch.set_facecolor('gray')
     print('Plotted Training Set')
 
     plt.show()
@@ -248,6 +258,7 @@ def main():
     cbar.set_ticklabels(y_unique)
     plt.xlim((test_range_min, test_range_max))
     plt.ylim((test_range_min, test_range_max))
+    plt.gca().patch.set_facecolor('gray')
     print('Plotted Training Set')
 
     """
@@ -378,6 +389,7 @@ def main():
     cbar.set_ticklabels(y_unique)
     plt.xlim((test_range_min, test_range_max))
     plt.ylim((test_range_min, test_range_max))
+    plt.gca().patch.set_facecolor('gray')
     print('Plotted Sample Query Labels')
 
     """
@@ -399,6 +411,7 @@ def main():
         cbar.set_ticklabels(y_unique)
         plt.xlim((test_range_min, test_range_max))
         plt.ylim((test_range_min, test_range_max))
+        plt.gca().patch.set_facecolor('gray')
         print('Plotted Sample Query Draws')
 
     """
@@ -426,20 +439,20 @@ def main():
     """
 
     """ Setup Path Planning """
-    xq_now = np.array([-0.7, -0.7])
-    horizon = 1.25
+    xq_now = np.array([0.0, 0.0])
+    horizon = (test_range_max - test_range_min) / 2
     n_steps = 15
 
-    theta_bound = np.deg2rad(45)
+    theta_bound = np.deg2rad(60)
     theta_add_init = np.zeros(n_steps)
-    theta_add_init[0] = np.deg2rad(90)
+    theta_add_init[0] = np.deg2rad(270)
     theta_add_low = -theta_bound * np.ones(n_steps)
     theta_add_high = theta_bound * np.ones(n_steps)
     theta_add_low[0] = 0.0
     theta_add_high[0] = 2 * np.pi
     r = horizon/n_steps
-    choice_walltime = 60.0
-    ftol_rel = 1e-2
+    choice_walltime = 120.0
+    ftol_rel = 1e-6
 
     """ Initialise Values """
 
@@ -475,6 +488,7 @@ def main():
             go_optimised_path(theta_add_init, learned_classifier, xq_now, r, 
                 theta_add_low = theta_add_low, theta_add_high = theta_add_high, 
                 walltime = choice_walltime, ftol_rel = ftol_rel)
+        logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
         xq_now = xq_abs_opt[0]
 
@@ -498,6 +512,8 @@ def main():
         # This is the finite horizon optimal route
         xq1_proposed = xq_abs_opt[:, 0][1:]
         xq2_proposed = xq_abs_opt[:, 1][1:]
+        yq_proposed = gp.classifier.classify(gp.classifier.predict(xq_abs_opt, 
+            learned_classifier), y_unique)[1:]
 
         # Update that into the model
         logging.info('Learning Classifier...')
@@ -562,11 +578,13 @@ def main():
         plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
             facecolors = 'none',
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        plt.scatter(xq_now[0], xq_now[1], c = yq_now, s = 60, 
+        plt.scatter(xq_now[0], xq_now[1], c = yq_now, s = 120, marker = 'H', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
 
         # Plot the proposed path
-        plt.scatter(xq1_proposed, xq2_proposed, c = 'w', s = 60, marker = 'D')
+        plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now, horizon, c = 'k', marker = '.')
@@ -599,11 +617,13 @@ def main():
         plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
             facecolors = 'none',
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        plt.scatter(xq_now[0], xq_now[1], c = yq_now, s = 60, 
+        plt.scatter(xq_now[0], xq_now[1], c = yq_now, s = 120, marker = 'H', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
 
         # Plot the proposed path
-        plt.scatter(xq1_proposed, xq2_proposed, c = 'w', s = 60, marker = 'D')
+        plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now, horizon, c = 'k', marker = '.')
@@ -675,24 +695,31 @@ def path_entropy_model(theta_add, r, x, memory):
     #     return -1e-8
 
     try:
-
         # Method 1
-        # logging.info('Computing linearised entropy...')
+        logging.info('Computing linearised entropy...')
         predictors = gp.classifier.query(memory, Xq)
         yq_exp = gp.classifier.expectance(memory, predictors)
         yq_cov = gp.classifier.covariance(memory, predictors)
-        # entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
+        entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
 
         # # Method 2
         # entropy = gp.classifier.entropy(gp.classifier.predict(Xq, memory)).sum()
 
-        # Method 3
-        entropy = gp.classifier.joint_entropy(yq_exp, yq_cov, memory, n_draws = 1000)
+        # # Method 3
+        # logging.info('Computing joint entropy...')
+        # predictors = gp.classifier.query(memory, Xq)
+        # yq_exp = gp.classifier.expectance(memory, predictors)
+        # yq_cov = gp.classifier.covariance(memory, predictors)
+        # np.random.seed(100)
+        # entropy = gp.classifier.joint_entropy(yq_exp, yq_cov, memory, 
+        #     n_draws = 500)
 
     except:
         # logging.warning('Failed to compute linearised entropy')
         entropy = -1e-8
 
+    logging.debug('theta_add: {0} | entropy: {1}'.format(
+        theta_add, entropy))
     return entropy
 
 def go_optimised_path(theta_add_init, memory, x, r, 
