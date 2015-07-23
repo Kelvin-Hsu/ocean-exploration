@@ -41,7 +41,7 @@ def main():
     SHOW_RAW_BINARY = True
     test_range_min = -2.5
     test_range_max = +2.5
-    n_train = 120
+    n_train = 300
     n_query = 250
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
@@ -86,31 +86,31 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = db1c # [db5b, db1a, db4a]
+    decision_boundary  = [db5b, db1c, db4a]
 
     """
     Data Generation
     """
 
     # # # Training Points
-    shrink = 0.8
-    test_range_min *= shrink
-    test_range_max *= shrink
-    X1 = np.random.normal(loc = np.array([test_range_min, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    X2 = np.random.normal(loc = np.array([test_range_min, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    X3 = np.random.normal(loc = np.array([test_range_max, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    X4 = np.random.normal(loc = np.array([test_range_max, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    X5 = np.random.normal(loc = np.array([0, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    X6 = np.random.normal(loc = np.array([test_range_min, 0]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    X7 = np.random.normal(loc = np.array([test_range_max, 0]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    X8 = np.random.normal(loc = np.array([0, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
-    test_range_min /= shrink
-    test_range_max /= shrink
+    # shrink = 0.8
+    # test_range_min *= shrink
+    # test_range_max *= shrink
+    # X1 = np.random.normal(loc = np.array([test_range_min, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    # X2 = np.random.normal(loc = np.array([test_range_min, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    # X3 = np.random.normal(loc = np.array([test_range_max, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    # X4 = np.random.normal(loc = np.array([test_range_max, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    # X5 = np.random.normal(loc = np.array([0, test_range_min]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    # X6 = np.random.normal(loc = np.array([test_range_min, 0]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    # X7 = np.random.normal(loc = np.array([test_range_max, 0]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    # X8 = np.random.normal(loc = np.array([0, test_range_max]), scale = 0.9*np.ones(n_dims), size = (int(n_train/8), n_dims))
+    # test_range_min /= shrink
+    # test_range_max /= shrink
 
-    X = np.concatenate((X1, X2, X3, X4, X5, X6, X7, X8), axis = 0)
+    # X = np.concatenate((X1, X2, X3, X4, X5, X6, X7, X8), axis = 0)
 
-    # X = np.random.uniform(test_range_min - 1, test_range_max + 1, 
-    #     size = (n_train, n_dims))
+    X = np.random.uniform(test_range_min, test_range_max, 
+        size = (n_train, n_dims))
     x1 = X[:, 0]
     x2 = X[:, 1]
     
