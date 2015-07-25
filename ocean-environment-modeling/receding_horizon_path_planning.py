@@ -35,14 +35,14 @@ def main():
     # logging level
     gp.classifier.set_multiclass_logging_level(logging.DEBUG)
 
-    np.random.seed(220)
+    np.random.seed(200)
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True # We don't want to make files everywhere for a demo.
     SHOW_RAW_BINARY = True
     test_range_min = -2.5
     test_range_max = +2.5
     test_ranges = (test_range_min, test_range_max)
-    n_train = 150
+    n_train = 100
     n_query = 250
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
@@ -87,7 +87,7 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = db1 # [db5b, db1c, db4a]
+    decision_boundary  = db1c # [db5b, db1c, db4a]
 
     """
     Data Generation
@@ -244,7 +244,7 @@ def main():
     """
 
     # Training
-    fig = plt.figure()
+    fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_decision_boundary(
         test_range_min, test_range_max, decision_boundary)
     
@@ -280,7 +280,7 @@ def main():
     """
 
     # Query (Prediction Map)
-    fig = plt.figure()
+    fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(yq_pred_plt, test_ranges, 
         boundaries = True, cmap = mycmap)
     plt.title('Prediction')
@@ -296,7 +296,7 @@ def main():
     """
 
     # Query (Prediction Entropy) and Training Set
-    fig = plt.figure()
+    fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(yq_entropy_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
     plt.title('Prediction Entropy and Training Set')
@@ -324,42 +324,43 @@ def main():
     entropy_linearised_plt = gp.classifier.linearised_entropy(
         expectance_latent_plt, variance_latent_plt, learned_classifier)
 
-    # n_sampling = 100
-    # S = np.random.normal(0., 1., (1, n_sampling))
+    if y_unique.shape[0] == 2:
+        n_sampling = 1000
+        S = np.random.normal(0., 1., (1, n_sampling))
 
-    # n_query_plt = np.array(expectance_latent_plt).shape[-1]
-    # entropy_sampled_plt = np.zeros(n_query_plt)
-    # for i in range(n_query_plt):
+        n_query_plt = np.array(expectance_latent_plt).shape[-1]
+        entropy_sampled_plt = np.zeros(n_query_plt)
+        for i in range(n_query_plt):
 
-    #     if isinstance(expectance_latent_plt, list):
-    #         exp_just_one = [expectance_latent_plt[j][[i]] \
-    #             for j in range(len(expectance_latent_plt))]
-    #         var_just_one = [variance_latent_plt[j][[i]][:, np.newaxis] \
-    #             for j in range(len(variance_latent_plt))]
-    #     else:
-    #         exp_just_one = expectance_latent_plt[[i]]
-    #         var_just_one = variance_latent_plt[[i]][:, np.newaxis]
-    #     entropy_sampled_plt[i] = gp.classifier.joint_entropy(
-    #         exp_just_one, var_just_one, learned_classifier, 
-    #         S = S, n_draws = n_sampling, processes = None)
-    #     logging.info('Sampled and computed entropy for %d points' % i)
+            if isinstance(expectance_latent_plt, list):
+                exp_just_one = [expectance_latent_plt[j][[i]] \
+                    for j in range(len(expectance_latent_plt))]
+                var_just_one = [variance_latent_plt[j][[i]][:, np.newaxis] \
+                    for j in range(len(variance_latent_plt))]
+            else:
+                exp_just_one = expectance_latent_plt[[i]]
+                var_just_one = variance_latent_plt[[i]][:, np.newaxis]
+            entropy_sampled_plt[i] = gp.classifier.joint_entropy(
+                exp_just_one, var_just_one, learned_classifier, 
+                S = S, n_draws = n_sampling, processes = None)
+            logging.info('Sampled and computed entropy for %d points' % i)
 
-    # # Query (Sampled Entropy) and Training Set
-    # fig = plt.figure()
-    # gp.classifier.utils.visualise_map(entropy_sampled_plt, test_ranges, 
-    #     threshold = entropy_threshold, cmap = cm.coolwarm)
-    # plt.title('Sampled Prediction Entropy and Training Set')
-    # plt.xlabel('x1')
-    # plt.ylabel('x2')
-    # plt.colorbar()
-    # plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    # plt.xlim((test_range_min, test_range_max))
-    # plt.ylim((test_range_min, test_range_max))
-    # print('Plotted Sampled Prediction Entropy on Training Set')
+        # Query (Sampled Entropy) and Training Set
+        fig = plt.figure(figsize = (15, 15))
+        gp.classifier.utils.visualise_map(entropy_sampled_plt, test_ranges, 
+            threshold = entropy_threshold, cmap = cm.coolwarm)
+        plt.title('Sampled Prediction Entropy and Training Set')
+        plt.xlabel('x1')
+        plt.ylabel('x2')
+        plt.colorbar()
+        plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+        plt.xlim((test_range_min, test_range_max))
+        plt.ylim((test_range_min, test_range_max))
+        print('Plotted Sampled Prediction Entropy on Training Set')
 
 
     # Query (Linearised Entropy) and Training Set
-    fig = plt.figure()
+    fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(entropy_linearised_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
     plt.title('Linearised Prediction Entropy and Training Set')
@@ -385,7 +386,7 @@ def main():
     """  
 
     # Visualise Predictions
-    fig = plt.figure()
+    fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_decision_boundary(
         test_range_min, test_range_max, decision_boundary)
     plt.scatter(xq1, xq2, c = yq_pred, marker = 'x', cmap = mycmap)
@@ -447,13 +448,13 @@ def main():
     """
 
     """ Setup Path Planning """
-    xq_now = np.array([0.0, 0.0])
+    xq_now = np.array([[0., 0.]])
     horizon = (test_range_max - test_range_min) / 3
     n_steps = 15
 
     theta_bound = np.deg2rad(60)
     theta_add_init = np.zeros(n_steps)
-    theta_add_init[0] = np.deg2rad(270)
+    theta_add_init[0] = np.deg2rad(90)
     theta_add_low = -theta_bound * np.ones(n_steps)
     theta_add_high = theta_bound * np.ones(n_steps)
     theta_add_low[0] = 0.0
@@ -463,7 +464,7 @@ def main():
     xtol_rel = 1e-2
     ftol_rel = 1e-6
 
-    k_step = 2
+    k_step = 1
 
     """ Initialise Values """
 
@@ -472,17 +473,17 @@ def main():
     y_now = y.copy()
 
     # Observe the current location
-    yq_now = gp.classifier.utils.make_decision(np.array([xq_now]), 
+    yq_now = gp.classifier.utils.make_decision(xq_now[[-1]], 
         decision_boundary)
 
     # Add the observed data to the training set
-    X_now = np.concatenate((X_now, np.array([xq_now])), axis = 0)
+    X_now = np.concatenate((X_now, xq_now[[-1]]), axis = 0)
     y_now = np.append(y_now, yq_now)
 
     # Add the new location to the array of travelled coordinates
-    xq1_nows = np.array([xq_now[0]])
-    xq2_nows = np.array([xq_now[1]])
-    yq_nows = np.array([yq_now])
+    xq1_nows = xq_now[:, 0]
+    xq2_nows = xq_now[:, 1]
+    yq_nows = yq_now.copy()
 
     # Plot the current situation
     fig1 = plt.figure(figsize = (15, 15))
@@ -497,7 +498,8 @@ def main():
 
         # Propose a place to observe
         xq_abs_opt, theta_add_opt, entropy_opt = \
-            go_optimised_path(theta_add_init, learned_classifier, xq_now[-1], r, 
+            go_optimised_path(theta_add_init, xq_now[-1], r, 
+                learned_classifier, test_ranges,
                 theta_add_low = theta_add_low, theta_add_high = theta_add_high, 
                 walltime = choice_walltime, xtol_rel = xtol_rel, 
                 ftol_rel = ftol_rel)
@@ -780,11 +782,12 @@ def path_entropy_model(theta_add, r, x, memory):
         try:
             path_entropy_model.S == None
         except AttributeError:
+            logging.info('Initiating seed draw...')
             nq = np.array(yq_exp).shape[-1]
-            path_entropy_model.S = np.random.normal(loc = 0., scale = 1., 
-                                            size = (nq, 2000))
+            path_entropy_model.S = np.random.normal(0., 1., (nq, 2500))
+
         entropy = gp.classifier.joint_entropy(yq_exp, yq_cov, memory, 
-            S = path_entropy_model.S, n_draws = 2000)
+            S = path_entropy_model.S, n_draws = 2500)
 
     except:
         # logging.warning('Failed to compute linearised entropy')
@@ -794,7 +797,16 @@ def path_entropy_model(theta_add, r, x, memory):
         theta_add, entropy))
     return entropy
 
-def go_optimised_path(theta_add_init, memory, x, r, 
+def path_bounds_model(theta_add, r, x, ranges):
+
+    Xq = forward_path_model(theta_add, r, x)
+
+    c = np.max(np.abs(Xq)) - ranges[1]
+    print(c)
+    # Assume ranges is symmetric (a square)
+    return c
+
+def go_optimised_path(theta_add_init, x, r, memory, ranges,
     theta_add_low = None, theta_add_high = None, walltime = None, 
     xtol_rel = 1e-2, ftol_rel = 1e-2, globalopt = False):
 
@@ -803,17 +815,20 @@ def go_optimised_path(theta_add_init, memory, x, r,
         def objective(theta_add, grad):
             return path_entropy_model(theta_add, r, x, memory)
 
+        def constraint(theta_add, grad):
+            return path_bounds_model(theta_add, r, x, ranges)
+
         n_params = theta_add_init.shape[0]
 
         if globalopt:
 
             opt = nlopt.opt(nlopt.G_MLSL_LDS, n_params)
-            local_opt = nlopt.opt(nlopt.LN_BOBYQA, n_params)
+            local_opt = nlopt.opt(nlopt.LN_COBYLA , n_params)
             opt.set_local_optimizer(local_opt)
 
         else:
 
-            opt = nlopt.opt(nlopt.LN_BOBYQA, n_params)
+            opt = nlopt.opt(nlopt.LN_COBYLA , n_params)
 
 
         opt.set_lower_bounds(theta_add_low)
@@ -823,16 +838,19 @@ def go_optimised_path(theta_add_init, memory, x, r,
         opt.set_xtol_rel(xtol_rel)
 
         opt.set_max_objective(objective)
+        opt.add_inequality_constraint(constraint, 1e-2)
 
         theta_add_opt = opt.optimize(theta_add_init)
 
         entropy_opt = opt.last_optimum_value()
 
-    except:
+    except Exception as e:
 
         theta_add_opt = initiate_with_continuity(theta_add_init)
         entropy_opt = np.nan
         logging.warning('Problem with optimisation. Continuing planned route.')
+        logging.warning(type(e))
+        logging.warning(e)
         logging.debug('Initial parameters: {0}'.format(theta_add_init))
 
     ##### PATH COMPUTATION #####
