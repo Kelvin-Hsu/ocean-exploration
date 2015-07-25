@@ -87,7 +87,7 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = db1c # [db5b, db1c, db4a]
+    decision_boundary  = db1 # [db5b, db1c, db4a]
 
     """
     Data Generation
@@ -463,7 +463,7 @@ def main():
     xtol_rel = 1e-2
     ftol_rel = 1e-6
 
-    k_step = 5
+    k_step = 2
 
     """ Initialise Values """
 
@@ -505,7 +505,8 @@ def main():
 
         xq_now = xq_abs_opt[:k_step]
 
-        theta_add_init = initiate_with_continuity(theta_add_opt)
+        theta_add_init = initiate_with_continuity(theta_add_opt, 
+            k_step = k_step)
         np.clip(theta_add_init, theta_add_low + 1e-4, theta_add_high - 1e-4, 
             out = theta_add_init)
 
@@ -716,13 +717,12 @@ def main():
     # Show everything!
     plt.show()
 
-def initiate_with_continuity(theta_add_opt):
+def initiate_with_continuity(theta_add_opt, k_step = 1):
 
     theta_add_next = np.zeros(theta_add_opt.shape)
 
-    theta_add_next[0] = theta_add_opt[:2].sum() % (2 * np.pi)
-    theta_add_next[1:-1] = theta_add_opt[2:]
-    theta_add_next[-1] = 0
+    theta_add_next[0] = theta_add_opt[:(k_step + 1)].sum() % (2 * np.pi)
+    theta_add_next[1:-k_step] = theta_add_opt[(k_step + 1):]
 
     return theta_add_next
 
