@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import cm
-import computers.gp as gp
+from computers import gp
 import computers.unsupervised.whitening as pre
 import sys
 import logging
@@ -87,7 +87,7 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = [db5b, db1c, db4a]
+    decision_boundary  = db1c # [db5b, db1c, db4a]
 
     """
     Data Generation
@@ -321,8 +321,42 @@ def main():
     variance_latent_plt = gp.classifier.variance(learned_classifier, 
         predictor_plt)
     logging.info('Computing Linearised Entropy...')
-    entropy_linearised_plt = gp.classifier.linearised_entropy(expectance_latent_plt,
-        variance_latent_plt, learned_classifier)
+    entropy_linearised_plt = gp.classifier.linearised_entropy(
+        expectance_latent_plt, variance_latent_plt, learned_classifier)
+
+    # n_sampling = 100
+    # S = np.random.normal(0., 1., (1, n_sampling))
+
+    # n_query_plt = np.array(expectance_latent_plt).shape[-1]
+    # entropy_sampled_plt = np.zeros(n_query_plt)
+    # for i in range(n_query_plt):
+
+    #     if isinstance(expectance_latent_plt, list):
+    #         exp_just_one = [expectance_latent_plt[j][[i]] \
+    #             for j in range(len(expectance_latent_plt))]
+    #         var_just_one = [variance_latent_plt[j][[i]][:, np.newaxis] \
+    #             for j in range(len(variance_latent_plt))]
+    #     else:
+    #         exp_just_one = expectance_latent_plt[[i]]
+    #         var_just_one = variance_latent_plt[[i]][:, np.newaxis]
+    #     entropy_sampled_plt[i] = gp.classifier.joint_entropy(
+    #         exp_just_one, var_just_one, learned_classifier, 
+    #         S = S, n_draws = n_sampling, processes = None)
+    #     logging.info('Sampled and computed entropy for %d points' % i)
+
+    # # Query (Sampled Entropy) and Training Set
+    # fig = plt.figure()
+    # gp.classifier.utils.visualise_map(entropy_sampled_plt, test_ranges, 
+    #     threshold = entropy_threshold, cmap = cm.coolwarm)
+    # plt.title('Sampled Prediction Entropy and Training Set')
+    # plt.xlabel('x1')
+    # plt.ylabel('x2')
+    # plt.colorbar()
+    # plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    # plt.xlim((test_range_min, test_range_max))
+    # plt.ylim((test_range_min, test_range_max))
+    # print('Plotted Sampled Prediction Entropy on Training Set')
+
 
     # Query (Linearised Entropy) and Training Set
     fig = plt.figure()
@@ -335,28 +369,7 @@ def main():
     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
     plt.xlim((test_range_min, test_range_max))
     plt.ylim((test_range_min, test_range_max))
-    logging.info('Plotted Prediction Entropy on Training Set')
-
-
-    # entropy_sampled_plt = np.zeros(expectance_latent_plt.shape[0])
-    # for i in range(expectance_latent_plt.shape[0]):
-    #     entropy_sampled_plt[i] = gp.classifier.joint_entropy(expectance_latent_plt[[i]], variance_latent_plt[[i]][:, np.newaxis], learned_classifier, n_draws = 1000, processes = None)
-
-
-    # # Query (Entropy) and Training Set
-    # fig = plt.figure()
-    # gp.classifier.utils.visualise_entropy(test_range_min, test_range_max, 
-    #     lambda Xq: gp.classifier.entropy(prediction_function(Xq)), 
-    #     entropy_threshold = entropy_threshold, yq_entropy = entropy_sampled_plt)
-    # plt.title('Sampled Prediction Entropy and Training Set')
-    # plt.xlabel('x1')
-    # plt.ylabel('x2')
-    # plt.colorbar()
-    # plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    # plt.xlim((test_range_min, test_range_max))
-    # plt.ylim((test_range_min, test_range_max))
-    # print('Plotted Prediction Entropy on Training Set')
-
+    logging.info('Plotted Linearised Prediction Entropy on Training Set')
 
     """
     Plot: Prediction Probabilities from Binary Classifiers
@@ -447,7 +460,8 @@ def main():
     theta_add_high[0] = 2 * np.pi
     r = horizon/n_steps
     choice_walltime = 300.0
-    ftol_rel = 1e-8
+    xtol_rel = 1e-2
+    ftol_rel = 1e-6
 
     k_step = 5
 
@@ -485,7 +499,8 @@ def main():
         xq_abs_opt, theta_add_opt, entropy_opt = \
             go_optimised_path(theta_add_init, learned_classifier, xq_now[-1], r, 
                 theta_add_low = theta_add_low, theta_add_high = theta_add_high, 
-                walltime = choice_walltime, ftol_rel = ftol_rel)
+                walltime = choice_walltime, xtol_rel = xtol_rel, 
+                ftol_rel = ftol_rel)
         logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
         xq_now = xq_abs_opt[:k_step]
@@ -746,24 +761,30 @@ def path_entropy_model(theta_add, r, x, memory):
     #     return -1e-8
 
     try:
-        # Method 1
-        logging.info('Computing linearised entropy...')
-        predictors = gp.classifier.query(memory, Xq)
-        yq_exp = gp.classifier.expectance(memory, predictors)
-        yq_cov = gp.classifier.covariance(memory, predictors)
-        entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
+        # # Method 1
+        # logging.info('Computing linearised entropy...')
+        # predictors = gp.classifier.query(memory, Xq)
+        # yq_exp = gp.classifier.expectance(memory, predictors)
+        # yq_cov = gp.classifier.covariance(memory, predictors)
+        # entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
 
         # # Method 2
         # entropy = gp.classifier.entropy(gp.classifier.predict(Xq, memory)).sum()
 
-        # # Method 3
-        # logging.info('Computing joint entropy...')
-        # predictors = gp.classifier.query(memory, Xq)
-        # yq_exp = gp.classifier.expectance(memory, predictors)
-        # yq_cov = gp.classifier.covariance(memory, predictors)
-        # np.random.seed(100)
-        # entropy = gp.classifier.joint_entropy(yq_exp, yq_cov, memory, 
-        #     n_draws = 500)
+        # Method 3
+        logging.info('Computing joint entropy...')
+        predictors = gp.classifier.query(memory, Xq)
+        yq_exp = gp.classifier.expectance(memory, predictors)
+        yq_cov = gp.classifier.covariance(memory, predictors)
+
+        try:
+            path_entropy_model.S == None
+        except AttributeError:
+            nq = np.array(yq_exp).shape[-1]
+            path_entropy_model.S = np.random.normal(loc = 0., scale = 1., 
+                                            size = (nq, 2000))
+        entropy = gp.classifier.joint_entropy(yq_exp, yq_cov, memory, 
+            S = path_entropy_model.S, n_draws = 2000)
 
     except:
         # logging.warning('Failed to compute linearised entropy')
@@ -775,7 +796,7 @@ def path_entropy_model(theta_add, r, x, memory):
 
 def go_optimised_path(theta_add_init, memory, x, r, 
     theta_add_low = None, theta_add_high = None, walltime = None, 
-    ftol_rel = 1e-2, globalopt = False):
+    xtol_rel = 1e-2, ftol_rel = 1e-2, globalopt = False):
 
     ##### OPTIMISATION #####
     try:
@@ -799,6 +820,7 @@ def go_optimised_path(theta_add_init, memory, x, r,
         opt.set_upper_bounds(theta_add_high)
         opt.set_maxtime(walltime)
         opt.set_ftol_rel(ftol_rel)
+        opt.set_xtol_rel(xtol_rel)
 
         opt.set_max_objective(objective)
 
