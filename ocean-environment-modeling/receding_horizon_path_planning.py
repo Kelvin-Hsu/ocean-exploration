@@ -113,8 +113,8 @@ def main():
     # X = np.random.uniform(test_range_min, test_range_max, 
     #     size = (n_train, n_dims))
 
-    X_s = np.array([[0.0, 0.0], [0.2, 0.3], [-0.5, 0.1], [0.05, -0.25], [1.0, 0.0], [-0.5, 0.0], [-0.4, 0.7], [-0.1, -0.1]])
-    X_f = np.array([[1.0, 1.0], [1.2, 1.3], [-1.5, 1.1], [1.05, -1.25], [1.5, -1.0], [-0.5, -1.2], [-1.6, 1.9], [0.1, -2.0]])
+    X_s = np.array([[0.0, 0.0], [0.2, 0.3], [-0.5, 0.1], [0.05, -0.25], [1.0, 0.0], [-0.5, 0.0], [-0.4, 0.7], [-0.1, -0.1], [test_range_min, test_range_min], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min]])
+    X_f = np.array([[1.0, 1.0], [1.2, 1.3], [-1.5, 1.1], [1.05, -1.25], [1.5, -1.0], [-0.5, -1.2], [-1.6, 1.9], [0.1, -1.5], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min], [test_range_min, test_range_min]])
     X = generate_line_paths(X_s, X_f)
     x1 = X[:, 0]
     x2 = X[:, 1]
@@ -459,7 +459,7 @@ def main():
 
     theta_bound = np.deg2rad(60)
     theta_add_init = np.zeros(n_steps)
-    theta_add_init[0] = np.deg2rad(90)
+    theta_add_init[0] = np.deg2rad(270)
     theta_add_low = -theta_bound * np.ones(n_steps)
     theta_add_high = theta_bound * np.ones(n_steps)
     theta_add_low[0] = 0.0
@@ -530,12 +530,6 @@ def main():
         xq2_nows = np.append(xq2_nows, xq_now[:, 1])
         yq_nows = np.append(yq_nows, yq_now)
 
-        # This is the finite horizon optimal route
-        xq1_proposed = xq_abs_opt[:, 0][k_step:]
-        xq2_proposed = xq_abs_opt[:, 1][k_step:]
-        yq_proposed = gp.classifier.classify(gp.classifier.predict(xq_abs_opt, 
-            learned_classifier), y_unique)[k_step:]
-
         # Update that into the model
         logging.info('Learning Classifier...')
         batch_config = \
@@ -550,6 +544,12 @@ def main():
                 responsefunction, batch_config, 
                 multimethod = multimethod, approxmethod = approxmethod,
                 train = False, ftol = 1e-4, processes = n_cores)      
+
+        # This is the finite horizon optimal route
+        xq1_proposed = xq_abs_opt[:, 0][k_step:]
+        xq2_proposed = xq_abs_opt[:, 1][k_step:]
+        yq_proposed = gp.classifier.classify(gp.classifier.predict(xq_abs_opt, 
+            learned_classifier), y_unique)[k_step:]
 
         """ Computing Analysis Maps """
 
