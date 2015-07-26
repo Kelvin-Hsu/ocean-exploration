@@ -35,14 +35,14 @@ def main():
     # logging level
     gp.classifier.set_multiclass_logging_level(logging.DEBUG)
 
-    np.random.seed(200)
+    np.random.seed(50)
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True # We don't want to make files everywhere for a demo.
     SHOW_RAW_BINARY = True
     test_range_min = -2.5
     test_range_max = +2.5
     test_ranges = (test_range_min, test_range_max)
-    n_train = 100
+    n_train = 50
     n_query = 250
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
@@ -110,8 +110,12 @@ def main():
 
     # X = np.concatenate((X1, X2, X3, X4, X5, X6, X7, X8), axis = 0)
 
-    X = np.random.uniform(test_range_min, test_range_max, 
-        size = (n_train, n_dims))
+    # X = np.random.uniform(test_range_min, test_range_max, 
+    #     size = (n_train, n_dims))
+
+    X_s = np.array([[0.0, 0.0], [0.2, 0.3], [-0.5, 0.1], [0.05, -0.25], [1.0, 0.0], [-0.5, 0.0], [-0.4, 0.7], [-0.1, -0.1]])
+    X_f = np.array([[1.0, 1.0], [1.2, 1.3], [-1.5, 1.1], [1.05, -1.25], [1.5, -1.0], [-0.5, -1.2], [-1.6, 1.9], [0.1, -2.0]])
+    X = generate_line_paths(X_s, X_f)
     x1 = X[:, 0]
     x2 = X[:, 1]
     
@@ -126,10 +130,11 @@ def main():
     y_unique = np.unique(y)
 
     if y_unique.shape[0] == 2:
-        mycmap = cm.get_cmap(name = 'BrBG', lut = None)
+        mycmap = cm.get_cmap(name = 'bone', lut = None)
+        mycmap2 = cm.get_cmap(name = 'BrBG', lut = None)
     else:
         mycmap = cm.get_cmap(name = 'gist_rainbow', lut = None)
-
+        mycmap2 = cm.get_cmap(name = 'gist_rainbow', lut = None)
     """
     Classifier Training
     """
@@ -673,10 +678,14 @@ def main():
 
         # Plot class predictions
         gp.classifier.utils.visualise_map(class_plt, test_ranges, 
-            boundaries = True, cmap = mycmap)
-        cbar = plt.colorbar()
-        cbar.set_ticks(y_unique)
-        cbar.set_ticklabels(y_unique)
+            boundaries = True, cmap = mycmap2)
+        try:
+            cbar = plt.colorbar()
+            cbar.set_ticks(y_unique)
+            cbar.set_ticklabels(y_unique)
+        except IndexError:
+            pass
+
 
         # Plot training set on top
         plt.scatter(x1, x2, c = y, s = 40, marker = 'v', cmap = mycmap)
@@ -857,6 +866,26 @@ def go_optimised_path(theta_add_init, x, r, memory, ranges,
     x_abs_opt = forward_path_model(theta_add_opt, r, x)
 
     return x_abs_opt, theta_add_opt, entropy_opt
+
+def generate_line_path(x_s, x_f, n_points = 10):
+    p = x_f - x_s
+    r = np.linspace(0, 1, num = n_points)
+    return np.outer(r, p) + x_s
+
+def generate_line_paths(X_s, X_f, n_points = 10):
+
+    assert X_s.shape == X_f.shape
+
+    if hasattr(n_points, '__iter__'):
+
+        assert n_points.shape[0] == X_s.shape[0]
+        X = np.array([generate_line_path(X_s[i], X_f[i], n_points[i]) for i in range(X_s.shape[0])])
+        return X.reshape(X.shape[0] * X.shape[1], X.shape[2])
+
+    else:
+
+        X = np.array([generate_line_path(X_s[i], X_f[i], n_points) for i in range(X_s.shape[0])])
+        return X.reshape(X.shape[0] * X.shape[1], X.shape[2])
 
 if __name__ == "__main__":
     main()
