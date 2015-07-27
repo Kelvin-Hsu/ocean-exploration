@@ -13,6 +13,7 @@ import sys
 import logging
 import shutil
 import nlopt
+import time
 
 # Talk about why linearising keeps the squashed probability 
 # distributed as a gaussian (yes, the probability itself is a random variable)
@@ -113,8 +114,8 @@ def main():
     # X = np.random.uniform(test_range_min, test_range_max, 
     #     size = (n_train, n_dims))
 
-    X_s = np.array([[0.0, 0.0], [0.2, 0.3], [-0.5, 0.1], [0.05, -0.25], [1.0, 0.0], [-0.5, 0.0], [-0.4, 0.7], [-0.1, -0.1], [test_range_min, test_range_min], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min]])
-    X_f = np.array([[1.0, 1.0], [1.2, 1.3], [-1.5, 1.1], [1.05, -1.25], [1.5, -1.0], [-0.5, -1.2], [-1.6, 1.9], [0.1, -1.5], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min], [test_range_min, test_range_min]])
+    X_s = np.array([[0.0, 0.0], [-0.2, 0.3], [-0.1, -0.1], [0.05, 0.25], [-1.1, 0.0], [-0.5, 0.0], [-0.4, -0.7], [-0.1, -0.1], [test_range_min, test_range_min], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min]])
+    X_f = np.array([[1.4, 1.6], [1.8, 1.2], [-1.24, 1.72], [-1.56, -1.9], [-1.9, 1.0], [-0.5, -1.2], [-1.4, -1.9], [0.4, -1.2], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min], [test_range_min, test_range_min]])
     X = generate_line_paths(X_s, X_f)
     x1 = X[:, 0]
     x2 = X[:, 1]
@@ -329,39 +330,39 @@ def main():
     entropy_linearised_plt = gp.classifier.linearised_entropy(
         expectance_latent_plt, variance_latent_plt, learned_classifier)
 
-    if y_unique.shape[0] == 2:
-        n_sampling = 1000
-        S = np.random.normal(0., 1., (1, n_sampling))
+    # if y_unique.shape[0] == 2:
+    #     n_sampling = 1000
+    #     S = np.random.normal(0., 1., (1, n_sampling))
 
-        n_query_plt = np.array(expectance_latent_plt).shape[-1]
-        entropy_sampled_plt = np.zeros(n_query_plt)
-        for i in range(n_query_plt):
+    #     n_query_plt = np.array(expectance_latent_plt).shape[-1]
+    #     entropy_sampled_plt = np.zeros(n_query_plt)
+    #     for i in range(n_query_plt):
 
-            if isinstance(expectance_latent_plt, list):
-                exp_just_one = [expectance_latent_plt[j][[i]] \
-                    for j in range(len(expectance_latent_plt))]
-                var_just_one = [variance_latent_plt[j][[i]][:, np.newaxis] \
-                    for j in range(len(variance_latent_plt))]
-            else:
-                exp_just_one = expectance_latent_plt[[i]]
-                var_just_one = variance_latent_plt[[i]][:, np.newaxis]
-            entropy_sampled_plt[i] = gp.classifier.joint_entropy(
-                exp_just_one, var_just_one, learned_classifier, 
-                S = S, n_draws = n_sampling, processes = None)
-            logging.info('Sampled and computed entropy for %d points' % i)
+    #         if isinstance(expectance_latent_plt, list):
+    #             exp_just_one = [expectance_latent_plt[j][[i]] \
+    #                 for j in range(len(expectance_latent_plt))]
+    #             var_just_one = [variance_latent_plt[j][[i]][:, np.newaxis] \
+    #                 for j in range(len(variance_latent_plt))]
+    #         else:
+    #             exp_just_one = expectance_latent_plt[[i]]
+    #             var_just_one = variance_latent_plt[[i]][:, np.newaxis]
+    #         entropy_sampled_plt[i] = gp.classifier.joint_entropy(
+    #             exp_just_one, var_just_one, learned_classifier, 
+    #             S = S, n_draws = n_sampling, processes = None)
+    #         logging.info('Sampled and computed entropy for %d points' % i)
 
-        # Query (Sampled Entropy) and Training Set
-        fig = plt.figure(figsize = (15, 15))
-        gp.classifier.utils.visualise_map(entropy_sampled_plt, test_ranges, 
-            threshold = entropy_threshold, cmap = cm.coolwarm)
-        plt.title('Sampled Prediction Entropy and Training Set')
-        plt.xlabel('x1')
-        plt.ylabel('x2')
-        plt.colorbar()
-        plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-        plt.xlim((test_range_min, test_range_max))
-        plt.ylim((test_range_min, test_range_max))
-        print('Plotted Sampled Prediction Entropy on Training Set')
+    #     # Query (Sampled Entropy) and Training Set
+    #     fig = plt.figure(figsize = (15, 15))
+    #     gp.classifier.utils.visualise_map(entropy_sampled_plt, test_ranges, 
+    #         threshold = entropy_threshold, cmap = cm.coolwarm)
+    #     plt.title('Sampled Prediction Entropy and Training Set')
+    #     plt.xlabel('x1')
+    #     plt.ylabel('x2')
+    #     plt.colorbar()
+    #     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    #     plt.xlim((test_range_min, test_range_max))
+    #     plt.ylim((test_range_min, test_range_max))
+    #     print('Plotted Sampled Prediction Entropy on Training Set')
 
 
     # Query (Linearised Entropy) and Training Set
@@ -454,8 +455,8 @@ def main():
 
     """ Setup Path Planning """
     xq_now = np.array([[0., 0.]])
-    horizon = (test_range_max - test_range_min) / 3
-    n_steps = 15
+    horizon = (test_range_max - test_range_min)
+    n_steps = 30
 
     theta_bound = np.deg2rad(60)
     theta_add_init = np.zeros(n_steps)
@@ -772,35 +773,39 @@ def path_entropy_model(theta_add, r, x, memory):
     #     return -1e-8
 
     try:
-        # # Method 1
-        # logging.info('Computing linearised entropy...')
-        # predictors = gp.classifier.query(memory, Xq)
-        # yq_exp = gp.classifier.expectance(memory, predictors)
-        # yq_cov = gp.classifier.covariance(memory, predictors)
-        # entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
 
-        # # Method 2
-        # entropy = gp.classifier.entropy(gp.classifier.predict(Xq, memory)).sum()
-
-        # Method 3
-        logging.info('Computing joint entropy...')
+        start_time = time.clock()
+        # Method 1
+        logging.info('Computing linearised entropy...')
         predictors = gp.classifier.query(memory, Xq)
         yq_exp = gp.classifier.expectance(memory, predictors)
         yq_cov = gp.classifier.covariance(memory, predictors)
+        entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
+        logging.debug('Linearised Entropy Computational Time : %.8f' % (time.clock() - start_time))
+        # # Method 2
+        # entropy = gp.classifier.entropy(gp.classifier.predict(Xq, memory)).sum()
 
-        try:
-            path_entropy_model.S == None
-        except AttributeError:
-            logging.info('Initiating seed draw...')
-            nq = np.array(yq_exp).shape[-1]
-            path_entropy_model.S = np.random.normal(0., 1., (nq, 2500))
+        # start_time = time.clock()
+        # # Method 3
+        # logging.info('Computing joint entropy...')
+        # predictors = gp.classifier.query(memory, Xq)
+        # yq_exp = gp.classifier.expectance(memory, predictors)
+        # yq_cov = gp.classifier.covariance(memory, predictors)
 
-        entropy = gp.classifier.joint_entropy(yq_exp, yq_cov, memory, 
-            S = path_entropy_model.S, n_draws = 2500)
+        # try:
+        #     path_entropy_model.S == None
+        # except AttributeError:
+        #     logging.info('Initiating seed draw...')
+        #     nq = np.array(yq_exp).shape[-1]
+        #     path_entropy_model.S = np.random.normal(0., 1., (nq, 2500))
+
+        # entropy = gp.classifier.joint_entropy(yq_exp, yq_cov, memory, 
+        #     S = path_entropy_model.S, n_draws = 2500)
+        # logging.debug('Sampled Entropy Computational Time : %.8f' % (time.clock() - start_time))
 
     except:
         # logging.warning('Failed to compute linearised entropy')
-        entropy = -1e-8
+        entropy = -1e8
 
     logging.debug('theta_add: {0} | entropy: {1}'.format(
         theta_add, entropy))
@@ -843,8 +848,13 @@ def go_optimised_path(theta_add_init, x, r, memory, ranges,
         opt.set_lower_bounds(theta_add_low)
         opt.set_upper_bounds(theta_add_high)
         opt.set_maxtime(walltime)
-        opt.set_ftol_rel(ftol_rel)
-        opt.set_xtol_rel(xtol_rel)
+
+        if xtol_rel:
+            opt.set_xtol_rel(xtol_rel)
+
+        if ftol_rel:
+            opt.set_ftol_rel(ftol_rel)
+        
 
         opt.set_max_objective(objective)
         opt.add_inequality_constraint(constraint, 1e-2)
