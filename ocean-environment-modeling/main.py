@@ -308,15 +308,37 @@ def main():
         query_labels_prob = gp.classifier.predict_from_latent(query_latent_exp, 
             query_latent_cov, learned_classifier, fusemethod = fusemethod)
     else:
-        query_labels_prob = gp.classifier.predict(
-            query_features_sample_whiten, learned_classifier, 
-            fusemethod = fusemethod)
+        predictors = gp.classifier.query(learned_classifier, 
+            query_features_sample_whiten)
+        logging.info('Cached Predictor')
+        query_latent_exp = gp.classifier.expectance(learned_classifier, 
+            predictors)
+        logging.info('Computed Expectance')
+        query_latent_var = gp.classifier.variance(learned_classifier, 
+            predictors)
+        logging.info('Computed Variance')
+        query_labels_prob = gp.classifier.predict_from_latent(query_latent_exp, 
+            query_latent_var, learned_classifier, fusemethod = fusemethod)
+
     logging.info('Computed Prediction Probabilities')
     query_labels_pred = gp.classifier.classify(query_labels_prob, 
                                                 unique_labels_sample)
     logging.info('Computed Prediction')
     query_labels_entropy = gp.classifier.entropy(query_labels_prob)    
     logging.info('Computed Prediction Entropy')
+
+
+    if generate_draw:
+
+        if unique_labels_sample.shape[0] == 2:
+            query_latent_var = query_latent_cov.diagonal()
+        else:
+            query_latent_var = [query_latent_cov[i].diagonal() \
+                for i in range(len(query_latent_cov))]
+
+    query_linearised_entropy = gp.classifier.linearised_entropy(
+        query_latent_exp, query_latent_var, learned_classifier)
+    logging.info('Computed Linearised Entropy')
 
     """Visualise Query Prediction and Entropy"""
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -355,6 +377,34 @@ def main():
         query_locations_sample[:, 0], query_locations_sample[:, 1], 
         marker = 'x', c = np.log(query_labels_entropy), cmap = cm.coolwarm)
     plt.title('Log Query Entropy')
+    plt.xlabel('x [Eastings (m)]')
+    plt.ylabel('y [Northings (m)]')
+    cbar = plt.colorbar()
+    cbar.set_label('Log Prediction Entropy')
+    if vis_fix_range:
+        plt.xlim((vis_x_min, vis_x_max))
+        plt.ylim((vis_y_min, vis_y_max))
+    plt.gca().set_aspect('equal', adjustable = 'box')
+
+    fig = plt.figure(figsize = (19.2, 10.8))
+    plt.scatter(
+        query_locations_sample[:, 0], query_locations_sample[:, 1], 
+        marker = 'x', c = query_linearised_entropy, cmap = cm.coolwarm)
+    plt.title('Query Linearised Entropy')
+    plt.xlabel('x [Eastings (m)]')
+    plt.ylabel('y [Northings (m)]')
+    cbar = plt.colorbar()
+    cbar.set_label('Prediction Entropy')
+    if vis_fix_range:
+        plt.xlim((vis_x_min, vis_x_max))
+        plt.ylim((vis_y_min, vis_y_max))
+    plt.gca().set_aspect('equal', adjustable = 'box')
+
+    fig = plt.figure(figsize = (19.2, 10.8))
+    plt.scatter(
+        query_locations_sample[:, 0], query_locations_sample[:, 1], 
+        marker = 'x', c = np.log(query_linearised_entropy), cmap = cm.coolwarm)
+    plt.title('Log Query Linearised Entropy')
     plt.xlabel('x [Eastings (m)]')
     plt.ylabel('y [Northings (m)]')
     cbar = plt.colorbar()
