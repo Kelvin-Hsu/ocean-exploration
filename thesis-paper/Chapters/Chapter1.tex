@@ -1,0 +1,57 @@
+\lhead{Introduction}
+\chapter{Introduction}
+\label{Introduction}
+
+	\section{Motivation}
+	
+		Thanks to optical and acoustic depth sounding technology, detailed ocean terrain maps across a majority of the globe have become increasingly accessible. These information generally takes the form of \textit{Bathymetric} data - recordings of measured depth, slope, rugosity, and similar structural information that summarises the seafloor topography. Currently, bathymetric data has been recorded with advanced techniques such as SONAR (\textbf{SO}und \textbf{N}avigation \textbf{A}nd \textbf{R}anging), LIDAR (\textbf{LI}ght \textbf{D}etection \textbf{A}nd \textbf{R}anging), and Multibeam Echosounder for more than half a century. With such volume of bathymetric information, we can reconstruct accurate 3D models for ocean terrain through spatial analytics and modeling techniques.
+		
+		However, bathymetric data only contains information regarding the spatial structure of the marine terrain. It provides no indication towards the types of marine habitats that resides within parts of the ocean, nor does it contain clues regarding the minerals or natural resources that may be present. With big data analysis becoming more feasible in recent years, there has been an increase in scientific and economical demands - from ecologist and geologists to resource and mining industries - for the ability to predict or infer the types of marine habitats or natural resources residing at various marine environments.
+		
+		This implies the need to map the ocean floor again, but with other sensing equipments - mainly vision based - in order to image the types of habitats, resources, and other interesting properties of the ocean floor. Unfortunately, unlike bathymetric data, which can often be measured with decent accuracy at a distance - for example, with SONAR from ships at sea level - such visual image information can only be obtained through expensive missions with Autonomous Underwater Vehicles (AUVs) that travel deep into the ocean to image underwater environments at a close distance.
+		
+		As a result, there is currently a lack of \textit{label} data, which is a summary (\textit{label}) of the habitats, resources, and other interesting properties observed at various parts of the ocean, as compared to the more plentiful bathymetric (depth) data. Due to difficult limitations in cost and time, it is infeasible to traverse through enough of the ocean floor to ever obtain enough label data like how bathymetric data was gathered.
+		
+		This thesis investigates machine learning methods for autonomous underwater vehicles to intelligently and actively plan an underwater path for data collection. The problem is complicated by the presence of dynamic uncertainties that is highly dependent on the vehicle's planning actions. A dynamic planning method is proposed to maximises information, or entropy, gained in a given underwater region, while constrained by cost and time.
+	
+		Intuitively, this information gathering problem, sometimes referred to as \textit{active sampling}, is dynamic in the sense that observing one part of the ocean modifies uncertainties about other parts of the ocean. The aim is that, with a well designed path planner, the final trajectory can maximise information gained about the habitats and resources residing in a large part of the ocean.
+		
+	\section{Objectives}
+
+		The high level objective of this thesis is to develop and design an underwater path planner such that the resulting path minimises the overall entropy of the ocean environment in consideration.
+		
+		Detailed examination of this objective would raise details that would need to be made more specific.
+		
+		Firstly, the measure of entropy would be highly dependent on the quantities or qualities the vehicle is to search for, as well as the underwater region of interest. It would need to be examined to ensure that it is an appropriate measure of the environment uncertainty to be reduced that is relevant to the mission.
+		
+		Secondly, finding paths that subsequently minimises the overall entropy is fundamentally a dynamic programming and optimisation problem. As with any optimisation problem, problem constraints are to be defined and made clear. Within the presence of possibly difficult dynamical constraints, it is likely that simplifications are necessary at various stages of the thesis.
+		
+		Another consideration is the feasibility of the algorithm. While it can be difficult to measure the optimality of any solution proposed, it is often easier to examine the feasibility of the algorithm through studying the hardware constraints involved or the physical environment. One of the most important feasibility constraint relevant to this thesis is the computational capabilities of the vehicle computer hardware. Depending on the final proposed algorithm, it may not always be possible for the path planer to be executed in a fully online fashion. A more likely situation would involve planning a path to be executed for a duration of time and update the path through re-planning at a frequency much lower than the vehicle is navigating. For short missions, it may be more desirable to have the entire path planned offline.
+		
+		Other subtleties arise from the nature of the the underwater path planning problem. There is often no goal location, only an objective to maximise the information gained. This is a form of active path planning, which is similar to the active sampling philosophy but with dynamic constraints.
+		
+		Finally, other than the path planning algorithm, a major part of this thesis revolves around modeling the ocean environment accurately. Without an accurate understanding of the ocean environment, the vehicle cannot plan a path that is of reasonable significance. This thesis is to address the ways the ocean environment is to be modeled, develop these algorithms, and implement them on an ocean exploration setting.
+		
+		The detailed objective of this thesis is thus to examine and address all the concerns above, and to provide a better understanding towards the methods these active path planning problems can be approached.
+		
+	\section{Contribution}
+	
+		{\color{BurntOrange} This section is to be completed at a later stage. Current contributions and progress are outlined in the progress report of \cref{ProgressReport}}.
+		
+	\section{Structure}
+	
+		The structure of this thesis is outlined as below.
+		
+		Chapter \ref{Background} provides the necessary background information for the purpose of understanding this thesis work. This thesis will rely heavily on the ocean environment modeling formulation presented in \cref{Background:OceanEnvironmentModeling}. The proposed methodology for environment modeling involves the use of Gaussian process models, whose background material is singled out in \cref{Background:GaussianProcesses} for further detailed coverage. Background knowledge for the path planning aspect of this thesis is then summarised in \cref{Background:PathPlanning}.
+				
+		Chapter {\color{BurntOrange} 3} \footnote{ {\color{BurntOrange} The following chapters are the contents currently proposed to be included in the final thesis, and is therefore subjected to change. The chapter 3 discussed here is not the same as the progress report currently included in \cref{ProgressReport}, although the material in the progress report ultimately be expanded and included in these later chapters.} } presents the implemented method for environment modeling using Gaussian processes. Simulations results and and tests are discussed to assess the performance of these models on bathymetric modeling and environment label prediction. Regression models and classification models are discussed in section {\color{BurntOrange} 3.2} and {\color{BurntOrange} 3.3} respectively.
+		
+		Chapter {\color{BurntOrange} 4} demonstrates the path planning process with partially observable Markov decision processes (POMDPs) in conjunction with the Gaussian process models. Important comparisons with simplified methods combining probabilistic road maps (PRM) and $A^{\star}$ search algorithm will motivate the use of Markov decision processes in section {\color{BurntOrange} 4.2}. The background material from \cref{Background:PathPlanning} will be expanded in section {\color{BurntOrange} 4.3} through a detailed discussion of Markov decision processes in the ocean exploration setting. Observability limitations would then invoke the POMDP formulation whose implementation will also be carefully outlined in section {\color{BurntOrange} 4.4}.
+		
+		Chapter {\color{BurntOrange} 5} focuses on the implementation of the above algorithms onto test hardware \footnote{ {\color{BurntOrange} This will depend strongly on the final scope of the thesis.} }. Comparisons of experimental results to simulation results are shown in section {\color{BurntOrange} 5.2}. A simplified and computationally cheaper alternative to the proposed methodology in Chapter {\color{BurntOrange} 4} is outlined in section {\color{BurntOrange} 5.3}. Final results and pseudocode are shown in section {\color{BurntOrange} 5.4}.
+		
+		Chapter {\color{BurntOrange} 6} summarises the work presented in this thesis, the contributions made, and potentials for future improvements.
+		
+		Finally, the appendices support the thesis with useful information that is not immediately relevant to the main work presented.
+		
+		
