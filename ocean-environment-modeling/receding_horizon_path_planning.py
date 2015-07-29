@@ -14,6 +14,7 @@ import logging
 import shutil
 import nlopt
 import time
+import parmap
 
 # Talk about why linearising keeps the squashed probability 
 # distributed as a gaussian (yes, the probability itself is a random variable)
@@ -43,8 +44,8 @@ def main():
     test_range_min = -2.5
     test_range_max = +2.5
     test_ranges = (test_range_min, test_range_max)
-    n_train = 50
-    n_query = 250
+    n_train = 500
+    n_query = 5
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
     walltime = 300.0
@@ -88,7 +89,7 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = db1c # [db5b, db1c, db4a]
+    decision_boundary  = [db5b, db1c, db4a]
 
     """
     Data Generation
@@ -111,12 +112,12 @@ def main():
 
     # X = np.concatenate((X1, X2, X3, X4, X5, X6, X7, X8), axis = 0)
 
-    # X = np.random.uniform(test_range_min, test_range_max, 
-    #     size = (n_train, n_dims))
+    X = np.random.uniform(test_range_min, test_range_max, 
+        size = (n_train, n_dims))
 
-    X_s = np.array([[0.0, 0.0], [-0.2, 0.3], [-0.1, -0.1], [0.05, 0.25], [-1.1, 0.0], [-0.5, 0.0], [-0.4, -0.7], [-0.1, -0.1], [test_range_min, test_range_min], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min]])
-    X_f = np.array([[1.4, 1.6], [1.8, 1.2], [-1.24, 1.72], [-1.56, -1.9], [-1.9, 1.0], [-0.5, -1.2], [-1.4, -1.9], [0.4, -1.2], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min], [test_range_min, test_range_min]])
-    X = generate_line_paths(X_s, X_f)
+    # X_s = np.array([[0.0, 0.0], [-0.2, 0.3], [-0.1, -0.1], [0.05, 0.25], [-1.1, 0.0], [-0.5, 0.0], [-0.4, -0.7], [-0.1, -0.1], [test_range_min, test_range_min], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min]])
+    # X_f = np.array([[1.4, 1.6], [1.8, 1.2], [-1.24, 1.72], [-1.56, -1.9], [-1.9, 1.0], [-0.5, -1.2], [-1.4, -1.9], [0.4, -1.2], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min], [test_range_min, test_range_min]])
+    # X = generate_line_paths(X_s, X_f)
     x1 = X[:, 0]
     x2 = X[:, 1]
     
@@ -267,19 +268,117 @@ def main():
     logging.info('Plotted Training Set')
 
     """
-    Plot: Prediction Probabilities
+    Plot: Query Computations
     """
 
-    # Visualise the prediction probabilities
-    yq_prob_plt, Xq_plt, _, _, _ = \
-        gp.classifier.utils.visualise_prediction_probabilities_multiclass(
-        test_range_min, test_range_max, prediction_function, y)
+    Xq_plt = gp.classifier.utils.query_map(test_ranges)
 
-    # To avoid re-computing most of the results for plotting, 
-    # find the entropy and predictions here
+    logging.info('Caching Predictor...')
+    predictor_plt = gp.classifier.query(learned_classifier, Xq_plt)
+    logging.info('Computing Expectance...')
+    expectance_latent_plt = gp.classifier.expectance(learned_classifier, 
+        predictor_plt)
+    logging.info('Computing Variance...')
+    variance_latent_plt = gp.classifier.variance(learned_classifier, 
+        predictor_plt)
+    logging.info('Computing Prediction Probabilities...')
+    yq_prob_plt = gp.classifier.predict_from_latent(expectance_latent_plt, 
+        variance_latent_plt, learned_classifier, fusemethod = fusemethod)
+    logging.info('Computing Prediction Entropy...')
     yq_entropy_plt = gp.classifier.entropy(yq_prob_plt)
+    logging.info('Computing Prediction...')
     yq_pred_plt = gp.classifier.classify(yq_prob_plt, y)
-    logging.info('Plotted Prediction Probabilities')
+    logging.info('Computing Linearised Entropy...')
+    entropy_linearised_plt = gp.classifier.linearised_entropy(
+        expectance_latent_plt, variance_latent_plt, learned_classifier)
+
+    logging.info('Computing Separated Linearised Entropy...')
+    if isinstance(learned_classifier, list):
+        args = [(expectance_latent_plt[i], variance_latent_plt[i], 
+            learned_classifier[i]) for i in range(len(learned_classifier))]
+        entropy_linearised_separated_plt = \
+            parmap.starmap(gp.classifier.linearised_entropy, args)
+
+    # logging.info('Fusing Linearised Entropy...')
+    # entropy_linearised_plt = \
+    #     np.array(entropy_linearised_separated_plt).max(axis = 0)
+
+    if isinstance(learned_classifier, list):
+
+        """
+        Plot: Latent Function Expectance
+        """
+
+        for i in range(len(expectance_latent_plt)):
+            fig = plt.figure(figsize = (15, 15))
+            gp.classifier.utils.visualise_map(expectance_latent_plt[i], test_ranges, 
+                levels = [0.0], vmin = -np.max(np.abs(expectance_latent_plt[i])), 
+                vmax = np.max(np.abs(expectance_latent_plt[i])), cmap = cm.coolwarm)
+            plt.title('Latent Funtion Expectance %s' 
+                % gp.classifier.utils.binary_classifier_name(learned_classifier[i], 
+                    y_unique))
+            plt.xlabel('x1')
+            plt.ylabel('x2')
+            plt.colorbar()
+            plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+            plt.xlim((test_range_min, test_range_max))
+            plt.ylim((test_range_min, test_range_max))
+            logging.info('Plotted Latent Function Expectance on Training Set')
+
+        """
+        Plot: Latent Function Variance
+        """
+
+        for i in range(len(variance_latent_plt)):
+            fig = plt.figure(figsize = (15, 15))
+            gp.classifier.utils.visualise_map(variance_latent_plt[i], test_ranges, 
+                cmap = cm.coolwarm)
+            plt.title('Latent Funtion Variance %s' 
+                % gp.classifier.utils.binary_classifier_name(learned_classifier[i], 
+                    y_unique))
+            plt.xlabel('x1')
+            plt.ylabel('x2')
+            plt.colorbar()
+            plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+            plt.xlim((test_range_min, test_range_max))
+            plt.ylim((test_range_min, test_range_max))
+            logging.info('Plotted Latent Function Variance on Training Set')
+
+        """
+        Plot: Prediction Probabilities
+        """
+
+        for i in range(len(yq_prob_plt)):
+            fig = plt.figure(figsize = (15, 15))
+            gp.classifier.utils.visualise_map(yq_prob_plt[i], test_ranges, 
+                levels = [0.5], cmap = cm.coolwarm)
+            plt.title('Prediction Probabilities (Class %d)' % y_unique[i])
+            plt.xlabel('x1')
+            plt.ylabel('x2')
+            plt.colorbar()
+            plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+            plt.xlim((test_range_min, test_range_max))
+            plt.ylim((test_range_min, test_range_max))
+            logging.info('Plotted Prediction Probabilities on Training Set')
+
+        """
+        Plot: Individual Linearised Entropy
+        """
+
+        for i in range(len(entropy_linearised_separated_plt)):
+            fig = plt.figure(figsize = (15, 15))
+            gp.classifier.utils.visualise_map(entropy_linearised_separated_plt[i], 
+                test_ranges, cmap = cm.coolwarm)
+            plt.title('Individual Linearised Entropy %s' 
+                % gp.classifier.utils.binary_classifier_name(learned_classifier[i], 
+                    y_unique))
+            plt.xlabel('x1')
+            plt.ylabel('x2')
+            plt.colorbar()
+            plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+            plt.xlim((test_range_min, test_range_max))
+            plt.ylim((test_range_min, test_range_max))
+            logging.info('Plotted Individual Linearised Entropy on Training Set')
 
     """
     Plot: Prediction Labels
@@ -318,53 +417,6 @@ def main():
     Plot: Linearised Prediction Entropy onto Training Set
     """
 
-    logging.info('Caching Predictor...')
-    predictor_plt = gp.classifier.query(learned_classifier, Xq_plt)
-    logging.info('Computing Expectance...')
-    expectance_latent_plt = gp.classifier.expectance(learned_classifier, 
-        predictor_plt)
-    logging.info('Computing Variance...')
-    variance_latent_plt = gp.classifier.variance(learned_classifier, 
-        predictor_plt)
-    logging.info('Computing Linearised Entropy...')
-    entropy_linearised_plt = gp.classifier.linearised_entropy(
-        expectance_latent_plt, variance_latent_plt, learned_classifier)
-
-    # if y_unique.shape[0] == 2:
-    #     n_sampling = 1000
-    #     S = np.random.normal(0., 1., (1, n_sampling))
-
-    #     n_query_plt = np.array(expectance_latent_plt).shape[-1]
-    #     entropy_sampled_plt = np.zeros(n_query_plt)
-    #     for i in range(n_query_plt):
-
-    #         if isinstance(expectance_latent_plt, list):
-    #             exp_just_one = [expectance_latent_plt[j][[i]] \
-    #                 for j in range(len(expectance_latent_plt))]
-    #             var_just_one = [variance_latent_plt[j][[i]][:, np.newaxis] \
-    #                 for j in range(len(variance_latent_plt))]
-    #         else:
-    #             exp_just_one = expectance_latent_plt[[i]]
-    #             var_just_one = variance_latent_plt[[i]][:, np.newaxis]
-    #         entropy_sampled_plt[i] = gp.classifier.joint_entropy(
-    #             exp_just_one, var_just_one, learned_classifier, 
-    #             S = S, n_draws = n_sampling, processes = None)
-    #         logging.info('Sampled and computed entropy for %d points' % i)
-
-    #     # Query (Sampled Entropy) and Training Set
-    #     fig = plt.figure(figsize = (15, 15))
-    #     gp.classifier.utils.visualise_map(entropy_sampled_plt, test_ranges, 
-    #         threshold = entropy_threshold, cmap = cm.coolwarm)
-    #     plt.title('Sampled Prediction Entropy and Training Set')
-    #     plt.xlabel('x1')
-    #     plt.ylabel('x2')
-    #     plt.colorbar()
-    #     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    #     plt.xlim((test_range_min, test_range_max))
-    #     plt.ylim((test_range_min, test_range_max))
-    #     print('Plotted Sampled Prediction Entropy on Training Set')
-
-
     # Query (Linearised Entropy) and Training Set
     fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(entropy_linearised_plt, test_ranges, 
@@ -377,15 +429,6 @@ def main():
     plt.xlim((test_range_min, test_range_max))
     plt.ylim((test_range_min, test_range_max))
     logging.info('Plotted Linearised Prediction Entropy on Training Set')
-
-    """
-    Plot: Prediction Probabilities from Binary Classifiers
-    """    
-
-    # Query (Individual Binary CLassifier Maps)
-    if SHOW_RAW_BINARY:
-        gp.classifier.utils.reveal_binary(test_range_min, test_range_max, 
-            gp.classifier.predict, learned_classifier, y_unique)
 
     """
     Plot: Sample Query Predictions
@@ -448,15 +491,15 @@ def main():
 
 
     logging.info('Modeling Done')
-
+    return
     """
     Path Planning
     """
 
     """ Setup Path Planning """
     xq_now = np.array([[0., 0.]])
-    horizon = (test_range_max - test_range_min)
-    n_steps = 30
+    horizon = (test_range_max - test_range_min)/2
+    n_steps = 20
 
     theta_bound = np.deg2rad(60)
     theta_add_init = np.zeros(n_steps)
@@ -466,7 +509,7 @@ def main():
     theta_add_low[0] = 0.0
     theta_add_high[0] = 2 * np.pi
     r = horizon/n_steps
-    choice_walltime = 300.0
+    choice_walltime = 3000.0
     xtol_rel = 1e-2
     ftol_rel = 1e-6
 
@@ -782,6 +825,7 @@ def path_entropy_model(theta_add, r, x, memory):
         yq_cov = gp.classifier.covariance(memory, predictors)
         entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
         logging.debug('Linearised Entropy Computational Time : %.8f' % (time.clock() - start_time))
+
         # # Method 2
         # entropy = gp.classifier.entropy(gp.classifier.predict(Xq, memory)).sum()
 
