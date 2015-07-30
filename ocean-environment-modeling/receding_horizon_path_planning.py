@@ -41,8 +41,8 @@ def main():
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True # We don't want to make files everywhere for a demo.
     SHOW_RAW_BINARY = True
-    test_range_min = -2.5
-    test_range_max = +2.5
+    test_range_min = -2.2
+    test_range_max = +2.2
     test_ranges = (test_range_min, test_range_max)
     n_train = 300
     n_query = 300
@@ -50,7 +50,7 @@ def main():
     n_cores = None # number of cores for multi-class (None -> default: c-1)
     walltime = 300.0
     approxmethod = 'laplace' # 'laplace' or 'pls'
-    multimethod = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
+    multimethod = 'AVA' # 'AVA' or 'OVA', ignored for binary problem
     fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary
     responsename = 'probit' # 'probit' or 'logistic'
     batch_start = False
@@ -89,7 +89,7 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = [db5b, db1c, db4a]
+    decision_boundary  = [db1c, db4a]
 
     """
     Data Generation
@@ -295,15 +295,15 @@ def main():
     yq_pred_plt = gp.classifier.classify(yq_prob_plt, y)
 
     logging.info('Computing Linearised Entropy...')
-    entropy_linearised_separated_plt = gp.classifier.linearised_entropy(
-        expectance_latent_plt, variance_latent_plt, learned_classifier, separate = True)
 
-    entropy_linearised_plt = np.array(entropy_linearised_separated_plt).sum(axis = 0)
+    entropy_linearised_plt = gp.classifier.linearised_entropy(
+        expectance_latent_plt, variance_latent_plt, learned_classifier)
 
-
-    # logging.info('Fusing Linearised Entropy...')
-    # entropy_linearised_plt = \
-    #     np.array(entropy_linearised_separated_plt).max(axis = 0)
+    args = [(expectance_latent_plt[i], variance_latent_plt[i], 
+        learned_classifier[i]) for i in range(len(learned_classifier))]
+    entropy_linearised_naive_plt = \
+        np.array(parmap.starmap(gp.classifier.linearised_entropy, 
+            args)).sum(axis = 0)
 
     if isinstance(learned_classifier, list):
 
@@ -313,12 +313,15 @@ def main():
 
         for i in range(len(expectance_latent_plt)):
             fig = plt.figure(figsize = (15, 15))
-            gp.classifier.utils.visualise_map(expectance_latent_plt[i], test_ranges, 
-                levels = [0.0], vmin = -np.max(np.abs(expectance_latent_plt[i])), 
-                vmax = np.max(np.abs(expectance_latent_plt[i])), cmap = cm.coolwarm)
+            gp.classifier.utils.visualise_map(
+                expectance_latent_plt[i], test_ranges, 
+                levels = [0.0], 
+                vmin = -np.max(np.abs(expectance_latent_plt[i])), 
+                vmax = np.max(np.abs(expectance_latent_plt[i])), 
+                cmap = cm.coolwarm)
             plt.title('Latent Funtion Expectance %s' 
-                % gp.classifier.utils.binary_classifier_name(learned_classifier[i], 
-                    y_unique))
+                % gp.classifier.utils.binary_classifier_name(
+                    learned_classifier[i], y_unique))
             plt.xlabel('x1')
             plt.ylabel('x2')
             plt.colorbar()
@@ -333,11 +336,12 @@ def main():
 
         for i in range(len(variance_latent_plt)):
             fig = plt.figure(figsize = (15, 15))
-            gp.classifier.utils.visualise_map(variance_latent_plt[i], test_ranges, 
+            gp.classifier.utils.visualise_map(
+                variance_latent_plt[i], test_ranges, 
                 cmap = cm.coolwarm)
             plt.title('Latent Funtion Variance %s' 
-                % gp.classifier.utils.binary_classifier_name(learned_classifier[i], 
-                    y_unique))
+                % gp.classifier.utils.binary_classifier_name(
+                    learned_classifier[i], y_unique))
             plt.xlabel('x1')
             plt.ylabel('x2')
             plt.colorbar()
@@ -362,25 +366,6 @@ def main():
             plt.xlim((test_range_min, test_range_max))
             plt.ylim((test_range_min, test_range_max))
             logging.info('Plotted Prediction Probabilities on Training Set')
-
-        """
-        Plot: Individual Linearised Entropy
-        """
-
-        for i in range(len(entropy_linearised_separated_plt)):
-            fig = plt.figure(figsize = (15, 15))
-            gp.classifier.utils.visualise_map(entropy_linearised_separated_plt[i], 
-                test_ranges, cmap = cm.coolwarm)
-            plt.title('Individual Linearised Entropy %s' 
-                % gp.classifier.utils.binary_classifier_name(learned_classifier[i], 
-                    y_unique))
-            plt.xlabel('x1')
-            plt.ylabel('x2')
-            plt.colorbar()
-            plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-            plt.xlim((test_range_min, test_range_max))
-            plt.ylim((test_range_min, test_range_max))
-            logging.info('Plotted Individual Linearised Entropy on Training Set')
 
     """
     Plot: Prediction Labels
@@ -424,6 +409,41 @@ def main():
     gp.classifier.utils.visualise_map(entropy_linearised_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
     plt.title('Linearised Prediction Entropy and Training Set')
+    plt.xlabel('x1')
+    plt.ylabel('x2')
+    plt.colorbar()
+    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    plt.xlim((test_range_min, test_range_max))
+    plt.ylim((test_range_min, test_range_max))
+    logging.info('Plotted Linearised Prediction Entropy on Training Set')
+
+    """
+    Plot: Exponentiated Linearised Prediction Entropy onto Training Set
+    """
+
+    # Query (Linearised Entropy) and Training Set
+    fig = plt.figure(figsize = (15, 15))
+    gp.classifier.utils.visualise_map(np.exp(entropy_linearised_plt), test_ranges, 
+        threshold = entropy_threshold, cmap = cm.coolwarm)
+    plt.title('Linearised Prediction Entropy and Training Set')
+    plt.xlabel('x1')
+    plt.ylabel('x2')
+    plt.colorbar()
+    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    plt.xlim((test_range_min, test_range_max))
+    plt.ylim((test_range_min, test_range_max))
+    logging.info('Plotted Exponentiated Linearised Prediction Entropy on Training Set')
+
+    """
+    Plot: Naive Linearised Prediction Entropy onto Training Set
+    """
+
+    # Query (Naive Linearised Entropy) and Training Set
+    fig = plt.figure(figsize = (15, 15))
+    gp.classifier.utils.visualise_map(
+        entropy_linearised_naive_plt, test_ranges, 
+        threshold = entropy_threshold, cmap = cm.coolwarm)
+    plt.title('Naive Linearised Prediction Entropy and Training Set')
     plt.xlabel('x1')
     plt.ylabel('x2')
     plt.colorbar()
@@ -503,8 +523,8 @@ def main():
     n_steps = 30
 
     theta_bound = np.deg2rad(60)
-    theta_add_init = np.deg2rad(10) * np.ones(n_steps)
-    theta_add_init[0] = np.deg2rad(270)
+    theta_add_init = np.deg2rad(-10) * np.ones(n_steps)
+    theta_add_init[0] = np.deg2rad(180)
     theta_add_low = -theta_bound * np.ones(n_steps)
     theta_add_high = theta_bound * np.ones(n_steps)
     theta_add_low[0] = 0.0
@@ -555,6 +575,8 @@ def main():
                 ftol_rel = ftol_rel)
         logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
+        k_step = keep_going_until_surprise(xq_abs_opt, learned_classifier, 
+            decision_boundary)
         xq_now = xq_abs_opt[:k_step]
 
         theta_add_init = initiate_with_continuity(theta_add_opt, 
@@ -667,6 +689,49 @@ def main():
         plt.savefig('%sentropy_linearised_step%d.png' 
             % (full_directory, i_trials + 1))
 
+        """ Exponentiated Linearised Entropy Map """
+
+        # Prepare Figure 1
+        plt.figure(fig1.number)
+        plt.clf()
+        plt.title('Exploration track and linearised entropy [horizon = %.2f]' 
+            % horizon)
+        plt.xlabel('x1')
+        plt.ylabel('x2')
+        plt.xlim((test_range_min, test_range_max))
+        plt.ylim((test_range_min, test_range_max))
+
+        # Plot linearised entropy
+        gp.classifier.utils.visualise_map(
+            np.exp(entropy_linearised_plt), test_ranges, 
+            cmap = cm.coolwarm, vmin = vmin1, vmax = vmax1)
+        plt.colorbar()
+
+        # Plot training set on top
+        plt.scatter(x1, x2, c = y, s = 40, marker = 'x', cmap = mycmap)
+
+        # Plot the path on top
+        plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
+            facecolors = 'none',
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+
+        # Plot the proposed path
+        plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+
+        # Plot the horizon
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            marker = '.')
+
+        # Save the plot
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('%sentropy_linearised_exponentiated_step%d.png' 
+            % (full_directory, i_trials + 1))
+
         """ True Entropy Map """
 
         # Prepare Figure 2
@@ -772,6 +837,21 @@ def main():
 
     # Show everything!
     plt.show()
+
+def keep_going_until_surprise(xq_abs_opt, learned_classifier, decision_boundary):
+
+    if isinstance(learned_classifier, list):
+        y_unique = learned_classifier[0].cache.get('y_unique')
+    else:
+        y_unique = learned_classifier.cache.get('y_unique')
+
+    yq_pred = gp.classifier.classify(gp.classifier.predict(xq_abs_opt, 
+            learned_classifier), y_unique)
+
+    yq_true = gp.classifier.utils.make_decision(xq_abs_opt, decision_boundary)
+
+    neq = yq_pred != yq_true
+    return np.arange(yq_pred.shape[0])[neq].min()
 
 def initiate_with_continuity(theta_add_opt, k_step = 1):
 
