@@ -44,8 +44,8 @@ def main():
     test_range_min = -2.5
     test_range_max = +2.5
     test_ranges = (test_range_min, test_range_max)
-    n_train = 500
-    n_query = 5
+    n_train = 300
+    n_query = 300
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
     walltime = 300.0
@@ -124,6 +124,7 @@ def main():
     # Query Points
     Xq = np.random.uniform(test_range_min, test_range_max, 
         size = (n_query, n_dims))
+    Xq = generate_line_path(np.array([0., 0.]), np.array([1., -1.]))
     xq1 = Xq[:, 0]
     xq2 = Xq[:, 1]
 
@@ -229,6 +230,10 @@ def main():
     logging.info('Drawing from GP...')
     yq_draws = gp.classifier.draws(n_draws, yq_exp_list, yq_cov_list, 
         learned_classifier)
+    logging.info('Computing Linearised Entropy...')
+    yq_linearised_entropy = gp.classifier.linearised_entropy(
+        yq_exp_list, yq_cov_list, learned_classifier)
+    logging.info('Linearised Entropy is {0}'.format(yq_linearised_entropy))
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
                         THE GAP BETWEEN ANALYSIS AND PLOTS
@@ -288,16 +293,13 @@ def main():
     yq_entropy_plt = gp.classifier.entropy(yq_prob_plt)
     logging.info('Computing Prediction...')
     yq_pred_plt = gp.classifier.classify(yq_prob_plt, y)
-    logging.info('Computing Linearised Entropy...')
-    entropy_linearised_plt = gp.classifier.linearised_entropy(
-        expectance_latent_plt, variance_latent_plt, learned_classifier)
 
-    logging.info('Computing Separated Linearised Entropy...')
-    if isinstance(learned_classifier, list):
-        args = [(expectance_latent_plt[i], variance_latent_plt[i], 
-            learned_classifier[i]) for i in range(len(learned_classifier))]
-        entropy_linearised_separated_plt = \
-            parmap.starmap(gp.classifier.linearised_entropy, args)
+    logging.info('Computing Linearised Entropy...')
+    entropy_linearised_separated_plt = gp.classifier.linearised_entropy(
+        expectance_latent_plt, variance_latent_plt, learned_classifier, separate = True)
+
+    entropy_linearised_plt = np.array(entropy_linearised_separated_plt).sum(axis = 0)
+
 
     # logging.info('Fusing Linearised Entropy...')
     # entropy_linearised_plt = \
@@ -489,20 +491,19 @@ def main():
         gp.classifier.utils.save_all_figures(full_directory)
         shutil.copy2('./receding_horizon_path_planning.py', full_directory)
 
-
     logging.info('Modeling Done')
-    return
+
     """
     Path Planning
     """
 
     """ Setup Path Planning """
     xq_now = np.array([[0., 0.]])
-    horizon = (test_range_max - test_range_min)/2
-    n_steps = 20
+    horizon = (test_range_max - test_range_min)
+    n_steps = 30
 
     theta_bound = np.deg2rad(60)
-    theta_add_init = np.zeros(n_steps)
+    theta_add_init = np.deg2rad(10) * np.ones(n_steps)
     theta_add_init[0] = np.deg2rad(270)
     theta_add_low = -theta_bound * np.ones(n_steps)
     theta_add_high = theta_bound * np.ones(n_steps)
@@ -510,8 +511,8 @@ def main():
     theta_add_high[0] = 2 * np.pi
     r = horizon/n_steps
     choice_walltime = 3000.0
-    xtol_rel = 1e-2
-    ftol_rel = 1e-6
+    xtol_rel = 1e-1
+    ftol_rel = 1e-2
 
     k_step = 1
 
@@ -851,8 +852,8 @@ def path_entropy_model(theta_add, r, x, memory):
         # logging.warning('Failed to compute linearised entropy')
         entropy = -1e8
 
-    logging.debug('theta_add: {0} | entropy: {1}'.format(
-        theta_add, entropy))
+    logging.debug('angles (deg): {0} | entropy: {1}'.format(
+        np.rad2deg(theta_add), entropy))
     return entropy
 
 def path_bounds_model(theta_add, r, x, ranges):
@@ -860,7 +861,7 @@ def path_bounds_model(theta_add, r, x, ranges):
     Xq = forward_path_model(theta_add, r, x)
 
     c = np.max(np.abs(Xq)) - ranges[1]
-    print(c)
+    logging.debug('Contraint Violation: %.5f' % c)
     # Assume ranges is symmetric (a square)
     return c
 
