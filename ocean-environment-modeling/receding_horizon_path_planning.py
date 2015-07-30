@@ -15,16 +15,12 @@ import shutil
 import nlopt
 import time
 import parmap
+from kdef import kerneldef
 
 # Talk about why linearising keeps the squashed probability 
 # distributed as a gaussian (yes, the probability itself is a random variable)
 
 plt.ion()
-
-# Define the kernel used for classification
-def kerneldef(h, k):
-    return h(1e-3, 1e5, 10) * k('gaussian', 
-                                [h(1e-3, 1e3, 0.1), h(1e-3, 1e3, 0.1)])
 
 def main():
 
@@ -44,7 +40,7 @@ def main():
     test_range_min = -2.2
     test_range_max = +2.2
     test_ranges = (test_range_min, test_range_max)
-    n_train = 300
+    n_train = 250
     n_query = 300
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
@@ -423,16 +419,16 @@ def main():
 
     # Query (Linearised Entropy) and Training Set
     fig = plt.figure(figsize = (15, 15))
-    gp.classifier.utils.visualise_map(np.exp(entropy_linearised_plt), test_ranges, 
+    gp.classifier.utils.visualise_map(np.exp(entropy_linearised_plt) / np.sqrt(2 * np.pi * np.e), test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    plt.title('Linearised Prediction Entropy and Training Set')
+    plt.title('Equivalent standard deviation and Training Set')
     plt.xlabel('x1')
     plt.ylabel('x2')
     plt.colorbar()
     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
     plt.xlim((test_range_min, test_range_max))
     plt.ylim((test_range_min, test_range_max))
-    logging.info('Plotted Exponentiated Linearised Prediction Entropy on Training Set')
+    logging.info('Plotted Exponentiated Linearised Prediction Entropy (Equivalent Standard Deviation) on Training Set')
 
     """
     Plot: Naive Linearised Prediction Entropy onto Training Set
@@ -450,7 +446,7 @@ def main():
     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
     plt.xlim((test_range_min, test_range_max))
     plt.ylim((test_range_min, test_range_max))
-    logging.info('Plotted Linearised Prediction Entropy on Training Set')
+    logging.info('Plotted Naive Linearised Prediction Entropy on Training Set')
 
     """
     Plot: Sample Query Predictions
@@ -519,20 +515,20 @@ def main():
 
     """ Setup Path Planning """
     xq_now = np.array([[0., 0.]])
-    horizon = (test_range_max - test_range_min)
-    n_steps = 30
+    horizon = (test_range_max - test_range_min) + 0.5
+    n_steps = 40
 
     theta_bound = np.deg2rad(60)
-    theta_add_init = np.deg2rad(-10) * np.ones(n_steps)
+    theta_add_init = np.deg2rad(0) * np.ones(n_steps)
     theta_add_init[0] = np.deg2rad(180)
     theta_add_low = -theta_bound * np.ones(n_steps)
     theta_add_high = theta_bound * np.ones(n_steps)
     theta_add_low[0] = 0.0
     theta_add_high[0] = 2 * np.pi
     r = horizon/n_steps
-    choice_walltime = 3000.0
-    xtol_rel = 1e-1
-    ftol_rel = 1e-2
+    choice_walltime = 1500.0
+    xtol_rel = 1e-2
+    ftol_rel = 1e-4
 
     k_step = 1
 
@@ -575,8 +571,8 @@ def main():
                 ftol_rel = ftol_rel)
         logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
-        k_step = keep_going_until_surprise(xq_abs_opt, learned_classifier, 
-            decision_boundary)
+        # k_step = keep_going_until_surprise(xq_abs_opt, learned_classifier, 
+        #     decision_boundary)
         xq_now = xq_abs_opt[:k_step]
 
         theta_add_init = initiate_with_continuity(theta_add_opt, 
@@ -646,6 +642,8 @@ def main():
         vmax1 = entropy_linearised_plt.max()
         vmin2 = entropy_plt.min()
         vmax2 = entropy_plt.max()
+        vmin3 = np.exp(vmin1)
+        vmax3 = np.exp(vmax1)
 
         """ Linearised Entropy Map """
 
@@ -694,7 +692,7 @@ def main():
         # Prepare Figure 1
         plt.figure(fig1.number)
         plt.clf()
-        plt.title('Exploration track and linearised entropy [horizon = %.2f]' 
+        plt.title('Exploration track and equivalent standard deviation [horizon = %.2f]' 
             % horizon)
         plt.xlabel('x1')
         plt.ylabel('x2')
@@ -703,8 +701,8 @@ def main():
 
         # Plot linearised entropy
         gp.classifier.utils.visualise_map(
-            np.exp(entropy_linearised_plt), test_ranges, 
-            cmap = cm.coolwarm, vmin = vmin1, vmax = vmax1)
+            np.exp(entropy_linearised_plt) / np.sqrt(2 * np.pi * np.e), test_ranges, 
+            cmap = cm.coolwarm, vmin = vmin3, vmax = vmax3)
         plt.colorbar()
 
         # Plot training set on top
@@ -851,7 +849,14 @@ def keep_going_until_surprise(xq_abs_opt, learned_classifier, decision_boundary)
     yq_true = gp.classifier.utils.make_decision(xq_abs_opt, decision_boundary)
 
     neq = yq_pred != yq_true
-    return np.arange(yq_pred.shape[0])[neq].min()
+    k_step = int(np.arange(yq_pred.shape[0])[neq].min()) + 1
+    if not isinstance(k_step, int):
+        logging.debug('"k_step" is not an integer but instead is {0}'.format(k_step))
+        k_step = 1
+    if not k_step > 0:
+        logging.debug('"k_step" is not positive but instead is {0}'.format(k_step))
+        k_step = 1
+    return k_step
 
 def initiate_with_continuity(theta_add_opt, k_step = 1):
 
@@ -901,10 +906,10 @@ def path_entropy_model(theta_add, r, x, memory):
         start_time = time.clock()
         # Method 1
         logging.info('Computing linearised entropy...')
-        predictors = gp.classifier.query(memory, Xq)
-        yq_exp = gp.classifier.expectance(memory, predictors)
-        yq_cov = gp.classifier.covariance(memory, predictors)
-        entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
+        predictors = gp.classifier.query(memory, Xq, processes = 1)
+        yq_exp = gp.classifier.expectance(memory, predictors, processes = 1)
+        yq_cov = gp.classifier.covariance(memory, predictors, processes = 1)
+        entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory, processes = 1)
         logging.debug('Linearised Entropy Computational Time : %.8f' % (time.clock() - start_time))
 
         # # Method 2
