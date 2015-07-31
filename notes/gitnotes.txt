@@ -62,3 +62,5 @@ git reflog
 UTM coordinates
 
 Whiten Data
+
+git reset --hard HASH
