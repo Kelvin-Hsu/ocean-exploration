@@ -40,7 +40,7 @@ def main():
     test_range_min = -2.2
     test_range_max = +2.2
     test_ranges = (test_range_min, test_range_max)
-    n_train = 100
+    n_train = 500
     n_query = 300
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
@@ -85,7 +85,7 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = [db5b, db1c, db4a, db8]
+    decision_boundary  = [db5b, db1c, db4a, db8] # [db5b, db1c, db4a, db8, db6, db7]
 
     """
     Data Generation
@@ -206,13 +206,9 @@ def main():
     """
     Classifier Prediction
     """
-
-    # Obtain the prediction function
-    prediction_function = lambda Xq: gp.classifier.predict(Xq, 
-                            learned_classifier,
-                            fusemethod = fusemethod, processes = n_cores)
     # Prediction
-    yq_prob = prediction_function(Xq)
+    yq_prob = gp.classifier.predict(Xq, learned_classifier, 
+        fusemethod = fusemethod)
     yq_pred = gp.classifier.classify(yq_prob, y)
     yq_entropy = gp.classifier.entropy(yq_prob)
 
@@ -271,7 +267,7 @@ def main():
     Plot: Query Computations
     """
 
-    Xq_plt = gp.classifier.utils.query_map(test_ranges)
+    Xq_plt = gp.classifier.utils.query_map(test_ranges, n_points = 250)
 
     # Compute Linearised and True Entropy for plotting
     logging.info('Plot: Caching Predictor...')
@@ -279,12 +275,9 @@ def main():
     logging.info('Plot: Computing Expectance...')
     expectance_latent_plt = \
         gp.classifier.expectance(learned_classifier, predictor_plt)
-    logging.info('Plot: Computing Covariance...')
-    covariance_latent_plt = \
-        gp.classifier.covariance(learned_classifier, predictor_plt)
     logging.info('Plot: Computing Variance...')
     variance_latent_plt = \
-        gp.classifier.cov2var(covariance_latent_plt)
+        gp.classifier.variance(learned_classifier, predictor_plt)
     logging.info('Plot: Computing Linearised Entropy...')
     entropy_linearised_plt = gp.classifier.linearised_entropy(
         expectance_latent_plt, variance_latent_plt, learned_classifier)
@@ -299,9 +292,6 @@ def main():
     yq_entropy_plt = gp.classifier.entropy(yq_prob_plt)
     logging.info('Plot: Computing Class Predicitons')
     yq_pred_plt = gp.classifier.classify(yq_prob_plt, y_unique)
-    logging.info('Objective Measure: Computing Joint Linearised Entropy')
-    entropy_linearised_measure = gp.classifier.linearised_entropy(
-        expectance_latent_plt, covariance_latent_plt, learned_classifier)
 
     logging.info('Plot: Computing Naive Linearised Entropy...')
     args = [(expectance_latent_plt[i], variance_latent_plt[i], 
@@ -309,6 +299,20 @@ def main():
     entropy_linearised_naive_plt = \
         np.array(parmap.starmap(gp.classifier.linearised_entropy, 
             args)).sum(axis = 0)
+
+
+    Xq_meas = gp.classifier.utils.query_map(test_ranges, n_points = 30)
+
+    predictor_meas = gp.classifier.query(learned_classifier, Xq_meas)
+    exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
+    cov_meas = gp.classifier.covariance(learned_classifier, predictor_meas)
+
+    logging.info('Objective Measure: Computing Joint Linearised Entropy')
+    entropy_linearised_meas = gp.classifier.linearised_entropy(
+        exp_meas, cov_meas, learned_classifier)
+
+    eq_sd_meas = gp.classifier.equivalent_standard_deviation(
+        entropy_linearised_meas, y_unique.shape[0])
 
     if isinstance(learned_classifier, list):
 
@@ -413,7 +417,8 @@ def main():
     fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(entropy_linearised_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    plt.title('Linearised Prediction Entropy and Training Set [Field Entropy: %.4f]' % entropy_linearised_measure)
+    plt.title('Linearised Prediction Entropy and Training Set [field entropy = %.4f]' 
+            % entropy_linearised_meas)
     plt.xlabel('x1')
     plt.ylabel('x2')
     plt.colorbar()
@@ -430,7 +435,7 @@ def main():
     fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(eq_sd_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    plt.title('Equivalent standard deviation and Training Set [Field Standard Deviation: %.4f]' % gp.classifier.equivalent_standard_deviation(entropy_linearised_measure, y_unique.shape[0]))
+    plt.title('Equivalent standard deviation and Training Set [Field Standard Deviation: %.4f]' % gp.classifier.equivalent_standard_deviation(entropy_linearised_meas, y_unique.shape[0]))
     plt.xlabel('x1')
     plt.ylabel('x2')
     plt.colorbar()
@@ -525,10 +530,10 @@ def main():
     """ Setup Path Planning """
     xq_now = np.array([[0., 0.]])
     horizon = (test_range_max - test_range_min) + 0.5
-    n_steps = 40
+    n_steps = 80
 
     theta_bound = np.deg2rad(60)
-    theta_add_init = -np.deg2rad(5) * np.ones(n_steps)
+    theta_add_init = -np.deg2rad(10) * np.ones(n_steps)
     theta_add_init[0] = np.deg2rad(180)
     theta_add_low = -theta_bound * np.ones(n_steps)
     theta_add_high = theta_bound * np.ones(n_steps)
@@ -539,7 +544,7 @@ def main():
     xtol_rel = 1e-2
     ftol_rel = 1e-4
 
-    k_step = 10
+    k_step = 1
 
     """ Initialise Values """
 
@@ -565,10 +570,14 @@ def main():
     fig2 = plt.figure(figsize = (15, 15))
     fig3 = plt.figure(figsize = (15, 15))
     fig4 = plt.figure(figsize = (15, 15))
+    fig5 = plt.figure(figsize = (15, 15))
 
     # Start exploring
     i_trials = 0
-    while i_trials < 2001:
+    n_trials = 2000
+    entropy_linearised_array = np.nan * np.ones(n_trials)
+    eq_sd_array = np.nan * np.ones(n_trials)
+    while i_trials < n_trials:
 
         """ Path Planning """
 
@@ -632,12 +641,9 @@ def main():
         logging.info('Plot: Computing Expectance...')
         expectance_latent_plt = \
             gp.classifier.expectance(learned_classifier, predictor_plt)
-        logging.info('Plot: Computing Covariance...')
-        covariance_latent_plt = \
-            gp.classifier.covariance(learned_classifier, predictor_plt)
         logging.info('Plot: Computing Variance...')
         variance_latent_plt = \
-            gp.classifier.cov2var(covariance_latent_plt)
+            gp.classifier.variance(learned_classifier, predictor_plt)
         logging.info('Plot: Computing Linearised Entropy...')
         entropy_linearised_plt = gp.classifier.linearised_entropy(
             expectance_latent_plt, variance_latent_plt, learned_classifier)
@@ -653,8 +659,21 @@ def main():
         logging.info('Plot: Computing Class Predicitons')
         class_plt = gp.classifier.classify(probabilities_plt, y_unique)
         logging.info('Objective Measure: Computing Joint Linearised Entropy')
-        entropy_linearised_measure = gp.classifier.linearised_entropy(
-            expectance_latent_plt, covariance_latent_plt, learned_classifier)
+
+
+
+        predictor_meas = gp.classifier.query(learned_classifier, Xq_meas)
+        exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
+        cov_meas = gp.classifier.covariance(learned_classifier, predictor_meas)
+
+        logging.info('Objective Measure: Computing Joint Linearised Entropy')
+        entropy_linearised_meas = gp.classifier.linearised_entropy(
+            exp_meas, cov_meas, learned_classifier)
+
+        eq_sd_meas = gp.classifier.equivalent_standard_deviation(entropy_linearised_meas, y_unique.shape[0])
+
+        entropy_linearised_array[i_trials] = entropy_linearised_meas
+        eq_sd_array[i_trials] = eq_sd_meas
 
         # Find the bounds of the entropy predictions
         vmin1 = entropy_linearised_plt.min()
@@ -669,8 +688,8 @@ def main():
         # Prepare Figure 1
         plt.figure(fig1.number)
         plt.clf()
-        plt.title('Exploration track and linearised entropy [horizon = %.2f] [field entropy = %.4f]' 
-            % (horizon, entropy_linearised_measure))
+        plt.title('Exploration track and linearised entropy [horizon = %.2f, field entropy = %.4f]' 
+            % (horizon, entropy_linearised_meas))
         plt.xlabel('x1')
         plt.ylabel('x2')
         plt.xlim((test_range_min, test_range_max))
@@ -711,8 +730,8 @@ def main():
         # Prepare Figure 1
         plt.figure(fig2.number)
         plt.clf()
-        plt.title('Exploration track and equivalent standard deviation [horizon = %.2f] [field entropy = %.4f]' 
-            % (horizon, entropy_linearised_measure))
+        plt.title('Exploration track and equivalent standard deviation [horizon = %.2f, field entropy = %.4f]' 
+            % (horizon, entropy_linearised_meas))
         plt.xlabel('x1')
         plt.ylabel('x2')
         plt.xlim((test_range_min, test_range_max))
@@ -753,8 +772,8 @@ def main():
         # Prepare Figure 2
         plt.figure(fig3.number)
         plt.clf()
-        plt.title('Exploration track and true entropy [horizon = %.2f] [field entropy = %.4f]' 
-            % (horizon, entropy_linearised_measure))
+        plt.title('Exploration track and true entropy [horizon = %.2f, field entropy = %.4f]' 
+            % (horizon, entropy_linearised_meas))
         plt.xlabel('x1')
         plt.ylabel('x2')
         plt.xlim((test_range_min, test_range_max))
@@ -795,8 +814,8 @@ def main():
         # Prepare Figure 3
         plt.figure(fig4.number)
         plt.clf()
-        plt.title('Exploration track and class predictions [horizon = %.2f] [field entropy = %.4f]' 
-            % (horizon, entropy_linearised_measure))
+        plt.title('Exploration track and class predictions [horizon = %.2f, field entropy = %.4f]' 
+            % (horizon, entropy_linearised_meas))
         plt.xlabel('x1')
         plt.ylabel('x2')
         plt.xlim((test_range_min, test_range_max))
@@ -805,12 +824,9 @@ def main():
         # Plot class predictions
         gp.classifier.utils.visualise_map(class_plt, test_ranges, 
             boundaries = True, cmap = mycmap2)
-        try:
-            cbar = plt.colorbar()
-            cbar.set_ticks(y_unique)
-            cbar.set_ticklabels(y_unique)
-        except IndexError:
-            pass
+        cbar = plt.colorbar()
+        cbar.set_ticks(y_unique)
+        cbar.set_ticklabels(y_unique)
 
 
         # Plot training set on top
@@ -835,6 +851,26 @@ def main():
         # Save the plot
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%sclass_prediction_step%d.png' 
+            % (full_directory, i_trials + 1))
+
+        # Prepare Figure 3
+        plt.figure(fig5.number)
+        plt.clf()
+
+        plt.subplot(2, 1, 1)
+        plt.plot(np.arange(i_trials + 1), entropy_linearised_array[:(i_trials + 1)])
+        plt.title('Field Linearised Entropy')
+        plt.xlabel('Steps')
+        plt.ylabel('Linearised Entropy')
+
+        plt.subplot(2, 1, 2)
+        plt.plot(np.arange(i_trials + 1), eq_sd_array[:(i_trials + 1)])
+        plt.title('Equivalent Standard Deviation')
+        plt.xlabel('Steps')
+        plt.ylabel('Equivalent Standard Deviation')
+
+        # Save the plot
+        plt.savefig('%sfield_entropy_step%d.png' 
             % (full_directory, i_trials + 1))
 
         # Move on to the next step
@@ -1019,3 +1055,4 @@ if __name__ == "__main__":
 
 # DO TO: Put learned hyperparam in the title
 # DO TO: Find joint entropy of the whole region and put it in the title
+# TO DO: Find other measures of improvement (sum of entropy (linearised and true)) (sum of variances and standard deviation)
