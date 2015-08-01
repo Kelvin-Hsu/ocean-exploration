@@ -53,6 +53,7 @@ def main():
     entropy_threshold = None
 
     n_draws = 6
+    n_draws_est = 2500
     rows_subplot = 2
     cols_subplot = 3
 
@@ -310,9 +311,9 @@ def main():
     logging.info('Objective Measure: Computing Joint Linearised Entropy')
     entropy_linearised_meas = gp.classifier.linearised_entropy(
         exp_meas, cov_meas, learned_classifier)
-
-    eq_sd_meas = gp.classifier.equivalent_standard_deviation(
-        entropy_linearised_meas, y_unique.shape[0])
+    entropy_monte_carlo_meas = gp.classifier.monte_carlo_joint_entropy(exp_meas, cov_meas, learned_classifier, n_draws = n_draws_est)
+    entropy_linearised_mean_meas = entropy_linearised_plt.mean()
+    entropy_true_mean_meas = yq_entropy_plt.mean()
 
     if isinstance(learned_classifier, list):
 
@@ -396,11 +397,12 @@ def main():
     Plot: Prediction Entropy onto Training Set
     """
 
-    # Query (Prediction Entropy) and Training Set
+    # Query (Prediction Entropy)
     fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(yq_entropy_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    plt.title('Prediction Entropy and Training Set')
+    plt.title('Prediction Entropy [FMCJE = %.4f, ACE = %.4f]' 
+            % (entropy_monte_carlo_meas, entropy_true_mean_meas))
     plt.xlabel('x1')
     plt.ylabel('x2')
     plt.colorbar()
@@ -413,12 +415,12 @@ def main():
     Plot: Linearised Prediction Entropy onto Training Set
     """
 
-    # Query (Linearised Entropy) and Training Set
+    # Query (Linearised Entropy)
     fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(entropy_linearised_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    plt.title('Linearised Prediction Entropy and Training Set [field entropy = %.4f]' 
-            % entropy_linearised_meas)
+    plt.title('Linearised Prediction Entropy [FLE = %.4f, ALE = %.4f]' 
+            % (entropy_linearised_meas, entropy_linearised_mean_meas))
     plt.xlabel('x1')
     plt.ylabel('x2')
     plt.colorbar()
@@ -431,11 +433,11 @@ def main():
     Plot: Exponentiated Linearised Prediction Entropy onto Training Set
     """
 
-    # Query (Linearised Entropy) and Training Set
+    # Query (Linearised Entropy)
     fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(eq_sd_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    plt.title('Equivalent standard deviation and Training Set [Field Standard Deviation: %.4f]' % gp.classifier.equivalent_standard_deviation(entropy_linearised_meas, y_unique.shape[0]))
+    plt.title('Equivalent standard deviation')
     plt.xlabel('x1')
     plt.ylabel('x2')
     plt.colorbar()
@@ -448,12 +450,12 @@ def main():
     Plot: Naive Linearised Prediction Entropy onto Training Set
     """
 
-    # Query (Naive Linearised Entropy) and Training Set
+    # Query (Naive Linearised Entropy)
     fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(
         entropy_linearised_naive_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    plt.title('Naive Linearised Prediction Entropy and Training Set')
+    plt.title('Naive Linearised Prediction Entropy')
     plt.xlabel('x1')
     plt.ylabel('x2')
     plt.colorbar()
@@ -576,7 +578,10 @@ def main():
     i_trials = 0
     n_trials = 2000
     entropy_linearised_array = np.nan * np.ones(n_trials)
-    eq_sd_array = np.nan * np.ones(n_trials)
+    entropy_monte_carlo_array = np.nan * np.ones(n_trials)
+    entropy_linearised_mean_array = np.nan * np.ones(n_trials)
+    entropy_true_mean_array = np.nan * np.ones(n_trials)
+    entropy_opt_array = np.nan * np.ones(n_trials)
     while i_trials < n_trials:
 
         """ Path Planning """
@@ -587,7 +592,8 @@ def main():
                 learned_classifier, test_ranges,
                 theta_add_low = theta_add_low, theta_add_high = theta_add_high, 
                 walltime = choice_walltime, xtol_rel = xtol_rel, 
-                ftol_rel = ftol_rel)
+                ftol_rel = ftol_rel, globalopt = False, objective = 'LE',
+                n_draws = n_draws_est)
         logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
         # k_step = keep_going_until_surprise(xq_abs_opt, learned_classifier, 
@@ -669,11 +675,15 @@ def main():
         logging.info('Objective Measure: Computing Joint Linearised Entropy')
         entropy_linearised_meas = gp.classifier.linearised_entropy(
             exp_meas, cov_meas, learned_classifier)
-
-        eq_sd_meas = gp.classifier.equivalent_standard_deviation(entropy_linearised_meas, y_unique.shape[0])
+        entropy_monte_carlo_meas = gp.classifier.monte_carlo_joint_entropy(exp_meas, cov_meas, learned_classifier, n_draws = n_draws_est)
+        entropy_linearised_mean_meas = entropy_linearised_plt.mean()
+        entropy_true_mean_meas = entropy_plt.mean()
 
         entropy_linearised_array[i_trials] = entropy_linearised_meas
-        eq_sd_array[i_trials] = eq_sd_meas
+        entropy_monte_carlo_array[i_trials] = entropy_monte_carlo_meas
+        entropy_linearised_mean_array[i_trials] = entropy_linearised_mean_meas
+        entropy_true_mean_array[i_trials] = entropy_true_mean_meas
+        entropy_opt_array[i_trials] = entropy_opt
 
         # Find the bounds of the entropy predictions
         vmin1 = entropy_linearised_plt.min()
@@ -688,8 +698,8 @@ def main():
         # Prepare Figure 1
         plt.figure(fig1.number)
         plt.clf()
-        plt.title('Exploration track and linearised entropy [horizon = %.2f, field entropy = %.4f]' 
-            % (horizon, entropy_linearised_meas))
+        plt.title('Linearised entropy [horizon = %.2f, FLE = %.4f, FMCJE = %.4f, ALE = %.2f, ACE = %.2f, TPE = %.3f]' 
+            % (horizon, entropy_linearised_meas, entropy_monte_carlo_meas, entropy_linearised_mean_meas, entropy_true_mean_meas, entropy_opt))
         plt.xlabel('x1')
         plt.ylabel('x2')
         plt.xlim((test_range_min, test_range_max))
@@ -727,11 +737,11 @@ def main():
 
         """ Equivalent Standard Deviation Map """
 
-        # Prepare Figure 1
+        # Prepare Figure 2
         plt.figure(fig2.number)
         plt.clf()
-        plt.title('Exploration track and equivalent standard deviation [horizon = %.2f, field entropy = %.4f]' 
-            % (horizon, entropy_linearised_meas))
+        plt.title('Equivalent standard deviation [horizon = %.2f, FLE = %.4f, FMCJE = %.4f, ALE = %.2f, ACE = %.2f, TPE = %.3f]' 
+            % (horizon, entropy_linearised_meas, entropy_monte_carlo_meas, entropy_linearised_mean_meas, entropy_true_mean_meas, entropy_opt))
         plt.xlabel('x1')
         plt.ylabel('x2')
         plt.xlim((test_range_min, test_range_max))
@@ -769,11 +779,11 @@ def main():
 
         """ True Entropy Map """
 
-        # Prepare Figure 2
+        # Prepare Figure 3
         plt.figure(fig3.number)
         plt.clf()
-        plt.title('Exploration track and true entropy [horizon = %.2f, field entropy = %.4f]' 
-            % (horizon, entropy_linearised_meas))
+        plt.title('True entropy [horizon = %.2f, FLE = %.4f, FMCJE = %.4f, ALE = %.2f, ACE = %.2f, TPE = %.3f]' 
+            % (horizon, entropy_linearised_meas, entropy_monte_carlo_meas, entropy_linearised_mean_meas, entropy_true_mean_meas, entropy_opt))
         plt.xlabel('x1')
         plt.ylabel('x2')
         plt.xlim((test_range_min, test_range_max))
@@ -811,11 +821,11 @@ def main():
 
         """ Class Prediction Map """
 
-        # Prepare Figure 3
+        # Prepare Figure 4
         plt.figure(fig4.number)
         plt.clf()
-        plt.title('Exploration track and class predictions [horizon = %.2f, field entropy = %.4f]' 
-            % (horizon, entropy_linearised_meas))
+        plt.title('Class predictions [horizon = %.2f, FLE = %.4f, FMCJE = %.4f, ALE = %.2f, ACE = %.2f, TPE = %.3f]' 
+            % (horizon, entropy_linearised_meas, entropy_monte_carlo_meas, entropy_linearised_mean_meas, entropy_true_mean_meas, entropy_opt))
         plt.xlabel('x1')
         plt.ylabel('x2')
         plt.xlim((test_range_min, test_range_max))
@@ -857,20 +867,37 @@ def main():
         plt.figure(fig5.number)
         plt.clf()
 
-        plt.subplot(2, 1, 1)
+        plt.subplot(5, 1, 1)
         plt.plot(np.arange(i_trials + 1), entropy_linearised_array[:(i_trials + 1)])
         plt.title('Field Linearised Entropy')
-        plt.xlabel('Steps')
-        plt.ylabel('Linearised Entropy')
+        plt.ylabel('Field Linearised Entropy')
 
-        plt.subplot(2, 1, 2)
-        plt.plot(np.arange(i_trials + 1), eq_sd_array[:(i_trials + 1)])
-        plt.title('Equivalent Standard Deviation')
-        plt.xlabel('Steps')
-        plt.ylabel('Equivalent Standard Deviation')
+        plt.subplot(5, 1, 2)
+        plt.plot(np.arange(i_trials + 1), entropy_monte_carlo_array[:(i_trials + 1)])
+        plt.title('Field True Entropy through Monte Carlo')
+        plt.ylabel('Field True Entropy')
 
+        plt.subplot(5, 1, 3)
+        plt.plot(np.arange(i_trials + 1), entropy_linearised_mean_array[:(i_trials + 1)])
+        plt.title('Average Linearised Entropy')
+        plt.ylabel('Average Linearised Entropy')
+
+        plt.subplot(5, 1, 4)
+        plt.plot(np.arange(i_trials + 1), entropy_true_mean_array[:(i_trials + 1)])
+        plt.title('Average True Entropy')
+        plt.ylabel('Average True Entropy')
+
+        plt.subplot(5, 1, 5)
+        plt.plot(np.arange(i_trials + 1), entropy_opt_array[:(i_trials + 1)])
+        plt.title('Joint entropy of path chosen each iteration')
+        plt.xlabel('Steps')
+        plt.ylabel('Joint Entropy')
+
+
+
+        
         # Save the plot
-        plt.savefig('%sfield_entropy_step%d.png' 
+        plt.savefig('%sentropy_history%d.png' 
             % (full_directory, i_trials + 1))
 
         # Move on to the next step
@@ -947,7 +974,7 @@ def forward_path_model(theta_add, r, x):
     Xq = x + x_rel
     return Xq
 
-def path_entropy_model(theta_add, r, x, memory):
+def path_linearised_entropy_model(theta_add, r, x, memory):
 
     Xq = forward_path_model(theta_add, r, x)
     
@@ -957,7 +984,35 @@ def path_entropy_model(theta_add, r, x, memory):
     yq_exp = gp.classifier.expectance(memory, predictors)
     yq_cov = gp.classifier.covariance(memory, predictors)
     entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
-    logging.debug('Linearised Entropy Computational Time : %.8f' % 
+    logging.debug('Linearised entropy computational time : %.8f' % 
+        (time.clock() - start_time))
+
+    logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
+        np.rad2deg(theta_add), entropy))
+    return entropy
+
+def path_monte_carlo_entropy_model(theta_add, r, x, memory, 
+    n_draws = 1000, S = None):
+
+    Xq = forward_path_model(theta_add, r, x)
+    
+    # logging.info('Computing linearised entropy...')
+    # start_time = time.clock()
+    # predictors = gp.classifier.query(memory, Xq)
+    # yq_exp = gp.classifier.expectance(memory, predictors)
+    # yq_cov = gp.classifier.covariance(memory, predictors)
+    # entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
+    # logging.debug('Linearised Entropy Computational Time : %.8f' % 
+    #     (time.clock() - start_time))
+
+    logging.info('Computing monte carlo joint entropy...')
+    start_time = time.clock()
+    predictors = gp.classifier.query(memory, Xq)
+    yq_exp = gp.classifier.expectance(memory, predictors)
+    yq_cov = gp.classifier.covariance(memory, predictors)
+    entropy = gp.classifier.monte_carlo_joint_entropy(yq_exp, yq_cov, memory, 
+        n_draws = n_draws, S = S, processes = 1)
+    logging.debug('Monte carlo joint entropy computational time : %.8f' % 
         (time.clock() - start_time))
 
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
@@ -975,12 +1030,25 @@ def path_bounds_model(theta_add, r, x, ranges):
 
 def go_optimised_path(theta_add_init, x, r, memory, ranges,
     theta_add_low = None, theta_add_high = None, walltime = None, 
-    xtol_rel = 1e-2, ftol_rel = 1e-2, globalopt = False):
+    xtol_rel = 1e-2, ftol_rel = 1e-2, globalopt = False, objective = 'LE',
+    n_draws = 5000):
 
     ##### OPTIMISATION #####
     try:
-        def objective(theta_add, grad):
-            return path_entropy_model(theta_add, r, x, memory)
+
+        if objective == 'LE':
+
+            def objective(theta_add, grad):
+                return path_linearised_entropy_model(theta_add, r, x, memory)
+
+        elif objective == 'MCJE':
+
+            S = np.random.normal(loc = 0., scale = 1., 
+                size = (theta_add_init.shape[0], n_draws))
+
+            def objective(theta_add, grad):
+                return path_monte_carlo_entropy_model(theta_add, r, x, memory, 
+                    n_draws = n_draws, S = S)
 
         def constraint(theta_add, grad):
             return path_bounds_model(theta_add, r, x, ranges)
