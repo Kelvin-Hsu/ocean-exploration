@@ -312,7 +312,11 @@ def main():
     logging.info('Objective Measure: Computing Joint Linearised Entropy...')
     entropy_linearised_meas = gp.classifier.linearised_entropy(
         exp_meas, cov_meas, learned_classifier)
+    logging.info('Objective Measure: Computing Monte Carlo Joint Entropy...')
+
+    start_time = time.clock()
     entropy_monte_carlo_meas = gp.classifier.monte_carlo_joint_entropy(exp_meas, cov_meas, learned_classifier, n_draws = n_draws_est)
+    logging.info('Sampling took %.4f seconds' % time.clock() - start_time)
     entropy_linearised_mean_meas = entropy_linearised_plt.mean()
     entropy_true_mean_meas = yq_entropy_plt.mean()
 
@@ -667,12 +671,15 @@ def main():
         logging.info('Plot: Computing Class Predicitons')
         class_plt = gp.classifier.classify(probabilities_plt, y_unique)
 
-        logging.info('Objective Measure: Computing Joint Linearised Entropy')
+        
         predictor_meas = gp.classifier.query(learned_classifier, Xq_meas)
         exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
         cov_meas = gp.classifier.covariance(learned_classifier, predictor_meas)
+
+        logging.info('Objective Measure: Computing Joint Linearised Entropy')
         entropy_linearised_meas = gp.classifier.linearised_entropy(
             exp_meas, cov_meas, learned_classifier)
+        logging.info('Objective Measure: Computing Monte Carlo Joint Entropy...')
         entropy_monte_carlo_meas = gp.classifier.monte_carlo_joint_entropy(exp_meas, cov_meas, learned_classifier, n_draws = n_draws_est)
         entropy_linearised_mean_meas = entropy_linearised_plt.mean()
         entropy_true_mean_meas = entropy_plt.mean()
