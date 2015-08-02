@@ -19,3 +19,4 @@ HOWEVER, B.dot(W) != B.dot(Wsp)
 
 Instead, use B * Wsp
 
+When tab key doesn't work... press alt-009 and release alt... then magic happens...

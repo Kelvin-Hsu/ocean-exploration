@@ -40,7 +40,7 @@ def main():
     test_range_min = -2.2
     test_range_max = +2.2
     test_ranges = (test_range_min, test_range_max)
-    n_train = 500
+    n_train = 50
     n_query = 300
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
@@ -86,7 +86,7 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = [db5b, db1c, db4a, db8] # [db5b, db1c, db4a, db8, db6, db7]
+    decision_boundary  = db1c # [db5b, db1c, db4a, db8] # [db5b, db1c, db4a, db8, db6, db7]
 
     """
     Data Generation
@@ -294,12 +294,13 @@ def main():
     logging.info('Plot: Computing Class Predicitons')
     yq_pred_plt = gp.classifier.classify(yq_prob_plt, y_unique)
 
-    logging.info('Plot: Computing Naive Linearised Entropy...')
-    args = [(expectance_latent_plt[i], variance_latent_plt[i], 
-        learned_classifier[i]) for i in range(len(learned_classifier))]
-    entropy_linearised_naive_plt = \
-        np.array(parmap.starmap(gp.classifier.linearised_entropy, 
-            args)).sum(axis = 0)
+    if isinstance(learned_classifier, list):
+        logging.info('Plot: Computing Naive Linearised Entropy...')
+        args = [(expectance_latent_plt[i], variance_latent_plt[i], 
+            learned_classifier[i]) for i in range(len(learned_classifier))]
+        entropy_linearised_naive_plt = \
+            np.array(parmap.starmap(gp.classifier.linearised_entropy, 
+                args)).sum(axis = 0)
 
 
     Xq_meas = gp.classifier.utils.query_map(test_ranges, n_points = 30)
@@ -308,7 +309,7 @@ def main():
     exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
     cov_meas = gp.classifier.covariance(learned_classifier, predictor_meas)
 
-    logging.info('Objective Measure: Computing Joint Linearised Entropy')
+    logging.info('Objective Measure: Computing Joint Linearised Entropy...')
     entropy_linearised_meas = gp.classifier.linearised_entropy(
         exp_meas, cov_meas, learned_classifier)
     entropy_monte_carlo_meas = gp.classifier.monte_carlo_joint_entropy(exp_meas, cov_meas, learned_classifier, n_draws = n_draws_est)
@@ -450,19 +451,20 @@ def main():
     Plot: Naive Linearised Prediction Entropy onto Training Set
     """
 
-    # Query (Naive Linearised Entropy)
-    fig = plt.figure(figsize = (15, 15))
-    gp.classifier.utils.visualise_map(
-        entropy_linearised_naive_plt, test_ranges, 
-        threshold = entropy_threshold, cmap = cm.coolwarm)
-    plt.title('Naive Linearised Prediction Entropy')
-    plt.xlabel('x1')
-    plt.ylabel('x2')
-    plt.colorbar()
-    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    plt.xlim((test_range_min, test_range_max))
-    plt.ylim((test_range_min, test_range_max))
-    logging.info('Plotted Naive Linearised Prediction Entropy on Training Set')
+    if isinstance(learned_classifier, list):
+        # Query (Naive Linearised Entropy)
+        fig = plt.figure(figsize = (15, 15))
+        gp.classifier.utils.visualise_map(
+            entropy_linearised_naive_plt, test_ranges, 
+            threshold = entropy_threshold, cmap = cm.coolwarm)
+        plt.title('Naive Linearised Prediction Entropy')
+        plt.xlabel('x1')
+        plt.ylabel('x2')
+        plt.colorbar()
+        plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+        plt.xlim((test_range_min, test_range_max))
+        plt.ylim((test_range_min, test_range_max))
+        logging.info('Plotted Naive Linearised Prediction Entropy on Training Set')
 
     """
     Plot: Sample Query Predictions
@@ -532,7 +534,7 @@ def main():
     """ Setup Path Planning """
     xq_now = np.array([[0., 0.]])
     horizon = (test_range_max - test_range_min) + 0.5
-    n_steps = 80
+    n_steps = 40
 
     theta_bound = np.deg2rad(60)
     theta_add_init = -np.deg2rad(10) * np.ones(n_steps)
@@ -664,15 +666,11 @@ def main():
         entropy_plt = gp.classifier.entropy(probabilities_plt)
         logging.info('Plot: Computing Class Predicitons')
         class_plt = gp.classifier.classify(probabilities_plt, y_unique)
+
         logging.info('Objective Measure: Computing Joint Linearised Entropy')
-
-
-
         predictor_meas = gp.classifier.query(learned_classifier, Xq_meas)
         exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
         cov_meas = gp.classifier.covariance(learned_classifier, predictor_meas)
-
-        logging.info('Objective Measure: Computing Joint Linearised Entropy')
         entropy_linearised_meas = gp.classifier.linearised_entropy(
             exp_meas, cov_meas, learned_classifier)
         entropy_monte_carlo_meas = gp.classifier.monte_carlo_joint_entropy(exp_meas, cov_meas, learned_classifier, n_draws = n_draws_est)
@@ -698,7 +696,7 @@ def main():
         # Prepare Figure 1
         plt.figure(fig1.number)
         plt.clf()
-        plt.title('Linearised entropy [horizon = %.2f, FLE = %.4f, FMCJE = %.4f, ALE = %.2f, ACE = %.2f, TPE = %.3f]' 
+        plt.title('Linearised entropy [horizon = %.2f, FLE = %.2f, FMCJE = %.2f, ALE = %.2f, ACE = %.2f, TPE = %.2f]' 
             % (horizon, entropy_linearised_meas, entropy_monte_carlo_meas, entropy_linearised_mean_meas, entropy_true_mean_meas, entropy_opt))
         plt.xlabel('x1')
         plt.ylabel('x2')
@@ -740,7 +738,7 @@ def main():
         # Prepare Figure 2
         plt.figure(fig2.number)
         plt.clf()
-        plt.title('Equivalent standard deviation [horizon = %.2f, FLE = %.4f, FMCJE = %.4f, ALE = %.2f, ACE = %.2f, TPE = %.3f]' 
+        plt.title('Equivalent standard deviation [horizon = %.2f, FLE = %.2f, FMCJE = %.2f, ALE = %.2f, ACE = %.2f, TPE = %.2f]' 
             % (horizon, entropy_linearised_meas, entropy_monte_carlo_meas, entropy_linearised_mean_meas, entropy_true_mean_meas, entropy_opt))
         plt.xlabel('x1')
         plt.ylabel('x2')
@@ -782,7 +780,7 @@ def main():
         # Prepare Figure 3
         plt.figure(fig3.number)
         plt.clf()
-        plt.title('True entropy [horizon = %.2f, FLE = %.4f, FMCJE = %.4f, ALE = %.2f, ACE = %.2f, TPE = %.3f]' 
+        plt.title('True entropy [horizon = %.2f, FLE = %.2f, FMCJE = %.2f, ALE = %.2f, ACE = %.2f, TPE = %.2f]' 
             % (horizon, entropy_linearised_meas, entropy_monte_carlo_meas, entropy_linearised_mean_meas, entropy_true_mean_meas, entropy_opt))
         plt.xlabel('x1')
         plt.ylabel('x2')
@@ -824,7 +822,7 @@ def main():
         # Prepare Figure 4
         plt.figure(fig4.number)
         plt.clf()
-        plt.title('Class predictions [horizon = %.2f, FLE = %.4f, FMCJE = %.4f, ALE = %.2f, ACE = %.2f, TPE = %.3f]' 
+        plt.title('Class predictions [horizon = %.2f, FLE = %.2f, FMCJE = %.2f, ALE = %.2f, ACE = %.2f, TPE = %.2f]' 
             % (horizon, entropy_linearised_meas, entropy_monte_carlo_meas, entropy_linearised_mean_meas, entropy_true_mean_meas, entropy_opt))
         plt.xlabel('x1')
         plt.ylabel('x2')
