@@ -48,7 +48,7 @@
 \frontmatter      % Begin Roman style (i, ii, iii, iv...) page numbering
 
 % Set up the Title Page
-\title  {Honours Thesis \\ \textnormal{Informative Path Planning with Gaussian Process Classifiers for Autonomous Ocean Environment Exploration}}
+\title  {Honours Thesis \\ \textnormal{Informative Path Planning with Gaussian Process Classifiers for Marine Environment Exploration}}
 \authors  {\texorpdfstring
             {\href{yhsu9975@uni.sydney.edu.au}{Yuan-Shuo Kelvin Hsu}}
             {Yuan-Shuo Kelvin Hsu}
@@ -248,13 +248,15 @@ Date:\\
 % Include the chapters of the thesis, as separate files
 % Just uncomment the lines as you write the chapters
 
-\input{Chapters/Chapter1} % Introduction
+\input{Chapters/Introduction}
 
-\input{Chapters/Chapter2} % Background Theory 
+\input{Chapters/Background}
 
-\input{Chapters/Chapter3} % Modeling the Ocean Environment 
+\input{Chapters/Building-Gaussian-Process-Classifiers}
 
-\input{Chapters/Chapter4} % Receding Horizon Approach to Informative Path Planning
+\input{Chapters/Modeling-the-Ocean-Environment}
+
+\input{Chapters/Receding-Horizon-Approach-to-Informative-Path-Planning}
 
 
 %% ----------------------------------------------------------------
@@ -264,8 +266,8 @@ Date:\\
 
 \appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
 
-\input{Appendices/AppendixA} % Computational Aspects of Gaussian Processes
-\input{Appendices/AppendixB} % Other Approximations for Gaussian Process Classification
+\input{Appendices/Computational-Aspects-of-Gaussian-Processes} % Computational Aspects of Gaussian Processes
+\input{Appendices/Other-Approximations-for-Gaussian-Process-Classification} % Other Approximations for Gaussian Process Classification
 
 %\input{Appendices/AppendixC} % Appendix Title
 

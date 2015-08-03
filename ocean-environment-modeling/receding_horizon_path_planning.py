@@ -33,7 +33,7 @@ def main():
     # logging level
     gp.classifier.set_multiclass_logging_level(logging.DEBUG)
 
-    np.random.seed(50)
+    # np.random.seed(50)
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True # We don't want to make files everywhere for a demo.
     SHOW_RAW_BINARY = True
@@ -86,7 +86,7 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = db1c # [db5b, db1c, db4a, db8] # [db5b, db1c, db4a, db8, db6, db7]
+    decision_boundary  = [db5b, db1c, db4a] # [db5b, db1c, db4a, db8, db6, db7]
 
     """
     Data Generation
@@ -109,12 +109,16 @@ def main():
 
     # X = np.concatenate((X1, X2, X3, X4, X5, X6, X7, X8), axis = 0)
 
-    X = np.random.uniform(test_range_min, test_range_max, 
-        size = (n_train, n_dims))
+    # X = np.random.uniform(test_range_min, test_range_max, 
+    #     size = (n_train, n_dims))
 
-    # X_s = np.array([[0.0, 0.0], [-0.2, 0.3], [-0.1, -0.1], [0.05, 0.25], [-1.1, 0.0], [-0.5, 0.0], [-0.4, -0.7], [-0.1, -0.1], [test_range_min, test_range_min], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min]])
-    # X_f = np.array([[1.4, 1.6], [1.8, 1.2], [-1.24, 1.72], [-1.56, -1.9], [-1.9, 1.0], [-0.5, -1.2], [-1.4, -1.9], [0.4, -1.2], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min], [test_range_min, test_range_min]])
-    # X = generate_line_paths(X_s, X_f)
+    X_s = np.array([[0.0, 0.0], [-0.2, 0.3], [-0.1, -0.1], [0.05, 0.25], [-1.1, 0.0], [-0.5, 0.0], [-0.4, -0.7], [-0.1, -0.1], [test_range_min, test_range_min], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min]])
+    X_f = np.array([[1.4, 1.6], [1.8, 1.2], [-1.24, 1.72], [-1.56, -1.9], [-1.9, 1.0], [-0.5, -1.2], [-1.4, -1.9], [0.4, -1.2], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min], [test_range_min, test_range_min]])
+    n_track = 30
+    X_s = np.random.uniform(test_range_min, test_range_max, size = (n_track, n_dims))
+    X_f = test_range_max * np.random.standard_cauchy(n_track * n_dims).reshape(n_track, n_dims)
+    # X_f = np.random.uniform(test_range_min, test_range_max, size = (n_track, n_dims))
+    X = generate_line_paths(X_s, X_f, n_points = 15)
     x1 = X[:, 0]
     x2 = X[:, 1]
     
@@ -124,6 +128,9 @@ def main():
     xq1 = Xq[:, 0]
     xq2 = Xq[:, 1]
 
+    n_train = X.shape[0]
+    n_query = Xq.shape[0]
+    logging.info('Training Points: %d' % n_train)
     # Training Labels
     y = gp.classifier.utils.make_decision(X, decision_boundary)
     y_unique = np.unique(y)
@@ -243,6 +250,26 @@ def main():
 
     logging.info('Plotting... please wait')
 
+    Xq_plt = gp.classifier.utils.query_map(test_ranges, n_points = 250)
+    yq_truth_plt = gp.classifier.utils.make_decision(Xq_plt, decision_boundary)
+
+    """
+    Plot: Ground Truth
+    """
+
+    # Training
+    fig = plt.figure(figsize = (15, 15))
+    gp.classifier.utils.visualise_map(yq_truth_plt, test_ranges, cmap = mycmap)
+    gp.classifier.utils.visualise_decision_boundary(
+        test_range_min, test_range_max, decision_boundary)
+    plt.title('Ground Truth')
+    plt.xlabel('x1')
+    plt.ylabel('x2')
+    cbar = plt.colorbar()
+    cbar.set_ticks(y_unique)
+    cbar.set_ticklabels(y_unique)
+    logging.info('Plotted Prediction Labels')
+
     """
     Plot: Training Set
     """
@@ -267,8 +294,6 @@ def main():
     """
     Plot: Query Computations
     """
-
-    Xq_plt = gp.classifier.utils.query_map(test_ranges, n_points = 250)
 
     # Compute Linearised and True Entropy for plotting
     logging.info('Plot: Caching Predictor...')
@@ -316,9 +341,11 @@ def main():
 
     start_time = time.clock()
     entropy_monte_carlo_meas = gp.classifier.monte_carlo_joint_entropy(exp_meas, cov_meas, learned_classifier, n_draws = n_draws_est)
-    logging.info('Sampling took %.4f seconds' % time.clock() - start_time)
+    logging.info('Sampling took %.4f seconds' % (time.clock() - start_time))
     entropy_linearised_mean_meas = entropy_linearised_plt.mean()
     entropy_true_mean_meas = yq_entropy_plt.mean()
+
+    mistake_ratio = (yq_truth_plt - yq_pred_plt).nonzero()[0].shape[0] / yq_truth_plt.shape[0]
 
     if isinstance(learned_classifier, list):
 
@@ -390,7 +417,7 @@ def main():
     fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(yq_pred_plt, test_ranges, 
         boundaries = True, cmap = mycmap)
-    plt.title('Prediction')
+    plt.title('Prediction [Miss Ratio: %.3f %s]' % (100 * mistake_ratio, '%'))
     plt.xlabel('x1')
     plt.ylabel('x2')
     cbar = plt.colorbar()
@@ -540,7 +567,7 @@ def main():
     horizon = (test_range_max - test_range_min) + 0.5
     n_steps = 40
 
-    theta_bound = np.deg2rad(60)
+    theta_bound = np.deg2rad(30)
     theta_add_init = -np.deg2rad(10) * np.ones(n_steps)
     theta_add_init[0] = np.deg2rad(180)
     theta_add_low = -theta_bound * np.ones(n_steps)
@@ -578,7 +605,7 @@ def main():
     fig2 = plt.figure(figsize = (15, 15))
     fig3 = plt.figure(figsize = (15, 15))
     fig4 = plt.figure(figsize = (15, 15))
-    fig5 = plt.figure(figsize = (15, 15))
+    fig5 = plt.figure(figsize = (20, 20))
 
     # Start exploring
     i_trials = 0
@@ -588,6 +615,7 @@ def main():
     entropy_linearised_mean_array = np.nan * np.ones(n_trials)
     entropy_true_mean_array = np.nan * np.ones(n_trials)
     entropy_opt_array = np.nan * np.ones(n_trials)
+    mistake_ratio_array = np.nan * np.ones(n_trials)
     while i_trials < n_trials:
 
         """ Path Planning """
@@ -632,12 +660,12 @@ def main():
             learned_classifier = gp.classifier.learn(X_now, y_now, kerneldef,
                 responsefunction, batch_config, 
                 multimethod = multimethod, approxmethod = approxmethod,
-                train = True, ftol = 1e-4, processes = n_cores)
+                train = True, ftol = 1e-10, processes = n_cores)
         except:
             learned_classifier = gp.classifier.learn(X_now, y_now, kerneldef,
                 responsefunction, batch_config, 
                 multimethod = multimethod, approxmethod = approxmethod,
-                train = False, ftol = 1e-4, processes = n_cores)      
+                train = False, ftol = 1e-10, processes = n_cores)      
 
         # This is the finite horizon optimal route
         xq1_proposed = xq_abs_opt[:, 0][k_step:]
@@ -663,38 +691,49 @@ def main():
         eq_sd_plt = gp.classifier.equivalent_standard_deviation(
             entropy_linearised_plt, y_unique.shape[0])
         logging.info('Plot: Computing Prediction Probabilities...')
-        probabilities_plt = gp.classifier.predict_from_latent(
+        yq_prob_plt = gp.classifier.predict_from_latent(
             expectance_latent_plt, variance_latent_plt, learned_classifier, 
             fusemethod = fusemethod)
         logging.info('Plot: Computing True Entropy...')
-        entropy_plt = gp.classifier.entropy(probabilities_plt)
+        yq_entropy_plt = gp.classifier.entropy(yq_prob_plt)
         logging.info('Plot: Computing Class Predicitons')
-        class_plt = gp.classifier.classify(probabilities_plt, y_unique)
+        yq_pred_plt = gp.classifier.classify(yq_prob_plt, y_unique)
 
         
         predictor_meas = gp.classifier.query(learned_classifier, Xq_meas)
         exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
         cov_meas = gp.classifier.covariance(learned_classifier, predictor_meas)
 
-        logging.info('Objective Measure: Computing Joint Linearised Entropy')
+        logging.info('Objective Measure: Computing Linearised Joint Entropy')
+        start_time = time.clock()
         entropy_linearised_meas = gp.classifier.linearised_entropy(
             exp_meas, cov_meas, learned_classifier)
+        logging.info('Computation took %.4f seconds' % (time.clock() - start_time))
+        logging.info('Linearised Joint Entropy: %.4f' % entropy_linearised_meas)
         logging.info('Objective Measure: Computing Monte Carlo Joint Entropy...')
+        start_time = time.clock()
         entropy_monte_carlo_meas = gp.classifier.monte_carlo_joint_entropy(exp_meas, cov_meas, learned_classifier, n_draws = n_draws_est)
+        logging.info('Computation took %.4f seconds' % (time.clock() - start_time))
+        logging.info('Monte Carlo Joint Entropy: %.4f' % entropy_monte_carlo_meas)
+
         entropy_linearised_mean_meas = entropy_linearised_plt.mean()
-        entropy_true_mean_meas = entropy_plt.mean()
+        entropy_true_mean_meas = yq_entropy_plt.mean()
+
+        mistake_ratio = (yq_truth_plt - yq_pred_plt).nonzero()[0].shape[0] / yq_truth_plt.shape[0]
 
         entropy_linearised_array[i_trials] = entropy_linearised_meas
         entropy_monte_carlo_array[i_trials] = entropy_monte_carlo_meas
         entropy_linearised_mean_array[i_trials] = entropy_linearised_mean_meas
         entropy_true_mean_array[i_trials] = entropy_true_mean_meas
         entropy_opt_array[i_trials] = entropy_opt
+        mistake_ratio_array[i_trials] = mistake_ratio
+        
 
         # Find the bounds of the entropy predictions
         vmin1 = entropy_linearised_plt.min()
         vmax1 = entropy_linearised_plt.max()
-        vmin2 = entropy_plt.min()
-        vmax2 = entropy_plt.max()
+        vmin2 = yq_entropy_plt.min()
+        vmax2 = yq_entropy_plt.max()
         vmin3 = eq_sd_plt.min()
         vmax3 = eq_sd_plt.max()
 
@@ -722,6 +761,7 @@ def main():
         plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
             facecolors = 'none',
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.plot(xq1_nows, xq2_nows, c = 'w')
         plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
@@ -730,6 +770,7 @@ def main():
         plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.plot(xq1_proposed, xq2_proposed, c = 'w')
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
@@ -745,7 +786,7 @@ def main():
         # Prepare Figure 2
         plt.figure(fig2.number)
         plt.clf()
-        plt.title('Equivalent standard deviation [horizon = %.2f, FLE = %.2f, FMCJE = %.2f, ALE = %.2f, ACE = %.2f, TPE = %.2f]' 
+        plt.title('Equivalent SD [horizon = %.2f, FLE = %.2f, FMCJE = %.2f, ALE = %.2f, ACE = %.2f, TPE = %.2f]' 
             % (horizon, entropy_linearised_meas, entropy_monte_carlo_meas, entropy_linearised_mean_meas, entropy_true_mean_meas, entropy_opt))
         plt.xlabel('x1')
         plt.ylabel('x2')
@@ -764,6 +805,7 @@ def main():
         plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
             facecolors = 'none',
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.plot(xq1_nows, xq2_nows, c = 'w')
         plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
@@ -772,6 +814,7 @@ def main():
         plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.plot(xq1_proposed, xq2_proposed, c = 'w')
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
@@ -795,7 +838,7 @@ def main():
         plt.ylim((test_range_min, test_range_max))
 
         # Plot true entropy
-        gp.classifier.utils.visualise_map(entropy_plt, test_ranges, 
+        gp.classifier.utils.visualise_map(yq_entropy_plt, test_ranges, 
             cmap = cm.coolwarm, vmin = vmin2, vmax = vmax2)
         plt.colorbar()
 
@@ -806,6 +849,7 @@ def main():
         plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
             facecolors = 'none',
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.plot(xq1_nows, xq2_nows, c = 'w')
         plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
@@ -814,6 +858,7 @@ def main():
         plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.plot(xq1_proposed, xq2_proposed, c = 'w')
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
@@ -829,15 +874,14 @@ def main():
         # Prepare Figure 4
         plt.figure(fig4.number)
         plt.clf()
-        plt.title('Class predictions [horizon = %.2f, FLE = %.2f, FMCJE = %.2f, ALE = %.2f, ACE = %.2f, TPE = %.2f]' 
-            % (horizon, entropy_linearised_meas, entropy_monte_carlo_meas, entropy_linearised_mean_meas, entropy_true_mean_meas, entropy_opt))
+        plt.title('Class predictions [Miss Ratio: %.3f %s]' % (100 * mistake_ratio, '%'))
         plt.xlabel('x1')
         plt.ylabel('x2')
         plt.xlim((test_range_min, test_range_max))
         plt.ylim((test_range_min, test_range_max))
 
         # Plot class predictions
-        gp.classifier.utils.visualise_map(class_plt, test_ranges, 
+        gp.classifier.utils.visualise_map(yq_pred_plt, test_ranges, 
             boundaries = True, cmap = mycmap2)
         cbar = plt.colorbar()
         cbar.set_ticks(y_unique)
@@ -850,6 +894,7 @@ def main():
         # Plot the path on top
         plt.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, marker = 'o', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.plot(xq1_nows, xq2_nows, c = 'w')
         plt.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
@@ -858,6 +903,7 @@ def main():
         plt.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        plt.plot(xq1_proposed, xq2_proposed, c = 'w')
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
@@ -868,38 +914,42 @@ def main():
         plt.savefig('%sclass_prediction_step%d.png' 
             % (full_directory, i_trials + 1))
 
-        # Prepare Figure 3
+        # Prepare Figure 5
         plt.figure(fig5.number)
         plt.clf()
 
-        plt.subplot(5, 1, 1)
+        plt.subplot(6, 1, 1)
         plt.plot(np.arange(i_trials + 1), entropy_linearised_array[:(i_trials + 1)])
         plt.title('Field Linearised Entropy')
         plt.ylabel('Field Linearised Entropy')
 
-        plt.subplot(5, 1, 2)
+        plt.subplot(6, 1, 2)
         plt.plot(np.arange(i_trials + 1), entropy_monte_carlo_array[:(i_trials + 1)])
         plt.title('Field True Entropy through Monte Carlo')
         plt.ylabel('Field True Entropy')
 
-        plt.subplot(5, 1, 3)
+        plt.subplot(6, 1, 3)
         plt.plot(np.arange(i_trials + 1), entropy_linearised_mean_array[:(i_trials + 1)])
         plt.title('Average Linearised Entropy')
         plt.ylabel('Average Linearised Entropy')
 
-        plt.subplot(5, 1, 4)
+        plt.subplot(6, 1, 4)
         plt.plot(np.arange(i_trials + 1), entropy_true_mean_array[:(i_trials + 1)])
         plt.title('Average True Entropy')
         plt.ylabel('Average True Entropy')
 
-        plt.subplot(5, 1, 5)
+        plt.subplot(6, 1, 5)
         plt.plot(np.arange(i_trials + 1), entropy_opt_array[:(i_trials + 1)])
         plt.title('Joint entropy of path chosen each iteration')
         plt.xlabel('Steps')
         plt.ylabel('Joint Entropy')
 
-
-
+        plt.subplot(6, 1, 6)
+        plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
+        plt.plot(np.arange(i_trials + 1), 100 * mistake_ratio_array[:(i_trials + 1)])
+        plt.title('Prediction Miss Ratio')
+        plt.xlabel('Steps')
+        plt.ylabel('Prediction Miss Ratio (%)')
         
         # Save the plot
         plt.savefig('%sentropy_history%d.png' 
@@ -1000,15 +1050,6 @@ def path_monte_carlo_entropy_model(theta_add, r, x, memory,
     n_draws = 1000, S = None):
 
     Xq = forward_path_model(theta_add, r, x)
-    
-    # logging.info('Computing linearised entropy...')
-    # start_time = time.clock()
-    # predictors = gp.classifier.query(memory, Xq)
-    # yq_exp = gp.classifier.expectance(memory, predictors)
-    # yq_cov = gp.classifier.covariance(memory, predictors)
-    # entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
-    # logging.debug('Linearised Entropy Computational Time : %.8f' % 
-    #     (time.clock() - start_time))
 
     logging.info('Computing monte carlo joint entropy...')
     start_time = time.clock()
@@ -1105,6 +1146,7 @@ def go_optimised_path(theta_add_init, x, r, memory, ranges,
 
 def generate_line_path(x_s, x_f, n_points = 10):
     p = x_f - x_s
+
     r = np.linspace(0, 1, num = n_points)
     return np.outer(r, p) + x_s
 
