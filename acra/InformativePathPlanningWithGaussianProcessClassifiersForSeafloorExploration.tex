@@ -1,0 +1,122 @@
+%%%% acra.tex
+
+\typeout{Informative Path Planning with Gaussian Process Classifiers for Seafloor Exploration}
+
+% This is the instructions for authors for ACRA.
+\documentclass{article}
+\usepackage{acra}
+% The file acra.sty is the style file for ACRA. 
+% The file named.sty contains macros for named citations as produced 
+% by named.bst.
+
+% The preparation of these files was supported by Schlumberger Palo Alto
+% Research, AT\&T Bell Laboratories, and Morgan Kaufmann Publishers.
+% Shirley Jowell, of Morgan Kaufmann Publishers, and Peter F.
+% Patel-Schneider, of AT\&T Bell Laboratories collaborated on their
+% preparation. 
+
+% These instructions can be modified and used in other conferences as long
+% as credit to the authors and supporting agencies is retained, this notice
+% is not changed, and further modification or reuse is not restricted.
+% Neither Shirley Jowell nor Peter F. Patel-Schneider can be listed as
+% contacts for providing assistance without their prior permission.
+
+% To use for other conferences, change references to files and the
+% conference appropriate and use other authors, contacts, publishers, and
+% organizations.
+% Also change the deadline and address for returning papers and the length and
+% page charge instructions.
+% Put where the files are available in the appropriate places.
+
+\title{Receding Horizon Approach to Informative Seafloor Exploration using Linearised Entropy of Gaussian Process Classifiers}
+% Informative Path Planning with Gaussian Process Classifiers for Seafloor Exploration
+% Receding Horizon Approach to Informative Seafloor Exploration with Gaussian Process Classifiers
+% Receding Horizon Approach to Informative Seafloor Exploration with Linearised Entropy of Gaussian Process Classifiers
+
+\author{Kelvin Hsu \\ University of Sydney, Australia \\ 
+Kelvin.Hsu@nicta.com.au}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+	While seafloor bathymetry have been mapped extensively over the last century, geological and ecological observations of benthic zones only began in recent years. Unlike bathymetric mapping, data collection of benthic imagery requires \textit{in situ} exploration - a significantly slower and costly endeavour. An efficient exploration policy would thus require solving the informative path planning problem. This paper investigates a receding horizon approach to the informative path planning problem using linearised entropy as the proposed acquisition function. We model the benthic environment upon five bathymetric features through Gaussian process classifiers, whose linearised entropy would be defined and derived. We compare our method to a monte carlo approach for estimating joint entropy under a prediction accuracy criterion, as well as greedy and open loop method, demonstrating the benefits of our approach. We test our method on collected benthic datasets from past AUV missions to Scott Reef, Western Australia. 
+\end{abstract}
+
+\section{Introduction}
+
+	
+\section{Background}
+
+\section{Mapping Benthic Habitats with Gaussian Process Classifiers}
+
+	
+\section{Linearised Entropy of Gaussian Process Classifiers}
+	
+	\subsection{Binary Classification}
+	
+		
+	\subsection{Multiclass Classification}
+	
+\section{Receding Horizon Approach to Informative Path Planning}
+
+\section{Conclusions and Future Work}
+
+\section*{Acknowledgments}
+
+
+%% This section was initially prepared using BibTeX.  The .bbl file was
+%% placed here later
+%\bibliography{publications}
+%\bibliographystyle{named}
+%% The file named.bst is a bibliography style file for BibTeX 0.99c
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Abelson \bgroup \em et al.\egroup
+  }{1985}]{abelson-et-al:scheme}
+Harold Abelson, Gerald~Jay Sussman, and Julie Sussman.
+\newblock {\em Structure and Interpretation of Computer Programs}.
+\newblock MIT Press, Cambridge, Massachusetts, 1985.
+
+\bibitem[\protect\citeauthoryear{Brachman and
+  Schmolze}{1985}]{brachman-schmolze:kl-one}
+Ronald~J. Brachman and James~G. Schmolze.
+\newblock An overview of the {KL-ONE} knowledge representation system.
+\newblock {\em Cognitive Science}, 9(2):171--216, April--June 1985.
+
+\bibitem[\protect\citeauthoryear{Cheeseman}{1985}]{cheeseman:probability}
+Peter Cheeseman.
+\newblock In defence of probability.
+\newblock In {\em Proceedings of the Ninth International Joint Conference on
+  Artificial Intelligence}, pages 1002--1009, Los Angeles, California, August
+  1985. International Joint Committee on Artificial Intelligence.
+
+\bibitem[\protect\citeauthoryear{Haugeland}{1981}]{haugeland:mind-design}
+John Haugeland, editor.
+\newblock {\em Mind Design}.
+\newblock Bradford Books, Montgomery, Vermont, 1981.
+
+\bibitem[\protect\citeauthoryear{Lenat}{1981}]{lenat:heuristics}
+Douglas~B. Lenat.
+\newblock The nature of heuristics.
+\newblock Technical Report CIS-12 (SSL-81-1), Xerox Palo Alto Research Centers,
+  April 1981.
+
+\bibitem[\protect\citeauthoryear{Levesque}{1984a}]{levesque:functional-foundat%
+ions}
+Hector~J. Levesque.
+\newblock Foundations of a functional approach to knowledge representation.
+\newblock {\em Artificial Intelligence}, 23(2):155--212, July 1984.
+
+\bibitem[\protect\citeauthoryear{Levesque}{1984b}]{levesque:belief}
+Hector~J. Levesque.
+\newblock A logic of implicit and explicit belief.
+\newblock In {\em Proceedings of the Fourth National Conference on Artificial
+  Intelligence}, pages 198--202, Austin, Texas, August 1984. American
+  Association for Artificial Intelligence.
+
+\end{thebibliography}
+
+\end{document}
+
