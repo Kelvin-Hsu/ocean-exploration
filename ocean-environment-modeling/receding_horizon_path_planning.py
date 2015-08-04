@@ -46,7 +46,7 @@ def main():
     n_cores = None # number of cores for multi-class (None -> default: c-1)
     walltime = 300.0
     approxmethod = 'laplace' # 'laplace' or 'pls'
-    multimethod = 'AVA' # 'AVA' or 'OVA', ignored for binary problem
+    multimethod = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
     fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary
     responsename = 'probit' # 'probit' or 'logistic'
     batch_start = False
@@ -109,16 +109,16 @@ def main():
 
     # X = np.concatenate((X1, X2, X3, X4, X5, X6, X7, X8), axis = 0)
 
-    # X = np.random.uniform(test_range_min, test_range_max, 
-    #     size = (n_train, n_dims))
+    X = np.random.uniform(test_range_min, test_range_max, 
+        size = (n_train, n_dims))
 
-    X_s = np.array([[0.0, 0.0], [-0.2, 0.3], [-0.1, -0.1], [0.05, 0.25], [-1.1, 0.0], [-0.5, 0.0], [-0.4, -0.7], [-0.1, -0.1], [test_range_min, test_range_min], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min]])
-    X_f = np.array([[1.4, 1.6], [1.8, 1.2], [-1.24, 1.72], [-1.56, -1.9], [-1.9, 1.0], [-0.5, -1.2], [-1.4, -1.9], [0.4, -1.2], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min], [test_range_min, test_range_min]])
-    n_track = 30
-    X_s = np.random.uniform(test_range_min, test_range_max, size = (n_track, n_dims))
-    X_f = test_range_max * np.random.standard_cauchy(n_track * n_dims).reshape(n_track, n_dims)
+    # X_s = np.array([[0.0, 0.0], [-0.2, 0.3], [-0.1, -0.1], [0.05, 0.25], [-1.1, 0.0], [-0.5, 0.0], [-0.4, -0.7], [-0.1, -0.1], [test_range_min, test_range_min], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min]])
+    # X_f = np.array([[1.4, 1.6], [1.8, 1.2], [-1.24, 1.72], [-1.56, -1.9], [-1.9, 1.0], [-0.5, -1.2], [-1.4, -1.9], [0.4, -1.2], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min], [test_range_min, test_range_min]])
+    # n_track = 30
+    # X_s = np.random.uniform(test_range_min, test_range_max, size = (n_track, n_dims))
+    # X_f = test_range_max * np.random.standard_cauchy(n_track * n_dims).reshape(n_track, n_dims)
     # X_f = np.random.uniform(test_range_min, test_range_max, size = (n_track, n_dims))
-    X = generate_line_paths(X_s, X_f, n_points = 15)
+    # X = generate_line_paths(X_s, X_f, n_points = 15)
     x1 = X[:, 0]
     x2 = X[:, 1]
     
@@ -200,7 +200,7 @@ def main():
     learned_classifier = gp.classifier.learn(X, y, kerneldef,
         responsefunction, batch_config, 
         multimethod = multimethod, approxmethod = approxmethod,
-        train = True, ftol = 1e-10, processes = n_cores)
+        train = True, ftol = 1e-6, processes = n_cores)
 
     # Print learned kernels
     print_function = gp.describer(kerneldef)
@@ -260,14 +260,14 @@ def main():
     # Training
     fig = plt.figure(figsize = (15, 15))
     gp.classifier.utils.visualise_map(yq_truth_plt, test_ranges, cmap = mycmap)
-    gp.classifier.utils.visualise_decision_boundary(
-        test_range_min, test_range_max, decision_boundary)
     plt.title('Ground Truth')
     plt.xlabel('x1')
     plt.ylabel('x2')
     cbar = plt.colorbar()
     cbar.set_ticks(y_unique)
     cbar.set_ticklabels(y_unique)
+    gp.classifier.utils.visualise_decision_boundary(
+        test_range_min, test_range_max, decision_boundary)
     logging.info('Plotted Prediction Labels')
 
     """
@@ -328,7 +328,7 @@ def main():
                 args)).sum(axis = 0)
 
 
-    Xq_meas = gp.classifier.utils.query_map(test_ranges, n_points = 30)
+    Xq_meas = gp.classifier.utils.query_map(test_ranges, n_points = 10)
 
     predictor_meas = gp.classifier.query(learned_classifier, Xq_meas)
     exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
@@ -347,7 +347,7 @@ def main():
 
     mistake_ratio = (yq_truth_plt - yq_pred_plt).nonzero()[0].shape[0] / yq_truth_plt.shape[0]
 
-    if isinstance(learned_classifier, list):
+    if isinstance(learned_classifier, list) & False:
 
         """
         Plot: Latent Function Expectance
@@ -660,12 +660,17 @@ def main():
             learned_classifier = gp.classifier.learn(X_now, y_now, kerneldef,
                 responsefunction, batch_config, 
                 multimethod = multimethod, approxmethod = approxmethod,
-                train = True, ftol = 1e-10, processes = n_cores)
-        except:
-            learned_classifier = gp.classifier.learn(X_now, y_now, kerneldef,
-                responsefunction, batch_config, 
-                multimethod = multimethod, approxmethod = approxmethod,
-                train = False, ftol = 1e-10, processes = n_cores)      
+                train = True, ftol = 1e-6, processes = n_cores)
+        except Exception as e:
+            logging.warning(e)
+            try:
+                learned_classifier = gp.classifier.learn(X_now, y_now, kerneldef,
+                    responsefunction, batch_config, 
+                    multimethod = multimethod, approxmethod = approxmethod,
+                    train = False, ftol = 1e-6, processes = n_cores)
+            except Exception as e:
+                logging.warning(e)
+                pass    
 
         # This is the finite horizon optimal route
         xq1_proposed = xq_abs_opt[:, 0][k_step:]
