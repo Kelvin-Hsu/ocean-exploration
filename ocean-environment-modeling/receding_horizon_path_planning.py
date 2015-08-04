@@ -109,16 +109,16 @@ def main():
 
     # X = np.concatenate((X1, X2, X3, X4, X5, X6, X7, X8), axis = 0)
 
-    X = np.random.uniform(test_range_min, test_range_max, 
-        size = (n_train, n_dims))
+    # X = np.random.uniform(test_range_min, test_range_max, 
+    #     size = (n_train, n_dims))
 
-    # X_s = np.array([[0.0, 0.0], [-0.2, 0.3], [-0.1, -0.1], [0.05, 0.25], [-1.1, 0.0], [-0.5, 0.0], [-0.4, -0.7], [-0.1, -0.1], [test_range_min, test_range_min], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min]])
-    # X_f = np.array([[1.4, 1.6], [1.8, 1.2], [-1.24, 1.72], [-1.56, -1.9], [-1.9, 1.0], [-0.5, -1.2], [-1.4, -1.9], [0.4, -1.2], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min], [test_range_min, test_range_min]])
-    # n_track = 30
-    # X_s = np.random.uniform(test_range_min, test_range_max, size = (n_track, n_dims))
-    # X_f = test_range_max * np.random.standard_cauchy(n_track * n_dims).reshape(n_track, n_dims)
-    # X_f = np.random.uniform(test_range_min, test_range_max, size = (n_track, n_dims))
-    # X = generate_line_paths(X_s, X_f, n_points = 15)
+    X_s = np.array([[0.0, 0.0], [-0.2, 0.3], [-0.1, -0.1], [0.05, 0.25], [-1.1, 0.0], [-0.5, 0.0], [-0.4, -0.7], [-0.1, -0.1], [test_range_min, test_range_min], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min]])
+    X_f = np.array([[1.4, 1.6], [1.8, 1.2], [-1.24, 1.72], [-1.56, -1.9], [-1.9, 1.0], [-0.5, -1.2], [-1.4, -1.9], [0.4, -1.2], [test_range_min, test_range_max], [test_range_max, test_range_max], [test_range_max, test_range_min], [test_range_min, test_range_min]])
+    n_track = 25
+    X_s = np.random.uniform(test_range_min, test_range_max, size = (n_track, n_dims))
+    X_f = test_range_max * np.random.standard_cauchy(n_track * n_dims).reshape(n_track, n_dims)
+    X_f = np.random.uniform(test_range_min, test_range_max, size = (n_track, n_dims))
+    X = generate_line_paths(X_s, X_f, n_points = 15)
     x1 = X[:, 0]
     x2 = X[:, 1]
     
@@ -960,16 +960,15 @@ def main():
         plt.subplot(5, 1, 4)
         plt.plot(np.arange(i_trials + 1), entropy_opt_array[:(i_trials + 1)])
         plt.title('Joint entropy of path chosen each iteration')
-        plt.xlabel('Steps')
         plt.ylabel('Joint Entropy')
 
         plt.subplot(5, 1, 5)
         plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
         plt.plot(np.arange(i_trials + 1), 100 * mistake_ratio_array[:(i_trials + 1)])
         plt.title('Prediction Miss Ratio')
-        plt.xlabel('Steps')
         plt.ylabel('Prediction Miss Ratio (%)')
         
+        plt.xlabel('Steps')
         # Save the plot
         plt.savefig('%sentropy_history%d.png' 
             % (full_directory, i_trials + 1))
@@ -983,8 +982,21 @@ def main():
             np.savez('%slearned_classifier_trial%d.npz'
                 % (full_directory, i_trials), 
                 learned_classifier = learned_classifier)
-
-
+            np.savez('%sentropy_linearised_array_trial%d.npz'
+                % (full_directory, i_trials), 
+                entropy_linearised_array = entropy_linearised_array)
+            np.savez('%sentropy_linearised_mean_array_trial%d.npz'
+                % (full_directory, i_trials), 
+                entropy_linearised_mean_array = entropy_linearised_mean_array)
+            np.savez('%sentropy_true_mean_array_trial%d.npz'
+                % (full_directory, i_trials), 
+                entropy_true_mean_array = entropy_true_mean_array)
+            np.savez('%sentropy_opt_array_trial%d.npz'
+                % (full_directory, i_trials), 
+                entropy_opt_array = entropy_opt_array)
+            np.savez('%smistake_ratio_array_trial%d.npz'
+                % (full_directory, i_trials), 
+                mistake_ratio_array = mistake_ratio_array)
     # When finished, save the learned classifier
     np.savez('%slearned_classifier_final.npz' % full_directory, 
         learned_classifier = learned_classifier)
@@ -994,28 +1006,32 @@ def main():
 
 def keep_going_until_surprise(xq_abs_opt, learned_classifier, decision_boundary):
 
-    if isinstance(learned_classifier, list):
-        y_unique = learned_classifier[0].cache.get('y_unique')
-    else:
-        y_unique = learned_classifier.cache.get('y_unique')
+    try:
+        if isinstance(learned_classifier, list):
+            y_unique = learned_classifier[0].cache.get('y_unique')
+        else:
+            y_unique = learned_classifier.cache.get('y_unique')
 
-    yq_pred = gp.classifier.classify(gp.classifier.predict(xq_abs_opt, 
-            learned_classifier), y_unique)
+        yq_pred = gp.classifier.classify(gp.classifier.predict(xq_abs_opt, 
+                learned_classifier), y_unique)
 
-    yq_true = gp.classifier.utils.make_decision(xq_abs_opt, decision_boundary)
+        yq_true = gp.classifier.utils.make_decision(xq_abs_opt, decision_boundary)
 
-    assert yq_pred.dtype == int
-    assert yq_true.dtype == int
-    k_step = int(np.arange(yq_pred.shape[0])[yq_pred != yq_true].min()) + 1
-    if not isinstance(k_step, int):
-        logging.debug('"k_step" is not an integer but instead is {0}'.format(k_step))
+        assert yq_pred.dtype == int
+        assert yq_true.dtype == int
+        k_step = int(np.arange(yq_pred.shape[0])[yq_pred != yq_true].min()) + 1
+        if not isinstance(k_step, int):
+            logging.debug('"k_step" is not an integer but instead is {0}'.format(k_step))
+            k_step = 1
+        if not k_step > 0:
+            logging.debug('"k_step" is not positive but instead is {0}'.format(k_step))
+            k_step = 1
+
+        if k_step > yq_pred.shape[0]/2:
+            k_step = int(yq_pred.shape[0]/2)
+    except Exception as e:
+        logging.warning(e)
         k_step = 1
-    if not k_step > 0:
-        logging.debug('"k_step" is not positive but instead is {0}'.format(k_step))
-        k_step = 1
-
-    if k_step > yq_pred.shape[0]/2:
-        k_step = int(yq_pred.shape[0]/2)
     return k_step
 
 def initiate_with_continuity(theta_add_opt, k_step = 1):
