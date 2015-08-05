@@ -310,7 +310,7 @@ def main():
         expectance_latent_plt, variance_latent_plt, learned_classifier)
     logging.info('Plot: Computing Equivalent Standard Deviation')
     eq_sd_plt = gp.classifier.equivalent_standard_deviation(
-        entropy_linearised_plt, y_unique.shape[0])
+        entropy_linearised_plt)
     logging.info('Plot: Computing Prediction Probabilities...')
     yq_prob_plt = gp.classifier.predict_from_latent(
         expectance_latent_plt, variance_latent_plt, learned_classifier, 
@@ -708,7 +708,7 @@ def main():
             expectance_latent_plt, variance_latent_plt, learned_classifier)
         logging.info('Plot: Computing Equivalent Standard Deviation')
         eq_sd_plt = gp.classifier.equivalent_standard_deviation(
-            entropy_linearised_plt, y_unique.shape[0])
+            entropy_linearised_plt)
         logging.info('Plot: Computing Prediction Probabilities...')
         yq_prob_plt = gp.classifier.predict_from_latent(
             expectance_latent_plt, variance_latent_plt, learned_classifier, 
