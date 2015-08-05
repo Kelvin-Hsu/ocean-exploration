@@ -60,28 +60,26 @@ Kelvin.Hsu@nicta.com.au}
 \section{Introduction}
 \label{Section:Introduction}
 	
-\section{Background}
-\label{Section:Background}
-
-%	\subsection{Laplace Approximation}
+	Introduce GPs \cite{GaussianProcessForMachineLearning}
 %	
-%	\subsection{Probabilistic Least Squares}
-%	
-%	\subsection{Multiclass Classifiers: OVA and AVA approach}
-	
 \section{Mapping Benthic Habitats with Gaussian Process Classifiers}
 \label{Section:BenthicMapping}
 
-	
+		\begin{figure}[!htbp]
+			\centering
+				\includegraphics[width = \linewidth]{Figures/responses.png}
+			\caption{Likelihood Responses}
+			\label{Figure:LikelihoodResponses}
+		\end{figure}
 	
 \section{Linearised Entropy of Gaussian Process Classifiers}
 \label{Section:LinearisedEntropy}
 
 	\subsection{Binary Classification}
 	
-		For binary classification, linearisation is performed on the sigmoid, or response, function.
+		For binary classification, linearisation is performed on the likelihood response function.
 	
-		Suppose we have trained our Gaussian process classifier using Laplace approximation with respect to a training set $\mathcal{D} = \{X, \vec{y}\} = \{[ \vec{x}_{1}, \vec{x}_{2}, \dots, \vec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]\}$ with $n$ training points. We know that the latent function $f(\vec{x})$ is distributed as a GP with a particular predictive mean $m(\vec{x})$ and covariance $k(\vec{x}, \vec{x}')$ once conditioned on the training data \eqref{Section:LinearisedEntropy:Equation:PredictiveGP}.
+		Suppose we have trained our Gaussian process classifier using Laplace approximation with respect to a training set $\mathcal{D} = \{X, \vec{y}\} = \{[ \vec{x}_{1}, \vec{x}_{2}, \dots, \vec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]\}$ with $n$ training points. We know that the latent function $f(\vec{x})$ is distributed as a GP with a particular predictive mean $m(\vec{x})$ and covariance $k(\vec{x}, \vec{x}')$ once conditioned on the training data \eqref{Section:LinearisedEntropy:Equation:PredictiveGP}. From here on we omit explicitly notating the training set that was conditioned upon.
 		
 		\begin{equation}
 			f(\vec{x}) \sim \mathcal{GP}(m(\vec{x}), k(\vec{x}, \vec{x}'))
@@ -95,43 +93,31 @@ Kelvin.Hsu@nicta.com.au}
 		\label{Section:LinearisedEntropy:Equation:PredictiveGaussianDistribution}
 		\end{equation}
 			
-		The binary prediction probability $\vec{\pi^{\star}}$ at the query points is obtained through passing the queried latent function random vector $\vec{f}^{\star}$ through a sigmoid in a component wise fashion \eqref{Section:LinearisedEntropy:Equation:Sigmoid}.
-		
-		\begin{figure}[!htbp]
-			\centering
-				\includegraphics[width=0.48\textwidth]{Figures/responses.png}
-			\caption{Likelihood Responses}
-			\label{Figure:LikelihoodResponses}
-		\end{figure}
+		The binary prediction probability $\vec{\pi^{\star}}$ at the query points is obtained through passing the queried latent function random vector $\vec{f}^{\star}$ through a response function in a component wise fashion \eqref{Section:LinearisedEntropy:Equation:Response}.
 		
 		\begin{equation}
-			\pi^{\star}_{i} = \sigma(f^{\star}_{i}) \qquad \qquad \forall i \in \{1, 2, \dots, n^{\star}\}
-		\label{Section:LinearisedEntropy:Equation:Sigmoid}
+			\pi^{\star}_{i} = \sigma(f^{\star}_{i}) \qquad \forall i \in \{1, 2, \dots, n^{\star}\}
+		\label{Section:LinearisedEntropy:Equation:Response}
 		\end{equation}
 		
 		As a straightforward transformation of the latent vector, the predictive probability vector $\vec{\pi^{\star}}$ is thus a random vector itself. The usual procedure is then to treat the expected predition probabilities $\mathbb{E}(\vec{\pi^{\star}})$ as the posterior class probabilities for further inference. However, this discards any information regarding the joint behaviour at the query points. As a result, a measure of mutual information shared amongst the query points cannot be obtained.
 		
-		One straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP and assigning class label 1 for positive latent values and -1 otherwise. Aside from the relatively long computational time required for sampling enough draws for accurate joint distribution estimation, the Monte Carlo approach also has the tendency to overestimate variances at locations of low densities of training observations.
-
+		One straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP, assigning class label 1 for positive latent values and -1 otherwise, and compute the Shannon entropy \cite{ShannonEntropy} from the estimated joint distribution. Aside from the relatively long computational time required for sampling enough draws for accurate joint distribution estimation, the Monte Carlo approach also has the tendency to overestimate variances at locations with low densities of training observations.
+				
+		Instead, we propose using the joint distribution of the predictive probabilities $\vec{\pi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}(\vec{\pi^{\star}})$ such that structural information from the latent GP is compromised, we utilise also the covariance $\mathbb{V}(\vec{\pi^{\star}})$, which withholds information regarding both the latent GP and the response likelihood.
+	
 		\begin{figure}[!htbp]
 			\centering
-				\includegraphics[width=0.48\textwidth]{Figures/linearisation.png}
-			\caption{Linearisation Accuracy}
+				\includegraphics[width = \linewidth]{Figures/linearisation.png}
+			\caption{Linearisation accuracy for a probit response: Green shade represents the latent variance while blue shade represents the predictive variance. Gold lines show local linearisation about latent expectance.}
 			\label{Figure:Linearisation}
 		\end{figure}
-				
-		Instead, we propose using the joint distribution of the predictive probabilities $\vec{\pi^{\star}}$ itself as a basis of constructing a measure of mutual information. As the predictive probabilities are nonlinear transformations (Figure \ref{Figure:LikelihoodResponses}) of the Gaussian distributed latent vector, they are no longer Gaussian distributed. Nevertheless, there are two situations for which Gaussian approximation through linearised transformations about the mean predictive probabilities would provide accurate estimates:
-		
-		\begin{enumerate}
-			\item $\mathbb{E}(f^{\star}_{i})$ is sufficiently far away from zero
-			\item $\mathbb{V}(f^{\star}_{i})$ is sufficiently small
-		\end{enumerate}
-		
-		In fact, when the above two conditions do not hold such that $\mathbb{E}(f^{\star}_{i})$ is close to zero and $\mathbb{V}(f^{\star}_{i})$ is relatively large, we can show that the variances and hence uncertainty estimated from the linearised transformation almost always overestimates the actual variances.
+			
+		As the predictive probabilities are nonlinear transformations (Figure \ref{Figure:LikelihoodResponses}) of the Gaussian distributed latent vector, they are no longer Gaussian distributed. Hence, we propose linearising the response function about the latent expectance $\bar{f}^{\star}_{i} := \mathbb{E}(f^{\star}_{i})$. Figure \ref{Figure:Linearisation} illustrates the linearisation accuracy for a probit response. Observe that points with latent expectance far away from zero translate to near zero predictive variance even under high latent variance. Linearisation is thus very accurate for those points. For points with latent expectances near zero, we require the latent variances to be sufficiently bounded for linearisation to be accurate.
 
 		\subsubsection{Derivation}
 		
-			We proceed to derive the linearisation which also serves to construct the definition of linearised entropy. Using first order Taylor's expansion, we linearise the sigmoid function about a linearisation point $\bar{f}^{\star}_{i}$ for each query location $i \in \{1, 2, \dots, n^{\star}\}$ \eqref{Section:LinearisedEntropy:Equation:LinearisingSigmoid}. We choose the linearisation point to be the expected latent value at each query point $\bar{f}^{\star}_{i} = \mathbb{E}(f^{\star}_{i})$. 
+			We proceed to derive the linearisation which also serves to construct the definition of linearised entropy. With first order Taylor expansion, we linearise the response about the chosen linearisation point $\bar{f}^{\star}_{i} = \mathbb{E}(f^{\star}_{i})$.
 			
 			\begin{equation}
 				\sigma(f^{\star}_{i}) \approx \sigma_{L}(f^{\star}_{i}) := \sigma(\bar{f}^{\star}_{i}) + \sigma'(\bar{f}^{\star}_{i}) (f^{\star}_{i} - \bar{f}^{\star}_{i})
@@ -156,12 +142,19 @@ Kelvin.Hsu@nicta.com.au}
 			\label{Section:LinearisedEntropy:Equation:LinearisedEntropy}
 			\end{equation}			
 				
-		\subsubsection{Properties}
+		\subsubsection{Results}
 		
 			
 		
 	\subsection{Multiclass Classification}
 	
+		For multiclass classification, linearisation is performed on the softmax response functions which returns the predictive class probability $\vec{\pi}^{m}$ for each of the $c$ classes \eqref{Section:LinearisedEntropy:Equation:Softmax}. For notational clarity we move the query star ($^\star$) to the left and use the superscript $m$ to index the classes. The latent vector $\bvec{f}_{i}$ represents the collection of $c$ latent values across classes at the query point $i$, and is distinct from $\vec{f}_{m}$ which represents the collection of $n^{\star}$ latent values across query points for class $m$.
+
+		\begin{equation}
+			^{\star}\pi^{m}_{i} = \sigma(^{\star}\bvec{f}_{i}) := \frac{\exp(^{\star}f^{m}_{i})}{\sum_{k = 1}^{c} \exp(^{\star}f^{k}_{i})} \qquad m \in \{1, 2, \dots, c\}
+		\label{Section:LinearisedEntropy:Equation:Softmax}
+		\end{equation}	
+					
 \section{Receding Horizon Approach to Informative Path Planning}
 \label{Section:RecedingHorizonApproach}
 
@@ -176,52 +169,9 @@ Kelvin.Hsu@nicta.com.au}
 %\bibliography{publications}
 %\bibliographystyle{named}
 %% The file named.bst is a bibliography style file for BibTeX 0.99c
-\begin{thebibliography}{}
 
-\bibitem[\protect\citeauthoryear{Abelson \bgroup \em et al.\egroup
-  }{1985}]{abelson-et-al:scheme}
-Harold Abelson, Gerald~Jay Sussman, and Julie Sussman.
-\newblock {\em Structure and Interpretation of Computer Programs}.
-\newblock MIT Press, Cambridge, Massachusetts, 1985.
-
-\bibitem[\protect\citeauthoryear{Brachman and
-  Schmolze}{1985}]{brachman-schmolze:kl-one}
-Ronald~J. Brachman and James~G. Schmolze.
-\newblock An overview of the {KL-ONE} knowledge representation system.
-\newblock {\em Cognitive Science}, 9(2):171--216, April--June 1985.
-
-\bibitem[\protect\citeauthoryear{Cheeseman}{1985}]{cheeseman:probability}
-Peter Cheeseman.
-\newblock In defence of probability.
-\newblock In {\em Proceedings of the Ninth International Joint Conference on
-  Artificial Intelligence}, pages 1002--1009, Los Angeles, California, August
-  1985. International Joint Committee on Artificial Intelligence.
-
-\bibitem[\protect\citeauthoryear{Haugeland}{1981}]{haugeland:mind-design}
-John Haugeland, editor.
-\newblock {\em Mind Design}.
-\newblock Bradford Books, Montgomery, Vermont, 1981.
-
-\bibitem[\protect\citeauthoryear{Lenat}{1981}]{lenat:heuristics}
-Douglas~B. Lenat.
-\newblock The nature of heuristics.
-\newblock Technical Report CIS-12 (SSL-81-1), Xerox Palo Alto Research Centers,
-  April 1981.
-
-\bibitem[\protect\citeauthoryear{Levesque}{1984a}]{levesque:functional-foundat%
-ions}
-Hector~J. Levesque.
-\newblock Foundations of a functional approach to knowledge representation.
-\newblock {\em Artificial Intelligence}, 23(2):155--212, July 1984.
-
-\bibitem[\protect\citeauthoryear{Levesque}{1984b}]{levesque:belief}
-Hector~J. Levesque.
-\newblock A logic of implicit and explicit belief.
-\newblock In {\em Proceedings of the Fourth National Conference on Artificial
-  Intelligence}, pages 198--202, Austin, Texas, August 1984. American
-  Association for Artificial Intelligence.
-
-\end{thebibliography}
+\bibliographystyle{named}
+\bibliography{acra2015}
 
 \end{document}
 
