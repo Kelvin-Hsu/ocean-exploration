@@ -78,10 +78,10 @@ def main():
             ((x1 + x2) < 1.6) | ((x1 + 0.75)**2 + (x2 + 1.2)**2 < 0.6**2)
     db1b = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & ((x1/2)**2 + (x2)**2 > 0.4**2) & \
-            ((x1 + x2) < 1.5) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.4**2) | ((x1 + x2) > 2.25) & (x1 < 1.75) & (x2 < 1.75) # | (((x1 + 0.25)/4)**2 + (x2 + 1.5)**2 < 0.32**2) # & (((x1 + 0.25)/4)**2 + (x2 + 1.5)**2 > 0.18**2)
+            ((x1 + x2) < 1.5) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.4**2) | ((x1 + x2) > 2.1) & (x1 < 1.8) & (x2 < 1.8) # | (((x1 + 0.25)/4)**2 + (x2 + 1.5)**2 < 0.32**2) # & (((x1 + 0.25)/4)**2 + (x2 + 1.5)**2 > 0.18**2)
     db1c = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & ((x1/2)**2 + (x2)**2 > 0.4**2) & \
-            ((x1 + x2) < 1.5) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.4**2) | ((x1 + x2) > 2.25) & (x1 < 1.75) & (x2 < 1.75) | (((x1 + 0.25)/4)**2 + (x2 + 1.75)**2 < 0.32**2) & (((x1 + 0.25)/4)**2 + (x2 + 1.75)**2 > 0.18**2)
+            ((x1 + x2) < 1.5) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.4**2) | ((x1 + x2) > 2.1) & (x1 < 1.8) & (x2 < 1.8) | (((x1 + 0.25)/4)**2 + (x2 + 1.75)**2 < 0.32**2) & (((x1 + 0.25)/4)**2 + (x2 + 1.75)**2 > 0.18**2)
     db8 = lambda x1, x2: (np.sin(2*x1 + 3*x2) > 0) | (((x1 - 1)**2 + x2**2/4) * 
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
@@ -114,11 +114,15 @@ def main():
     x1 = X[:, 0]
     x2 = X[:, 1]
     
+    Xw, whitenparams = pre.whiten(X)
+
     # Query Points
     Xq = np.random.uniform(test_range_min, test_range_max, 
         size = (n_query, n_dims))
     xq1 = Xq[:, 0]
     xq2 = Xq[:, 1]
+
+    Xqw = pre.whiten(Xq, whitenparams)
 
     n_train = X.shape[0]
     n_query = Xq.shape[0]
@@ -190,7 +194,7 @@ def main():
     responsefunction = gp.classifier.responses.get(responsename)
 
     # Train the classifier!
-    learned_classifier = gp.classifier.learn(X, y, kerneldef,
+    learned_classifier = gp.classifier.learn(Xw, y, kerneldef,
         responsefunction, batch_config, 
         multimethod = multimethod, approxmethod = approxmethod,
         train = True, ftol = 1e-6, processes = n_cores)
@@ -244,10 +248,12 @@ def main():
     logging.info('Plotting... please wait')
 
     Xq_plt = gp.classifier.utils.query_map(test_ranges, n_points = 250)
+    Xqw_plt = pre.whiten(Xq_plt, whitenparams)
     yq_truth_plt = gp.classifier.utils.make_decision(Xq_plt, decision_boundary)
 
     fig = plt.figure(figsize = (15 * 1.5, 15))
     fontsize = 24
+    axis_tick_font_size = 14
 
     """
     Plot: Ground Truth
@@ -266,6 +272,10 @@ def main():
         test_range_min, test_range_max, decision_boundary)
     logging.info('Plotted Prediction Labels')
     plt.gca().set_aspect('equal', adjustable = 'box')
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
 
     """
     Plot: Training Set
@@ -288,14 +298,18 @@ def main():
     plt.gca().patch.set_facecolor('gray')
     logging.info('Plotted Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
-
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+        
     """
     Plot: Query Computations
     """
 
     # Compute Linearised and True Entropy for plotting
     logging.info('Plot: Caching Predictor...')
-    predictor_plt = gp.classifier.query(learned_classifier, Xq_plt)
+    predictor_plt = gp.classifier.query(learned_classifier, Xqw_plt)
     logging.info('Plot: Computing Expectance...')
     expectance_latent_plt = \
         gp.classifier.expectance(learned_classifier, predictor_plt)
@@ -353,7 +367,11 @@ def main():
     cbar.set_ticklabels(y_unique)
     logging.info('Plotted Prediction Labels')
     plt.gca().set_aspect('equal', adjustable = 'box')
-
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+        
     """
     Plot: Prediction Entropy onto Training Set
     """
@@ -362,7 +380,7 @@ def main():
     plt.subplot(2, 3, 4)
     gp.classifier.utils.visualise_map(yq_entropy_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    plt.title('Prediction Entropy', fontsize = fontsize)
+    plt.title('Prediction Information Entropy', fontsize = fontsize)
     plt.xlabel('x1', fontsize = fontsize)
     plt.ylabel('x2', fontsize = fontsize)
     plt.colorbar()
@@ -371,7 +389,11 @@ def main():
     plt.ylim((test_range_min, test_range_max))
     logging.info('Plotted Prediction Entropy on Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
-
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+        
     """
     Plot: Linearised Prediction Entropy onto Training Set
     """
@@ -392,7 +414,11 @@ def main():
     plt.ylim((test_range_min, test_range_max))
     logging.info('Plotted Linearised Prediction Entropy on Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
-
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+        
     """
     Plot: Exponentiated Linearised Prediction Entropy onto Training Set
     """
@@ -410,6 +436,10 @@ def main():
     plt.ylim((test_range_min, test_range_max))
     logging.info('Plotted Exponentiated Linearised Prediction Entropy (Equivalent Standard Deviation) on Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
 
     plt.tight_layout()
 
@@ -433,6 +463,7 @@ def main():
     plt.gca().patch.set_facecolor('gray')
     logging.info('Plotted Sample Query Labels')
     plt.gca().set_aspect('equal', adjustable = 'box')
+
 
     """
     Plot: Sample Query Draws
@@ -473,7 +504,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# DO TO: Put learned hyperparam in the title
-# DO TO: Find joint entropy of the whole region and put it in the title
-# TO DO: Find other measures of improvement (sum of entropy (linearised and true)) (sum of variances and standard deviation)
