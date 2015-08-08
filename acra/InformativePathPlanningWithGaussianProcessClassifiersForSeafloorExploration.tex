@@ -144,8 +144,20 @@ Kelvin.Hsu@nicta.com.au}
 				
 		\subsubsection{Results}
 		
-			
-		
+			\begin{figure*}[tb]
+			\centering
+				\includegraphics[width = \linewidth]{Figures/binary_linearised_entropy/Figure1.png}
+			\caption{Example: Linearised Entropy for a Binary Classifier}
+			\label{Figure:Results:BinaryLinearisedEntropy}
+			\end{figure*}
+
+			\begin{figure*}[tb]
+			\centering
+				\includegraphics[width = \linewidth]{Figures/multiclass_linearised_entropy/Figure1.png}
+			\caption{Example: Linearised Entropy for a Multiclass Classifier}
+			\label{Figure:Results:MulticlassyLinearisedEntropy}
+			\end{figure*}
+					
 	\subsection{Multiclass Classification}
 	
 		For multiclass classification, linearisation is performed on the softmax response functions which returns the predictive class probability $\vec{\pi}^{m}$ for each of the $c$ classes \eqref{Section:LinearisedEntropy:Equation:Softmax}. For notational clarity we move the query star ($^\star$) to the left and use the superscript $m$ to index the classes. The latent vector $\bvec{f}_{i}$ represents the collection of $c$ latent values across classes at the query point $i$, and is distinct from $\vec{f}_{m}$ which represents the collection of $n^{\star}$ latent values across query points for class $m$.
