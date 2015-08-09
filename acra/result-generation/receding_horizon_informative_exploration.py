@@ -38,7 +38,7 @@ def main():
     n_train = 50
     n_query = 1000
     n_dims  = 2   # <- Must be 2 for vis
-    n_cores = None # number of cores for multi-class (None -> default: c-1)
+    n_cores = 1 # number of cores for multi-class (None -> default: c-1)
     walltime = 300.0
     approxmethod = 'laplace' # 'laplace' or 'pls'
     multimethod = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
@@ -85,8 +85,7 @@ def main():
     """
     Data Generation
     """
-    X = np.random.uniform(test_range_min, test_range_max, 
-        size = (n_train, n_dims))
+    X = rh.utils.generate_tracks(0.8, 1.25, 10, 15, perturb_deg_scale = 5.0)
     x1 = X[:, 0]
     x2 = X[:, 1]
     
@@ -201,6 +200,7 @@ def main():
     logging.info('Plotting... please wait')
 
     Xq_plt = gp.classifier.utils.query_map(test_ranges, n_points = 250)
+    Xq_meas = gp.classifier.utils.query_map(test_ranges, n_points = 10)
     Xqw_plt = pre.whiten(Xq_plt, whitenparams)
     yq_truth_plt = gp.classifier.utils.make_decision(Xq_plt, decision_boundary)
 
@@ -260,6 +260,7 @@ def main():
     Plot: Query Computations
     """
 
+    Xqw_plt = pre.whiten(Xq_plt, whitenparams)
     # Compute Linearised and True Entropy for plotting
     logging.info('Plot: Caching Predictor...')
     predictor_plt = gp.classifier.query(learned_classifier, Xqw_plt)
@@ -284,16 +285,17 @@ def main():
     logging.info('Plot: Computing Class Predicitons')
     yq_pred_plt = gp.classifier.classify(yq_prob_plt, y_unique)
 
-    Xq_meas = gp.classifier.utils.query_map(test_ranges, n_points = 10)
-
-    predictor_meas = gp.classifier.query(learned_classifier, Xq_meas)
+    Xqw_meas = pre.whiten(Xq_meas, whitenparams)
+    predictor_meas = gp.classifier.query(learned_classifier, Xqw_meas)
     exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
     cov_meas = gp.classifier.covariance(learned_classifier, predictor_meas)
 
-    logging.info('Objective Measure: Computing Joint Linearised Entropy...')
+    logging.info('Objective Measure: Computing Linearised Joint Entropy')
+    start_time = time.clock()
     entropy_linearised_meas = gp.classifier.linearised_entropy(
         exp_meas, cov_meas, learned_classifier)
-    logging.info('Objective Measure: Computing Monte Carlo Joint Entropy...')
+    logging.info('Computation took %.4f seconds' % (time.clock() - start_time))
+    logging.info('Linearised Joint Entropy: %.4f' % entropy_linearised_meas)
 
     entropy_linearised_mean_meas = entropy_linearised_plt.mean()
     entropy_true_mean_meas = yq_entropy_plt.mean()
@@ -454,18 +456,21 @@ def main():
     Path Planning
     """
 
+    np.random.seed(200)
+
     """ Setup Path Planning """
     xq_now = np.array([[0., 0.]])
+    xq_now = np.random.uniform(test_range_min, test_range_max, size = (1, n_dims))
     horizon = (test_range_max - test_range_min) + 0.5
     n_steps = 30
 
     theta_bound = np.deg2rad(30)
-    theta_add_init = -np.deg2rad(20) * np.ones(n_steps)
-    theta_add_init[0] = np.deg2rad(180)
-    theta_add_low = -theta_bound * np.ones(n_steps)
-    theta_add_high = theta_bound * np.ones(n_steps)
-    theta_add_low[0] = 0.0
-    theta_add_high[0] = 2 * np.pi
+    theta_stack_init = -np.deg2rad(20) * np.ones(n_steps)
+    theta_stack_init[0] = np.deg2rad(180)
+    theta_stack_low = -theta_bound * np.ones(n_steps)
+    theta_stack_high = theta_bound * np.ones(n_steps)
+    theta_stack_low[0] = 0.0
+    theta_stack_high[0] = 2 * np.pi
     r = horizon/n_steps
     choice_walltime = 1500.0
     xtol_rel = 1e-2
@@ -501,12 +506,13 @@ def main():
 
     # Start exploring
     i_trials = 0
-    n_trials = 2000
+    n_trials = 300
     entropy_linearised_array = np.nan * np.ones(n_trials)
     entropy_linearised_mean_array = np.nan * np.ones(n_trials)
     entropy_true_mean_array = np.nan * np.ones(n_trials)
     entropy_opt_array = np.nan * np.ones(n_trials)
     mistake_ratio_array = np.nan * np.ones(n_trials)
+
     m_step = 1
     while i_trials < n_trials:
 
@@ -514,10 +520,10 @@ def main():
 
         if m_step <= k_step:
             # Propose a place to observe
-            xq_abs_opt, theta_add_opt, entropy_opt = \
-                rh.go_optimised_path(theta_add_init, xq_now[-1], r, 
+            xq_abs_opt, theta_stack_opt, entropy_opt = \
+                rh.optimal_path(theta_stack_init, xq_now[-1], r, 
                     learned_classifier, whitenparams, test_ranges, 
-                    theta_add_low = theta_add_low, theta_add_high = theta_add_high, 
+                    theta_stack_low = theta_stack_low, theta_stack_high = theta_stack_high, 
                     walltime = choice_walltime, xtol_rel = xtol_rel, 
                     ftol_rel = ftol_rel, globalopt = False, objective = 'LE',
                     n_draws = n_draws_est)
@@ -527,16 +533,16 @@ def main():
             logging.info('Taking %d steps' % m_step)
         else:
             m_step -= 1
-            theta_add_opt = theta_add_init.copy()
-            xq_abs_opt = rh.forward_path_model(theta_add_init, r, xq_now[-1])
+            theta_stack_opt = theta_stack_init.copy()
+            xq_abs_opt = rh.forward_path_model(theta_stack_init, r, xq_now[-1])
             logging.info('%d steps left' % m_step)
 
         xq_now = xq_abs_opt[:k_step]
 
-        theta_add_init = rh.shift_path(theta_add_opt, 
+        theta_stack_init = rh.shift_path(theta_stack_opt, 
             k_step = k_step)
-        np.clip(theta_add_init, theta_add_low + 1e-4, theta_add_high - 1e-4, 
-            out = theta_add_init)
+        np.clip(theta_stack_init, theta_stack_low + 1e-4, theta_stack_high - 1e-4, 
+            out = theta_stack_init)
 
         # Observe the current location
         yq_now = gp.classifier.utils.make_decision(xq_now, 
@@ -625,7 +631,6 @@ def main():
         mistake_ratio = (yq_truth_plt - yq_pred_plt).nonzero()[0].shape[0] / yq_truth_plt.shape[0]
 
         entropy_linearised_array[i_trials] = entropy_linearised_meas
-        # entropy_monte_carlo_array[i_trials] = entropy_monte_carlo_meas
         entropy_linearised_mean_array[i_trials] = entropy_linearised_mean_meas
         entropy_true_mean_array[i_trials] = entropy_true_mean_meas
         entropy_opt_array[i_trials] = entropy_opt
@@ -896,27 +901,28 @@ def main():
         # Move on to the next step
         i_trials += 1
 
-        # Save the learned classifier
-        if mistake_ratio < 0.075:
-            np.savez('%slearned_classifier_trial%d.npz'
-                % (full_directory, i_trials), 
-                learned_classifier = learned_classifier)
-            np.savez('%sentropy_linearised_array_trial%d.npz'
-                % (full_directory, i_trials), 
-                entropy_linearised_array = entropy_linearised_array)
-            np.savez('%sentropy_linearised_mean_array_trial%d.npz'
-                % (full_directory, i_trials), 
-                entropy_linearised_mean_array = entropy_linearised_mean_array)
-            np.savez('%sentropy_true_mean_array_trial%d.npz'
-                % (full_directory, i_trials), 
-                entropy_true_mean_array = entropy_true_mean_array)
-            np.savez('%sentropy_opt_array_trial%d.npz'
-                % (full_directory, i_trials), 
-                entropy_opt_array = entropy_opt_array)
-            np.savez('%smistake_ratio_array_trial%d.npz'
-                % (full_directory, i_trials), 
-                mistake_ratio_array = mistake_ratio_array)
-            break
+        # # Save the learned classifier
+        # if mistake_ratio < 0.075:
+        #     break
+
+    np.savez('%slearned_classifier_trial%d.npz'
+        % (full_directory, i_trials), 
+        learned_classifier = learned_classifier)
+    np.savez('%sentropy_linearised_array_trial%d.npz'
+        % (full_directory, i_trials), 
+        entropy_linearised_array = entropy_linearised_array)
+    np.savez('%sentropy_linearised_mean_array_trial%d.npz'
+        % (full_directory, i_trials), 
+        entropy_linearised_mean_array = entropy_linearised_mean_array)
+    np.savez('%sentropy_true_mean_array_trial%d.npz'
+        % (full_directory, i_trials), 
+        entropy_true_mean_array = entropy_true_mean_array)
+    np.savez('%sentropy_opt_array_trial%d.npz'
+        % (full_directory, i_trials), 
+        entropy_opt_array = entropy_opt_array)
+    np.savez('%smistake_ratio_array_trial%d.npz'
+        % (full_directory, i_trials), 
+        mistake_ratio_array = mistake_ratio_array)
 
     # Show everything!
     plt.show()
