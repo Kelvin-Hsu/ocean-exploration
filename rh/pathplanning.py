@@ -30,6 +30,10 @@ def optimal_path(theta_stack_init, x, r, memory, whitenparams, ranges,
             def objective(theta_stack, grad):
                 return path_monte_carlo_entropy_model(theta_stack, r, x, 
                     memory, whitenparams, n_draws = n_draws, S = S)
+        elif objective == 'MIE':
+            def objective(theta_stack, grad):
+                return path_marginalised_entropy_model(theta_stack, r, x, 
+                    memory, whitenparams)
 
         # Define the path constraint
         def constraint(theta_stack, grad):
@@ -98,7 +102,7 @@ def path_linearised_entropy_model(theta_stack, r, x, memory, whitenparams):
     yq_cov = gp.classifier.covariance(memory, predictors)
     entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
 
-    logging.debug('Linearised entropy computational time : %.8f' % 
+    logging.debug('Linearised entropy computational time: %.8f' % 
         (time.clock() - start_time))
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
         np.rad2deg(theta_stack), entropy))
@@ -119,7 +123,25 @@ def path_monte_carlo_entropy_model(theta_stack, r, x, memory, whitenparams,
     entropy = gp.classifier.monte_carlo_joint_entropy(yq_exp, yq_cov, memory, 
         n_draws = n_draws, S = S)
 
-    logging.debug('Monte carlo joint entropy computational time : %.8f' % 
+    logging.debug('Monte carlo joint entropy computational time: %.8f' % 
+        (time.clock() - start_time))
+    logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
+        np.rad2deg(theta_stack), entropy))
+    return entropy
+
+def path_marginalised_entropy_model(theta_stack, r, x, memory, whitenparams):
+
+    Xq = forward_path_model(theta_stack, r, x)
+    Xqw = pre.whiten(Xq, whitenparams)
+
+    logging.info('Computing marginalised information entropy...')
+    start_time = time.clock()
+
+    yq_prob = gp.classifier.predict(Xqw, memory, fusemethod = 'EXCLUSION')
+    entropy = gp.classifier.entropy(yq_prob).sum()
+
+
+    logging.debug('Marginalised information entropy computational time: %.8f' % 
         (time.clock() - start_time))
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
         np.rad2deg(theta_stack), entropy))

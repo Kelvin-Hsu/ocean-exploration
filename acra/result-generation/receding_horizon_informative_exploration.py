@@ -17,6 +17,7 @@ import time
 import parmap
 from kdef import kerneldef
 import rh
+import shelve
 
 def main():
 
@@ -444,11 +445,11 @@ def main():
 
     # Save all the figures
     if SAVE_OUTPUTS:
-        save_directory = "multiclass_receding_horizon/"
+        save_directory = "receding_horizon_informative_exploration/"
         full_directory = gp.classifier.utils.create_directories(
             save_directory, home_directory = '../Figures/', append_time = True)
         gp.classifier.utils.save_all_figures(full_directory)
-        shutil.copy2('./multiclass_receding_horizon.py', full_directory)
+        shutil.copy2('./receding_horizon_informative_exploration.py', full_directory)
 
     logging.info('Modeling Done')
 
@@ -525,7 +526,7 @@ def main():
                     learned_classifier, whitenparams, test_ranges, 
                     theta_stack_low = theta_stack_low, theta_stack_high = theta_stack_high, 
                     walltime = choice_walltime, xtol_rel = xtol_rel, 
-                    ftol_rel = ftol_rel, globalopt = False, objective = 'LE',
+                    ftol_rel = ftol_rel, globalopt = False, objective = 'MIE',
                     n_draws = n_draws_est)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
@@ -568,14 +569,14 @@ def main():
                 multimethod = multimethod, approxmethod = approxmethod,
                 train = True, ftol = 1e-6, processes = n_cores)
         except Exception as e:
-            logging.warning(e)
+            logging.warning('Training failed: {0}'.format(e))
             try:
                 learned_classifier = gp.classifier.learn(Xw_now, y_now, kerneldef,
                     responsefunction, batch_config, 
                     multimethod = multimethod, approxmethod = approxmethod,
                     train = False, ftol = 1e-6, processes = n_cores)
             except Exception as e:
-                logging.warning(e)
+                logging.warning('Learning also failed: {0}'.format(e))
                 pass    
         logging.info('Finished Learning')
 
@@ -856,35 +857,37 @@ def main():
         plt.figure(fig5.number)
         plt.clf()
 
+        steps_array = np.arange(i_trials + 1) + 1
         ax = plt.subplot(5, 1, 1)
-        plt.plot(np.arange(i_trials + 1), entropy_linearised_array[:(i_trials + 1)])
+        plt.plot(steps_array, 100 * mistake_ratio_array[:(i_trials + 1)])
+        plt.title('Percentage of Prediction Misses', fontsize = fontsize)
+        plt.ylabel('Misses (%)', fontsize = fontsize)
+        ax.set_xticklabels( () )
+
+        ax = plt.subplot(5, 1, 2)
+        plt.plot(steps_array, entropy_linearised_array[:(i_trials + 1)])
         plt.title('Joint Linearised Differential Entropy', fontsize = fontsize)
         plt.ylabel('Entropy (nats)', fontsize = fontsize)
         ax.set_xticklabels( () )
 
-        ax = plt.subplot(5, 1, 2)
-        plt.plot(np.arange(i_trials + 1), entropy_linearised_mean_array[:(i_trials + 1)])
+        ax = plt.subplot(5, 1, 3)
+        plt.plot(steps_array, entropy_linearised_mean_array[:(i_trials + 1)])
         plt.title('Average Marginalised Differential Entropy', fontsize = fontsize)
         plt.ylabel('Entropy (nats)', fontsize = fontsize)
         ax.set_xticklabels( () )
 
-        ax = plt.subplot(5, 1, 3)
-        plt.plot(np.arange(i_trials + 1), entropy_true_mean_array[:(i_trials + 1)])
-        plt.title('Average Marginalised Information Entropy', fontsize = fontsize)
-        plt.ylabel('Entropy (nats)', fontsize = fontsize)
-        ax.set_xticklabels( () )
-
         ax = plt.subplot(5, 1, 4)
-        plt.plot(np.arange(i_trials + 1), entropy_opt_array[:(i_trials + 1)])
-        plt.title('Joint Linearised Differential Entropy of Proposed Path', fontsize = fontsize)
+        plt.plot(steps_array, entropy_true_mean_array[:(i_trials + 1)])
+        plt.title('Average Marginalised Information Entropy', fontsize = fontsize)
         plt.ylabel('Entropy (nats)', fontsize = fontsize)
         ax.set_xticklabels( () )
 
         ax = plt.subplot(5, 1, 5)
         plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
-        plt.plot(np.arange(i_trials + 1), 100 * mistake_ratio_array[:(i_trials + 1)])
-        plt.title('Percentage of Prediction Misses', fontsize = fontsize)
-        plt.ylabel('Misses (%)', fontsize = fontsize)
+        plt.plot(steps_array, entropy_opt_array[:(i_trials + 1)])
+        plt.title('Entropy Metric of Proposed Path', fontsize = fontsize)
+        plt.ylabel('Entropy (nats)', fontsize = fontsize)
+
         
         plt.xlabel('Steps', fontsize = fontsize)
         for tick in plt.gca().xaxis.get_major_ticks():
@@ -901,28 +904,35 @@ def main():
         # Move on to the next step
         i_trials += 1
 
-        # # Save the learned classifier
-        # if mistake_ratio < 0.075:
-        #     break
-
-    np.savez('%slearned_classifier_trial%d.npz'
-        % (full_directory, i_trials), 
+    np.savez('%slearned_classifier.npz' % full_directory, 
         learned_classifier = learned_classifier)
-    np.savez('%sentropy_linearised_array_trial%d.npz'
-        % (full_directory, i_trials), 
-        entropy_linearised_array = entropy_linearised_array)
-    np.savez('%sentropy_linearised_mean_array_trial%d.npz'
-        % (full_directory, i_trials), 
-        entropy_linearised_mean_array = entropy_linearised_mean_array)
-    np.savez('%sentropy_true_mean_array_trial%d.npz'
-        % (full_directory, i_trials), 
-        entropy_true_mean_array = entropy_true_mean_array)
-    np.savez('%sentropy_opt_array_trial%d.npz'
-        % (full_directory, i_trials), 
-        entropy_opt_array = entropy_opt_array)
-    np.savez('%smistake_ratio_array_trial%d.npz'
-        % (full_directory, i_trials), 
+    np.savez('%smistake_ratio_array.npz' % full_directory, 
         mistake_ratio_array = mistake_ratio_array)
+    np.savez('%sentropy_linearised_array.npz' % full_directory, 
+        entropy_linearised_array = entropy_linearised_array)
+    np.savez('%sentropy_linearised_mean_array.npz' % full_directory, 
+        entropy_linearised_mean_array = entropy_linearised_mean_array)
+    np.savez('%sentropy_true_mean_array.npz' % full_directory, 
+        entropy_true_mean_array = entropy_true_mean_array)
+    np.savez('%sentropy_opt_array.npz' % full_directory, 
+        entropy_opt_array = entropy_opt_array)
+
+    np.savez('%shistory.npz' % full_directory, 
+        learned_classifier = learned_classifier,
+        mistake_ratio_array = mistake_ratio_array,
+        entropy_linearised_array = entropy_linearised_array,
+        entropy_linearised_mean_array = entropy_linearised_mean_array,
+        entropy_true_mean_array = entropy_true_mean_array,
+        entropy_opt_array = entropy_opt_array)
+
+    # Shelf all work
+    shelf = shelve.open('%sshelf.out' % full_directory, 'n') # 'n' for new
+    for key in dir():
+        try:
+            shelf[key] = globals()[key]
+        except TypeError:
+            print('ERROR shelving: {0}'.format(key))
+    shelf.close()
 
     # Show everything!
     plt.show()
