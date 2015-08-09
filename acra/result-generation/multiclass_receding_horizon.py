@@ -501,11 +501,11 @@ def main():
 
     # Save all the figures
     if SAVE_OUTPUTS:
-        save_directory = "binary_receding_horizon/"
+        save_directory = "multiclass_receding_horizon/"
         full_directory = gp.classifier.utils.create_directories(
             save_directory, home_directory = '../Figures/', append_time = True)
         gp.classifier.utils.save_all_figures(full_directory)
-        shutil.copy2('./binary_receding_horizon.py', full_directory)
+        shutil.copy2('./multiclass_receding_horizon.py', full_directory)
 
     logging.info('Modeling Done')
 
@@ -583,7 +583,7 @@ def main():
                     n_draws = n_draws_est)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
-            m_step = keep_going_until_surprise(xq_abs_opt, learned_classifier, whitenparams, decision_boundary)
+            # m_step = keep_going_until_surprise(xq_abs_opt, learned_classifier, whitenparams, decision_boundary)
             logging.info('Taking %d steps' % m_step)
         else:
             m_step -= 1

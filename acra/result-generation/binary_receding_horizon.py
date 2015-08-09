@@ -583,7 +583,7 @@ def main():
                     n_draws = n_draws_est)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
-            m_step = keep_going_until_surprise(xq_abs_opt, learned_classifier, whitenparams, decision_boundary)
+            # m_step = keep_going_until_surprise(xq_abs_opt, learned_classifier, whitenparams, decision_boundary)
             logging.info('Taking %d steps' % m_step)
         else:
             m_step -= 1
