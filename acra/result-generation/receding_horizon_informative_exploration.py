@@ -29,12 +29,12 @@ def main():
     logging.basicConfig(level = logging.DEBUG)
     gp.classifier.set_multiclass_logging_level(logging.DEBUG)
 
-    np.random.seed(500)
+    np.random.seed(100)
     
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True
-    test_range_min = -2.0
-    test_range_max = +2.0
+    test_range_min = -2.5
+    test_range_max = +2.5
     test_ranges = (test_range_min, test_range_max)
     n_train = 50
     n_query = 1000
@@ -65,9 +65,9 @@ def main():
     db5 = lambda x1, x2: ((x1/2)**2 + x2**2 > 0.3)
     db6 = lambda x1, x2: (((x1)/8)**2 + (x2 + 1.5)**2 > 0.2**2)
     db7 = lambda x1, x2: (((x1)/8)**2 + ((x2 - 1.4)/1.25)**2 > 0.2**2)
-    db4a = lambda x1, x2: ((x1 - 1.25)**2 + (x2 - 1.25)**2 > 0.5**2) & ((x1 - 0.75)**2 + (x2 + 1.2)**2 > 0.6**2) & ((x1 + 0.75)**2 + (x2 + 1.2)**2 > 0.3**2) & ((x1 + 1.3)**2 + (x2 - 1.3)**2 > 0.4**2)
+    db4a = lambda x1, x2: ((x1 - 1.25)**2 + (x2 - 1.25)**2 > 0.5**2) & ((x1 - 0.75)**2 + (x2 + 1.2)**2 > 0.6**2) & ((x1 + 0.75)**2 + (x2 + 1.2)**2 > 0.3**2) & ((x1 + 1.3)**2 + (x2 - 1.3)**2 > 0.4**2) & (x1 > -2) & ((x1 - x2) < 4.2)
     db5a = lambda x1, x2: ((x1/2)**2 + x2**2 > 0.3) & (x1 > 0)
-    db5b = lambda x1, x2: ((x1/2)**2 + x2**2 > 0.3) & (x1 < 0) & ((x1 + 0.75)**2 + (x2 - 1.2)**2 > 0.6**2)
+    db5b = lambda x1, x2: ((x1/2)**2 + x2**2 > 0.25) & (x1 < 0.7) & ((x1 + 0.75)**2 + (x2 - 1.2)**2 > 0.6**2) & (x1 - x2 < 1.5)
     db1a = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & \
             ((x1 + x2) < 1.6) | ((x1 + 0.75)**2 + (x2 + 1.2)**2 < 0.6**2)
@@ -81,12 +81,13 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = [db5b, db1c, db4a] # [db5b, db1c, db4a, db8, db6, db7]
+    # db10 = lambda x1, x2: x1 - x2 > 1.5
+    decision_boundary  =  [db5b, db1c, db4a] # [db5b, db1c, db4a, db8, db6, db7] # [db5b, db1c, db4a]
 
     """
     Data Generation
     """
-    X = rh.utils.generate_tracks(0.8, 1.25, 10, 15, perturb_deg_scale = 5.0)
+    X = rh.utils.generate_tracks(1.8, 1.0, 10, 15, perturb_deg_scale = 5.0)
     x1 = X[:, 0]
     x2 = X[:, 1]
     
@@ -457,16 +458,16 @@ def main():
     Path Planning
     """
 
-    np.random.seed(200)
+    # np.random.seed(20)
 
     """ Setup Path Planning """
-    xq_now = np.array([[0., 0.]])
-    xq_now = np.random.uniform(test_range_min, test_range_max, size = (1, n_dims))
+    xq_now = np.array([[-1., -1.]])
+    # xq_now = np.random.uniform(test_range_min, test_range_max, size = (1, n_dims))
     horizon = (test_range_max - test_range_min) + 0.5
     n_steps = 30
 
-    theta_bound = np.deg2rad(30)
-    theta_stack_init = -np.deg2rad(20) * np.ones(n_steps)
+    theta_bound = np.deg2rad(45)
+    theta_stack_init = np.deg2rad(10) * np.ones(n_steps)
     theta_stack_init[0] = np.deg2rad(180)
     theta_stack_low = -theta_bound * np.ones(n_steps)
     theta_stack_high = theta_bound * np.ones(n_steps)
@@ -526,7 +527,7 @@ def main():
                     learned_classifier, whitenparams, test_ranges, 
                     theta_stack_low = theta_stack_low, theta_stack_high = theta_stack_high, 
                     walltime = choice_walltime, xtol_rel = xtol_rel, 
-                    ftol_rel = ftol_rel, globalopt = False, objective = 'MIE',
+                    ftol_rel = ftol_rel, globalopt = False, objective = 'LE',
                     n_draws = n_draws_est)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
