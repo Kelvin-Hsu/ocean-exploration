@@ -8,17 +8,33 @@ import time
 def main():
 
     main_directory = '../Figures/'
-    directory0 = main_directory + 'rhie_000/'
-    directory1 = main_directory + 'rhie_100/'
-    directory2 = main_directory + 'rhie_200/'
+    directory_lde0 = main_directory + 'lde_000/'
+    directory_lde1 = main_directory + 'lde_100/'
+    directory_lde2 = main_directory + 'lde_200/'
+
+    directory_mie0 = main_directory + 'mie_000/'
+    directory_mie1 = main_directory + 'mie_100/'
+    directory_mie2 = main_directory + 'mie_200/'
+
+    directory_greed0 = main_directory + 'greed_000/'
+    directory_greed1 = main_directory + 'greed_100/'
+    directory_greed2 = main_directory + 'greed_200/'
 
     # convert_old_to_new_format(directory0, directory1, directory2)
 
-    data0 = obtain_data(directory0, 0)
-    data1 = obtain_data(directory1, 1)
-    data2 = obtain_data(directory2, 2)
+    data_lde0 = obtain_data(directory_lde0, 0)
+    data_lde1 = obtain_data(directory_lde1, 0)
+    data_lde2 = obtain_data(directory_lde2, 0)
 
-    plot_data(main_directory, data0, data1, data2)
+    data_mie0 = obtain_data(directory_mie0, 1)
+    data_mie1 = obtain_data(directory_mie1, 1)
+    data_mie2 = obtain_data(directory_mie2, 1)
+
+    data_greed0 = obtain_data(directory_greed0, 2)
+    data_greed1 = obtain_data(directory_greed1, 2)
+    data_greed2 = obtain_data(directory_greed2, 2)
+
+    plot_data(main_directory, data_lde0, data_lde1, data_lde2, data_mie0, data_mie1, data_mie2, data_greed0, data_greed1, data_greed2)
     plt.show()
 
 def obtain_data(directory, label):
@@ -38,10 +54,8 @@ def plot_data(directory, *args):
 
     fig = plt.figure(figsize = (20, 20))
 
-    n = len(args)
-
     L = 0.2
-    colors = cm.rainbow(np.linspace(0 + L, 1 - L, n))
+    colors = cm.rainbow(np.linspace(0 + L, 1 - L, 3))
 
     fontsize = 24
     axis_tick_font_size = 14
@@ -52,13 +66,14 @@ def plot_data(directory, *args):
     ax4 = fig.add_subplot(514)
     ax5 = fig.add_subplot(515)
 
-    for arg, color in zip(args, colors):
+    for arg in args:
 
         learned_classifier, mistake_ratio_array, entropy_linearised_array, entropy_linearised_mean_array, entropy_true_mean_array, entropy_opt_array, label = arg
 
         steps = np.arange(mistake_ratio_array.shape[0]) + 1
         
-        
+        color = colors[label]
+
         ax1.plot(steps, 100 * mistake_ratio_array, c = color)
         ax2.plot(steps, entropy_linearised_array, c = color)
         ax3.plot(steps, entropy_linearised_mean_array, c = color)
@@ -66,8 +81,6 @@ def plot_data(directory, *args):
         ax5.plot(steps, entropy_opt_array, c = color)
 
         print(color, label)
-
-        
 
     plt.subplot(5, 1, 1)
     plt.title('Percentage of Prediction Misses', fontsize = fontsize)
