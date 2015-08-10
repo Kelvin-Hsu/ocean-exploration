@@ -19,9 +19,33 @@ from kdef import kerneldef
 import rh
 import shelve
 
-assert len(sys.argv) >= 4
-
 def main():
+
+    FOLDERNAME = ' '.join(sys.argv)
+
+    FILENAME = sys.argv[0]
+
+    METHOD = 'LE'
+    if '-method' in sys.argv:
+        METHOD = sys.argv[sys.argv.index('-method') + 1]
+
+    START_POINT1 = 0.0
+    START_POINT2 = 0.0
+    if '-start' in sys.argv:
+        START_POINT1 = float(sys.argv[sys.argv.index('-start') + 1])
+        START_POINT2 = float(sys.argv[sys.argv.index('-start') + 2])
+
+    SEED = 100
+    if '-seed' in sys.argv:
+        SEED = int(sys.argv[sys.argv.index('-seed') + 1])
+
+    SHOW_TRAIN = False
+    if '-st' in sys.argv:
+        SHOW_TRAIN = True
+
+    N_ELLIPSE = 30
+    if '-e' in sys.argv:
+        N_ELLIPSE = int(sys.argv[sys.argv.index('-e') + 1])
 
     """
     Demostration Options
@@ -31,7 +55,7 @@ def main():
     logging.basicConfig(level = logging.DEBUG)
     gp.classifier.set_multiclass_logging_level(logging.DEBUG)
 
-    np.random.seed(100)
+    np.random.seed(SEED)
     
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True
@@ -58,7 +82,7 @@ def main():
 
     ellipse = lambda x1, x2, A: (((x1 - A[0])/A[2])**2 + ((x2 - A[1])/A[3])**2 < 1)
 
-    n_ellipse = 30
+    n_ellipse = N_ELLIPSE
     ndb = 3
     P = np.random.uniform(test_range_min, test_range_max, size = (ndb, n_ellipse, n_dims))
     B = np.random.uniform(0.1, 0.5, size = (ndb, n_ellipse, n_dims))
@@ -107,8 +131,8 @@ def main():
     Classifier Training
     """
 
-    if '-st' not in sys.argv:
-        
+    if SHOW_TRAIN:
+
         # Training
         fig = plt.figure()
         gp.classifier.utils.visualise_decision_boundary(
@@ -438,21 +462,19 @@ def main():
     if SAVE_OUTPUTS:
         save_directory = "%s/" % '-'.join(sys.argv) 
         full_directory = gp.classifier.utils.create_directories(
-            save_directory, home_directory = '../Figures/', append_time = True)
+            save_directory, home_directory = '../Figures/', append_time = True,
+            casual_format = True)
         gp.classifier.utils.save_all_figures(full_directory)
-        shutil.copy2('./%s' % sys.argv[0] , full_directory)
+        shutil.copy2('./%s' % FILENAME , full_directory)
 
     logging.info('Modeling Done')
 
     """
     Path Planning
     """
-    METHOD = sys.argv[1]
-    # np.random.seed(20)
 
     """ Setup Path Planning """
-    xq_now = np.array([[float(sys.argv[2]), float(sys.argv[3])]])
-    # xq_now = np.random.uniform(test_range_min, test_range_max, size = (1, n_dims))
+    xq_now = np.array([[START_POINT1, START_POINT2]])
     horizon = (test_range_max - test_range_min) + 2
     n_steps = 30
 
