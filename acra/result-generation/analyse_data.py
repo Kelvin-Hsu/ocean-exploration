@@ -5,37 +5,52 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import logging
 import time
+
 def main():
 
     main_directory = '../Figures/'
-    directory_lde0 = main_directory + 'lde_000/'
-    directory_lde1 = main_directory + 'lde_100/'
-    directory_lde2 = main_directory + 'lde_200/'
+    directory0 = main_directory + 'large_patches_LE/'
+    directory1 = main_directory + 'large_patches_MIE/'
+    directory2 = main_directory + 'large_patches_GREEDY/'
 
-    directory_mie0 = main_directory + 'mie_000/'
-    directory_mie1 = main_directory + 'mie_100/'
-    directory_mie2 = main_directory + 'mie_200/'
+    data0 = obtain_data(directory0, 0)
+    data1 = obtain_data(directory1, 1)
+    data2 = obtain_data(directory2, 2)
 
-    directory_greed0 = main_directory + 'greed_000/'
-    directory_greed1 = main_directory + 'greed_100/'
-    directory_greed2 = main_directory + 'greed_200/'
-
-    # convert_old_to_new_format(directory0, directory1, directory2)
-
-    data_lde0 = obtain_data(directory_lde0, 0)
-    data_lde1 = obtain_data(directory_lde1, 0)
-    data_lde2 = obtain_data(directory_lde2, 0)
-
-    data_mie0 = obtain_data(directory_mie0, 1)
-    data_mie1 = obtain_data(directory_mie1, 1)
-    data_mie2 = obtain_data(directory_mie2, 1)
-
-    data_greed0 = obtain_data(directory_greed0, 2)
-    data_greed1 = obtain_data(directory_greed1, 2)
-    data_greed2 = obtain_data(directory_greed2, 2)
-
-    plot_data(main_directory, data_lde0, data_lde1, data_lde2, data_mie0, data_mie1, data_mie2, data_greed0, data_greed1, data_greed2)
+    plot_data(main_directory, data0, data1, data2)
     plt.show()
+
+# def main():
+
+#     main_directory = '../Figures/'
+#     directory_lde0 = main_directory + 'lde_000/'
+#     directory_lde1 = main_directory + 'lde_100/'
+#     directory_lde2 = main_directory + 'lde_200/'
+
+#     directory_mie0 = main_directory + 'mie_000/'
+#     directory_mie1 = main_directory + 'mie_100/'
+#     directory_mie2 = main_directory + 'mie_200/'
+
+#     directory_greed0 = main_directory + 'greed_000/'
+#     directory_greed1 = main_directory + 'greed_100/'
+#     directory_greed2 = main_directory + 'greed_200/'
+
+#     # convert_old_to_new_format(directory0, directory1, directory2)
+
+#     data_lde0 = obtain_data(directory_lde0, 0)
+#     data_lde1 = obtain_data(directory_lde1, 0)
+#     data_lde2 = obtain_data(directory_lde2, 0)
+
+#     data_mie0 = obtain_data(directory_mie0, 1)
+#     data_mie1 = obtain_data(directory_mie1, 1)
+#     data_mie2 = obtain_data(directory_mie2, 1)
+
+#     data_greed0 = obtain_data(directory_greed0, 2)
+#     data_greed1 = obtain_data(directory_greed1, 2)
+#     data_greed2 = obtain_data(directory_greed2, 2)
+
+#     plot_data(main_directory, data_lde0, data_lde1, data_lde2, data_mie0, data_mie1, data_mie2, data_greed0, data_greed1, data_greed2)
+#     plt.show()
 
 def obtain_data(directory, label):
 
