@@ -49,9 +49,10 @@ def main():
     START_POINT1 = parse('-start', 0.0, arg = 1)
     START_POINT2 = parse('-start', 0.0, arg = 2)
     SEED = parse('-seed', 100)
-    N_ELLIPSE = parse('-e', 30)
-    RANGE = parse('-range', 2.5)
+    N_ELLIPSE = parse('-e', 20)
+    RANGE = parse('-range', 2.0)
     N_CLASS = parse('-classes', 4)
+    N_STEPS = parse('-steps', 300)
     SHOW_TRAIN = parse('-st', False)
     SAVE_OUTPUTS = True
 
@@ -344,7 +345,7 @@ def main():
 
     """ Setup Path Planning """
     xq_now = np.array([[START_POINT1, START_POINT2]])
-    horizon = (range_max - range_min) + 2
+    horizon = (range_max - range_min) - 1
     n_steps = 30
 
     if METHOD == 'GREEDY':
@@ -352,7 +353,11 @@ def main():
         n_steps /= n_steps
         METHOD = 'MIE'
 
-    theta_bound = np.deg2rad(180)
+    if METHOD == 'LE':
+        theta_bound = np.deg2rad(60)
+    else:
+        theta_bound = np.deg2rad(180)
+
     theta_stack_init = np.deg2rad(10) * np.ones(n_steps)
     theta_stack_init[0] = np.deg2rad(180)
     theta_stack_low = -theta_bound * np.ones(n_steps)
@@ -393,7 +398,7 @@ def main():
 
     # Start exploring
     i_trials = 0
-    n_trials = 300
+    n_trials = N_STEPS
     entropy_linearised_array = np.nan * np.ones(n_trials)
     entropy_linearised_mean_array = np.nan * np.ones(n_trials)
     entropy_true_mean_array = np.nan * np.ones(n_trials)

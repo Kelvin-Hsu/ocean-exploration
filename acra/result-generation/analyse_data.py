@@ -18,8 +18,8 @@ def main():
     data0 = obtain_data(directory0, (0, 'RHIE with Linearised Differential Entropy (LDE)'))
     data1 = obtain_data(directory1, (1, 'RHIE with Marginalised Information Entropy (MIE)'))
     data2 = obtain_data(directory2, (2, 'Greedy Exploration with MIE'))
-    data3 = obtain_data(directory3, (3, 'Random Walk 1'))
-    data4 = obtain_data(directory4, (4, 'Random Walk 2'))
+    data3 = obtain_data(directory3, (3, 'Open Loop Walk 1'))
+    data4 = obtain_data(directory4, (4, 'Open Loop Walk 2'))
     plot_data(main_directory, data0, data1, data2, data3, data4)
 
     plt.show()
