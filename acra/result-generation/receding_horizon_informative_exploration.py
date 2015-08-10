@@ -54,6 +54,8 @@ def main():
 
     assert rows_subplot * cols_subplot >= n_draws
 
+    
+
     # Decision boundaries
     db1 = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & \
@@ -77,12 +79,60 @@ def main():
     db1c = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & ((x1/2)**2 + (x2)**2 > 0.4**2) & \
             ((x1 + x2) < 1.5) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.4**2) | ((x1 + x2) > 2.1) & (x1 < 1.8) & (x2 < 1.8) | (((x1 + 0.25)/4)**2 + (x2 + 1.75)**2 < 0.32**2) & (((x1 + 0.25)/4)**2 + (x2 + 1.75)**2 > 0.18**2)
+    db1d = lambda x1, x2: db1c(x1, x2) | (np.sin(4*(x1 + x2)) > 0)
     db8 = lambda x1, x2: (np.sin(2*x1 + 3*x2) > 0) | (((x1 - 1)**2 + x2**2/4) * 
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
     # db10 = lambda x1, x2: x1 - x2 > 1.5
-    decision_boundary  =  [db5b, db1c, db4a] # [db5b, db1c, db4a, db8, db6, db7] # [db5b, db1c, db4a]
+
+    # circle = lambda x1, x2, c1, c2, r: ((x1 - c1)**2 + (x2 - c2)**2 < r**2)
+    # ellipse = lambda x1, x2, c1, c2, a, b: (((x1 - c1)/a)**2 + ((x2 - c2)/b)**2 < 1)
+
+    # def U(*args, **kwargs):
+    #     if len(args) == 1:
+    #         return np.random.uniform(0, args[0], **kwargs)
+    #     else:
+    #         return np.random.uniform(*args, **kwargs)
+
+    # P = iter(np.random.uniform(test_range_min + 0.5, test_range_max - 0.5, size = 100))
+    # R = iter(np.random.uniform(0.2, 0.8, size = 100))
+
+    # c1 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
+    # c2 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
+    # c3 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
+    # c4 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
+    # c5 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
+    # c6 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
+    # c7 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
+    # c8 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
+    # c9 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
+    # c10 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
+
+    # e1 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
+    # e2 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
+    # e3 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
+    # e4 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
+    # e5 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
+    # e6 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
+    # e7 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
+    # e8 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
+    # e9 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
+    # e10 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
+
+    ellipse = lambda x1, x2, A: (((x1 - A[0])/A[2])**2 + ((x2 - A[1])/A[3])**2 < 1)
+
+    n_ellipse = 40
+    P = np.random.uniform(test_range_min, test_range_max, size = (n_ellipse, n_dims))
+    B = np.random.uniform(0.1, 0.5, size = (n_ellipse, n_dims))
+    A = np.concatenate((P, B), axis = 1)
+
+
+    # dbce = lambda x1, x2: c1(x1, x2) | c2(x1, x2) | c3(x1, x2) | c4(x1, x2) | c5(x1, x2) | e6(x1, x2) | e7(x1, x2) | e8(x1, x2) | e9(x1, x2) | e10(x1, x2)
+    dce = lambda x1, x2: np.array([ellipse(x1, x2, a) for a in A]).sum(axis = 0) > 0 
+
+    db10 = lambda x1, x2: (np.sin(4*x1 - 4*x2) > 0) | (np.sin(4*x1 - 8*x2) > 0)
+    decision_boundary  =  dce # [db5b, db1c, db4a] # [db5b, db1c, db4a, db8, db6, db7] # [db5b, db1c, db4a]
 
     """
     Data Generation
@@ -457,16 +507,21 @@ def main():
     """
     Path Planning
     """
-
+    METHOD = 'GREEDY'
     # np.random.seed(20)
 
     """ Setup Path Planning """
-    xq_now = np.array([[-1., -1.]])
+    xq_now = np.array([[0., 0.]])
     # xq_now = np.random.uniform(test_range_min, test_range_max, size = (1, n_dims))
     horizon = (test_range_max - test_range_min) + 0.5
     n_steps = 30
 
-    theta_bound = np.deg2rad(45)
+    if METHOD == 'GREEDY':
+        horizon /= n_steps
+        n_steps /= n_steps
+        METHOD = 'MIE'
+
+    theta_bound = np.deg2rad(180)
     theta_stack_init = np.deg2rad(10) * np.ones(n_steps)
     theta_stack_init[0] = np.deg2rad(180)
     theta_stack_low = -theta_bound * np.ones(n_steps)
@@ -527,7 +582,7 @@ def main():
                     learned_classifier, whitenparams, test_ranges, 
                     theta_stack_low = theta_stack_low, theta_stack_high = theta_stack_high, 
                     walltime = choice_walltime, xtol_rel = xtol_rel, 
-                    ftol_rel = ftol_rel, globalopt = False, objective = 'LE',
+                    ftol_rel = ftol_rel, globalopt = False, objective = METHOD,
                     n_draws = n_draws_est)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
