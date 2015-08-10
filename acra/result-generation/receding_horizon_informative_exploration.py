@@ -33,7 +33,7 @@ def parse(key, currentvalue, arg = 1):
     cast = type(currentvalue)
     if key in sys.argv:
         if cast == bool:
-            return !currentvalue
+            return not currentvalue
         currentvalue = sys.argv[sys.argv.index(key) + arg]
     return cast(currentvalue)
 
@@ -42,7 +42,7 @@ def main():
     """
     Command Argument Parser
     """
-    FOLDERNAME = '-'.join(sys.argv)
+    FOLDERNAME = ''.join(sys.argv[1:])
     FILENAME = sys.argv[0]
 
     METHOD = parse('-method', 'LE')

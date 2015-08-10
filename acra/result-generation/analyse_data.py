@@ -9,15 +9,19 @@ import time
 def main():
 
     main_directory = '../Figures/'
-    directory0 = main_directory + 'large_patches_LE/'
-    directory1 = main_directory + 'large_patches_MIE/'
-    directory2 = main_directory + 'large_patches_GREEDY/'
+    directory0 = main_directory + 'small_patches_lde/'
+    directory1 = main_directory + 'small_patches_mie/'
+    directory2 = main_directory + 'small_patches_greedy/'
+    directory3 = main_directory + 'small_patches_random_1/'
+    directory4 = main_directory + 'small_patches_random_2/'
 
-    data0 = obtain_data(directory0, 0)
-    data1 = obtain_data(directory1, 1)
-    data2 = obtain_data(directory2, 2)
+    data0 = obtain_data(directory0, (0, 'RHIE with Linearised Differential Entropy (LDE)'))
+    data1 = obtain_data(directory1, (1, 'RHIE with Marginalised Information Entropy (MIE)'))
+    data2 = obtain_data(directory2, (2, 'Greedy Exploration with MIE'))
+    data3 = obtain_data(directory3, (3, 'Random Walk 1'))
+    data4 = obtain_data(directory4, (4, 'Random Walk 2'))
+    plot_data(main_directory, data0, data1, data2, data3, data4)
 
-    plot_data(main_directory, data0, data1, data2)
     plt.show()
 
 # def main():
@@ -70,7 +74,7 @@ def plot_data(directory, *args):
     fig = plt.figure(figsize = (20, 20))
 
     L = 0.2
-    colors = cm.rainbow(np.linspace(0 + L, 1 - L, 3))
+    colors = cm.rainbow(np.linspace(0 + L, 1 - L, 5))
 
     fontsize = 24
     axis_tick_font_size = 14
@@ -87,15 +91,18 @@ def plot_data(directory, *args):
 
         steps = np.arange(mistake_ratio_array.shape[0]) + 1
         
-        color = colors[label]
+        color = colors[label[0]]
 
-        ax1.plot(steps, 100 * mistake_ratio_array, c = color)
-        ax2.plot(steps, entropy_linearised_array, c = color)
-        ax3.plot(steps, entropy_linearised_mean_array, c = color)
-        ax4.plot(steps, entropy_true_mean_array, c = color)
-        ax5.plot(steps, entropy_opt_array, c = color)
+        ax1.plot(steps, 100 * mistake_ratio_array, c = color, label = label[1])
+        ax2.plot(steps, entropy_linearised_array, c = color, label = label[1])
+        ax3.plot(steps, entropy_linearised_mean_array, c = color, label = label[1])
+        ax4.plot(steps, entropy_true_mean_array, c = color, label = label[1])
+        ax5.plot(steps, entropy_opt_array, c = color, label = label[1])
 
         print(color, label)
+
+    ax1.legend(bbox_to_anchor=(0., 0.8, 1., .05), loc=3,
+           ncol=4, borderaxespad=0.)
 
     plt.subplot(5, 1, 1)
     plt.title('Percentage of Prediction Misses', fontsize = fontsize)
@@ -128,6 +135,8 @@ def plot_data(directory, *args):
         tick.label.set_fontsize(axis_tick_font_size) 
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
+
+
 
     # Save the plot
     plt.tight_layout()
