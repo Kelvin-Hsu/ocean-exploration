@@ -54,85 +54,21 @@ def main():
 
     assert rows_subplot * cols_subplot >= n_draws
 
-    
-
-    # Decision boundaries
-    db1 = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
-            (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & \
-            ((x1 + x2) < 1.5)
-    db2 = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
-            (0.9*(x1 + 1)**2 + x2**2/2) > 0.3)
-    db3 = lambda x1, x2: ((x1 + x2) < 2) & ((x1 + x2) > -2.2)
-    db4 = lambda x1, x2: ((x1 - 0.75)**2 + (x2 + 0.8)**2 > 0.3**2)
-    db5 = lambda x1, x2: ((x1/2)**2 + x2**2 > 0.3)
-    db6 = lambda x1, x2: (((x1)/8)**2 + (x2 + 1.5)**2 > 0.2**2)
-    db7 = lambda x1, x2: (((x1)/8)**2 + ((x2 - 1.4)/1.25)**2 > 0.2**2)
-    db4a = lambda x1, x2: ((x1 - 1.25)**2 + (x2 - 1.25)**2 > 0.5**2) & ((x1 - 0.75)**2 + (x2 + 1.2)**2 > 0.6**2) & ((x1 + 0.75)**2 + (x2 + 1.2)**2 > 0.3**2) & ((x1 + 1.3)**2 + (x2 - 1.3)**2 > 0.4**2) & (x1 > -2) & ((x1 - x2) < 4.2)
-    db5a = lambda x1, x2: ((x1/2)**2 + x2**2 > 0.3) & (x1 > 0)
-    db5b = lambda x1, x2: ((x1/2)**2 + x2**2 > 0.25) & (x1 < 0.7) & ((x1 + 0.75)**2 + (x2 - 1.2)**2 > 0.6**2) & (x1 - x2 < 1.5)
-    db1a = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
-            (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & \
-            ((x1 + x2) < 1.6) | ((x1 + 0.75)**2 + (x2 + 1.2)**2 < 0.6**2)
-    db1b = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
-            (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & ((x1/2)**2 + (x2)**2 > 0.4**2) & \
-            ((x1 + x2) < 1.5) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.4**2) | ((x1 + x2) > 2.1) & (x1 < 1.8) & (x2 < 1.8) # | (((x1 + 0.25)/4)**2 + (x2 + 1.5)**2 < 0.32**2) # & (((x1 + 0.25)/4)**2 + (x2 + 1.5)**2 > 0.18**2)
-    db1c = lambda x1, x2: (((x1 - 1)**2 + x2**2/4) * 
-            (0.9*(x1 + 1)**2 + x2**2/2) < 1.6) & ((x1/2)**2 + (x2)**2 > 0.4**2) & \
-            ((x1 + x2) < 1.5) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.4**2) | ((x1 + x2) > 2.1) & (x1 < 1.8) & (x2 < 1.8) | (((x1 + 0.25)/4)**2 + (x2 + 1.75)**2 < 0.32**2) & (((x1 + 0.25)/4)**2 + (x2 + 1.75)**2 > 0.18**2)
-    db1d = lambda x1, x2: db1c(x1, x2) | (np.sin(4*(x1 + x2)) > 0)
-    db8 = lambda x1, x2: (np.sin(2*x1 + 3*x2) > 0) | (((x1 - 1)**2 + x2**2/4) * 
-            (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
-            ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
-    # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    # db10 = lambda x1, x2: x1 - x2 > 1.5
-
-    # circle = lambda x1, x2, c1, c2, r: ((x1 - c1)**2 + (x2 - c2)**2 < r**2)
-    # ellipse = lambda x1, x2, c1, c2, a, b: (((x1 - c1)/a)**2 + ((x2 - c2)/b)**2 < 1)
-
-    # def U(*args, **kwargs):
-    #     if len(args) == 1:
-    #         return np.random.uniform(0, args[0], **kwargs)
-    #     else:
-    #         return np.random.uniform(*args, **kwargs)
-
-    # P = iter(np.random.uniform(test_range_min + 0.5, test_range_max - 0.5, size = 100))
-    # R = iter(np.random.uniform(0.2, 0.8, size = 100))
-
-    # c1 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
-    # c2 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
-    # c3 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
-    # c4 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
-    # c5 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
-    # c6 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
-    # c7 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
-    # c8 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
-    # c9 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
-    # c10 = lambda x1, x2: circle(x1, x2, next(P), next(P), next(R))
-
-    # e1 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
-    # e2 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
-    # e3 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
-    # e4 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
-    # e5 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
-    # e6 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
-    # e7 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
-    # e8 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
-    # e9 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
-    # e10 = lambda x1, x2: ellipse(x1, x2, next(P), next(P), next(R), next(R))
-
     ellipse = lambda x1, x2, A: (((x1 - A[0])/A[2])**2 + ((x2 - A[1])/A[3])**2 < 1)
 
-    n_ellipse = 40
-    P = np.random.uniform(test_range_min, test_range_max, size = (n_ellipse, n_dims))
-    B = np.random.uniform(0.1, 0.5, size = (n_ellipse, n_dims))
-    A = np.concatenate((P, B), axis = 1)
+    n_ellipse = 30
+    ndb = 3
+    P = np.random.uniform(test_range_min, test_range_max, size = (ndb, n_ellipse, n_dims))
+    B = np.random.uniform(0.1, 0.5, size = (ndb, n_ellipse, n_dims))
+    A = np.concatenate((P, B), axis = 2)
 
+    db_constructor = lambda i: lambda x1, x2: np.array([ellipse(x1, x2, a) for a in A[i]]).sum(axis = 0) > 0 
 
     # dbce = lambda x1, x2: c1(x1, x2) | c2(x1, x2) | c3(x1, x2) | c4(x1, x2) | c5(x1, x2) | e6(x1, x2) | e7(x1, x2) | e8(x1, x2) | e9(x1, x2) | e10(x1, x2)
-    dce = lambda x1, x2: np.array([ellipse(x1, x2, a) for a in A]).sum(axis = 0) > 0 
+    dce = lambda x1, x2: np.array([ellipse(x1, x2, a) for a in A[0]]).sum(axis = 0) > 0 
 
-    db10 = lambda x1, x2: (np.sin(4*x1 - 4*x2) > 0) | (np.sin(4*x1 - 8*x2) > 0)
-    decision_boundary  =  dce # [db5b, db1c, db4a] # [db5b, db1c, db4a, db8, db6, db7] # [db5b, db1c, db4a]
+
+    decision_boundary  =  [db_constructor(i) for i in range(ndb)] # [db5b, db1c, db4a] # [db5b, db1c, db4a, db8, db6, db7] # [db5b, db1c, db4a]
 
     """
     Data Generation
@@ -507,13 +443,13 @@ def main():
     """
     Path Planning
     """
-    METHOD = 'GREEDY'
+    METHOD = 'RANDOM'
     # np.random.seed(20)
 
     """ Setup Path Planning """
     xq_now = np.array([[0., 0.]])
     # xq_now = np.random.uniform(test_range_min, test_range_max, size = (1, n_dims))
-    horizon = (test_range_max - test_range_min) + 0.5
+    horizon = (test_range_max - test_range_min) - 1
     n_steps = 30
 
     if METHOD == 'GREEDY':
@@ -576,14 +512,21 @@ def main():
         """ Path Planning """
 
         if m_step <= k_step:
-            # Propose a place to observe
-            xq_abs_opt, theta_stack_opt, entropy_opt = \
-                rh.optimal_path(theta_stack_init, xq_now[-1], r, 
-                    learned_classifier, whitenparams, test_ranges, 
-                    theta_stack_low = theta_stack_low, theta_stack_high = theta_stack_high, 
-                    walltime = choice_walltime, xtol_rel = xtol_rel, 
-                    ftol_rel = ftol_rel, globalopt = False, objective = METHOD,
-                    n_draws = n_draws_est)
+            if METHOD == 'RANDOM':
+                xq_abs_opt, theta_stack_opt, entropy_opt = \
+                    rh.random_path(theta_stack_init, xq_now[-1], r, 
+                        learned_classifier, whitenparams, test_ranges, perturb_deg = 20)
+            else:
+                # Propose a place to observe
+                xq_abs_opt, theta_stack_opt, entropy_opt = \
+                    rh.optimal_path(theta_stack_init, xq_now[-1], r, 
+                        learned_classifier, whitenparams, test_ranges, 
+                        theta_stack_low = theta_stack_low, 
+                        theta_stack_high = theta_stack_high, 
+                        walltime = choice_walltime, xtol_rel = xtol_rel, 
+                        ftol_rel = ftol_rel, globalopt = False, 
+                        objective = METHOD,
+                        n_draws = n_draws_est)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
             # m_step = rh.correct_lookahead_predictions(xq_abs_opt, learned_classifier, whitenparams, decision_boundary)

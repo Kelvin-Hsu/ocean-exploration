@@ -10,6 +10,26 @@ import computers.unsupervised.whitening as pre
 import logging
 import time
 
+def random_path(theta_stack_init, x, r, memory, whitenparams, ranges, perturb_deg = 30):
+
+    theta_perturb = np.random.normal(loc = 0., scale = np.deg2rad(perturb_deg), 
+        size = theta_stack_init.shape[0])
+
+    theta_stack = theta_stack_init + theta_perturb
+
+    while path_bounds_model(theta_stack, r, x, ranges) > 0:
+
+        theta_perturb = np.random.normal(loc = 0., scale = np.deg2rad(perturb_deg), 
+            size = theta_stack_init.shape[0])
+
+        theta_stack = theta_stack_init + theta_perturb
+
+    x_abs = forward_path_model(theta_stack, r, x)
+
+    entropy = path_linearised_entropy_model(theta_stack, r, x, 
+                    memory, whitenparams)
+    return x_abs, theta_stack, entropy
+
 def optimal_path(theta_stack_init, x, r, memory, whitenparams, ranges,
     objective = 'LE', theta_stack_low = None, theta_stack_high = None, 
     walltime = None, xtol_rel = 1e-2, ftol_rel = 1e-2, globalopt = False,
