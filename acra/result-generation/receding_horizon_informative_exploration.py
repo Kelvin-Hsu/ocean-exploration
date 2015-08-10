@@ -19,82 +19,75 @@ from kdef import kerneldef
 import rh
 import shelve
 
+def parse(key, currentvalue, arg = 1):
+    """
+    Parses the command line arguments
+    1. Obtains the expected data type
+    2. Checks if key is present
+    3. If it is, check if the expected data type is a boolean
+    4. If so, set the flag away from default and return
+    5. Otherwise, obtain the 'arg'-th parameter after the key
+    6. Cast the resulting string into the correct type and return
+    (*) This will return the default value if key is not present
+    """
+    cast = type(currentvalue)
+    if key in sys.argv:
+        if cast == bool:
+            return !currentvalue
+        currentvalue = sys.argv[sys.argv.index(key) + arg]
+    return cast(currentvalue)
+
 def main():
 
-    FOLDERNAME = ' '.join(sys.argv)
-
+    """
+    Command Argument Parser
+    """
+    FOLDERNAME = '-'.join(sys.argv)
     FILENAME = sys.argv[0]
 
-    METHOD = 'LE'
-    if '-method' in sys.argv:
-        METHOD = sys.argv[sys.argv.index('-method') + 1]
-
-    START_POINT1 = 0.0
-    START_POINT2 = 0.0
-    if '-start' in sys.argv:
-        START_POINT1 = float(sys.argv[sys.argv.index('-start') + 1])
-        START_POINT2 = float(sys.argv[sys.argv.index('-start') + 2])
-
-    SEED = 100
-    if '-seed' in sys.argv:
-        SEED = int(sys.argv[sys.argv.index('-seed') + 1])
-
-    SHOW_TRAIN = False
-    if '-st' in sys.argv:
-        SHOW_TRAIN = True
-
-    N_ELLIPSE = 30
-    if '-e' in sys.argv:
-        N_ELLIPSE = int(sys.argv[sys.argv.index('-e') + 1])
+    METHOD = parse('-method', 'LE')
+    START_POINT1 = parse('-start', 0.0, arg = 1)
+    START_POINT2 = parse('-start', 0.0, arg = 2)
+    SEED = parse('-seed', 100)
+    N_ELLIPSE = parse('-e', 30)
+    RANGE = parse('-range', 2.5)
+    N_CLASS = parse('-classes', 4)
+    SHOW_TRAIN = parse('-st', False)
+    SAVE_OUTPUTS = True
 
     """
-    Demostration Options
+    Analysis Options
     """
-
     # Set logging level
     logging.basicConfig(level = logging.DEBUG)
     gp.classifier.set_multiclass_logging_level(logging.DEBUG)
 
-    np.random.seed(SEED)
-    
     # Feature Generation Parameters and Demonstration Options
-    SAVE_OUTPUTS = True
-    test_range_min = -2.5
-    test_range_max = +2.5
-    test_ranges = (test_range_min, test_range_max)
-    n_train = 50
-    n_query = 1000
-    n_dims  = 2   # <- Must be 2 for vis
+    range_min = -RANGE
+    range_max = +RANGE
+    ranges = (range_min, range_max)
+    n_dims  = 2 # <- Must be 2 for vis
     n_cores = 1 # number of cores for multi-class (None -> default: c-1)
     walltime = 300.0
     approxmethod = 'laplace' # 'laplace' or 'pls'
     multimethod = 'OVA' # 'AVA' or 'OVA', ignored for binary problem
     fusemethod = 'EXCLUSION' # 'MODE' or 'EXCLUSION', ignored for binary
     responsename = 'probit' # 'probit' or 'logistic'
-    entropy_threshold = None
-
-    n_draws = 6
     n_draws_est = 2500
-    rows_subplot = 2
-    cols_subplot = 3
+    meas_points = 10
 
-    assert rows_subplot * cols_subplot >= n_draws
+    np.random.seed(SEED)
+    decision_boundary = \
+        gp.classifier.utils.generate_elliptical_decision_boundaries(ranges, 
+        min_size = 0.1, max_size = 0.5, 
+        n_class = N_CLASS, n_ellipse = N_ELLIPSE, n_dims = n_dims)
 
-    ellipse = lambda x1, x2, A: (((x1 - A[0])/A[2])**2 + ((x2 - A[1])/A[3])**2 < 1)
-
-    n_ellipse = N_ELLIPSE
-    ndb = 3
-    P = np.random.uniform(test_range_min, test_range_max, size = (ndb, n_ellipse, n_dims))
-    B = np.random.uniform(0.1, 0.5, size = (ndb, n_ellipse, n_dims))
-    A = np.concatenate((P, B), axis = 2)
-
-    db_constructor = lambda i: lambda x1, x2: np.array([ellipse(x1, x2, a) for a in A[i]]).sum(axis = 0) > 0 
-
-    # dbce = lambda x1, x2: c1(x1, x2) | c2(x1, x2) | c3(x1, x2) | c4(x1, x2) | c5(x1, x2) | e6(x1, x2) | e7(x1, x2) | e8(x1, x2) | e9(x1, x2) | e10(x1, x2)
-    dce = lambda x1, x2: np.array([ellipse(x1, x2, a) for a in A[0]]).sum(axis = 0) > 0 
-
-
-    decision_boundary  =  [db_constructor(i) for i in range(ndb)] # [db5b, db1c, db4a] # [db5b, db1c, db4a, db8, db6, db7] # [db5b, db1c, db4a]
+    """
+    Plot Options
+    """
+    fontsize = 24
+    axis_tick_font_size = 14
+    plt_points = 250
 
     """
     Data Generation
@@ -105,21 +98,13 @@ def main():
     
     Xw, whitenparams = pre.whiten(X)
 
-    # Query Points
-    Xq = np.random.uniform(test_range_min, test_range_max, 
-        size = (n_query, n_dims))
-    xq1 = Xq[:, 0]
-    xq2 = Xq[:, 1]
-
-    Xqw = pre.whiten(Xq, whitenparams)
-
     n_train = X.shape[0]
-    n_query = Xq.shape[0]
     logging.info('Training Points: %d' % n_train)
 
     # Training Labels
     y = gp.classifier.utils.make_decision(X, decision_boundary)
     y_unique = np.unique(y)
+    assert y_unique.shape[0] == N_CLASS
 
     if y_unique.shape[0] == 2:
         mycmap = cm.get_cmap(name = 'bone', lut = None)
@@ -130,14 +115,10 @@ def main():
     """
     Classifier Training
     """
-
     if SHOW_TRAIN:
-
-        # Training
         fig = plt.figure()
         gp.classifier.utils.visualise_decision_boundary(
-            test_range_min, test_range_max, decision_boundary)
-        
+            range_min, range_max, decision_boundary)
         plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
         plt.title('Training Labels')
         plt.xlabel('x1')
@@ -145,20 +126,17 @@ def main():
         cbar = plt.colorbar()
         cbar.set_ticks(y_unique)
         cbar.set_ticklabels(y_unique)
-        plt.xlim((test_range_min, test_range_max))
-        plt.ylim((test_range_min, test_range_max))
+        plt.xlim((range_min, range_max))
+        plt.ylim((range_min, range_max))
         plt.gca().patch.set_facecolor('gray')
         logging.info('Plotted Training Set')
-
         plt.show()
 
-    # Training
+    # Set optimiser configuration and obtain the response function
     logging.info('===Begin Classifier Training===')
     optimiser_config = gp.OptConfig()
     optimiser_config.sigma = gp.auto_range(kerneldef)
     optimiser_config.walltime = walltime
-
-    # Obtain the response function
     responsefunction = gp.classifier.responses.get(responsename)
 
     # Train the classifier!
@@ -168,69 +146,72 @@ def main():
         train = True, ftol = 1e-6, processes = n_cores)
 
     # Print learned kernels
+    logging.info('Learned kernels:')
     print_function = gp.describer(kerneldef)
-    gp.classifier.utils.print_learned_kernels(print_function, 
-                                            learned_classifier, y_unique)
+    gp.classifier.utils.print_learned_kernels(
+        print_function, learned_classifier, y_unique)
 
     # Print the matrix of learned classifier hyperparameters
     logging.info('Matrix of learned hyperparameters')
     gp.classifier.utils.print_hyperparam_matrix(learned_classifier)
-    
-    """
-    Classifier Prediction
-    """
-    # Prediction
-    yq_prob = gp.classifier.predict(Xqw, learned_classifier, 
-        fusemethod = fusemethod)
-    yq_pred = gp.classifier.classify(yq_prob, y)
-    yq_entropy = gp.classifier.entropy(yq_prob)
-
-    logging.info('Caching Predictor...')
-    predictors = gp.classifier.query(learned_classifier, Xqw)
-    logging.info('Computing Expectance...')
-    yq_exp_list = gp.classifier.expectance(learned_classifier, predictors)
-    logging.info('Computing Covariance...')
-    yq_cov_list = gp.classifier.covariance(learned_classifier, predictors)
-    logging.info('Drawing from GP...')
-    yq_draws = gp.classifier.draws(n_draws, yq_exp_list, yq_cov_list, 
-        learned_classifier)
-    logging.info('Computing Linearised Entropy...')
-    yq_linearised_entropy = gp.classifier.linearised_entropy(
-        yq_exp_list, yq_cov_list, learned_classifier)
-    logging.info('Linearised Entropy is {0}'.format(yq_linearised_entropy))
-
-    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-                        THE GAP BETWEEN ANALYSIS AND PLOTS
-    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-
-
-
-
 
 
     """
     Classifier Prediction Results (Plots)
     """
 
-    logging.info('Plotting... please wait')
-
-    Xq_plt = gp.classifier.utils.query_map(test_ranges, n_points = 250)
-    Xq_meas = gp.classifier.utils.query_map(test_ranges, n_points = 10)
+    """Feature Generation and Query Computations"""
+    Xq_plt = gp.classifier.utils.query_map(ranges, n_points = plt_points)
+    Xq_meas = gp.classifier.utils.query_map(ranges, n_points = meas_points)
     Xqw_plt = pre.whiten(Xq_plt, whitenparams)
+    Xqw_meas = pre.whiten(Xq_meas, whitenparams)
     yq_truth_plt = gp.classifier.utils.make_decision(Xq_plt, decision_boundary)
 
+    logging.info('Plot: Caching Predictor...')
+    predictor_plt = gp.classifier.query(learned_classifier, Xqw_plt)
+    logging.info('Plot: Computing Expectance...')
+    exp_plt = gp.classifier.expectance(learned_classifier, predictor_plt)
+    logging.info('Plot: Computing Variance...')
+    var_plt = gp.classifier.variance(learned_classifier, predictor_plt)
+
+    logging.info('Plot: Computing Linearised Entropy...')
+    yq_le_plt = gp.classifier.linearised_entropy(exp_plt, var_plt, 
+        learned_classifier)
+    logging.info('Plot: Computing Equivalent Standard Deviation...')
+    eq_sd_plt = gp.classifier.equivalent_standard_deviation(yq_le_plt)
+    logging.info('Plot: Computing Prediction Probabilities...')
+    yq_prob_plt = gp.classifier.predict_from_latent(exp_plt, var_plt, 
+        learned_classifier, fusemethod = fusemethod)
+    logging.info('Plot: Computing Information Entropy...')
+    yq_entropy_plt = gp.classifier.entropy(yq_prob_plt)
+    logging.info('Plot: Computing Class Predicitons...')
+    yq_pred_plt = gp.classifier.classify(yq_prob_plt, y_unique)
+
+    logging.info('Measure: Caching Predictor...')
+    predictor_meas = gp.classifier.query(learned_classifier, Xqw_meas)
+    logging.info('Measure: Computing Expectance...')
+    exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
+    logging.info('Measure: Computing Covariance...')
+    cov_meas = gp.classifier.covariance(learned_classifier, predictor_meas)
+    logging.info('Measure: Computing Mistake Ratio...')
+    mistake_ratio = (yq_truth_plt - yq_pred_plt).nonzero()[0].shape[0] / \
+        yq_truth_plt.shape[0]
+    logging.info('Measure: Computing Linearised Joint Entropy...')
+    start_time = time.clock()
+    entropy_linearised_meas = gp.classifier.linearised_entropy(
+        exp_meas, cov_meas, learned_classifier)
+    logging.info('Computation took %.4f seconds' % (time.clock() - start_time))
+    logging.info('Linearised Joint Entropy: %.4f' % entropy_linearised_meas)
+    logging.info('Measure: Computing Average Linearised Entropy...')
+    entropy_linearised_mean_meas = yq_le_plt.mean()
+    logging.info('Measure: Computing Average Information Entropy...')
+    entropy_true_mean_meas = yq_entropy_plt.mean()
+
+    """Plot: Ground Truth"""
     fig = plt.figure(figsize = (15 * 1.5, 15))
-    fontsize = 24
-    axis_tick_font_size = 14
 
-    """
-    Plot: Ground Truth
-    """
-
-    # Training
     plt.subplot(2, 3, 1)
-    gp.classifier.utils.visualise_map(yq_truth_plt, test_ranges, cmap = mycmap)
+    gp.classifier.utils.visualise_map(yq_truth_plt, ranges, cmap = mycmap)
     plt.title('Ground Truth', fontsize = fontsize)
     plt.xlabel('x1', fontsize = fontsize)
     plt.ylabel('x2', fontsize = fontsize)
@@ -238,7 +219,7 @@ def main():
     cbar.set_ticks(y_unique)
     cbar.set_ticklabels(y_unique)
     gp.classifier.utils.visualise_decision_boundary(
-        test_range_min, test_range_max, decision_boundary)
+        range_min, range_max, decision_boundary)
     logging.info('Plotted Prediction Labels')
     plt.gca().set_aspect('equal', adjustable = 'box')
     for tick in plt.gca().xaxis.get_major_ticks():
@@ -246,14 +227,10 @@ def main():
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
 
-    """
-    Plot: Training Set
-    """
-
-    # Training
+    """Plot: Training Set"""
     plt.subplot(2, 3, 2)
     gp.classifier.utils.visualise_decision_boundary(
-        test_range_min, test_range_max, decision_boundary)
+        range_min, range_max, decision_boundary)
     
     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
     plt.title('Training Labels', fontsize = fontsize)
@@ -262,8 +239,8 @@ def main():
     cbar = plt.colorbar()
     cbar.set_ticks(y_unique)
     cbar.set_ticklabels(y_unique)
-    plt.xlim((test_range_min, test_range_max))
-    plt.ylim((test_range_min, test_range_max))
+    plt.xlim((range_min, range_max))
+    plt.ylim((range_min, range_max))
     plt.gca().patch.set_facecolor('gray')
     logging.info('Plotted Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
@@ -271,62 +248,13 @@ def main():
         tick.label.set_fontsize(axis_tick_font_size) 
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
-        
-    """
-    Plot: Query Computations
-    """
 
-    Xqw_plt = pre.whiten(Xq_plt, whitenparams)
-    # Compute Linearised and True Entropy for plotting
-    logging.info('Plot: Caching Predictor...')
-    predictor_plt = gp.classifier.query(learned_classifier, Xqw_plt)
-    logging.info('Plot: Computing Expectance...')
-    expectance_latent_plt = \
-        gp.classifier.expectance(learned_classifier, predictor_plt)
-    logging.info('Plot: Computing Variance...')
-    variance_latent_plt = \
-        gp.classifier.variance(learned_classifier, predictor_plt)
-    logging.info('Plot: Computing Linearised Entropy...')
-    entropy_linearised_plt = gp.classifier.linearised_entropy(
-        expectance_latent_plt, variance_latent_plt, learned_classifier)
-    logging.info('Plot: Computing Equivalent Standard Deviation')
-    eq_sd_plt = gp.classifier.equivalent_standard_deviation(
-        entropy_linearised_plt)
-    logging.info('Plot: Computing Prediction Probabilities...')
-    yq_prob_plt = gp.classifier.predict_from_latent(
-        expectance_latent_plt, variance_latent_plt, learned_classifier, 
-        fusemethod = fusemethod)
-    logging.info('Plot: Computing True Entropy...')
-    yq_entropy_plt = gp.classifier.entropy(yq_prob_plt)
-    logging.info('Plot: Computing Class Predicitons')
-    yq_pred_plt = gp.classifier.classify(yq_prob_plt, y_unique)
-
-    Xqw_meas = pre.whiten(Xq_meas, whitenparams)
-    predictor_meas = gp.classifier.query(learned_classifier, Xqw_meas)
-    exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
-    cov_meas = gp.classifier.covariance(learned_classifier, predictor_meas)
-
-    logging.info('Objective Measure: Computing Linearised Joint Entropy')
-    start_time = time.clock()
-    entropy_linearised_meas = gp.classifier.linearised_entropy(
-        exp_meas, cov_meas, learned_classifier)
-    logging.info('Computation took %.4f seconds' % (time.clock() - start_time))
-    logging.info('Linearised Joint Entropy: %.4f' % entropy_linearised_meas)
-
-    entropy_linearised_mean_meas = entropy_linearised_plt.mean()
-    entropy_true_mean_meas = yq_entropy_plt.mean()
-
-    mistake_ratio = (yq_truth_plt - yq_pred_plt).nonzero()[0].shape[0] / yq_truth_plt.shape[0]
-
-    """
-    Plot: Prediction Labels
-    """
-
-    # Query (Prediction Map)
+    """Plot: Prediction Labels"""
     plt.subplot(2, 3, 3)
-    gp.classifier.utils.visualise_map(yq_pred_plt, test_ranges, 
+    gp.classifier.utils.visualise_map(yq_pred_plt, ranges, 
         boundaries = True, cmap = mycmap)
-    plt.title('Prediction [Miss Ratio: %.3f %s]' % (100 * mistake_ratio, '%'), fontsize = fontsize)
+    plt.title('Prediction [Miss Ratio: %.3f %s]' % (100 * mistake_ratio, '%'), 
+        fontsize = fontsize)
     plt.xlabel('x1', fontsize = fontsize)
     plt.ylabel('x2', fontsize = fontsize)
     cbar = plt.colorbar()
@@ -339,69 +267,56 @@ def main():
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
         
-    """
-    Plot: Prediction Entropy onto Training Set
-    """
-
-    # Query (Prediction Entropy)
+    """Plot: Prediction Information Entropy onto Training Set"""
     plt.subplot(2, 3, 4)
-    gp.classifier.utils.visualise_map(yq_entropy_plt, test_ranges, 
-        threshold = entropy_threshold, cmap = cm.coolwarm)
+    gp.classifier.utils.visualise_map(yq_entropy_plt, ranges, 
+        cmap = cm.coolwarm)
     plt.title('Prediction Information Entropy', fontsize = fontsize)
     plt.xlabel('x1', fontsize = fontsize)
     plt.ylabel('x2', fontsize = fontsize)
     plt.colorbar()
     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    plt.xlim((test_range_min, test_range_max))
-    plt.ylim((test_range_min, test_range_max))
-    logging.info('Plotted Prediction Entropy on Training Set')
+    plt.xlim((range_min, range_max))
+    plt.ylim((range_min, range_max))
+    logging.info('Plotted Prediction Information Entropy on Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
     for tick in plt.gca().xaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
         
-    """
-    Plot: Linearised Prediction Entropy onto Training Set
-    """
-
-    # Query (Linearised Entropy)
+    """Plot: Linearised Differential Entropy onto Training Set"""
     plt.subplot(2, 3, 5)
-    entropy_linearised_plt_min = entropy_linearised_plt.min()
-    entropy_linearised_plt_max = entropy_linearised_plt.max()
-    gp.classifier.utils.visualise_map(entropy_linearised_plt, test_ranges, 
-        threshold = entropy_threshold, cmap = cm.coolwarm, 
-        vmin = -entropy_linearised_plt_max, vmax = entropy_linearised_plt_max)
+    yq_le_plt_min = yq_le_plt.min()
+    yq_le_plt_max = yq_le_plt.max()
+    gp.classifier.utils.visualise_map(yq_le_plt, ranges, 
+        cmap = cm.coolwarm, 
+        vmin = -yq_le_plt_max, vmax = yq_le_plt_max)
     plt.title('Linearised Differential Entropy', fontsize = fontsize)
     plt.xlabel('x1', fontsize = fontsize)
     plt.ylabel('x2', fontsize = fontsize)
     plt.colorbar()
     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    plt.xlim((test_range_min, test_range_max))
-    plt.ylim((test_range_min, test_range_max))
-    logging.info('Plotted Linearised Prediction Entropy on Training Set')
+    plt.xlim((range_min, range_max))
+    plt.ylim((range_min, range_max))
+    logging.info('Plotted Linearised Differential Entropy on Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
     for tick in plt.gca().xaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
         
-    """
-    Plot: Exponentiated Linearised Prediction Entropy onto Training Set
-    """
-
-    # Query (Linearised Entropy)
+    """Plot: Equivalent Standard Deviation onto Training Set"""
     plt.subplot(2, 3, 6)
-    gp.classifier.utils.visualise_map(eq_sd_plt, test_ranges, 
-        threshold = entropy_threshold, cmap = cm.coolwarm)
+    gp.classifier.utils.visualise_map(eq_sd_plt, ranges, cmap = cm.coolwarm)
     plt.title('Equivalent Standard Deviation', fontsize = fontsize)
     plt.xlabel('x1', fontsize = fontsize)
     plt.ylabel('x2', fontsize = fontsize)
     plt.colorbar()
     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    plt.xlim((test_range_min, test_range_max))
-    plt.ylim((test_range_min, test_range_max))
-    logging.info('Plotted Exponentiated Linearised Prediction Entropy (Equivalent Standard Deviation) on Training Set')
+    plt.xlim((range_min, range_max))
+    plt.ylim((range_min, range_max))
+    logging.info('Plotted Equivalent Standard Deviation on Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
     for tick in plt.gca().xaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
@@ -411,56 +326,10 @@ def main():
     plt.tight_layout()
 
     """
-    Plot: Sample Query Predictions
-    """  
-
-    # Visualise Predictions
-    fig = plt.figure(figsize = (15, 15))
-    gp.classifier.utils.visualise_decision_boundary(
-        test_range_min, test_range_max, decision_boundary)
-    plt.scatter(xq1, xq2, c = yq_pred, marker = 'x', cmap = mycmap)
-    plt.title('Predicted Query Labels')
-    plt.xlabel('x1')
-    plt.ylabel('x2')
-    cbar = plt.colorbar()
-    cbar.set_ticks(y_unique)
-    cbar.set_ticklabels(y_unique)
-    plt.xlim((test_range_min, test_range_max))
-    plt.ylim((test_range_min, test_range_max))
-    plt.gca().patch.set_facecolor('gray')
-    logging.info('Plotted Sample Query Labels')
-    plt.gca().set_aspect('equal', adjustable = 'box')
-
-
-    """
-    Plot: Sample Query Draws
-    """  
-
-    # Visualise Predictions
-    fig = plt.figure(figsize = (19.2, 10.8))
-    for i in range(n_draws):
-        plt.subplot(rows_subplot, cols_subplot, i + 1)
-        gp.classifier.utils.visualise_decision_boundary(
-            test_range_min, test_range_max, decision_boundary)
-        plt.scatter(xq1, xq2, c = yq_draws[i], marker = 'x', cmap = mycmap)
-        plt.title('Query Label Draws')
-        plt.xlabel('x1')
-        plt.ylabel('x2')
-        cbar = plt.colorbar()
-        cbar.set_ticks(y_unique)
-        cbar.set_ticklabels(y_unique)
-        plt.xlim((test_range_min, test_range_max))
-        plt.ylim((test_range_min, test_range_max))
-        plt.gca().patch.set_facecolor('gray')
-        logging.info('Plotted Sample Query Draws')
-
-    """
     Save Outputs
     """  
-
-    # Save all the figures
     if SAVE_OUTPUTS:
-        save_directory = "%s/" % '-'.join(sys.argv) 
+        save_directory = "%s/" % FOLDERNAME
         full_directory = gp.classifier.utils.create_directories(
             save_directory, home_directory = '../Figures/', append_time = True,
             casual_format = True)
@@ -475,7 +344,7 @@ def main():
 
     """ Setup Path Planning """
     xq_now = np.array([[START_POINT1, START_POINT2]])
-    horizon = (test_range_max - test_range_min) + 2
+    horizon = (range_max - range_min) + 2
     n_steps = 30
 
     if METHOD == 'GREEDY':
@@ -504,8 +373,7 @@ def main():
     y_now = y.copy()
 
     # Observe the current location
-    yq_now = gp.classifier.utils.make_decision(xq_now[[-1]], 
-        decision_boundary)
+    yq_now = gp.classifier.utils.make_decision(xq_now[[-1]], decision_boundary)
 
     # Add the observed data to the training set
     X_now = np.concatenate((X_now, xq_now[[-1]]), axis = 0)
@@ -531,22 +399,22 @@ def main():
     entropy_true_mean_array = np.nan * np.ones(n_trials)
     entropy_opt_array = np.nan * np.ones(n_trials)
     mistake_ratio_array = np.nan * np.ones(n_trials)
-
     m_step = 1
     while i_trials < n_trials:
 
         """ Path Planning """
 
+        # Propose a path
         if m_step <= k_step:
             if METHOD == 'RANDOM':
                 xq_abs_opt, theta_stack_opt, entropy_opt = \
                     rh.random_path(theta_stack_init, xq_now[-1], r, 
-                        learned_classifier, whitenparams, test_ranges, perturb_deg = 20)
+                        learned_classifier, whitenparams, ranges, 
+                        perturb_deg = 20)
             else:
-                # Propose a place to observe
                 xq_abs_opt, theta_stack_opt, entropy_opt = \
                     rh.optimal_path(theta_stack_init, xq_now[-1], r, 
-                        learned_classifier, whitenparams, test_ranges, 
+                        learned_classifier, whitenparams, ranges, 
                         theta_stack_low = theta_stack_low, 
                         theta_stack_high = theta_stack_high, 
                         walltime = choice_walltime, xtol_rel = xtol_rel, 
@@ -555,7 +423,8 @@ def main():
                         n_draws = n_draws_est)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
-            # m_step = rh.correct_lookahead_predictions(xq_abs_opt, learned_classifier, whitenparams, decision_boundary)
+            # m_step = rh.correct_lookahead_predictions(xq_abs_opt, 
+            # learned_classifier, whitenparams, decision_boundary)
             logging.info('Taking %d steps' % m_step)
         else:
             m_step -= 1
@@ -563,8 +432,10 @@ def main():
             xq_abs_opt = rh.forward_path_model(theta_stack_init, r, xq_now[-1])
             logging.info('%d steps left' % m_step)
 
+        # Path steps into the proposed path
         xq_now = xq_abs_opt[:k_step]
 
+        # 
         theta_stack_init = rh.shift_path(theta_stack_opt, 
             k_step = k_step)
         np.clip(theta_stack_init, theta_stack_low + 1e-4, theta_stack_high - 1e-4, 
@@ -614,59 +485,58 @@ def main():
 
         """ Computing Analysis Maps """
 
-        Xqw_plt = pre.whiten(Xq_plt, whitenparams)
-        # Compute Linearised and True Entropy for plotting
         logging.info('Plot: Caching Predictor...')
         predictor_plt = gp.classifier.query(learned_classifier, Xqw_plt)
         logging.info('Plot: Computing Expectance...')
-        expectance_latent_plt = \
-            gp.classifier.expectance(learned_classifier, predictor_plt)
+        exp_plt = gp.classifier.expectance(learned_classifier, predictor_plt)
         logging.info('Plot: Computing Variance...')
-        variance_latent_plt = \
-            gp.classifier.variance(learned_classifier, predictor_plt)
+        var_plt = gp.classifier.variance(learned_classifier, predictor_plt)
+
         logging.info('Plot: Computing Linearised Entropy...')
-        entropy_linearised_plt = gp.classifier.linearised_entropy(
-            expectance_latent_plt, variance_latent_plt, learned_classifier)
-        logging.info('Plot: Computing Equivalent Standard Deviation')
-        eq_sd_plt = gp.classifier.equivalent_standard_deviation(
-            entropy_linearised_plt)
+        yq_le_plt = gp.classifier.linearised_entropy(exp_plt, var_plt, 
+            learned_classifier)
+        logging.info('Plot: Computing Equivalent Standard Deviation...')
+        eq_sd_plt = gp.classifier.equivalent_standard_deviation(yq_le_plt)
         logging.info('Plot: Computing Prediction Probabilities...')
-        yq_prob_plt = gp.classifier.predict_from_latent(
-            expectance_latent_plt, variance_latent_plt, learned_classifier, 
-            fusemethod = fusemethod)
-        logging.info('Plot: Computing True Entropy...')
+        yq_prob_plt = gp.classifier.predict_from_latent(exp_plt, var_plt, 
+            learned_classifier, fusemethod = fusemethod)
+        logging.info('Plot: Computing Information Entropy...')
         yq_entropy_plt = gp.classifier.entropy(yq_prob_plt)
-        logging.info('Plot: Computing Class Predicitons')
+        logging.info('Plot: Computing Class Predicitons...')
         yq_pred_plt = gp.classifier.classify(yq_prob_plt, y_unique)
 
-        Xqw_meas = pre.whiten(Xq_meas, whitenparams)
+        logging.info('Measure: Caching Predictor...')
         predictor_meas = gp.classifier.query(learned_classifier, Xqw_meas)
+        logging.info('Measure: Computing Expectance...')
         exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
+        logging.info('Measure: Computing Covariance...')
         cov_meas = gp.classifier.covariance(learned_classifier, predictor_meas)
-
-        logging.info('Objective Measure: Computing Linearised Joint Entropy')
+        logging.info('Measure: Computing Mistake Ratio...')
+        mistake_ratio = (yq_truth_plt - yq_pred_plt).nonzero()[0].shape[0] / \
+            yq_truth_plt.shape[0]
+        logging.info('Measure: Computing Linearised Joint Entropy...')
         start_time = time.clock()
         entropy_linearised_meas = gp.classifier.linearised_entropy(
             exp_meas, cov_meas, learned_classifier)
-        logging.info('Computation took %.4f seconds' % (time.clock() - start_time))
+        logging.info('Computation took %.4f seconds' % 
+            (time.clock() - start_time))
         logging.info('Linearised Joint Entropy: %.4f' % entropy_linearised_meas)
-
-        entropy_linearised_mean_meas = entropy_linearised_plt.mean()
+        logging.info('Measure: Computing Average Linearised Entropy...')
+        entropy_linearised_mean_meas = yq_le_plt.mean()
+        logging.info('Measure: Computing Average Information Entropy...')
         entropy_true_mean_meas = yq_entropy_plt.mean()
 
-        mistake_ratio = (yq_truth_plt - yq_pred_plt).nonzero()[0].shape[0] / yq_truth_plt.shape[0]
-
+        """ Save history """
+        mistake_ratio_array[i_trials] = mistake_ratio
         entropy_linearised_array[i_trials] = entropy_linearised_meas
         entropy_linearised_mean_array[i_trials] = entropy_linearised_mean_meas
         entropy_true_mean_array[i_trials] = entropy_true_mean_meas
         entropy_opt_array[i_trials] = entropy_opt
-        mistake_ratio_array[i_trials] = mistake_ratio
         
-
         # Find the bounds of the entropy predictions
-        if entropy_linearised_plt.max() > 0:
-            vmin1 = entropy_linearised_plt.min()
-            vmax1 = entropy_linearised_plt.max()
+        if yq_le_plt.max() > 0:
+            vmin1 = yq_le_plt.min()
+            vmax1 = yq_le_plt.max()
         vmin2 = yq_entropy_plt.min()
         vmax2 = yq_entropy_plt.max()
         vmin3 = eq_sd_plt.min()
@@ -680,11 +550,11 @@ def main():
         plt.title('Linearised Differential Entropy', fontsize = fontsize)
         plt.xlabel('x1', fontsize = fontsize)
         plt.ylabel('x2', fontsize = fontsize)
-        plt.xlim((test_range_min, test_range_max))
-        plt.ylim((test_range_min, test_range_max))
+        plt.xlim((range_min, range_max))
+        plt.ylim((range_min, range_max))
 
         # Plot linearised entropy
-        gp.classifier.utils.visualise_map(entropy_linearised_plt, test_ranges, 
+        gp.classifier.utils.visualise_map(yq_le_plt, ranges, 
             cmap = cm.coolwarm, vmin = -vmax1, vmax = vmax1)
         plt.colorbar()
 
@@ -710,7 +580,8 @@ def main():
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
             marker = '.')
 
-        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + 0.2, 0, -0.1, head_width = 0.05, head_length = 0.1, fc = 'w', ec = 'w')
+        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + 0.2, 0, -0.1, 
+            head_width = 0.05, head_length = 0.1, fc = 'w', ec = 'w')
 
         for tick in plt.gca().xaxis.get_major_ticks():
             tick.label.set_fontsize(axis_tick_font_size) 
@@ -731,11 +602,11 @@ def main():
         plt.title('Equivalent Standard Deviation', fontsize = fontsize)
         plt.xlabel('x1', fontsize = fontsize)
         plt.ylabel('x2', fontsize = fontsize)
-        plt.xlim((test_range_min, test_range_max))
-        plt.ylim((test_range_min, test_range_max))
+        plt.xlim((range_min, range_max))
+        plt.ylim((range_min, range_max))
 
         # Plot linearised entropy
-        gp.classifier.utils.visualise_map(eq_sd_plt, test_ranges, 
+        gp.classifier.utils.visualise_map(eq_sd_plt, ranges, 
             cmap = cm.coolwarm, vmin = vmin3, vmax = vmax3)
         plt.colorbar()
 
@@ -761,7 +632,8 @@ def main():
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
             marker = '.')
 
-        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + 0.2, 0, -0.1, head_width = 0.05, head_length = 0.1, fc = 'w', ec = 'w')
+        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + 0.2, 0, -0.1, 
+            head_width = 0.05, head_length = 0.1, fc = 'w', ec = 'w')
 
         for tick in plt.gca().xaxis.get_major_ticks():
             tick.label.set_fontsize(axis_tick_font_size) 
@@ -782,11 +654,11 @@ def main():
         plt.title('Prediction Information Entropy', fontsize = fontsize)
         plt.xlabel('x1', fontsize = fontsize)
         plt.ylabel('x2', fontsize = fontsize)
-        plt.xlim((test_range_min, test_range_max))
-        plt.ylim((test_range_min, test_range_max))
+        plt.xlim((range_min, range_max))
+        plt.ylim((range_min, range_max))
 
         # Plot true entropy
-        gp.classifier.utils.visualise_map(yq_entropy_plt, test_ranges, 
+        gp.classifier.utils.visualise_map(yq_entropy_plt, ranges, 
             cmap = cm.coolwarm, vmin = vmin2, vmax = vmax2)
         plt.colorbar()
 
@@ -812,7 +684,8 @@ def main():
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
             marker = '.')
 
-        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + 0.2, 0, -0.1, head_width = 0.05, head_length = 0.1, fc = 'w', ec = 'w')
+        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + 0.2, 0, -0.1, 
+            head_width = 0.05, head_length = 0.1, fc = 'w', ec = 'w')
 
         for tick in plt.gca().xaxis.get_major_ticks():
             tick.label.set_fontsize(axis_tick_font_size) 
@@ -830,19 +703,20 @@ def main():
         # Prepare Figure 4
         plt.figure(fig4.number)
         plt.clf()
-        plt.title('Class predictions [Miss Ratio: %.3f %s]' % (100 * mistake_ratio, '%'), fontsize = fontsize)
+        plt.title('Class predictions [Miss Ratio: %.3f %s]' % 
+            (100 * mistake_ratio, '%'), fontsize = fontsize)
         plt.xlabel('x1', fontsize = fontsize)
         plt.ylabel('x2', fontsize = fontsize)
-        plt.xlim((test_range_min, test_range_max))
-        plt.ylim((test_range_min, test_range_max))
+        plt.xlim((range_min, range_max))
+        plt.ylim((range_min, range_max))
 
         # Plot class predictions
-        gp.classifier.utils.visualise_map(yq_pred_plt, test_ranges, 
-            boundaries = True, cmap = mycmap2, vmin = y_unique[0], vmax = y_unique[-1])
+        gp.classifier.utils.visualise_map(yq_pred_plt, ranges, 
+            boundaries = True, cmap = mycmap2, 
+            vmin = y_unique[0], vmax = y_unique[-1])
         cbar = plt.colorbar()
         cbar.set_ticks(y_unique)
         cbar.set_ticklabels(y_unique)
-
 
         # Plot training set on top
         plt.scatter(x1, x2, c = y, s = 40, marker = 'v', cmap = mycmap)
@@ -865,7 +739,8 @@ def main():
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
             marker = '.')
 
-        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + 0.2, 0, -0.1, head_width = 0.05, head_length = 0.1, fc = 'w', ec = 'w')
+        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + 0.2, 0, -0.1, 
+            head_width = 0.05, head_length = 0.1, fc = 'w', ec = 'w')
 
         for tick in plt.gca().xaxis.get_major_ticks():
             tick.label.set_fontsize(axis_tick_font_size) 
@@ -897,13 +772,15 @@ def main():
 
         ax = plt.subplot(5, 1, 3)
         plt.plot(steps_array, entropy_linearised_mean_array[:(i_trials + 1)])
-        plt.title('Average Marginalised Differential Entropy', fontsize = fontsize)
+        plt.title('Average Marginalised Differential Entropy', 
+            fontsize = fontsize)
         plt.ylabel('Entropy (nats)', fontsize = fontsize)
         ax.set_xticklabels( () )
 
         ax = plt.subplot(5, 1, 4)
         plt.plot(steps_array, entropy_true_mean_array[:(i_trials + 1)])
-        plt.title('Average Marginalised Information Entropy', fontsize = fontsize)
+        plt.title('Average Marginalised Information Entropy', 
+            fontsize = fontsize)
         plt.ylabel('Entropy (nats)', fontsize = fontsize)
         ax.set_xticklabels( () )
 
@@ -913,7 +790,6 @@ def main():
         plt.title('Entropy Metric of Proposed Path', fontsize = fontsize)
         plt.ylabel('Entropy (nats)', fontsize = fontsize)
 
-        
         plt.xlabel('Steps', fontsize = fontsize)
         for tick in plt.gca().xaxis.get_major_ticks():
             tick.label.set_fontsize(axis_tick_font_size) 
@@ -929,6 +805,7 @@ def main():
         # Move on to the next step
         i_trials += 1
 
+    """ Save Final Results """
     np.savez('%slearned_classifier.npz' % full_directory, 
         learned_classifier = learned_classifier)
     np.savez('%smistake_ratio_array.npz' % full_directory, 
@@ -964,7 +841,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# DO TO: Put learned hyperparam in the title
-# DO TO: Find joint entropy of the whole region and put it in the title
-# TO DO: Find other measures of improvement (sum of entropy (linearised and true)) (sum of variances and standard deviation)
