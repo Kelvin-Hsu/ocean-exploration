@@ -19,6 +19,8 @@ from kdef import kerneldef
 import rh
 import shelve
 
+assert len(sys.argv) >= 4
+
 def main():
 
     """
@@ -105,24 +107,26 @@ def main():
     Classifier Training
     """
 
-    # Training
-    fig = plt.figure()
-    gp.classifier.utils.visualise_decision_boundary(
-        test_range_min, test_range_max, decision_boundary)
-    
-    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    plt.title('Training Labels')
-    plt.xlabel('x1')
-    plt.ylabel('x2')
-    cbar = plt.colorbar()
-    cbar.set_ticks(y_unique)
-    cbar.set_ticklabels(y_unique)
-    plt.xlim((test_range_min, test_range_max))
-    plt.ylim((test_range_min, test_range_max))
-    plt.gca().patch.set_facecolor('gray')
-    logging.info('Plotted Training Set')
+    if '-st' not in sys.argv:
+        
+        # Training
+        fig = plt.figure()
+        gp.classifier.utils.visualise_decision_boundary(
+            test_range_min, test_range_max, decision_boundary)
+        
+        plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+        plt.title('Training Labels')
+        plt.xlabel('x1')
+        plt.ylabel('x2')
+        cbar = plt.colorbar()
+        cbar.set_ticks(y_unique)
+        cbar.set_ticklabels(y_unique)
+        plt.xlim((test_range_min, test_range_max))
+        plt.ylim((test_range_min, test_range_max))
+        plt.gca().patch.set_facecolor('gray')
+        logging.info('Plotted Training Set')
 
-    plt.show()
+        plt.show()
 
     # Training
     logging.info('===Begin Classifier Training===')
@@ -432,24 +436,24 @@ def main():
 
     # Save all the figures
     if SAVE_OUTPUTS:
-        save_directory = "receding_horizon_informative_exploration/"
+        save_directory = "%s/" % '-'.join(sys.argv) 
         full_directory = gp.classifier.utils.create_directories(
             save_directory, home_directory = '../Figures/', append_time = True)
         gp.classifier.utils.save_all_figures(full_directory)
-        shutil.copy2('./receding_horizon_informative_exploration.py', full_directory)
+        shutil.copy2('./%s' % sys.argv[0] , full_directory)
 
     logging.info('Modeling Done')
 
     """
     Path Planning
     """
-    METHOD = 'RANDOM'
+    METHOD = sys.argv[1]
     # np.random.seed(20)
 
     """ Setup Path Planning """
-    xq_now = np.array([[0., 0.]])
+    xq_now = np.array([[float(sys.argv[2]), float(sys.argv[3])]])
     # xq_now = np.random.uniform(test_range_min, test_range_max, size = (1, n_dims))
-    horizon = (test_range_max - test_range_min) - 1
+    horizon = (test_range_max - test_range_min) + 2
     n_steps = 30
 
     if METHOD == 'GREEDY':
@@ -929,7 +933,7 @@ def main():
     for key in dir():
         try:
             shelf[key] = globals()[key]
-        except TypeError:
+        except Exception:
             print('ERROR shelving: {0}'.format(key))
     shelf.close()
 
