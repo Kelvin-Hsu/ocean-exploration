@@ -6,12 +6,13 @@ Path planning methods for receding horizon informative exploration
 import numpy as np
 import nlopt
 from computers import gp
-import computers.unsupervised.whitening as pre
 import logging
 import time
 
-def random_path(theta_stack_init, x, r, memory, whitenparams, ranges, perturb_deg = 30):
+def random_path(theta_stack_init, x, r, memory, whitenfn, whitenparams, ranges, perturb_deg = 30, chaos = False):
 
+    if chaos:
+        np.random.seed(int(time.strftime("%M%S", time.gmtime())))
     theta_perturb = np.random.normal(loc = 0., scale = np.deg2rad(perturb_deg), 
         size = theta_stack_init.shape[0])
 
@@ -27,10 +28,10 @@ def random_path(theta_stack_init, x, r, memory, whitenparams, ranges, perturb_de
     x_abs = forward_path_model(theta_stack, r, x)
 
     entropy = path_linearised_entropy_model(theta_stack, r, x, 
-                    memory, whitenparams)
+                    memory, whitenfn, whitenparams)
     return x_abs, theta_stack, entropy
 
-def optimal_path(theta_stack_init, x, r, memory, whitenparams, ranges,
+def optimal_path(theta_stack_init, x, r, memory, whitenfn, whitenparams, ranges,
     objective = 'LE', theta_stack_low = None, theta_stack_high = None, 
     walltime = None, xtol_rel = 1e-2, ftol_rel = 1e-2, globalopt = False,
     n_draws = 5000):
@@ -43,17 +44,17 @@ def optimal_path(theta_stack_init, x, r, memory, whitenparams, ranges,
         if objective == 'LE':
             def objective(theta_stack, grad):
                 return path_linearised_entropy_model(theta_stack, r, x, 
-                    memory, whitenparams)
+                    memory, whitenfn, whitenparams)
         elif objective == 'MCJE':
             S = np.random.normal(loc = 0., scale = 1., 
                 size = (theta_stack_init.shape[0], n_draws))
             def objective(theta_stack, grad):
                 return path_monte_carlo_entropy_model(theta_stack, r, x, 
-                    memory, whitenparams, n_draws = n_draws, S = S)
+                    memory, whitenfn, whitenparams, n_draws = n_draws, S = S)
         elif objective == 'MIE':
             def objective(theta_stack, grad):
                 return path_marginalised_entropy_model(theta_stack, r, x, 
-                    memory, whitenparams)
+                    memory, whitenfn, whitenparams)
 
         # Define the path constraint
         def constraint(theta_stack, grad):
@@ -109,10 +110,10 @@ def forward_path_model(theta_stack, r, x):
     x_rel = np.array([x1_rel, x2_rel]).T
     return x + x_rel
 
-def path_linearised_entropy_model(theta_stack, r, x, memory, whitenparams):
+def path_linearised_entropy_model(theta_stack, r, x, memory, whitenfn, whitenparams):
 
     Xq = forward_path_model(theta_stack, r, x)
-    Xqw = pre.whiten(Xq, whitenparams)
+    Xqw = whitenfn(Xq, whitenparams)
 
     logging.info('Computing linearised entropy...')
     start_time = time.clock()
@@ -128,11 +129,11 @@ def path_linearised_entropy_model(theta_stack, r, x, memory, whitenparams):
         np.rad2deg(theta_stack), entropy))
     return entropy
 
-def path_monte_carlo_entropy_model(theta_stack, r, x, memory, whitenparams,
+def path_monte_carlo_entropy_model(theta_stack, r, x, memory, whitenfn, whitenparams,
     n_draws = 1000, S = None):
 
     Xq = forward_path_model(theta_stack, r, x)
-    Xqw = pre.whiten(Xq, whitenparams)
+    Xqw = whitenfn(Xq, whitenparams)
 
     logging.info('Computing monte carlo joint entropy...')
     start_time = time.clock()
@@ -149,10 +150,10 @@ def path_monte_carlo_entropy_model(theta_stack, r, x, memory, whitenparams,
         np.rad2deg(theta_stack), entropy))
     return entropy
 
-def path_marginalised_entropy_model(theta_stack, r, x, memory, whitenparams):
+def path_marginalised_entropy_model(theta_stack, r, x, memory, whitenfn, whitenparams):
 
     Xq = forward_path_model(theta_stack, r, x)
-    Xqw = pre.whiten(Xq, whitenparams)
+    Xqw = whitenfn(Xq, whitenparams)
 
     logging.info('Computing marginalised information entropy...')
     start_time = time.clock()
@@ -178,7 +179,7 @@ def path_bounds_model(theta_stack, r, x, ranges):
     logging.debug('Contraint Violation: %.5f' % c)
     return c
 
-def correct_lookahead_predictions(xq_abs_opt, learned_classifier, whitenparams, 
+def correct_lookahead_predictions(xq_abs_opt, learned_classifier, whitenfn, whitenparams, 
     decision_boundary):
     """
     Obtain the number of steps we can skip optimisation procedures for by 
@@ -194,7 +195,7 @@ def correct_lookahead_predictions(xq_abs_opt, learned_classifier, whitenparams,
             y_unique = learned_classifier.cache.get('y_unique')
 
         # Whiten the features
-        xqw_abs_opt = pre.whiten(xq_abs_opt, whitenparams)
+        xqw_abs_opt = whitenfn(xq_abs_opt, whitenparams)
 
         # Obtain the predicted classes
         yq_pred = gp.classifier.classify(gp.classifier.predict(xqw_abs_opt, 
@@ -226,3 +227,10 @@ def shift_path(theta_stack, k_step = 1):
     theta_stack_next[0] = theta_stack[:(k_step + 1)].sum() % (2 * np.pi)
     theta_stack_next[1:-k_step] = theta_stack[(k_step + 1):]
     return theta_stack_next
+
+def nowhitenfn(X, params = None):
+
+    if params is None:
+        return X, 0
+    else:
+        return X

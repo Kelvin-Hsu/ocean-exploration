@@ -53,6 +53,15 @@ def main():
     RANGE = parse('-range', 2.0)
     N_CLASS = parse('-classes', 4)
     N_STEPS = parse('-steps', 300)
+    TRAIN_SET = parse('-train', 'track')
+    N_TRAIN = parse('-ntrain', 150)
+    WHITEFN = parse('-whiten', 'pca')
+    R_START = parse('-rstart', 1.8)
+    R_TRACK = parse('-rtrack', 1.0)
+    N_TRACK = parse('-ntrack', 10)
+    N_TRACK_POINTS = parse('-ntrackpoints', 15)
+    TRACK_PERTURB_DEG = parse('-trackperturb', 5.0)
+    CHAOS = parse('-chaos', False)
     SHOW_TRAIN = parse('-st', False)
     SAVE_OUTPUTS = True
 
@@ -83,6 +92,13 @@ def main():
         min_size = 0.1, max_size = 0.5, 
         n_class = N_CLASS, n_ellipse = N_ELLIPSE, n_dims = n_dims)
 
+    if (WHITEFN == 'none') or (WHITEFN == 'NONE'):
+        whitenfn = rh.nowhitenfn
+    elif (WHITEFN == 'pca') or (WHITEFN == 'PCA'):
+        whitenfn = pre.whiten
+    elif (WHITEFN == 'standardise') or (WHITEFN == 'STANDARDISE'):
+        whitenfn = pre.standardise
+
     """
     Plot Options
     """
@@ -93,11 +109,15 @@ def main():
     """
     Data Generation
     """
-    X = rh.utils.generate_tracks(1.8, 1.0, 10, 15, perturb_deg_scale = 5.0)
+    if TRAIN_SET == 'track':
+        X = rh.utils.generate_tracks(R_START, R_TRACK, N_TRACK, N_TRACK_POINTS, 
+            perturb_deg_scale = TRACK_PERTURB_DEG)
+    elif 'unif'in TRAIN_SET:
+        X = np.random.uniform(range_min, range_max, size = (N_TRAIN, n_dims))
     x1 = X[:, 0]
     x2 = X[:, 1]
     
-    Xw, whitenparams = pre.whiten(X)
+    Xw, whitenparams = whitenfn(X)
 
     n_train = X.shape[0]
     logging.info('Training Points: %d' % n_train)
@@ -164,8 +184,8 @@ def main():
     """Feature Generation and Query Computations"""
     Xq_plt = gp.classifier.utils.query_map(ranges, n_points = plt_points)
     Xq_meas = gp.classifier.utils.query_map(ranges, n_points = meas_points)
-    Xqw_plt = pre.whiten(Xq_plt, whitenparams)
-    Xqw_meas = pre.whiten(Xq_meas, whitenparams)
+    Xqw_plt = whitenfn(Xq_plt, whitenparams)
+    Xqw_meas = whitenfn(Xq_meas, whitenparams)
     yq_truth_plt = gp.classifier.utils.make_decision(Xq_plt, decision_boundary)
 
     logging.info('Plot: Caching Predictor...')
@@ -353,12 +373,16 @@ def main():
         n_steps /= n_steps
         METHOD = 'MIE'
 
+    if METHOD == 'RANDOM':
+        horizon /= n_steps
+        n_steps /= n_steps        
+
     if METHOD == 'LE':
-        theta_bound = np.deg2rad(60)
+        theta_bound = np.deg2rad(90)
     else:
         theta_bound = np.deg2rad(180)
 
-    theta_stack_init = np.deg2rad(10) * np.ones(n_steps)
+    theta_stack_init = -np.deg2rad(10) * np.ones(n_steps)
     theta_stack_init[0] = np.deg2rad(180)
     theta_stack_low = -theta_bound * np.ones(n_steps)
     theta_stack_high = theta_bound * np.ones(n_steps)
@@ -414,12 +438,12 @@ def main():
             if METHOD == 'RANDOM':
                 xq_abs_opt, theta_stack_opt, entropy_opt = \
                     rh.random_path(theta_stack_init, xq_now[-1], r, 
-                        learned_classifier, whitenparams, ranges, 
-                        perturb_deg = 20)
+                        learned_classifier, whitenfn, whitenparams, ranges, 
+                        perturb_deg = 60, chaos = CHAOS)
             else:
                 xq_abs_opt, theta_stack_opt, entropy_opt = \
                     rh.optimal_path(theta_stack_init, xq_now[-1], r, 
-                        learned_classifier, whitenparams, ranges, 
+                        learned_classifier, whitenfn, whitenparams, ranges, 
                         theta_stack_low = theta_stack_low, 
                         theta_stack_high = theta_stack_high, 
                         walltime = choice_walltime, xtol_rel = xtol_rel, 
@@ -429,7 +453,7 @@ def main():
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
             # m_step = rh.correct_lookahead_predictions(xq_abs_opt, 
-            # learned_classifier, whitenparams, decision_boundary)
+            # learned_classifier, whitenfn, whitenparams, decision_boundary)
             logging.info('Taking %d steps' % m_step)
         else:
             m_step -= 1
@@ -460,7 +484,7 @@ def main():
         yq_nows = np.append(yq_nows, yq_now)
 
         # Update that into the model
-        Xw_now, whitenparams = pre.whiten(X_now)
+        Xw_now, whitenparams = whitenfn(X_now)
         logging.info('Learning Classifier...')
         batch_config = \
             gp.classifier.batch_start(optimiser_config, learned_classifier)
@@ -482,14 +506,15 @@ def main():
         logging.info('Finished Learning')
 
         # This is the finite horizon optimal route
-        xqw_abs_opt = pre.whiten(xq_abs_opt, whitenparams)
+        xqw_abs_opt = whitenfn(xq_abs_opt, whitenparams)
         xq1_proposed = xq_abs_opt[:, 0][k_step:]
         xq2_proposed = xq_abs_opt[:, 1][k_step:]
         yq_proposed = gp.classifier.classify(gp.classifier.predict(xqw_abs_opt, 
             learned_classifier), y_unique)[k_step:]
 
         """ Computing Analysis Maps """
-
+        Xqw_plt = whitenfn(Xq_plt, whitenparams)
+        Xqw_meas = whitenfn(Xq_meas, whitenparams)
         logging.info('Plot: Caching Predictor...')
         predictor_plt = gp.classifier.query(learned_classifier, Xqw_plt)
         logging.info('Plot: Computing Expectance...')
