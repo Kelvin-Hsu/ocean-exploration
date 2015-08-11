@@ -13,17 +13,12 @@ def random_path(theta_stack_init, x, r, memory, whitenfn, whitenparams, ranges, 
 
     if chaos:
         np.random.seed(int(time.strftime("%M%S", time.gmtime())))
-    theta_perturb = np.random.normal(loc = 0., scale = np.deg2rad(perturb_deg), 
-        size = theta_stack_init.shape[0])
 
-    theta_stack = theta_stack_init + theta_perturb
+    theta_stack = np.random.uniform(0, 2 * np.pi, size = theta_stack_init.shape[0])
 
     while path_bounds_model(theta_stack, r, x, ranges) > 0:
 
-        theta_perturb = np.random.normal(loc = 0., scale = np.deg2rad(perturb_deg), 
-            size = theta_stack_init.shape[0])
-
-        theta_stack = theta_stack_init + theta_perturb
+        theta_stack = np.random.uniform(0, 2 * pi, size = theta_stack_init.shape[0])
 
     x_abs = forward_path_model(theta_stack, r, x)
 

@@ -391,7 +391,7 @@ def main():
     r = horizon/n_steps
     choice_walltime = 1500.0
     xtol_rel = np.deg2rad(2.5)
-    ftol_rel = 1e-4
+    ftol_rel = 1e-3
     if METHOD == 'MIE':
         xtol_rel = 1e-1
         ftol_rel = 1e-1
@@ -862,7 +862,7 @@ def main():
         entropy_opt_array = entropy_opt_array)
 
     # Shelf all work
-    shelf = shelve.open('%sshelf.out' % full_directory, 'n') # 'n' for new
+    shelf = shelve.open('%sshelf' % full_directory, 'n') # 'n' for new
     for key in dir():
         try:
             shelf[key] = globals()[key]

@@ -9,17 +9,27 @@ import time
 def main():
 
     main_directory = '../Figures/'
-    directory0 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodLE/'
-    directory1 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodMIE/'
-    directory2 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodGREEDY/'
-    directory3 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodRANDOM1/'
-    directory4 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodRANDOM2/'
 
+    # Batch 1: Laptop
     # directory0 = main_directory + 'small_patches_lde/'
     # directory1 = main_directory + 'small_patches_mie/'
     # directory2 = main_directory + 'small_patches_greedy/'
     # directory3 = main_directory + 'small_patches_random_1/'
     # directory4 = main_directory + 'small_patches_random_2/'
+
+    # Batch 2: Laptop
+    # directory0 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodLE/'
+    # directory1 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodMIE/'
+    # directory2 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodGREEDY/'
+    # directory3 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodRANDOM1/'
+    # directory4 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodRANDOM2/'
+
+    # Batch 3: Desktop
+    directory0 = main_directory + 'batch3---start-1.0-1.0-seed100-e30-range2.5-classes4-steps300-st-methodLE/'
+    directory1 = main_directory + 'batch3---start-1.0-1.0-seed100-e30-range2.5-classes4-steps300-st-methodMIE/'
+    directory2 = main_directory + 'batch3---start-1.0-1.0-seed100-e30-range2.5-classes4-steps300-st-methodGREEDY/'
+    directory3 = main_directory + 'batch3---start-1.0-1.0-seed100-e30-range2.5-classes4-steps300-st-methodRANDOM-chaos1/'
+    directory4 = main_directory + 'batch3---start-1.0-1.0-seed100-e30-range2.5-classes4-steps300-st-methodRANDOM-chaos2/'
 
     data0 = obtain_data(directory0, (0, 'RHIE with Linearised Differential Entropy (LDE)'))
     data1 = obtain_data(directory1, (1, 'RHIE with Marginalised Information Entropy (MIE)'))
