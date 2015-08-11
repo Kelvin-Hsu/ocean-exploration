@@ -365,7 +365,7 @@ def main():
 
     """ Setup Path Planning """
     xq_now = np.array([[START_POINT1, START_POINT2]])
-    horizon = (range_max - range_min) - 1
+    horizon = (range_max - range_min)
     n_steps = 30
 
     if METHOD == 'GREEDY':
@@ -378,7 +378,7 @@ def main():
         n_steps /= n_steps        
 
     if METHOD == 'LE':
-        theta_bound = np.deg2rad(90)
+        theta_bound = np.deg2rad(60)
     else:
         theta_bound = np.deg2rad(180)
 
@@ -447,11 +447,12 @@ def main():
                 xq_abs_opt, theta_stack_opt, entropy_opt = \
                     rh.optimal_path(theta_stack_init, xq_now[-1], r, 
                         learned_classifier, whitenfn, whitenparams, ranges, 
+                        objective = METHOD,
+                        turn_limit = theta_bound,
                         theta_stack_low = theta_stack_low, 
                         theta_stack_high = theta_stack_high, 
                         walltime = choice_walltime, xtol_rel = xtol_rel, 
                         ftol_rel = ftol_rel, globalopt = False, 
-                        objective = METHOD,
                         n_draws = n_draws_est)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 

@@ -32,8 +32,9 @@ def random_path(theta_stack_init, x, r, memory, whitenfn, whitenparams, ranges, 
     return x_abs, theta_stack, entropy
 
 def optimal_path(theta_stack_init, x, r, memory, whitenfn, whitenparams, ranges,
-    objective = 'LE', theta_stack_low = None, theta_stack_high = None, 
-    walltime = None, xtol_rel = 1e-2, ftol_rel = 1e-2, globalopt = False,
+    objective = 'LE', turn_limit = np.deg2rad(30), 
+    theta_stack_low = None, theta_stack_high = None, 
+    walltime = None, xtol_rel = 0, ftol_rel = 0, globalopt = False,
     n_draws = 5000):
 
     ##### OPTIMISATION #####
@@ -72,12 +73,16 @@ def optimal_path(theta_stack_init, x, r, memory, whitenfn, whitenparams, ranges,
             opt = nlopt.opt(nlopt.LN_COBYLA , n_params)
 
         # Setup optimiser
-        opt.set_lower_bounds(theta_stack_low)
-        opt.set_upper_bounds(theta_stack_high)
+        if theta_stack_low is not None:
+            theta_stack_low[0] = theta_stack_init[0] - turn_limit
+            opt.set_lower_bounds(theta_stack_low)
+        if theta_stack_high is not None:
+            theta_stack_high[0] = theta_stack_init[0] + turn_limit
+            opt.set_upper_bounds(theta_stack_high)
         opt.set_maxtime(walltime)
-        if xtol_rel:
+        if xtol_rel > 0:
             opt.set_xtol_rel(xtol_rel)
-        if ftol_rel:
+        if ftol_rel > 0:
             opt.set_ftol_rel(ftol_rel)
         
         # Set the objective and constraint and optimise!

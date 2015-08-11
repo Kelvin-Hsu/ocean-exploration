@@ -9,17 +9,23 @@ import time
 def main():
 
     main_directory = '../Figures/'
-    directory0 = main_directory + 'small_patches_lde/'
-    directory1 = main_directory + 'small_patches_mie/'
-    directory2 = main_directory + 'small_patches_greedy/'
-    directory3 = main_directory + 'small_patches_random_1/'
-    directory4 = main_directory + 'small_patches_random_2/'
+    directory0 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodLE/'
+    directory1 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodMIE/'
+    directory2 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodGREEDY/'
+    directory3 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodRANDOM1/'
+    directory4 = main_directory + 'batch2---start-0.1+0.2-seed100-e30-range2.5-classes4-steps300-st-methodRANDOM2/'
+
+    # directory0 = main_directory + 'small_patches_lde/'
+    # directory1 = main_directory + 'small_patches_mie/'
+    # directory2 = main_directory + 'small_patches_greedy/'
+    # directory3 = main_directory + 'small_patches_random_1/'
+    # directory4 = main_directory + 'small_patches_random_2/'
 
     data0 = obtain_data(directory0, (0, 'RHIE with Linearised Differential Entropy (LDE)'))
     data1 = obtain_data(directory1, (1, 'RHIE with Marginalised Information Entropy (MIE)'))
     data2 = obtain_data(directory2, (2, 'Greedy Exploration with MIE'))
-    data3 = obtain_data(directory3, (3, 'Open Loop Walk 1'))
-    data4 = obtain_data(directory4, (4, 'Open Loop Walk 2'))
+    data3 = obtain_data(directory3, (3, 'Open Loop Explorer 1'))
+    data4 = obtain_data(directory4, (4, 'Open Loop Explorer 2'))
     plot_data(main_directory, data0, data1, data2, data3, data4)
 
     plt.show()
