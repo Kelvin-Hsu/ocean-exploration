@@ -1,2 +1,3 @@
 python receding_horizon_informative_exploration.py -start  0.0  0.0 -seed 100 -e 30 -range 2.5 -classes 4 -steps 300 -st -method XXX
 python receding_horizon_informative_exploration.py -start -1.0 -1.0 -seed 100 -e 30 -range 2.5 -classes 4 -steps 300 -st -method XXX
+python receding_horizon_informative_exploration.py -start -0.1 +0.2 -seed 100 -e 30 -range 2.5 -classes 4 -steps 300 -st -method

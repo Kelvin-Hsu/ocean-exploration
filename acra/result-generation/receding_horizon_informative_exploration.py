@@ -390,8 +390,11 @@ def main():
     theta_stack_high[0] = 2 * np.pi
     r = horizon/n_steps
     choice_walltime = 1500.0
-    xtol_rel = 1e-2
+    xtol_rel = np.deg2rad(2.5)
     ftol_rel = 1e-4
+    if METHOD == 'MIE':
+        xtol_rel = 1e-1
+        ftol_rel = 1e-1
 
     k_step = 1
 
@@ -439,7 +442,7 @@ def main():
                 xq_abs_opt, theta_stack_opt, entropy_opt = \
                     rh.random_path(theta_stack_init, xq_now[-1], r, 
                         learned_classifier, whitenfn, whitenparams, ranges, 
-                        perturb_deg = 60, chaos = CHAOS)
+                        perturb_deg = 40, chaos = CHAOS)
             else:
                 xq_abs_opt, theta_stack_opt, entropy_opt = \
                     rh.optimal_path(theta_stack_init, xq_now[-1], r, 
