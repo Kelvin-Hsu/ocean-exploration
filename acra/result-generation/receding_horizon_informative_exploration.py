@@ -365,8 +365,8 @@ def main():
 
     """ Setup Path Planning """
     xq_now = np.array([[START_POINT1, START_POINT2]])
-    horizon = (range_max - range_min)
-    n_steps = 30
+    horizon = (range_max - range_min)/3
+    n_steps = 10
 
     if METHOD == 'GREEDY':
         horizon /= n_steps
