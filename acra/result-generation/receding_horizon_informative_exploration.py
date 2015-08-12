@@ -49,6 +49,8 @@ def main():
     START_POINT1 = parse('-start', 0.0, arg = 1)
     START_POINT2 = parse('-start', 0.0, arg = 2)
     SEED = parse('-seed', 100)
+    E_MAX_SIZE = parse('emax', 0.5)
+    E_MIN_SIZE = parse('emin', 0.25)
     N_ELLIPSE = parse('-e', 20)
     RANGE = parse('-range', 2.0)
     N_CLASS = parse('-classes', 4)
@@ -62,6 +64,8 @@ def main():
     N_TRACK_POINTS = parse('-ntrackpoints', 15)
     TRACK_PERTURB_DEG = parse('-trackperturb', 5.0)
     CHAOS = parse('-chaos', False)
+    H_STEPS = parse('-hsteps', 15)
+    H_RATIO = parse('-hratio', 1.0)
     SHOW_TRAIN = parse('-st', False)
     SAVE_OUTPUTS = True
 
@@ -89,7 +93,7 @@ def main():
     np.random.seed(SEED)
     decision_boundary = \
         gp.classifier.utils.generate_elliptical_decision_boundaries(ranges, 
-        min_size = 0.1, max_size = 0.5, 
+        min_size = E_MIN_SIZE, max_size = E_MAX_SIZE, 
         n_class = N_CLASS, n_ellipse = N_ELLIPSE, n_dims = n_dims)
 
     if (WHITEFN == 'none') or (WHITEFN == 'NONE'):
@@ -365,30 +369,30 @@ def main():
 
     """ Setup Path Planning """
     xq_now = np.array([[START_POINT1, START_POINT2]])
-    horizon = (range_max - range_min)/3
-    n_steps = 10
+    horizon = H_RATIO * RANGE
+    h_steps = H_STEPS
 
     if METHOD == 'GREEDY':
-        horizon /= n_steps
-        n_steps /= n_steps
+        horizon /= h_steps
+        h_steps /= h_steps
         METHOD = 'MIE'
 
     if METHOD == 'RANDOM':
-        horizon /= n_steps
-        n_steps /= n_steps        
+        horizon /= h_steps
+        h_steps /= h_steps        
 
     if METHOD == 'LE':
         theta_bound = np.deg2rad(60)
     else:
         theta_bound = np.deg2rad(180)
 
-    theta_stack_init = -np.deg2rad(10) * np.ones(n_steps)
+    theta_stack_init = -np.deg2rad(10) * np.ones(h_steps)
     theta_stack_init[0] = np.deg2rad(180)
-    theta_stack_low = -theta_bound * np.ones(n_steps)
-    theta_stack_high = theta_bound * np.ones(n_steps)
+    theta_stack_low = -theta_bound * np.ones(h_steps)
+    theta_stack_high = theta_bound * np.ones(h_steps)
     theta_stack_low[0] = 0.0
     theta_stack_high[0] = 2 * np.pi
-    r = horizon/n_steps
+    r = horizon/h_steps
     choice_walltime = 1500.0
     xtol_rel = np.deg2rad(2.5)
     ftol_rel = 1e-3
@@ -456,8 +460,8 @@ def main():
                         n_draws = n_draws_est)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
-            # m_step = rh.correct_lookahead_predictions(xq_abs_opt, 
-            # learned_classifier, whitenfn, whitenparams, decision_boundary)
+            m_step = rh.correct_lookahead_predictions(xq_abs_opt, 
+                learned_classifier, whitenfn, whitenparams, decision_boundary)
             logging.info('Taking %d steps' % m_step)
         else:
             m_step -= 1
@@ -576,6 +580,7 @@ def main():
         vmin3 = eq_sd_plt.min()
         vmax3 = eq_sd_plt.max()
 
+        logging.info('Plotting...')
         """ Linearised Entropy Map """
 
         # Prepare Figure 1

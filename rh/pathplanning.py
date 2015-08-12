@@ -56,6 +56,9 @@ def optimal_path(theta_stack_init, x, r, memory, whitenfn, whitenparams, ranges,
         def constraint(theta_stack, grad):
             return path_bounds_model(theta_stack, r, x, ranges)
 
+        # Start with valid path
+        # theta_stack_init = force_valid_path(theta_stack_init, r, x, ranges)
+
         # Obtain the number of parameters involvevd
         n_params = theta_stack_init.shape[0]
 
@@ -176,8 +179,15 @@ def path_bounds_model(theta_stack, r, x, ranges):
     """
     Xq = forward_path_model(theta_stack, r, x)
     c = np.max(np.abs(Xq)) - ranges[1]
-    logging.debug('Contraint Violation: %.5f' % c)
+    logging.debug('Contraint Violation: {0}'.format(c))
     return c
+
+# def force_valid_path(theta_stack, r, x, ranges):
+
+#     def objective(theta_stack, grad):
+#         return path_bounds_model(theta_stack, r, x, ranges)
+
+
 
 def correct_lookahead_predictions(xq_abs_opt, learned_classifier, whitenfn, whitenparams, 
     decision_boundary):

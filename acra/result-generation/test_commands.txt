@@ -4,3 +4,9 @@ python receding_horizon_informative_exploration.py -start -0.1 +0.2 -seed 100 -e
 
 
 python receding_horizon_informative_exploration.py -start  0.0  0.0 -seed 100 -e 20 -range 2.5 -classes 4 -steps 300 -st -method
+
+python receding_horizon_informative_exploration.py -start  0.0  0.0 -seed 300 -e 10 -range 2.5 -classes 4 -steps 300 -ntrack 20 -ntrackpoints 5 -hratio 0.8 -st -method
+python receding_horizon_informative_exploration.py -start  1.0 -1.0 -seed 300 -e 10 -range 2.5 -classes 4 -steps 300 -ntrack 20 -ntrackpoints 5 -hratio 0.8 -st -method
+
+python receding_horizon_informative_exploration.py -start  0.0  0.0 -e 30 -seed 200 -classes 2 -ntrack 5 -ntrackpoints 8 -hratio 1.0 -hsteps 20 -st -method
+seed 100, 300
