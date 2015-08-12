@@ -37,6 +37,43 @@ def parse(key, currentvalue, arg = 1):
         currentvalue = sys.argv[sys.argv.index(key) + arg]
     return cast(currentvalue)
 
+def extract_feature(X, decision_boundary, whitefn, bank
+    whiteparams = None, whiten = True):
+
+    assert X.shape[1] == 2
+    assert len(decision_boundary) == 3
+
+    y = gp.classifier.utils.make_decision(X, decision_boundary)
+
+    # Must be element by element map
+    r = 5*np.sum(X**2, axis = 1)
+    s = np.sin(10*np.sum(X, axis = 1))
+
+    f1 = y**2 + r
+
+    f2 = np.sin(y/2)  
+
+    i1 = X[:, 0] * 10
+    bank.get('bank1')
+    # f2 = np.sum(X**2, axis = 1)
+
+    F = np.array([f1, f2]).T
+
+    if whiten:
+        return whitefn(F, whiteparams)
+    else:
+        return F
+
+def compose_featurefn(decision_boundary, whitefn, bank):
+
+    def featurefn(X, whiteparams = None, whiten = True):
+        return extract_feature(X, decision_boundary, whitefn, bank
+            whiteparams = whiteparams, whiten = whiten)
+    featurefn.db = decision_boundary
+    featurefn.whitefn = whitefn
+
+    return featurefn
+
 def main():
 
     """
@@ -96,12 +133,18 @@ def main():
         min_size = E_MIN_SIZE, max_size = E_MAX_SIZE, 
         n_class = N_CLASS, n_ellipse = N_ELLIPSE, n_dims = n_dims)
 
+    bank1 = np.random.normal(loc = 0., scale = 5., size = 100)
+    bank2 = np.random.normal(loc = 0., scale = 5., size = 100)
+    bank = {'bank1': bank1, 'bank2': bank2}
+
     if (WHITEFN == 'none') or (WHITEFN == 'NONE'):
-        whitenfn = rh.nowhitenfn
+        whitefn = rh.nowhitenfn
     elif (WHITEFN == 'pca') or (WHITEFN == 'PCA'):
-        whitenfn = pre.whiten
+        whitefn = pre.whiten
     elif (WHITEFN == 'standardise') or (WHITEFN == 'STANDARDISE'):
-        whitenfn = pre.standardise
+        whitefn = pre.standardise
+
+    featurefn = compose_featurefn(decision_boundary, whitefn, bank)
 
     """
     Plot Options
@@ -121,7 +164,11 @@ def main():
     x1 = X[:, 0]
     x2 = X[:, 1]
     
-    Xw, whitenparams = whitenfn(X)
+    F = featurefn(X, whiten = False)
+    Fw, whitenparams = featurefn(X)
+
+    f1 = F[:, 0]
+    f2 = F[:, 1]
 
     n_train = X.shape[0]
     logging.info('Training Points: %d' % n_train)
@@ -165,7 +212,7 @@ def main():
     responsefunction = gp.classifier.responses.get(responsename)
 
     # Train the classifier!
-    learned_classifier = gp.classifier.learn(Xw, y, kerneldef,
+    learned_classifier = gp.classifier.learn(Fw, y, kerneldef,
         responsefunction, optimiser_config, 
         multimethod = multimethod, approxmethod = approxmethod,
         train = True, ftol = 1e-6, processes = n_cores)
@@ -188,12 +235,12 @@ def main():
     """Feature Generation and Query Computations"""
     Xq_plt = gp.classifier.utils.query_map(ranges, n_points = plt_points)
     Xq_meas = gp.classifier.utils.query_map(ranges, n_points = meas_points)
-    Xqw_plt = whitenfn(Xq_plt, whitenparams)
-    Xqw_meas = whitenfn(Xq_meas, whitenparams)
+    Fqw_plt = featurefn(Xq_plt, whitenparams)
+    Fqw_meas = featurefn(Xq_meas, whitenparams)
     yq_truth_plt = gp.classifier.utils.make_decision(Xq_plt, decision_boundary)
 
     logging.info('Plot: Caching Predictor...')
-    predictor_plt = gp.classifier.query(learned_classifier, Xqw_plt)
+    predictor_plt = gp.classifier.query(learned_classifier, Fqw_plt)
     logging.info('Plot: Computing Expectance...')
     exp_plt = gp.classifier.expectance(learned_classifier, predictor_plt)
     logging.info('Plot: Computing Variance...')
@@ -213,7 +260,7 @@ def main():
     yq_pred_plt = gp.classifier.classify(yq_prob_plt, y_unique)
 
     logging.info('Measure: Caching Predictor...')
-    predictor_meas = gp.classifier.query(learned_classifier, Xqw_meas)
+    predictor_meas = gp.classifier.query(learned_classifier, Fqw_meas)
     logging.info('Measure: Computing Expectance...')
     exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
     logging.info('Measure: Computing Covariance...')
@@ -231,6 +278,12 @@ def main():
     entropy_linearised_mean_meas = yq_le_plt.mean()
     logging.info('Measure: Computing Average Information Entropy...')
     entropy_true_mean_meas = yq_entropy_plt.mean()
+
+
+    # Features
+    Fq_plt = featurefn(Xq_plt, whiten = False)
+    fq1_plt = Fq_plt[:, 0]
+    fq2_plt = Fq_plt[:, 1]
 
     """Plot: Ground Truth"""
     fig = plt.figure(figsize = (15 * 1.5, 15))
@@ -350,6 +403,35 @@ def main():
 
     plt.tight_layout()
 
+    """ Features """
+    fig = plt.figure(figsize = (15, 15))
+
+    plt.subplot(2, 2, 1)
+    gp.classifier.utils.visualise_map(fq1_plt, ranges, cmap = cm.gist_rainbow)
+    plt.title('Feature 1', fontsize = fontsize)
+    plt.xlabel('x1', fontsize = fontsize)
+    plt.ylabel('x2', fontsize = fontsize)
+    plt.colorbar()
+    plt.gca().set_aspect('equal', adjustable = 'box')
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+
+    plt.subplot(2, 2, 2)
+    gp.classifier.utils.visualise_map(fq2_plt, ranges, cmap = cm.gist_rainbow)
+    plt.title('Feature 2', fontsize = fontsize)
+    plt.xlabel('x1', fontsize = fontsize)
+    plt.ylabel('x2', fontsize = fontsize)
+    plt.colorbar()
+    plt.gca().set_aspect('equal', adjustable = 'box')
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+
+    plt.tight_layout()
+
     """
     Save Outputs
     """  
@@ -362,6 +444,7 @@ def main():
         shutil.copy2('./%s' % FILENAME , full_directory)
 
     logging.info('Modeling Done')
+    return
 
     """
     Path Planning
@@ -445,12 +528,12 @@ def main():
             if METHOD == 'RANDOM':
                 xq_abs_opt, theta_stack_opt, entropy_opt = \
                     rh.random_path(theta_stack_init, xq_now[-1], r, 
-                        learned_classifier, whitenfn, whitenparams, ranges, 
+                        learned_classifier, featurefn, whitenparams, ranges, 
                         perturb_deg = 40, chaos = CHAOS)
             else:
                 xq_abs_opt, theta_stack_opt, entropy_opt = \
                     rh.optimal_path(theta_stack_init, xq_now[-1], r, 
-                        learned_classifier, whitenfn, whitenparams, ranges, 
+                        learned_classifier, featurefn, whitenparams, ranges, 
                         objective = METHOD,
                         turn_limit = theta_bound,
                         theta_stack_low = theta_stack_low, 
@@ -461,7 +544,7 @@ def main():
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
             m_step = rh.correct_lookahead_predictions(xq_abs_opt, 
-                learned_classifier, whitenfn, whitenparams, decision_boundary)
+                learned_classifier, featurefn, whitenparams, decision_boundary)
             logging.info('Taking %d steps' % m_step)
         else:
             m_step -= 1
@@ -492,19 +575,19 @@ def main():
         yq_nows = np.append(yq_nows, yq_now)
 
         # Update that into the model
-        Xw_now, whitenparams = whitenfn(X_now)
+        Fw_now, whitenparams = featurefn(X_now)
         logging.info('Learning Classifier...')
         batch_config = \
             gp.classifier.batch_start(optimiser_config, learned_classifier)
         try:
-            learned_classifier = gp.classifier.learn(Xw_now, y_now, kerneldef,
+            learned_classifier = gp.classifier.learn(Fw_now, y_now, kerneldef,
                 responsefunction, batch_config, 
                 multimethod = multimethod, approxmethod = approxmethod,
                 train = True, ftol = 1e-6, processes = n_cores)
         except Exception as e:
             logging.warning('Training failed: {0}'.format(e))
             try:
-                learned_classifier = gp.classifier.learn(Xw_now, y_now, kerneldef,
+                learned_classifier = gp.classifier.learn(Fw_now, y_now, kerneldef,
                     responsefunction, batch_config, 
                     multimethod = multimethod, approxmethod = approxmethod,
                     train = False, ftol = 1e-6, processes = n_cores)
@@ -514,17 +597,17 @@ def main():
         logging.info('Finished Learning')
 
         # This is the finite horizon optimal route
-        xqw_abs_opt = whitenfn(xq_abs_opt, whitenparams)
+        fqw_abs_opt = featurefn(xq_abs_opt, whitenparams)
         xq1_proposed = xq_abs_opt[:, 0][k_step:]
         xq2_proposed = xq_abs_opt[:, 1][k_step:]
-        yq_proposed = gp.classifier.classify(gp.classifier.predict(xqw_abs_opt, 
+        yq_proposed = gp.classifier.classify(gp.classifier.predict(fqw_abs_opt, 
             learned_classifier), y_unique)[k_step:]
 
         """ Computing Analysis Maps """
-        Xqw_plt = whitenfn(Xq_plt, whitenparams)
-        Xqw_meas = whitenfn(Xq_meas, whitenparams)
+        Fqw_plt = featurefn(Xq_plt, whitenparams)
+        Fqw_meas = featurefn(Xq_meas, whitenparams)
         logging.info('Plot: Caching Predictor...')
-        predictor_plt = gp.classifier.query(learned_classifier, Xqw_plt)
+        predictor_plt = gp.classifier.query(learned_classifier, Fqw_plt)
         logging.info('Plot: Computing Expectance...')
         exp_plt = gp.classifier.expectance(learned_classifier, predictor_plt)
         logging.info('Plot: Computing Variance...')
@@ -544,7 +627,7 @@ def main():
         yq_pred_plt = gp.classifier.classify(yq_prob_plt, y_unique)
 
         logging.info('Measure: Caching Predictor...')
-        predictor_meas = gp.classifier.query(learned_classifier, Xqw_meas)
+        predictor_meas = gp.classifier.query(learned_classifier, Fqw_meas)
         logging.info('Measure: Computing Expectance...')
         exp_meas = gp.classifier.expectance(learned_classifier, predictor_meas)
         logging.info('Measure: Computing Covariance...')

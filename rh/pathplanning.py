@@ -9,24 +9,27 @@ from computers import gp
 import logging
 import time
 
-def random_path(theta_stack_init, x, r, memory, whitenfn, whitenparams, ranges, perturb_deg = 30, chaos = False):
+def random_path(theta_stack_init, x, r, memory, featurefn, whitenparams, ranges, 
+    perturb_deg = 30, chaos = False):
 
     if chaos:
         np.random.seed(int(time.strftime("%M%S", time.gmtime())))
 
-    theta_stack = np.random.uniform(0, 2 * np.pi, size = theta_stack_init.shape[0])
+    theta_stack = np.random.uniform(0, 2 * np.pi, 
+        size = theta_stack_init.shape[0])
 
     while path_bounds_model(theta_stack, r, x, ranges) > 0:
 
-        theta_stack = np.random.uniform(0, 2 * pi, size = theta_stack_init.shape[0])
+        theta_stack = np.random.uniform(0, 2 * pi, 
+            size = theta_stack_init.shape[0])
 
     x_abs = forward_path_model(theta_stack, r, x)
 
     entropy = path_linearised_entropy_model(theta_stack, r, x, 
-                    memory, whitenfn, whitenparams)
+                    memory, featurefn, whitenparams)
     return x_abs, theta_stack, entropy
 
-def optimal_path(theta_stack_init, x, r, memory, whitenfn, whitenparams, ranges,
+def optimal_path(theta_stack_init, x, r, memory, featurefn, whitenparams, ranges,
     objective = 'LE', turn_limit = np.deg2rad(30), 
     theta_stack_low = None, theta_stack_high = None, 
     walltime = None, xtol_rel = 0, ftol_rel = 0, globalopt = False,
@@ -40,17 +43,17 @@ def optimal_path(theta_stack_init, x, r, memory, whitenfn, whitenparams, ranges,
         if objective == 'LE':
             def objective(theta_stack, grad):
                 return path_linearised_entropy_model(theta_stack, r, x, 
-                    memory, whitenfn, whitenparams)
+                    memory, featurefn, whitenparams)
         elif objective == 'MCJE':
             S = np.random.normal(loc = 0., scale = 1., 
                 size = (theta_stack_init.shape[0], n_draws))
             def objective(theta_stack, grad):
                 return path_monte_carlo_entropy_model(theta_stack, r, x, 
-                    memory, whitenfn, whitenparams, n_draws = n_draws, S = S)
+                    memory, featurefn, whitenparams, n_draws = n_draws, S = S)
         elif objective == 'MIE':
             def objective(theta_stack, grad):
                 return path_marginalised_entropy_model(theta_stack, r, x, 
-                    memory, whitenfn, whitenparams)
+                    memory, featurefn, whitenparams)
 
         # Define the path constraint
         def constraint(theta_stack, grad):
@@ -113,15 +116,15 @@ def forward_path_model(theta_stack, r, x):
     x_rel = np.array([x1_rel, x2_rel]).T
     return x + x_rel
 
-def path_linearised_entropy_model(theta_stack, r, x, memory, whitenfn, whitenparams):
+def path_linearised_entropy_model(theta_stack, r, x, memory, featurefn, whitenparams):
 
     Xq = forward_path_model(theta_stack, r, x)
-    Xqw = whitenfn(Xq, whitenparams)
+    Fqw = featurefn(Xq, whitenparams)
 
     logging.info('Computing linearised entropy...')
     start_time = time.clock()
 
-    predictors = gp.classifier.query(memory, Xqw)
+    predictors = gp.classifier.query(memory, Fqw)
     yq_exp = gp.classifier.expectance(memory, predictors)
     yq_cov = gp.classifier.covariance(memory, predictors)
     entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
@@ -132,16 +135,16 @@ def path_linearised_entropy_model(theta_stack, r, x, memory, whitenfn, whitenpar
         np.rad2deg(theta_stack), entropy))
     return entropy
 
-def path_monte_carlo_entropy_model(theta_stack, r, x, memory, whitenfn, whitenparams,
+def path_monte_carlo_entropy_model(theta_stack, r, x, memory, featurefn, whitenparams,
     n_draws = 1000, S = None):
 
     Xq = forward_path_model(theta_stack, r, x)
-    Xqw = whitenfn(Xq, whitenparams)
+    Fqw = featurefn(Xq, whitenparams)
 
     logging.info('Computing monte carlo joint entropy...')
     start_time = time.clock()
 
-    predictors = gp.classifier.query(memory, Xqw)
+    predictors = gp.classifier.query(memory, Fqw)
     yq_exp = gp.classifier.expectance(memory, predictors)
     yq_cov = gp.classifier.covariance(memory, predictors)
     entropy = gp.classifier.monte_carlo_joint_entropy(yq_exp, yq_cov, memory, 
@@ -153,15 +156,15 @@ def path_monte_carlo_entropy_model(theta_stack, r, x, memory, whitenfn, whitenpa
         np.rad2deg(theta_stack), entropy))
     return entropy
 
-def path_marginalised_entropy_model(theta_stack, r, x, memory, whitenfn, whitenparams):
+def path_marginalised_entropy_model(theta_stack, r, x, memory, featurefn, whitenparams):
 
     Xq = forward_path_model(theta_stack, r, x)
-    Xqw = whitenfn(Xq, whitenparams)
+    Fqw = featurefn(Xq, whitenparams)
 
     logging.info('Computing marginalised information entropy...')
     start_time = time.clock()
 
-    yq_prob = gp.classifier.predict(Xqw, memory, fusemethod = 'EXCLUSION')
+    yq_prob = gp.classifier.predict(Fqw, memory, fusemethod = 'EXCLUSION')
     entropy = gp.classifier.entropy(yq_prob).sum()
 
 
@@ -189,7 +192,7 @@ def path_bounds_model(theta_stack, r, x, ranges):
 
 
 
-def correct_lookahead_predictions(xq_abs_opt, learned_classifier, whitenfn, whitenparams, 
+def correct_lookahead_predictions(xq_abs_opt, learned_classifier, featurefn, whitenparams, 
     decision_boundary):
     """
     Obtain the number of steps we can skip optimisation procedures for by 
@@ -205,7 +208,7 @@ def correct_lookahead_predictions(xq_abs_opt, learned_classifier, whitenfn, whit
             y_unique = learned_classifier.cache.get('y_unique')
 
         # Whiten the features
-        xqw_abs_opt = whitenfn(xq_abs_opt, whitenparams)
+        xqw_abs_opt = featurefn(xq_abs_opt, whitenparams)
 
         # Obtain the predicted classes
         yq_pred = gp.classifier.classify(gp.classifier.predict(xqw_abs_opt, 
@@ -238,7 +241,7 @@ def shift_path(theta_stack, k_step = 1):
     theta_stack_next[1:-k_step] = theta_stack[(k_step + 1):]
     return theta_stack_next
 
-def nowhitenfn(X, params = None):
+def nofeaturefn(X, params = None):
 
     if params is None:
         return X, 0
