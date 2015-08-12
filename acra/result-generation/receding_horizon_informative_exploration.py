@@ -16,7 +16,7 @@ import nlopt
 import time
 import parmap
 from kdef import kerneldef
-import rh
+import isea
 import shelve
 
 def parse(key, currentvalue, arg = 1):
@@ -37,7 +37,7 @@ def parse(key, currentvalue, arg = 1):
         currentvalue = sys.argv[sys.argv.index(key) + arg]
     return cast(currentvalue)
 
-def extract_feature(X, decision_boundary, whitefn, bank
+def extract_feature(X, decision_boundary, whitefn, bank,
     whiteparams = None, whiten = True):
 
     assert X.shape[1] == 2
@@ -53,8 +53,13 @@ def extract_feature(X, decision_boundary, whitefn, bank
 
     f2 = np.sin(y/2)  
 
-    i1 = X[:, 0] * 10
-    bank.get('bank1')
+    I = (X * 200).astype(int)
+
+    s1 = bank.get('bank1')[I[:, 0]]
+    s2 = bank.get('bank2')[I[:, 1]]
+
+    f2 = gp.classifier.responses.logistic(X[:, 0]/(X[:, 1]**2 + 1)) + s1 + s2
+
     # f2 = np.sum(X**2, axis = 1)
 
     F = np.array([f1, f2]).T
@@ -67,7 +72,7 @@ def extract_feature(X, decision_boundary, whitefn, bank
 def compose_featurefn(decision_boundary, whitefn, bank):
 
     def featurefn(X, whiteparams = None, whiten = True):
-        return extract_feature(X, decision_boundary, whitefn, bank
+        return extract_feature(X, decision_boundary, whitefn, bank,
             whiteparams = whiteparams, whiten = whiten)
     featurefn.db = decision_boundary
     featurefn.whitefn = whitefn
@@ -133,12 +138,12 @@ def main():
         min_size = E_MIN_SIZE, max_size = E_MAX_SIZE, 
         n_class = N_CLASS, n_ellipse = N_ELLIPSE, n_dims = n_dims)
 
-    bank1 = np.random.normal(loc = 0., scale = 5., size = 100)
-    bank2 = np.random.normal(loc = 0., scale = 5., size = 100)
+    bank1 = np.random.normal(loc = 0., scale = 5., size = 1000)
+    bank2 = np.random.normal(loc = 0., scale = 5., size = 1000)
     bank = {'bank1': bank1, 'bank2': bank2}
 
     if (WHITEFN == 'none') or (WHITEFN == 'NONE'):
-        whitefn = rh.nowhitenfn
+        whitefn = isea.nowhitenfn
     elif (WHITEFN == 'pca') or (WHITEFN == 'PCA'):
         whitefn = pre.whiten
     elif (WHITEFN == 'standardise') or (WHITEFN == 'STANDARDISE'):
@@ -157,7 +162,7 @@ def main():
     Data Generation
     """
     if TRAIN_SET == 'track':
-        X = rh.utils.generate_tracks(R_START, R_TRACK, N_TRACK, N_TRACK_POINTS, 
+        X = isea.utils.generate_tracks(R_START, R_TRACK, N_TRACK, N_TRACK_POINTS, 
             perturb_deg_scale = TRACK_PERTURB_DEG)
     elif 'unif'in TRAIN_SET:
         X = np.random.uniform(range_min, range_max, size = (N_TRAIN, n_dims))
@@ -169,6 +174,14 @@ def main():
 
     f1 = F[:, 0]
     f2 = F[:, 1]
+
+    Xq_plt = gp.classifier.utils.query_map(ranges, n_points = plt_points)
+    Xq_meas = gp.classifier.utils.query_map(ranges, n_points = meas_points)
+
+    # Features
+    Fq_plt = featurefn(Xq_plt, whiten = False)
+    fq1_plt = Fq_plt[:, 0]
+    fq2_plt = Fq_plt[:, 1]
 
     n_train = X.shape[0]
     logging.info('Training Points: %d' % n_train)
@@ -202,6 +215,36 @@ def main():
         plt.ylim((range_min, range_max))
         plt.gca().patch.set_facecolor('gray')
         logging.info('Plotted Training Set')
+        
+        """ Features """
+        fig = plt.figure(figsize = (15, 15))
+
+        plt.subplot(2, 2, 1)
+        gp.classifier.utils.visualise_map(fq1_plt, ranges, cmap = cm.gist_rainbow)
+        plt.title('Feature 1', fontsize = fontsize)
+        plt.xlabel('x1', fontsize = fontsize)
+        plt.ylabel('x2', fontsize = fontsize)
+        plt.colorbar()
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        for tick in plt.gca().xaxis.get_major_ticks():
+            tick.label.set_fontsize(axis_tick_font_size) 
+        for tick in plt.gca().yaxis.get_major_ticks():
+            tick.label.set_fontsize(axis_tick_font_size) 
+
+        plt.subplot(2, 2, 2)
+        gp.classifier.utils.visualise_map(fq2_plt, ranges, cmap = cm.gist_rainbow)
+        plt.title('Feature 2', fontsize = fontsize)
+        plt.xlabel('x1', fontsize = fontsize)
+        plt.ylabel('x2', fontsize = fontsize)
+        plt.colorbar()
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        for tick in plt.gca().xaxis.get_major_ticks():
+            tick.label.set_fontsize(axis_tick_font_size) 
+        for tick in plt.gca().yaxis.get_major_ticks():
+            tick.label.set_fontsize(axis_tick_font_size) 
+
+        plt.tight_layout()
+
         plt.show()
 
     # Set optimiser configuration and obtain the response function
@@ -233,8 +276,6 @@ def main():
     """
 
     """Feature Generation and Query Computations"""
-    Xq_plt = gp.classifier.utils.query_map(ranges, n_points = plt_points)
-    Xq_meas = gp.classifier.utils.query_map(ranges, n_points = meas_points)
     Fqw_plt = featurefn(Xq_plt, whitenparams)
     Fqw_meas = featurefn(Xq_meas, whitenparams)
     yq_truth_plt = gp.classifier.utils.make_decision(Xq_plt, decision_boundary)
@@ -278,12 +319,6 @@ def main():
     entropy_linearised_mean_meas = yq_le_plt.mean()
     logging.info('Measure: Computing Average Information Entropy...')
     entropy_true_mean_meas = yq_entropy_plt.mean()
-
-
-    # Features
-    Fq_plt = featurefn(Xq_plt, whiten = False)
-    fq1_plt = Fq_plt[:, 0]
-    fq2_plt = Fq_plt[:, 1]
 
     """Plot: Ground Truth"""
     fig = plt.figure(figsize = (15 * 1.5, 15))
@@ -527,12 +562,12 @@ def main():
         if m_step <= k_step:
             if METHOD == 'RANDOM':
                 xq_abs_opt, theta_stack_opt, entropy_opt = \
-                    rh.random_path(theta_stack_init, xq_now[-1], r, 
+                    isea.random_path(theta_stack_init, xq_now[-1], r, 
                         learned_classifier, featurefn, whitenparams, ranges, 
                         perturb_deg = 40, chaos = CHAOS)
             else:
                 xq_abs_opt, theta_stack_opt, entropy_opt = \
-                    rh.optimal_path(theta_stack_init, xq_now[-1], r, 
+                    isea.optimal_path(theta_stack_init, xq_now[-1], r, 
                         learned_classifier, featurefn, whitenparams, ranges, 
                         objective = METHOD,
                         turn_limit = theta_bound,
@@ -543,20 +578,20 @@ def main():
                         n_draws = n_draws_est)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
-            m_step = rh.correct_lookahead_predictions(xq_abs_opt, 
+            m_step = isea.correct_lookahead_predictions(xq_abs_opt, 
                 learned_classifier, featurefn, whitenparams, decision_boundary)
             logging.info('Taking %d steps' % m_step)
         else:
             m_step -= 1
             theta_stack_opt = theta_stack_init.copy()
-            xq_abs_opt = rh.forward_path_model(theta_stack_init, r, xq_now[-1])
+            xq_abs_opt = isea.forward_path_model(theta_stack_init, r, xq_now[-1])
             logging.info('%d steps left' % m_step)
 
         # Path steps into the proposed path
         xq_now = xq_abs_opt[:k_step]
 
         # 
-        theta_stack_init = rh.shift_path(theta_stack_opt, 
+        theta_stack_init = isea.shift_path(theta_stack_opt, 
             k_step = k_step)
         np.clip(theta_stack_init, theta_stack_low + 1e-4, theta_stack_high - 1e-4, 
             out = theta_stack_init)
