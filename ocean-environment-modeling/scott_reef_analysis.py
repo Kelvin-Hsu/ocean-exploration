@@ -33,14 +33,14 @@ def main():
     Q_SEED = sea.io.parse('-qseed', 500)
     NOTRAIN = sea.io.parse('-skiptrain', False)
     N_TRAIN = sea.io.parse('-ntrain', 300)
-    N_QUERY = sea.io.parse('-nquery', 150000)
+    N_QUERY = sea.io.parse('-nquery', 100000)
 
     METHOD = sea.io.parse('-method', 'LDE')
     N_TRIALS = sea.io.parse('-ntrials', 300)
     START_POINT1 = sea.io.parse('-start', 375000.0, arg = 1)
     START_POINT2 = sea.io.parse('-start', 8440000.0, arg = 2)
     H_STEPS = sea.io.parse('-hsteps', 20)
-    HORIZON = sea.io.parse('-horizon', 10000.0)
+    HORIZON = sea.io.parse('-horizon', 15000.0)
     CHAOS = sea.io.parse('-chaos', False)
 
     NOTRAIN = True
