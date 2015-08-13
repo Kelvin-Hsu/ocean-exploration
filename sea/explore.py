@@ -177,7 +177,7 @@ def path_bounds_model(theta_stack, r, x, Xq_ref, bound):
     This assumes that the field is a square about the origin
     """
     Xq = forward_path_model(theta_stack, r, x)
-    c = cdist(Xq, Xq_ref).max() - bound
+    c = cdist(Xq, Xq_ref).min(axis = 1).max(axis = 0) - bound
     logging.debug('Contraint Violation: {0}'.format(c))
     return c
 

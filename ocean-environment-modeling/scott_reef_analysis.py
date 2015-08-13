@@ -332,7 +332,8 @@ def main():
     else:
         theta_bound = np.deg2rad(180)
 
-    theta_stack_init = -np.deg2rad(20) * np.ones(h_steps)
+    theta_stack_init = -np.deg2rad(15) * np.ones(h_steps)
+    # theta_stack_init[int(h_steps/2):] = 0
     theta_stack_init[0] = np.deg2rad(180)
     theta_stack_low = -theta_bound * np.ones(h_steps)
     theta_stack_high = theta_bound * np.ones(h_steps)
@@ -349,7 +350,7 @@ def main():
     k_step = 1
     m_step = 1
 
-    bound = 250
+    bound = 100
 
     """Informative Seafloor Exploration: Initialisation"""
     # The observed data till now
@@ -402,7 +403,7 @@ def main():
         facecolors = 'none', 
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
-    sea.vis.plot(xq1_nows, xq2_nows, c = 'w')
+    sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
     sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
@@ -418,14 +419,14 @@ def main():
     sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
         s = 60, marker = 'D', 
         vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap, colorcenter = True)
-    sea.vis.plot(xq1_proposed, xq2_proposed, c = 'w')
+    sea.vis.plot(xq1_proposed, xq2_proposed, c = 'k', linewidth = 2)
 
     # Plot the horizon
-    gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+    gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', linewidth = 2, 
         marker = '.')
 
     plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
-        head_width = r/4, head_length = r/4, fc = 'w', ec = 'w')
+        head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
     # Save the plot
     plt.tight_layout()
@@ -454,8 +455,7 @@ def main():
                         ftol_rel = ftol_rel, globalopt = False, bound = bound)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
-            # m_step = sea.explore.correct_lookahead_predictions(xq_abs_opt, 
-            #     learned_classifier, feature_fn, white_params, decision_boundary)
+            m_step = 15
             logging.info('Taking %d steps' % m_step)
         else:
             m_step -= 1
@@ -561,7 +561,7 @@ def main():
             facecolors = 'none', 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
-        sea.vis.plot(xq1_nows, xq2_nows, c = 'w')
+        sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
         sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
@@ -570,14 +570,14 @@ def main():
         sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'w')
+        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'k', linewidth = 2)
 
         # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', linewidth = 2, 
             marker = '.')
 
         plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
-            head_width = r/4, head_length = r/4, fc = 'w', ec = 'w')
+            head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
         # Save the plot
         plt.tight_layout()
@@ -605,7 +605,7 @@ def main():
             facecolors = 'none', 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
-        sea.vis.plot(xq1_nows, xq2_nows, c = 'w')
+        sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
         sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
@@ -614,14 +614,14 @@ def main():
         sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'w')
+        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'k', linewidth = 2)
 
         # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', linewidth = 2, 
             marker = '.')
 
         plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
-            head_width = r/4, head_length = r/4, fc = 'w', ec = 'w')
+            head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
         # Save the plot
         plt.tight_layout()
@@ -648,7 +648,7 @@ def main():
             facecolors = 'none', 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
-        sea.vis.plot(xq1_nows, xq2_nows, c = 'w')
+        sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
         sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
@@ -657,14 +657,14 @@ def main():
         sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'w')
+        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'k', linewidth = 2)
 
         # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', linewidth = 2, 
             marker = '.')
 
         plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
-            head_width = r/4, head_length = r/4, fc = 'w', ec = 'w')
+            head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
         # Save the plot
         plt.tight_layout()
@@ -692,7 +692,7 @@ def main():
             facecolors = 'none', 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
-        sea.vis.plot(xq1_nows, xq2_nows, c = 'w')
+        sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
         sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
@@ -701,14 +701,14 @@ def main():
         sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'w')
+        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'k', linewidth = 2)
 
         # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', linewidth = 2, 
             marker = '.')
 
         plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
-            head_width = r/4, head_length = r/4, fc = 'w', ec = 'w')
+            head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
         # Save the plot
         plt.tight_layout()
@@ -765,6 +765,14 @@ def main():
         # Move on to the next step
         i_trials += 1
     
+        np.savez('%shistory.npz' % full_directory, 
+            learned_classifier = learned_classifier,
+            miss_ratio_array = miss_ratio_array,
+            yq_lde_mean_array = yq_lde_mean_array,
+            yq_mie_mean_array = yq_mie_mean_array,
+            entropy_opt_array = entropy_opt_array,
+            yq_esd_mean_array = yq_esd_mean_array)
+
     np.savez('%shistory.npz' % full_directory, 
         learned_classifier = learned_classifier,
         miss_ratio_array = miss_ratio_array,
