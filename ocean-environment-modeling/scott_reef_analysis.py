@@ -36,7 +36,7 @@ def main():
     N_QUERY = sea.io.parse('-nquery', 100000)
 
     METHOD = sea.io.parse('-method', 'LDE')
-    N_TRIALS = sea.io.parse('-ntrials', 300)
+    N_TRIALS = sea.io.parse('-ntrials', 100)
     START_POINT1 = sea.io.parse('-start', 375000.0, arg = 1)
     START_POINT2 = sea.io.parse('-start', 8440000.0, arg = 2)
     H_STEPS = sea.io.parse('-hsteps', 30)
@@ -72,7 +72,7 @@ def main():
     """Initialise Result Logging"""
     if SAVE_RESULTS:
         home_directory = "../../../Results/scott-reef/"
-        save_directory = "t%d_q%d/" % (n_train, n_query)
+        save_directory = "t%d_q%d_ts%d_qs%d_method%s_start%.1f%.1f_hsteps%d_horizon%.1f/" % (n_train, n_query, T_SEED, Q_SEED, METHOD, START_POINT1, START_POINT2, H_STEPS, HORIZON)
         full_directory = gp.classifier.utils.create_directories(save_directory, 
             home_directory = home_directory, append_time = True)
         textfilename = '%slog.txt' % full_directory
@@ -440,7 +440,7 @@ def main():
     # Plot the proposed path
     sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
         s = 60, marker = 'D', 
-        vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap, colorcenter = True)
+        vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
     sea.vis.plot(xq1_proposed, xq2_proposed, c = 'k', linewidth = 2)
 
     # Plot the horizon
