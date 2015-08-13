@@ -1,16 +1,15 @@
 """
-Receding Horizon Informative Exploration
-
-Path planning methods for receding horizon informative exploration
+Informative Seafloor Exploration
 """
 import numpy as np
 import nlopt
 from computers import gp
 import logging
 import time
+from scipy.spatial.distance import cdist
 
-def random_path(theta_stack_init, x, r, memory, featurefn, whitenparams, ranges, 
-    perturb_deg = 30, chaos = False):
+def random_path(theta_stack_init, r, x, memory, featurefn, whitenparams, 
+    perturb_deg = 30, chaos = False, bound = 250):
 
     if chaos:
         np.random.seed(int(time.strftime("%M%S", time.gmtime())))
@@ -18,7 +17,7 @@ def random_path(theta_stack_init, x, r, memory, featurefn, whitenparams, ranges,
     theta_stack = np.random.uniform(0, 2 * np.pi, 
         size = theta_stack_init.shape[0])
 
-    while path_bounds_model(theta_stack, r, x, ranges) > 0:
+    while path_bounds_model(theta_stack, r, x, featurefn.Xq_ref, bound) > 0:
 
         theta_stack = np.random.uniform(0, 2 * pi, 
             size = theta_stack_init.shape[0])
@@ -29,79 +28,76 @@ def random_path(theta_stack_init, x, r, memory, featurefn, whitenparams, ranges,
                     memory, featurefn, whitenparams)
     return x_abs, theta_stack, entropy
 
-def optimal_path(theta_stack_init, x, r, memory, featurefn, whitenparams, ranges,
-    objective = 'LE', turn_limit = np.deg2rad(30), 
+def optimal_path(theta_stack_init, r, x, memory, featurefn, whitenparams,
+    objective = 'LDE', turn_limit = np.deg2rad(30), 
     theta_stack_low = None, theta_stack_high = None, 
     walltime = None, xtol_rel = 0, ftol_rel = 0, globalopt = False,
-    n_draws = 5000):
+    n_draws = 5000, bound = 250):
 
     ##### OPTIMISATION #####
     # Propose an optimal path
-    try:
+    # try:
 
-        # Select the approach objective
-        if objective == 'LE':
-            def objective(theta_stack, grad):
-                return path_linearised_entropy_model(theta_stack, r, x, 
-                    memory, featurefn, whitenparams)
-        elif objective == 'MCJE':
-            S = np.random.normal(loc = 0., scale = 1., 
-                size = (theta_stack_init.shape[0], n_draws))
-            def objective(theta_stack, grad):
-                return path_monte_carlo_entropy_model(theta_stack, r, x, 
-                    memory, featurefn, whitenparams, n_draws = n_draws, S = S)
-        elif objective == 'MIE':
-            def objective(theta_stack, grad):
-                return path_marginalised_entropy_model(theta_stack, r, x, 
-                    memory, featurefn, whitenparams)
+    # Select the approach objective
+    if objective == 'LDE':
+        def objective(theta_stack, grad):
+            return path_linearised_entropy_model(theta_stack, r, x, 
+                memory, featurefn, whitenparams)
+    elif objective == 'MCJE':
+        S = np.random.normal(loc = 0., scale = 1., 
+            size = (theta_stack_init.shape[0], n_draws))
+        def objective(theta_stack, grad):
+            return path_monte_carlo_entropy_model(theta_stack, r, x, 
+                memory, featurefn, whitenparams, n_draws = n_draws, S = S)
+    elif objective == 'MIE':
+        def objective(theta_stack, grad):
+            return path_marginalised_entropy_model(theta_stack, r, x, 
+                memory, featurefn, whitenparams)
 
-        # Define the path constraint
-        def constraint(theta_stack, grad):
-            return path_bounds_model(theta_stack, r, x, ranges)
+    # Define the path constraint
+    def constraint(theta_stack, grad):
+        return path_bounds_model(theta_stack, r, x, featurefn.Xq_ref, bound)
 
-        # Start with valid path
-        # theta_stack_init = force_valid_path(theta_stack_init, r, x, ranges)
+    # Obtain the number of parameters involvevd
+    n_params = theta_stack_init.shape[0]
 
-        # Obtain the number of parameters involvevd
-        n_params = theta_stack_init.shape[0]
+    # Prepare for global or local optimisation according to specification
+    if globalopt:
+        opt = nlopt.opt(nlopt.G_MLSL_LDS, n_params)
+        local_opt = nlopt.opt(nlopt.LN_COBYLA , n_params)
+        opt.set_local_optimizer(local_opt)
+    else:
+        opt = nlopt.opt(nlopt.LN_COBYLA , n_params)
 
-        # Prepare for global or local optimisation according to specification
-        if globalopt:
-            opt = nlopt.opt(nlopt.G_MLSL_LDS, n_params)
-            local_opt = nlopt.opt(nlopt.LN_COBYLA , n_params)
-            opt.set_local_optimizer(local_opt)
-        else:
-            opt = nlopt.opt(nlopt.LN_COBYLA , n_params)
+    # Setup optimiser
+    if theta_stack_low is not None:
+        theta_stack_low[0] = theta_stack_init[0] - turn_limit
+        opt.set_lower_bounds(theta_stack_low)
+    if theta_stack_high is not None:
+        theta_stack_high[0] = theta_stack_init[0] + turn_limit
+        opt.set_upper_bounds(theta_stack_high)
+    opt.set_maxtime(walltime)
+    if xtol_rel > 0:
+        opt.set_xtol_rel(xtol_rel)
+    if ftol_rel > 0:
+        opt.set_ftol_rel(ftol_rel)
+    
+    # Set the objective and constraint and optimise!
+    opt.set_max_objective(objective)
+    opt.add_inequality_constraint(constraint, 1e-2)
+    theta_stack_opt = opt.optimize(theta_stack_init)
+    entropy_opt = opt.last_optimum_value()
 
-        # Setup optimiser
-        if theta_stack_low is not None:
-            theta_stack_low[0] = theta_stack_init[0] - turn_limit
-            opt.set_lower_bounds(theta_stack_low)
-        if theta_stack_high is not None:
-            theta_stack_high[0] = theta_stack_init[0] + turn_limit
-            opt.set_upper_bounds(theta_stack_high)
-        opt.set_maxtime(walltime)
-        if xtol_rel > 0:
-            opt.set_xtol_rel(xtol_rel)
-        if ftol_rel > 0:
-            opt.set_ftol_rel(ftol_rel)
-        
-        # Set the objective and constraint and optimise!
-        opt.set_max_objective(objective)
-        opt.add_inequality_constraint(constraint, 1e-2)
-        theta_stack_opt = opt.optimize(theta_stack_init)
-        entropy_opt = opt.last_optimum_value()
+    # # If there is any problem, skip optimisation
+    # except Exception as e:
 
-    # If there is any problem, skip optimisation
-    except Exception as e:
-
-        # Note down the error and move the path
-        theta_stack_opt = shift_path(theta_stack_init)
-        entropy_opt = np.nan
-        logging.warning('Problem with optimisation. Continuing planned route.')
-        logging.warning(type(e))
-        logging.warning(e)
-        logging.debug('Initial parameters: {0}'.format(theta_stack_init))
+    #     # Note down the error and move the path
+    #     theta_stack_opt = shift_path(theta_stack_init)
+    #     entropy_opt = np.nan
+    #     logging.warning('Problem with optimisation. Continuing planned route.')
+    #     logging.warning(type(e))
+    #     logging.warning(e)
+    #     logging.debug('Initial parameters: {0}'.format(theta_stack_init))
 
     ##### PATH COMPUTATION #####
     x_abs_opt = forward_path_model(theta_stack_opt, r, x)
@@ -174,23 +170,16 @@ def path_marginalised_entropy_model(theta_stack, r, x, memory, featurefn, whiten
         np.rad2deg(theta_stack), entropy))
     return entropy
 
-def path_bounds_model(theta_stack, r, x, ranges):
+def path_bounds_model(theta_stack, r, x, Xq_ref, bound):
     """
     Path Constraint
 
     This assumes that the field is a square about the origin
     """
     Xq = forward_path_model(theta_stack, r, x)
-    c = np.max(np.abs(Xq)) - ranges[1]
+    c = cdist(Xq, Xq_ref).max() - bound
     logging.debug('Contraint Violation: {0}'.format(c))
     return c
-
-# def force_valid_path(theta_stack, r, x, ranges):
-
-#     def objective(theta_stack, grad):
-#         return path_bounds_model(theta_stack, r, x, ranges)
-
-
 
 def correct_lookahead_predictions(xq_abs_opt, learned_classifier, featurefn, whitenparams, 
     decision_boundary):

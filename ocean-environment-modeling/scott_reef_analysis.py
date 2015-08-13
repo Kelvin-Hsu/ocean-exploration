@@ -16,7 +16,8 @@ import time
 import logging
 import sys
 import os
-import isea
+import sea
+import shutil
 
 def kerneldef(h, k):
     """Define the kernel used in the classifier"""
@@ -27,8 +28,22 @@ def kerneldef(h, k):
 def main():
 
     """ Test Options """
-    SEED = 100
+    FILENAME = 'scott_reef_analysis.py'
+    T_SEED = sea.io.parse('-tseed', 250)
+    Q_SEED = sea.io.parse('-qseed', 500)
+    NOTRAIN = sea.io.parse('-skiptrain', False)
+    N_TRAIN = sea.io.parse('-ntrain', 300)
+    N_QUERY = sea.io.parse('-nquery', 150000)
 
+    METHOD = sea.io.parse('-method', 'LDE')
+    N_TRIALS = sea.io.parse('-ntrials', 300)
+    START_POINT1 = sea.io.parse('-start', 375000.0, arg = 1)
+    START_POINT2 = sea.io.parse('-start', 8440000.0, arg = 2)
+    H_STEPS = sea.io.parse('-hsteps', 20)
+    HORIZON = sea.io.parse('-horizon', 10000.0)
+    CHAOS = sea.io.parse('-chaos', False)
+
+    NOTRAIN = True
     """Model Options"""
     SAVE_RESULTS = True
 
@@ -38,11 +53,11 @@ def main():
     responsename = 'probit'
     batchstart = True
     walltime = 3600.0
-    train = True
+    train = not NOTRAIN
     white_fn = pre.standardise
 
-    n_train_sample = 300
-    n_query_sample = 200000
+    n_train = N_TRAIN
+    n_query = N_QUERY
 
     """Visualisation Options"""
     mycmap = cm.get_cmap(name = 'jet', lut = None)
@@ -55,12 +70,10 @@ def main():
 
     """Initialise Result Logging"""
     if SAVE_RESULTS:
-        home_directory = "../../../Results/ocean-exploration/"
-        save_directory = "scott_reef_t%d_q%d/" % (n_train_sample, n_query_sample)
-
+        home_directory = "../../../Results/scott-reef/"
+        save_directory = "t%d_q%d/" % (n_train, n_query)
         full_directory = gp.classifier.utils.create_directories(save_directory, 
             home_directory = home_directory, append_time = True)
-
         textfilename = '%slog.txt' % full_directory
 
     """Logging Options"""
@@ -86,8 +99,8 @@ def main():
     logging.getLogger().addHandler(console)
 
     """Process Options"""
-    model_options = {   'trainingsample': n_train_sample,
-    					'querysample': n_query_sample,
+    model_options = {   'trainingsample': n_train,
+    					'querysample': n_query,
     					'approxmethod': approxmethod,
                         'multimethod': multimethod,
                         'fusemethod': fusemethod,
@@ -102,68 +115,62 @@ def main():
     directory_data = '../../../Data/'
     filename_training_data = 'training_data_unmerged.npz'
     filename_query_points = 'query_points.npz'
+    filename_truth = directory_data + 'truthmodel_t800_q100000_ts250_qs500.npz'
+    """Sample Training Data and Query Points"""
+    X, F, y, Xq, Fq, i_train, i_query = \
+        sea.io.sample(*sea.io.load(directory_data, 
+            filename_training_data, filename_query_points), 
+            n_train = n_train, n_query = n_query,
+            t_seed = T_SEED, q_seed = Q_SEED)
 
-    """Load Data"""
-    (X_all, F_all, y_all, Xq_all, Fq_all) = isea.utils.load(directory_data, 
-        filename_training_data, filename_query_points)
+    yq_truth = sea.io.load_ground_truth(filename_truth, 
+        assert_query_seed = Q_SEED)
 
-    n_train = F_all.shape[0]
-    n_query = Fq_all.shape[0]
-    k_features = F_all.shape[1]
+    y_unique = np.unique(y)
+    assert y_unique.shape[0] == 17
+    logging.info('There are %d unique labels' % y_unique.shape[0])
+
+    """Whiten the feature space"""
+    logging.info('Applying whitening on training and query features...')
+    feature_fn = sea.feature.compose(Xq, Fq, white_fn)
+    Fw, white_params = white_fn(F)
+    Fqw = white_fn(Fq, params = white_params)
+
+    k_features = F.shape[1]
     assert k_features == 5
     feature_names = [   'Bathymetry (Depth)', 
                         'Aspect (Short Scale)',
                         'Rugosity (Short Scale)',
                         'Aspect (Long Scale)',
                         'Rugosity (Long Scale)']
-
-    logging.info('Raw Number of Training Points: %d' % n_train)
-    logging.info('Raw Number of Query Points: %d' % n_query)
-
-    """Sample Training Data and Query Points"""
-    np.random.seed(SEED)
-    (X_sample, F_sample, y_sample, Xq_sample, Fq_sample) \
-        = isea.utils.sample(X_all, F_all, y_all, Xq_all, Fq_all, 
-            n_train_sample = n_train_sample, n_query_sample = n_query_sample)
-
-    y_unique_sample = np.unique(y_sample)
-    assert y_unique_sample.shape[0] == 17
-    logging.info('There are %d unique labels' % y_unique_sample.shape[0])
-
-    """Whiten the feature space"""
-    logging.info('Applying whitening on training and query features...')
-    feature_fn = isea.compose_white_feature_fn(Xq_sample, Fq_sample, white_fn)
-    Fw_sample, white_params = white_fn(F_sample)
-    Fqw_sample = white_fn(Fq_sample, params = white_params)
-
     logging.info('Whitening Parameters:')
     logging.info(white_params)
 
     """Visualise Sampled Training Locations"""
     fig = plt.figure(figsize = (19.2, 10.8))
     plt.scatter(
-        X_sample[:, 0], X_sample[:, 1], 
-        marker = 'x', c = y_sample, 
-        vmin = y_unique_sample[0], vmax = y_unique_sample[-1], 
+        X[:, 0], X[:, 1], 
+        marker = 'x', c = y, 
+        vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
-    isea.utils.describe_plot(title = 'Training Labels', 
+    sea.vis.describe_plot(title = 'Training Labels', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
-        clabel = 'Habitat Labels', cticks = y_unique_sample,
+        clabel = 'Habitat Labels', cticks = y_unique,
         vis_range = vis_range, aspect_equal = True)
 
     """Visualise Features at Sampled Query Locations"""
     for k in range(k_features):
         fig = plt.figure(figsize = (19.2, 10.8))
-        isea.utils.scatter(
-            Xq_sample[:, 0], Xq_sample[:, 1], 
-            marker = 'x', c = Fq_sample[:, k], s = 5, 
+        sea.vis.scatter(
+            Xq[:, 0], Xq[:, 1], 
+            marker = 'x', c = Fq[:, k], s = 5, 
             cmap = mycmap, colorcenter = True)
-        isea.utils.describe_plot(clabel = '%s (Raw)' % feature_names[k])
-        isea.utils.scatter(
-            Xq_sample[:, 0], Xq_sample[:, 1], 
-            marker = 'x', c = Fqw_sample[:, k], s = 5,
+        sea.vis.describe_plot(clabel = '%s (Raw)' % feature_names[k])
+        sea.vis.scatter(
+            Xq[:, 0], Xq[:, 1], 
+            marker = 'x', c = Fqw[:, k], s = 5,
             cmap = mycmap, colorcenter = True)
-        isea.utils.describe_plot(
+        sea.vis.describe_plot(
             title = 'Feature: %s at Query Points' % feature_names[k], 
             xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
             clabel = '%s (Whitened)' % feature_names[k],
@@ -171,7 +178,7 @@ def main():
 
     """Classifier Training"""
     logging.info('===Begin Classifier Training===')
-    logging.info('Number of training points: %d' % n_train_sample)
+    logging.info('Number of training points: %d' % n_train)
 
     optimiser_config = gp.OptConfig()
     optimiser_config.sigma = gp.auto_range(kerneldef)
@@ -181,42 +188,23 @@ def main():
     # initial hyperparameters for faster training
     if batchstart:
         initial_hyperparams = \
-                                [    [225.01828874969513, 1.2618738490059052, 17.613593073339857, 12.679685345492906, 8.6262994637623169, 14.136073532069654], \
-                                     [2.589083342814575, 1.1052301403959857, 4.3644907968320794, 4.0156800544013631, 1.9007076030011256, 3.9503021025566549], \
-                                     [6.704649924638316, 7.5142456145585852, 10.182539495816165, 6.5811182358089964, 9.1368011211462683, 9.7400903506316272], \
-                                     [2.1521775248096446, 1.5480845798959013, 1.7727587298253529, 1.9531407045936808, 2.6291143996909319, 3.0014523367867647], \
-                                     [4.4145724529148573, 2.3177583295784854, 3.7037953308551175, 3.7294392645432604, 2.0975271260436825, 3.9495445442492572], \
-                                     [2.2789691898199238, 1.3116551225946529, 4.363909816990545, 3.3402865492153566, 1.1820443956790891, 3.464914967442942], \
-                                     [2.2351746154111178, 0.88313353460040367, 1.2254449251993957, 2.0047492138759808, 0.7359745470808734, 1.3441751232794052], \
-                                     [2.7192795673173125, 1.9773387942329865, 1.4579897229047554, 1.9817457382237416, 1.5572169782422107, 1.8730303409358018], \
-                                     [2.0758288682909476, 1.2612996582885267, 2.3759661774412209, 2.4093161358141555, 1.7870648339548159, 2.6745811799029862], \
-                                     [11.129910487357249, 1.5379441304334878, 4.5627982066806041, 6.5643558329665437, 2.2466955217967244, 6.6273259324841334], \
-                                     [2.0279161647863813, 1.9089318650401494, 1.6193561676805104, 2.5866394113420017, 1.3784102883153633, 3.1982719173007177], \
-                                     [3.3989164525541358, 1.7382334518504794, 1.8651494130520445, 2.2399330663269525, 3.4853142140708218, 3.2134802913286395], \
-                                     [2.4642534973485368, 3.4337999718161663, 3.9824996504195851, 2.0670160184395363, 1.7337535572033278, 2.2896179419157208], \
-                                     [12.88118605355896, 1.364920676715099, 12.017531667114847, 8.4028421151450079, 3.8158770382163691, 7.8630080376372842], \
-                                     [170.14744754307256, 1.5154971208609203, 11.612388859494869, 14.390128191785918, 9.8434640241485472, 3.4595594042354083], \
-                                     [136.11476775141347, 4.5649178398095103, 17.054161938288676, 43.509295473832708, 36.843822718649378, 4.235728726826542], \
-                                     [5.1892256356491009, 4.0010875696881456, 6.7249839105493585, 4.0905271432989778, 5.8275763934819604, 5.0612290664566961] ]
-        # SEED 100 NTRAIN 300
-        initial_hyperparams = \
-                                [    [362.92591030813242, 1.2151750269695372, 59.566522727138313, 27.215097108437007, 4.2668780608419823, 48.646891241197267], \
-                                     [28.410909586471902, 1.6547409996041162, 35.181731533678523, 54.811971329968053, 6.7981974974178918, 37.064340344985489], \
-                                     [7.6216625372646538, 90.058784012697217, 116.66482695523602, 55.535503470015364, 110.92321547392022, 77.071141621387568], \
-                                     [1.5768029665325165, 3.8878145465622507, 24.008839080730912, 33.765958354615393, 23.123914164426122, 2.8079270862221195], \
-                                     [2.2046531818048596, 1.8240437278704882, 20.860960465057293, 22.080682780942031, 28.487659895152998, 19.796263644578165], \
-                                     [2.5858331838159381, 5.1532258558761175, 61.770088965563701, 18.340405139610926, 31.973013428711642, 17.109458612526272], \
-                                     [2.1434241790231678, 1.3242146172720932, 30.07972956064993, 24.787134447383387, 9.0122488386123223, 14.774183226305345], \
-                                     [4.4841194248268836, 14.257195977751005, 31.238101053548693, 26.985981259344396, 29.671065405379018, 2.5084814457940734], \
-                                     [9.7302797822839633, 2.8285864857988483, 22.609715889910294, 22.219802976467555, 2.3881420894826375, 14.421650197536261], \
-                                     [12.829916611586468, 1.3888575814207087, 27.64578091319358, 13.982368669512779, 2.4597498808197567, 26.057722893351723], \
-                                     [2.2665953474458513, 14.592612185574257, 19.975325070791744, 3.1283680590160254, 8.8368591372471847, 4.8835669147886787], \
-                                     [157.78294780537757, 4.0960242089181298, 5.274239168403998, 12.521494925287476, 2.4605856762532912, 7.7272167882604688], \
-                                     [3.4004984263466644, 2.4408967175913712, 39.160176505939809, 27.967029108997064, 11.057618967917747, 15.585399892760641], \
-                                     [42.682242951397328, 1.9009329202410523, 68.066917448768791, 60.666463073240692, 8.9789229381446543, 45.757254434068436], \
-                                     [495.14458069351053, 1.4230543562260116, 4.5835141350525692, 34.794823077448399, 12.908805452331627, 15.532098734787946], \
-                                     [11.862345426556194, 4.4042160200831679, 29.712163671721687, 41.345655550097156, 58.247829889166795, 17.72698722003086], \
-                                     [7.3751943783426457, 40.453604512432129, 47.516981955027035, 45.2179252285366, 35.365341121902262, 82.502067880958208] ]
+                                [    [320.57877936128614, 1.1585314538133855, 16.971830202892182, 13.2982146397511, 3.5903175970474051, 157.39424107768139], \
+                                     [94.92405400574269, 1.2788122462876559, 66.128048600437225, 5.8584634929906532, 2.3376269482977525, 12.938852433246538], \
+                                     [7.2316752676281784, 211.01282813515252, 605.21124029888824, 118.95015047046942, 36.415548937170669, 269.17747017168222], \
+                                     [7.3035958524895257, 5.2818319863811576, 369.95771303726838, 36.337681287162432, 56.867452183483685, 11.468838185312663], \
+                                     [2.7046818132602435, 38.770906017912445, 16.142889638319531, 19.017568262215736, 108.35872235764178, 12.752297332848453], \
+                                     [5.1665202238361783, 2.508749221008296, 57.15411954328259, 10.26672628635392, 53.461595052564192, 34.385700775257703], \
+                                     [2.0748360321398738, 1.0019456339096766, 46.049013888326435, 21.594510373841985, 12.090471875156618, 26.23829355131695], \
+                                     [3.9424935896691746, 1.2770305891532705, 220.0814074951281, 63.931498176312367, 67.241596768503825, 17.990743966922299], \
+                                     [5.1316363440138382, 2.4803332422329905, 233.1152982720449, 119.50661835434632, 57.633584194008264, 139.68353543314493], \
+                                     [31.362876683396554, 2.2271043809429054, 46.110959686547844, 52.1283686477149, 2.4091611534708366, 92.121824783697875], \
+                                     [2.8521213156866261, 4.3591470146739466, 76.498779011353079, 38.284082633970044, 26.878550897240991, 2.6681145719573389], \
+                                     [5.3226281295231752, 5.5118656576536669, 86.291450037433933, 228.53831221134874, 56.459752612169567, 18.718760980202806], \
+                                     [4.3985822329997442, 1.2643285860275568, 193.0207848771841, 172.00274323050451, 155.19849940832842, 115.96329482769362], \
+                                     [17.965761637190241, 1.9304086197451131, 50.180636402767199, 149.50394158494592, 12.061707174982143, 31.765932106221591], \
+                                     [57.4423127300958, 2.0036456868482015, 9.7157285648070051, 94.011010785775269, 5.8328137782124951, 23.874860922848949], \
+                                     [2.7124818082845481, 4.4512881809223028, 43.89719061954132, 114.15707647584941, 184.06607505787818, 2.4421440364983495], \
+                                     [7.587190958981215, 162.42170269550411, 164.35681334098788, 303.17711599826504, 65.201091109094804, 531.88153321387961] ]
         batch_config = gp.batch_start(optimiser_config, initial_hyperparams)
         logging.info('Using Batch Start Configuration')
         
@@ -228,7 +216,7 @@ def main():
 
     # Train the classifier!
     logging.info('Learning...')
-    learned_classifier = gp.classifier.learn(Fw_sample, y_sample, 
+    learned_classifier = gp.classifier.learn(Fw, y, 
         kerneldef, responsefunction, batch_config, 
         multimethod = multimethod, approxmethod = approxmethod, 
         train = train, ftol = 1e-10)
@@ -236,7 +224,7 @@ def main():
     # Print the learnt kernel with its hyperparameters
     print_function = gp.describer(kerneldef)
     gp.classifier.utils.print_learned_kernels(print_function, 
-        learned_classifier, y_unique_sample)
+        learned_classifier, y_unique)
 
     # Print the matrix of learned classifier hyperparameters
     logging.info('Matrix of learned hyperparameters')
@@ -244,76 +232,548 @@ def main():
 
     """Classifier Prediction"""
 
-    yq_pred, yq_mie, yq_lde = predictions(learned_classifier, Fqw)
+    yq_pred, yq_mie, yq_lde = sea.model.predictions(learned_classifier, Fqw,
+        fusemethod = fusemethod)
+    yq_esd = gp.classifier.equivalent_standard_deviation(yq_lde)
+    miss_ratio = sea.model.miss_ratio(yq_pred, yq_truth)
+    logging.info('Miss Ratio: {0:.2f}%'.format(100 * miss_ratio))
 
     """Visualise Query Prediction and Entropy"""
     fig = plt.figure(figsize = (19.2, 10.8))
-    isea.utils.scatter(
-        Xq_sample[:, 0], Xq_sample[:, 1], 
-        marker = 'x', c = yq_pred, s = 5, 
-        vmin = y_unique_sample[0], vmax = y_unique_sample[-1], 
-        cmap = mycmap, colorcenter = True)
-    isea.utils.describe_plot(title = 'Query Predictions', 
+    sea.vis.scatter(
+        Xq[:, 0], Xq[:, 1], 
+        marker = 'x', c = yq_truth, s = 5, 
+        vmin = y_unique[0], vmax = y_unique[-1], 
+        cmap = mycmap)
+    sea.vis.describe_plot(title = 'Synthetic Ground Truth', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
-        clabel = 'Habitat Labels', cticks = y_unique_sample,
+        clabel = 'Habitat Labels', cticks = y_unique,
         vis_range = vis_range, aspect_equal = True)
 
     fig = plt.figure(figsize = (19.2, 10.8))
-    isea.utils.scatter(
-        Xq_sample[:, 0], Xq_sample[:, 1], 
+    sea.vis.scatter(
+        Xq[:, 0], Xq[:, 1], 
+        marker = 'x', c = yq_pred, s = 5, 
+        vmin = y_unique[0], vmax = y_unique[-1], 
+        cmap = mycmap)
+    sea.vis.describe_plot(title = 'Query Predictions', 
+        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        clabel = 'Habitat Labels', cticks = y_unique,
+        vis_range = vis_range, aspect_equal = True)
+
+    fig = plt.figure(figsize = (19.2, 10.8))
+    sea.vis.scatter(
+        Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = yq_mie, s = 5, cmap = cm.coolwarm, 
         colorcenter = True)
-    isea.utils.describe_plot(title = 'Query Information Entropy', 
+    sea.vis.describe_plot(title = 'Query Information Entropy', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Information Entropy',
         vis_range = vis_range, aspect_equal = True)
 
     fig = plt.figure(figsize = (19.2, 10.8))
-    isea.utils.scatter(
-        Xq_sample[:, 0], Xq_sample[:, 1], 
+    sea.vis.scatter(
+        Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = np.log(yq_mie), s = 5, 
         cmap = cm.coolwarm, colorcenter = True)
-    isea.utils.describe_plot(title = 'Log Query Information Entropy', 
+    sea.vis.describe_plot(title = 'Log Query Information Entropy', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Information Entropy',
         vis_range = vis_range, aspect_equal = True)
 
     fig = plt.figure(figsize = (19.2, 10.8))
-    isea.utils.scatter(
-        Xq_sample[:, 0], Xq_sample[:, 1], 
+    sea.vis.scatter(
+        Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = yq_lde, s = 5, 
         cmap = cm.coolwarm, colorcenter = True)
-    isea.utils.describe_plot(title = 'Query Linearised Differential Entropy', 
+    sea.vis.describe_plot(title = 'Query Linearised Differential Entropy', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Differential Entropy',
+        vis_range = vis_range, aspect_equal = True)
+
+    fig = plt.figure(figsize = (19.2, 10.8))
+    sea.vis.scatter(
+        Xq[:, 0], Xq[:, 1], 
+        marker = 'x', c = yq_esd, s = 5, 
+        cmap = cm.coolwarm, colorcenter = True)
+    sea.vis.describe_plot(title = 'Query Equivalent Standard Deviation', 
+        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        clabel = 'Standard Deviation',
         vis_range = vis_range, aspect_equal = True)
 
     """Visualise Query Draws"""
 
     if SAVE_RESULTS:
         gp.classifier.utils.save_all_figures(full_directory)
+        shutil.copy2('./%s' % FILENAME , full_directory)
+        np.savez('%sinitialmodel.npz' % full_directory, 
+                learned_classifier = learned_classifier,
+                t_seed = T_SEED, q_seed = Q_SEED,
+                n_train = n_train, n_query = n_query,
+                i_train = i_train, i_query = i_query,
+                yq_pred = yq_pred, yq_mie = yq_mie, yq_lde = yq_lde)
+
+    """Informative Seafloor Exploration: Setup"""
+    xq_now = np.array([[START_POINT1, START_POINT2]])
+    horizon = HORIZON
+    h_steps = H_STEPS
+
+    if METHOD == 'GREEDY':
+        horizon /= h_steps
+        h_steps /= h_steps
+        METHOD = 'MIE'
+
+    if METHOD == 'RANDOM':
+        horizon /= h_steps
+        h_steps /= h_steps        
+
+    if METHOD == 'LDE':
+        theta_bound = np.deg2rad(60)
+    else:
+        theta_bound = np.deg2rad(180)
+
+    theta_stack_init = -np.deg2rad(20) * np.ones(h_steps)
+    theta_stack_init[0] = np.deg2rad(180)
+    theta_stack_low = -theta_bound * np.ones(h_steps)
+    theta_stack_high = theta_bound * np.ones(h_steps)
+    theta_stack_low[0] = 0.0
+    theta_stack_high[0] = 2 * np.pi
+    r = horizon/h_steps
+    choice_walltime = 1500.0
+    xtol_rel = np.deg2rad(2.5)
+    ftol_rel = 1e-3
+    if METHOD == 'MIE':
+        xtol_rel = 1e-1
+        ftol_rel = 1e-1
+
+    k_step = 1
+    m_step = 1
+
+    bound = 250
+
+    """Informative Seafloor Exploration: Initialisation"""
+    # The observed data till now
+    X_now = X.copy()
+    y_now = y.copy()
+
+    # Observe the current location
+    i_observe = sea.feature.closest_query_indices(xq_now, Xq)
+    yq_now = yq_truth[i_observe]
+
+    # Add the observed data to the training set
+    X_now = np.concatenate((X_now, xq_now[[-1]]), axis = 0)
+    y_now = np.append(y_now, yq_now)
+
+    # Add the new location to the array of travelled coordinates
+    xq1_nows = xq_now[:, 0]
+    xq2_nows = xq_now[:, 1]
+    yq_nows = yq_now.copy()
+
+    # Plot the current situation
+    fig1 = plt.figure(figsize = (19.2, 10.8))
+    fig2 = plt.figure(figsize = (19.2, 10.8))
+    fig3 = plt.figure(figsize = (19.2, 10.8))
+    fig4 = plt.figure(figsize = (19.2, 10.8))
+    fig5 = plt.figure(figsize = (19.2, 10.8))
+
+    # Start exploring
+    i_trials = 0
+    n_trials = N_TRIALS
+    miss_ratio_array = np.nan * np.ones(n_trials)
+    yq_mie_mean_array = np.nan * np.ones(n_trials)
+    yq_lde_mean_array = np.nan * np.ones(n_trials)
+    entropy_opt_array = np.nan * np.ones(n_trials)
+    yq_esd_mean_array = np.nan * np.ones(n_trials)
+
+    # Prepare Figure 1
+    plt.figure(fig1.number)
+    plt.clf()
+    sea.vis.scatter(
+        Xq[:, 0], Xq[:, 1], 
+        marker = 'x', c = yq_lde, s = 5, 
+        cmap = cm.coolwarm, colorcenter = True)
+    sea.vis.describe_plot(title = 'Query Linearised Differential Entropy', 
+        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        clabel = 'Differential Entropy',
+        vis_range = vis_range, aspect_equal = True)
+
+    # Plot the path on top
+    sea.vis.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
+        facecolors = 'none', 
+        vmin = y_unique[0], vmax = y_unique[-1], 
+        cmap = mycmap)
+    sea.vis.plot(xq1_nows, xq2_nows, c = 'w')
+    sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
+        vmin = y_unique[0], vmax = y_unique[-1], 
+        cmap = mycmap)
+
+    xq_abs_opt = sea.explore.forward_path_model(theta_stack_init, r, xq_now[[-1]])
+    fqw_abs_opt = feature_fn(xq_abs_opt, white_params)
+    xq1_proposed = xq_abs_opt[:, 0][k_step:]
+    xq2_proposed = xq_abs_opt[:, 1][k_step:]
+    yq_proposed = gp.classifier.classify(gp.classifier.predict(fqw_abs_opt, 
+        learned_classifier), y_unique)[k_step:]
+
+    # Plot the proposed path
+    sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+        s = 60, marker = 'D', 
+        vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap, colorcenter = True)
+    sea.vis.plot(xq1_proposed, xq2_proposed, c = 'w')
+
+    # Plot the horizon
+    gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+        marker = '.')
+
+    plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
+        head_width = r/4, head_length = r/4, fc = 'w', ec = 'w')
+
+    # Save the plot
+    plt.tight_layout()
+    plt.gca().set_aspect('equal', adjustable = 'box')
+    plt.savefig('%slde_step%d.png' 
+        % (full_directory, i_trials + 1))
+
+    while i_trials < n_trials:
+
+        # Propose a path
+        if m_step <= k_step:
+            if METHOD == 'RANDOM':
+                xq_abs_opt, theta_stack_opt, entropy_opt = \
+                    sea.explore.random_path(theta_stack_init, r, xq_now[-1], 
+                        learned_classifier, feature_fn, white_params,
+                        perturb_deg = 40, chaos = CHAOS, bound = bound)
+            else:
+                xq_abs_opt, theta_stack_opt, entropy_opt = \
+                    sea.explore.optimal_path(theta_stack_init, r, xq_now[-1],
+                        learned_classifier, feature_fn, white_params, 
+                        objective = METHOD,
+                        turn_limit = theta_bound,
+                        theta_stack_low = theta_stack_low, 
+                        theta_stack_high = theta_stack_high, 
+                        walltime = choice_walltime, xtol_rel = xtol_rel, 
+                        ftol_rel = ftol_rel, globalopt = False, bound = bound)
+            logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
+
+            # m_step = sea.explore.correct_lookahead_predictions(xq_abs_opt, 
+            #     learned_classifier, feature_fn, white_params, decision_boundary)
+            logging.info('Taking %d steps' % m_step)
+        else:
+            m_step -= 1
+            theta_stack_opt = theta_stack_init.copy()
+            xq_abs_opt = sea.explore.forward_path_model(theta_stack_init, r, xq_now[-1])
+            logging.info('%d steps left' % m_step)
+
+        # Path steps into the proposed path
+        xq_now = xq_abs_opt[:k_step]
+
+        # 
+        theta_stack_init = sea.explore.shift_path(theta_stack_opt, 
+            k_step = k_step)
+        np.clip(theta_stack_init, theta_stack_low + 1e-4, theta_stack_high - 1e-4, 
+            out = theta_stack_init)
+
+        # Observe the current location
+        i_observe = sea.feature.closest_query_indices(xq_now, Xq)
+        yq_now = yq_truth[i_observe]
+
+        # Add the observed data to the training set
+        X_now = np.concatenate((X_now, xq_now), axis = 0)
+        y_now = np.append(y_now, yq_now)
+
+        # Add the new location to the array of travelled coordinates
+        xq1_nows = np.append(xq1_nows, xq_now[:, 0])
+        xq2_nows = np.append(xq2_nows, xq_now[:, 1])
+        yq_nows = np.append(yq_nows, yq_now)
+
+        # Update that into the model
+        Fw_now, white_params = feature_fn(X_now)
+        logging.info('Learning Classifier...')
+        batch_config = \
+            gp.classifier.batch_start(optimiser_config, learned_classifier)
+        try:
+            learned_classifier = gp.classifier.learn(Fw_now, y_now, kerneldef,
+                responsefunction, batch_config, 
+                multimethod = multimethod, approxmethod = approxmethod,
+                train = True, ftol = 1e-6)
+        except Exception as e:
+            logging.warning('Training failed: {0}'.format(e))
+            try:
+                learned_classifier = gp.classifier.learn(Fw_now, y_now, kerneldef,
+                    responsefunction, batch_config, 
+                    multimethod = multimethod, approxmethod = approxmethod,
+                    train = False, ftol = 1e-6)
+            except Exception as e:
+                logging.warning('Learning also failed: {0}'.format(e))
+                pass    
+        logging.info('Finished Learning')
+
+        # This is the finite horizon optimal route
+        fqw_abs_opt = feature_fn(xq_abs_opt, white_params)
+        xq1_proposed = xq_abs_opt[:, 0][k_step:]
+        xq2_proposed = xq_abs_opt[:, 1][k_step:]
+        yq_proposed = gp.classifier.classify(gp.classifier.predict(fqw_abs_opt, 
+            learned_classifier), y_unique)[k_step:]
+
+        """ Computing Analysis Maps """
+        Fqw = white_fn(Fq, white_params)
+
+        yq_pred, yq_mie, yq_lde = sea.model.predictions(learned_classifier, Fqw,
+                fusemethod = fusemethod)
+        yq_esd = gp.classifier.equivalent_standard_deviation(yq_lde)
+        miss_ratio = sea.model.miss_ratio(yq_pred, yq_truth)
+        yq_mie_mean = yq_mie.mean()
+        yq_lde_mean = yq_lde.mean()
+        yq_esd_mean = yq_esd.mean()
+        logging.info('Miss Ratio: {0:.2f}%'.format(100 * miss_ratio))
+
+        """ Save history """
+        miss_ratio_array[i_trials] = miss_ratio
+        yq_mie_mean_array[i_trials] = yq_mie_mean
+        yq_lde_mean_array[i_trials] = yq_lde_mean
+        yq_esd_mean_array[i_trials] = yq_esd_mean
+        entropy_opt_array[i_trials] = entropy_opt
+
+        # Find the bounds of the entropy predictions
+        vmin1 = yq_lde.min()
+        vmax1 = yq_lde.max()
+        vmin2 = yq_mie.min()
+        vmax2 = yq_mie.max()
+        vmin3 = yq_esd.min()
+        vmax3 = yq_esd.max()
+
+        logging.info('Plotting...')
+        """ Linearised Entropy Map """
+
+        # Prepare Figure 1
+        plt.figure(fig1.number)
+        plt.clf()
+        sea.vis.scatter(
+            Xq[:, 0], Xq[:, 1], 
+            marker = 'x', c = yq_lde, s = 5, 
+            cmap = cm.coolwarm, colorcenter = True)
+        sea.vis.describe_plot(title = 'Query Linearised Differential Entropy', 
+            xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+            clabel = 'Differential Entropy',
+            vis_range = vis_range, aspect_equal = True)
+
+        # Plot the path on top
+        sea.vis.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
+            facecolors = 'none', 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+        sea.vis.plot(xq1_nows, xq2_nows, c = 'w')
+        sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+
+        # Plot the proposed path
+        sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'w')
+
+        # Plot the horizon
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            marker = '.')
+
+        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
+            head_width = r/4, head_length = r/4, fc = 'w', ec = 'w')
+
+        # Save the plot
+        plt.tight_layout()
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('%slde_step%d.png' 
+            % (full_directory, i_trials + 1))
+
+
+        """ Equivalent Standard Deviation Map """
+
+        # Prepare Figure 2
+        plt.figure(fig2.number)
+        plt.clf()
+        sea.vis.scatter(
+            Xq[:, 0], Xq[:, 1], 
+            marker = 'x', c = yq_esd, s = 5, 
+            cmap = cm.coolwarm, colorcenter = True)
+        sea.vis.describe_plot(title = 'Query Equivalent Standard Deviation', 
+            xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+            clabel = 'Standard Deviation',
+            vis_range = vis_range, aspect_equal = True)
+
+        # Plot the path on top
+        sea.vis.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
+            facecolors = 'none', 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+        sea.vis.plot(xq1_nows, xq2_nows, c = 'w')
+        sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+
+        # Plot the proposed path
+        sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'w')
+
+        # Plot the horizon
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            marker = '.')
+
+        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
+            head_width = r/4, head_length = r/4, fc = 'w', ec = 'w')
+
+        # Save the plot
+        plt.tight_layout()
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('%sesd_step%d.png' 
+            % (full_directory, i_trials + 1))
+
+        """ True Entropy Map """
+
+        # Prepare Figure 3
+        plt.figure(fig3.number)
+        plt.clf()
+        sea.vis.scatter(
+            Xq[:, 0], Xq[:, 1], 
+            marker = 'x', c = yq_mie, s = 5, 
+            cmap = cm.coolwarm, colorcenter = True)
+        sea.vis.describe_plot(title = 'Query Prediction Information Entropy', 
+            xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+            clabel = 'Information Entropy',
+            vis_range = vis_range, aspect_equal = True)
+
+        # Plot the path on top
+        sea.vis.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
+            facecolors = 'none', 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+        sea.vis.plot(xq1_nows, xq2_nows, c = 'w')
+        sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+
+        # Plot the proposed path
+        sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'w')
+
+        # Plot the horizon
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            marker = '.')
+
+        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
+            head_width = r/4, head_length = r/4, fc = 'w', ec = 'w')
+
+        # Save the plot
+        plt.tight_layout()
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('%smie_step%d.png' 
+            % (full_directory, i_trials + 1))
+
+        """ Class Prediction Map """
+
+        # Prepare Figure 4
+        plt.figure(fig4.number)
+        plt.clf()
+        sea.vis.scatter(
+            Xq[:, 0], Xq[:, 1], 
+            marker = 'x', c = yq_pred, s = 5, 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+        sea.vis.describe_plot(title = 'Query Predictions [Miss Ratio: {0:.2f}%]'.format(100 * miss_ratio), 
+            xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+            clabel = 'Habitat Labels', cticks = y_unique,
+            vis_range = vis_range, aspect_equal = True)
+
+        # Plot the path on top
+        sea.vis.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
+            facecolors = 'none', 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+        sea.vis.plot(xq1_nows, xq2_nows, c = 'w')
+        sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+
+        # Plot the proposed path
+        sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'w')
+
+        # Plot the horizon
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            marker = '.')
+
+        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
+            head_width = r/4, head_length = r/4, fc = 'w', ec = 'w')
+
+        # Save the plot
+        plt.tight_layout()
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('%spred_step%d.png' 
+            % (full_directory, i_trials + 1))
+
+
+        # Prepare Figure 5
+        plt.figure(fig5.number)
+        plt.clf()
+        fontsize = 24
+        ticksize = 14
+
+        steps_array = np.arange(i_trials + 1) + 1
+        ax = plt.subplot(4, 1, 1)
+        plt.plot(steps_array, 100 * miss_ratio_array[:(i_trials + 1)])
+        plt.title('Percentage of Prediction Misses', fontsize = fontsize)
+        plt.ylabel('Misses (%)', fontsize = fontsize)
+        ax.set_xticklabels( () )
+
+        ax = plt.subplot(4, 1, 2)
+        plt.plot(steps_array, yq_lde_mean_array[:(i_trials + 1)])
+        plt.title('Average Marginalised Differential Entropy', 
+            fontsize = fontsize)
+        plt.ylabel('Entropy (nats)', fontsize = fontsize)
+        ax.set_xticklabels( () )
+
+        ax = plt.subplot(4, 1, 3)
+        plt.plot(steps_array, yq_mie_mean_array[:(i_trials + 1)])
+        plt.title('Average Marginalised Information Entropy', 
+            fontsize = fontsize)
+        plt.ylabel('Entropy (nats)', fontsize = fontsize)
+        ax.set_xticklabels( () )
+
+        ax = plt.subplot(4, 1, 4)
+        plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
+        plt.plot(steps_array, entropy_opt_array[:(i_trials + 1)])
+        plt.title('Entropy Metric of Proposed Path', fontsize = fontsize)
+        plt.ylabel('Entropy (nats)', fontsize = fontsize)
+
+        plt.xlabel('Steps', fontsize = fontsize)
+        for tick in plt.gca().xaxis.get_major_ticks():
+            tick.label.set_fontsize(ticksize) 
+        for tick in plt.gca().yaxis.get_major_ticks():
+            tick.label.set_fontsize(ticksize) 
+
+        # Save the plot
+        plt.tight_layout()
+        plt.savefig('%shistory%d.png' 
+            % (full_directory, i_trials + 1))
+        logging.info('Plotted and Saved Iteration')
+
+        # Move on to the next step
+        i_trials += 1
+    
+    np.savez('%shistory.npz' % full_directory, 
+        learned_classifier = learned_classifier,
+        miss_ratio_array = miss_ratio_array,
+        yq_lde_mean_array = yq_lde_mean_array,
+        yq_mie_mean_array = yq_mie_mean_array,
+        entropy_opt_array = entropy_opt_array,
+        yq_esd_mean_array = yq_esd_mean_array)
 
     plt.show()
-
-def predictions(learned_classifier, Fqw):
-
-    logging.info('Caching Predictor...')
-    predictor = gp.classifier.query(learned_classifier, Fqw)
-    logging.info('Computing Expectance...')
-    fq_exp = gp.classifier.expectance(learned_classifier, predictor)
-    logging.info('Computing Variance...')
-    fq_var = gp.classifier.variance(learned_classifier, predictor)
-    logging.info('Computing Prediction Probabilities...')
-    yq_prob = gp.classifier.predict_from_latent(fq_exp, fq_var, 
-        learned_classifier, fusemethod = fusemethod)
-    logging.info('Computing Prediction...')
-    yq_pred = gp.classifier.classify(yq_prob, y_unique_sample)
-    logging.info('Computing Prediction Information Entropy...')
-    yq_mie = gp.classifier.entropy(yq_prob)    
-    logging.info('Computing Linearised Differential Entropy...')
-    yq_lde = gp.classifier.linearised_entropy(fq_exp, fq_var, 
-        learned_classifier)
-    return yq_pred, yq_mie, yq_lde
 
 if __name__ == "__main__":
     main()
