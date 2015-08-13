@@ -42,6 +42,7 @@ def main():
     H_STEPS = sea.io.parse('-hsteps', 20)
     HORIZON = sea.io.parse('-horizon', 15000.0)
     CHAOS = sea.io.parse('-chaos', False)
+    M_STEP = sea.io.parse('-mstep', 1)
 
     NOTRAIN = True
     """Model Options"""
@@ -455,7 +456,7 @@ def main():
                         ftol_rel = ftol_rel, globalopt = False, bound = bound)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
-            m_step = 15
+            m_step = M_STEP
             logging.info('Taking %d steps' % m_step)
         else:
             m_step -= 1
