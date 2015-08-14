@@ -75,8 +75,8 @@ def main():
     """Initialise Result Logging"""
     if SAVE_RESULTS:
         home_directory = "../../../Results/scott-reef/"
-        save_directory = "t%d_q%d_ts%d_qs%d_method_%s%s_start%.1f%.1f_\
-            hsteps%d_horizon%.1f/" % (N_TRAIN, N_QUERY, T_SEED, Q_SEED, 
+        save_directory = "t%d_q%d_ts%d_qs%d_method_%s%s_start%.1f%.1f_"\
+        "hsteps%d_horizon%.1f/" % (N_TRAIN, N_QUERY, T_SEED, Q_SEED, 
                 METHOD, '_GREEDY' if GREEDY else '', 
                 START_POINT1, START_POINT2, H_STEPS, HORIZON)
         full_directory = gp.classifier.utils.create_directories(
@@ -297,7 +297,9 @@ def main():
         marker = 'x', c = yq_pred, s = 5, 
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
-    sea.vis.describe_plot(title = 'Query Predictions', 
+    sea.vis.describe_plot(
+        title = 'Query Predictions [Miss Ratio: {0:.2f}%]'.format(
+                100 * miss_ratio), 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Habitat Labels', cticks = y_unique,
         vis_range = vis_range, aspect_equal = True)
@@ -679,8 +681,9 @@ def main():
             marker = 'x', c = yq_pred, s = 5, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
-        sea.vis.describe_plot(title = 'Query Predictions [Miss Ratio: \
-            {0:.2f}%]'.format(100 * miss_ratio), 
+        sea.vis.describe_plot(
+            title = 'Query Predictions [Miss Ratio: {0:.2f}%]'.format(
+                100 * miss_ratio), 
             xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
             clabel = 'Habitat Labels', cticks = y_unique,
             vis_range = vis_range, aspect_equal = True)
