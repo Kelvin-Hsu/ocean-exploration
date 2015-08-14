@@ -4,7 +4,7 @@ Informative Seafloor Exploration
 import matplotlib.pyplot as plt
 import numpy as np
 
-def colorcenterminmax(y):
+def color_center_min_max(y):
 
     y_min = y.min()
     y_max = y.max()
@@ -14,15 +14,32 @@ def colorcenterminmax(y):
 
     return y_mean - y_half, y_mean + y_half
 
-def scatter(*args, colorcenter = False, **kwargs):
-    if colorcenter:
-        vmin, vmax = colorcenterminmax(kwargs.get('c'))
+def zero_center_min_max(y):
+
+    y_min = y.min()
+    y_max = y.max()
+
+    if (y_max <= 0) or (y_min >= 0):
+        return color_center_min_max(y)
+
+    y_half = np.min([y_max, -y_min])
+    return -y_half, y_half
+
+def scatter(*args, colorcenter = 'none', **kwargs):
+    if colorcenter == 'mean':
+        vmin, vmax = color_center_min_max(kwargs.get('c'))
+        kwargs.update({'vmin': vmin, 'vmax': vmax})
+    elif colorcenter == 'zero':
+        vmin, vmax = zero_center_min_max(kwargs.get('c'))
         kwargs.update({'vmin': vmin, 'vmax': vmax})
     return plt.scatter(*args, **kwargs)
 
-def plot(*args, colorcenter = False, **kwargs):
-    if colorcenter:
-        vmin, vmax = colorcenterminmax(kwargs.get('c'))
+def plot(*args, colorcenter = 'none', **kwargs):
+    if colorcenter == 'mean':
+        vmin, vmax = color_center_min_max(kwargs.get('c'))
+        kwargs.update({'vmin': vmin, 'vmax': vmax})
+    elif colorcenter == 'zero':
+        vmin, vmax = zero_center_min_max(kwargs.get('c'))
         kwargs.update({'vmin': vmin, 'vmax': vmax})
     return plt.plot(*args, **kwargs)
 

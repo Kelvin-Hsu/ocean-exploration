@@ -69,6 +69,8 @@ def main():
     vis_y_min = 8430000
     vis_y_max = 8450000
     vis_range = (vis_x_min, vis_x_max, vis_y_min, vis_y_max)
+    colorcenter_analysis = 'none'
+    colorcenter_lde = 'zero'
 
     """Initialise Result Logging"""
     if SAVE_RESULTS:
@@ -304,7 +306,7 @@ def main():
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = yq_mie, s = 5, cmap = cm.coolwarm, 
-        colorcenter = True)
+        colorcenter = colorcenter_analysis)
     sea.vis.describe_plot(title = 'Query Information Entropy', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Information Entropy',
@@ -313,8 +315,8 @@ def main():
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = np.log(yq_mie), s = 5, 
-        cmap = cm.coolwarm, colorcenter = True)
+        marker = 'x', c = np.log(yq_mie), s = 5, cmap = cm.coolwarm, 
+        colorcenter = colorcenter_analysis)
     sea.vis.describe_plot(title = 'Log Query Information Entropy', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Information Entropy',
@@ -323,8 +325,8 @@ def main():
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = yq_lde, s = 5, 
-        cmap = cm.coolwarm, colorcenter = True)
+        marker = 'x', c = yq_lde, s = 5, cmap = cm.coolwarm, 
+        colorcenter = colorcenter_lde)
     sea.vis.describe_plot(title = 'Query Linearised Differential Entropy', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Differential Entropy',
@@ -333,8 +335,8 @@ def main():
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = yq_esd, s = 5, 
-        cmap = cm.coolwarm, colorcenter = True)
+        marker = 'x', c = yq_esd, s = 5, cmap = cm.coolwarm, 
+        colorcenter = colorcenter_analysis)
     sea.vis.describe_plot(title = 'Query Equivalent Standard Deviation', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Standard Deviation',
@@ -370,7 +372,7 @@ def main():
         xtol_rel = 1e-1
         ftol_rel = 1e-1
     ctol = 1e-8
-    
+
     theta_stack_init = -np.deg2rad(15) * np.ones(h_steps)
     # theta_stack_init[int(h_steps/2):] = 0
     theta_stack_init[0] = np.deg2rad(180)
@@ -546,7 +548,7 @@ def main():
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = yq_lde, s = 5, 
-            cmap = cm.coolwarm, colorcenter = True)
+            cmap = cm.coolwarm, colorcenter = colorcenter_lde)
         sea.vis.describe_plot(title = 'Query Linearised Differential Entropy', 
             xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
             clabel = 'Differential Entropy',
@@ -589,7 +591,7 @@ def main():
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = yq_esd, s = 5, 
-            cmap = cm.coolwarm, colorcenter = True)
+            cmap = cm.coolwarm, colorcenter = colorcenter_analysis)
         sea.vis.describe_plot(title = 'Query Equivalent Standard Deviation', 
             xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
             clabel = 'Standard Deviation',
@@ -632,7 +634,7 @@ def main():
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = yq_mie, s = 5, 
-            cmap = cm.coolwarm, colorcenter = True)
+            cmap = cm.coolwarm, colorcenter = colorcenter_analysis)
         sea.vis.describe_plot(title = 'Query Prediction Information Entropy', 
             xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
             clabel = 'Information Entropy',
