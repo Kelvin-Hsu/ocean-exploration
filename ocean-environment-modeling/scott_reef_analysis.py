@@ -69,8 +69,8 @@ def main():
     vis_y_min = 8430000
     vis_y_max = 8450000
     vis_range = (vis_x_min, vis_x_max, vis_y_min, vis_y_max)
-    colorcenter_analysis = 'none'
-    colorcenter_lde = 'zero'
+    colorcenter_analysis = 'mean'
+    colorcenter_lde = 'mean'
 
     """Initialise Result Logging"""
     if SAVE_RESULTS:
@@ -367,13 +367,13 @@ def main():
 
     if METHOD == 'LDE':
         theta_bound = np.deg2rad(60)
-        xtol_rel = np.deg2rad(2.5)
-        ftol_rel = 1e-3
+        xtol_rel = 1e-2
+        ftol_rel = 1e-4
     else:
         theta_bound = np.deg2rad(180)
         xtol_rel = 1e-1
         ftol_rel = 1e-1
-    ctol = 1e-8
+    ctol = 1e-10
 
     theta_stack_init = -np.deg2rad(15) * np.ones(h_steps)
     # theta_stack_init[int(h_steps/2):] = 0
