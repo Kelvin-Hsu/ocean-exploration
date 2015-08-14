@@ -36,6 +36,7 @@ def main():
     N_QUERY = sea.io.parse('-nquery', 100000)
 
     METHOD = sea.io.parse('-method', 'LDE')
+    GREEDY = sea.io.parse('-greedy', False)
     N_TRIALS = sea.io.parse('-ntrials', 300)
     START_POINT1 = sea.io.parse('-start', 375000.0, arg = 1)
     START_POINT2 = sea.io.parse('-start', 8440000.0, arg = 2)
@@ -100,9 +101,20 @@ def main():
     logging.getLogger().addHandler(console)
 
     """Process Options"""
-    model_options = {   'trainingsample': n_train,
-    					'querysample': n_query,
-    					'approxmethod': approxmethod,
+    test_options  = {   'T_SEED': T_SEED,
+                        'Q_SEED': Q_SEED,
+                        'N_TRAIN': N_TRAIN,
+                        'N_QUERY': N_QUERY,
+                        'METHOD': METHOD,
+                        'GREEDY': GREEDY,
+                        'N_TRIALS': N_TRIALS,
+                        'START_POINT1': START_POINT1,
+                        'START_POINT2': START_POINT2,
+                        'H_STEPS': H_STEPS,
+                        'HORIZON': HORIZON,
+                        'CHAOS': CHAOS,
+                        'M_STEP': M_STEP}
+    model_options = {   'approxmethod': approxmethod,
                         'multimethod': multimethod,
                         'fusemethod': fusemethod,
                         'responsename': responsename,
@@ -110,6 +122,7 @@ def main():
                         'walltime': walltime,
                         'train': train}
 
+    logging.info(test_options)
     logging.info(model_options)
 
     """File Locations"""
@@ -340,19 +353,18 @@ def main():
     horizon = HORIZON
     h_steps = H_STEPS
 
-    if METHOD == 'GREEDY':
+    if GREEDY or (METHOD == 'RANDOM'):
         horizon /= h_steps
-        h_steps /= h_steps
-        METHOD = 'MIE'
-
-    if METHOD == 'RANDOM':
-        horizon /= h_steps
-        h_steps /= h_steps        
+        h_steps /= h_steps 
 
     if METHOD == 'LDE':
         theta_bound = np.deg2rad(60)
+        xtol_rel = np.deg2rad(2.5)
+        ftol_rel = 1e-3
     else:
         theta_bound = np.deg2rad(180)
+        xtol_rel = 1e-1
+        ftol_rel = 1e-1
 
     theta_stack_init = -np.deg2rad(15) * np.ones(h_steps)
     # theta_stack_init[int(h_steps/2):] = 0
@@ -363,11 +375,6 @@ def main():
     theta_stack_high[0] = 2 * np.pi
     r = horizon/h_steps
     choice_walltime = 1500.0
-    xtol_rel = np.deg2rad(2.5)
-    ftol_rel = 1e-3
-    if METHOD == 'MIE':
-        xtol_rel = 1e-1
-        ftol_rel = 1e-1
 
     k_step = 1
     m_step = 1

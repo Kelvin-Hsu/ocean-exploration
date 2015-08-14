@@ -35,8 +35,6 @@ def optimal_path(theta_stack_init, r, x, memory, featurefn, whitenparams,
     n_draws = 5000, bound = 250):
 
     ##### OPTIMISATION #####
-    # Propose an optimal path
-    # try:
 
     # Select the approach objective
     if objective == 'LDE':
@@ -55,8 +53,8 @@ def optimal_path(theta_stack_init, r, x, memory, featurefn, whitenparams,
                 memory, featurefn, whitenparams)
 
     # Define the path constraint
-    def constraint(theta_stack, grad):
-        return path_bounds_model(theta_stack, r, x, featurefn.Xq_ref, bound)
+    def constraint(result, theta_stack, grad):
+        result = path_bounds_model(theta_stack, r, x, featurefn.Xq_ref, bound)
 
     # Obtain the number of parameters involvevd
     n_params = theta_stack_init.shape[0]
@@ -84,20 +82,9 @@ def optimal_path(theta_stack_init, r, x, memory, featurefn, whitenparams,
     
     # Set the objective and constraint and optimise!
     opt.set_max_objective(objective)
-    opt.add_inequality_constraint(constraint, 1e-2)
+    opt.add_inequality_mconstraint(constraint, 1e-2 * np.ones(theta_stack_init.shape[0]))
     theta_stack_opt = opt.optimize(theta_stack_init)
     entropy_opt = opt.last_optimum_value()
-
-    # # If there is any problem, skip optimisation
-    # except Exception as e:
-
-    #     # Note down the error and move the path
-    #     theta_stack_opt = shift_path(theta_stack_init)
-    #     entropy_opt = np.nan
-    #     logging.warning('Problem with optimisation. Continuing planned route.')
-    #     logging.warning(type(e))
-    #     logging.warning(e)
-    #     logging.debug('Initial parameters: {0}'.format(theta_stack_init))
 
     ##### PATH COMPUTATION #####
     x_abs_opt = forward_path_model(theta_stack_opt, r, x)
@@ -177,7 +164,7 @@ def path_bounds_model(theta_stack, r, x, Xq_ref, bound):
     This assumes that the field is a square about the origin
     """
     Xq = forward_path_model(theta_stack, r, x)
-    c = cdist(Xq, Xq_ref).min(axis = 1).max(axis = 0) - bound
+    c = cdist(Xq, Xq_ref).min(axis = 1) - bound
     logging.debug('Contraint Violation: {0}'.format(c))
     return c
 
