@@ -47,4 +47,9 @@ def compose(*args):
     else:
         return white_compose(*args)
 
+def black_fn(X, params = None):
 
+    if params is None:
+        return X, 0
+    else:
+        return X

@@ -73,8 +73,12 @@ def main():
     """Initialise Result Logging"""
     if SAVE_RESULTS:
         home_directory = "../../../Results/scott-reef/"
-        save_directory = "t%d_q%d_ts%d_qs%d_method%s_start%.1f%.1f_hsteps%d_horizon%.1f/" % (n_train, n_query, T_SEED, Q_SEED, METHOD, START_POINT1, START_POINT2, H_STEPS, HORIZON)
-        full_directory = gp.classifier.utils.create_directories(save_directory, 
+        save_directory = "t%d_q%d_ts%d_qs%d_method_%s%s_start%.1f%.1f_\
+            hsteps%d_horizon%.1f/" % (N_TRAIN, N_QUERY, T_SEED, Q_SEED, 
+                METHOD, '_GREEDY' if GREEDY else '', 
+                START_POINT1, START_POINT2, H_STEPS, HORIZON)
+        full_directory = gp.classifier.utils.create_directories(
+            save_directory, 
             home_directory = home_directory, append_time = True)
         textfilename = '%slog.txt' % full_directory
 
@@ -415,73 +419,30 @@ def main():
     entropy_opt_array = np.nan * np.ones(n_trials)
     yq_esd_mean_array = np.nan * np.ones(n_trials)
 
-    # Prepare Figure 1
-    plt.figure(fig1.number)
-    plt.clf()
-    sea.vis.scatter(
-        Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = yq_lde, s = 5, 
-        cmap = cm.coolwarm, colorcenter = True)
-    sea.vis.describe_plot(title = 'Query Linearised Differential Entropy', 
-        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
-        clabel = 'Differential Entropy',
-        vis_range = vis_range, aspect_equal = True)
-
-    # Plot the path on top
-    sea.vis.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
-        facecolors = 'none', 
-        vmin = y_unique[0], vmax = y_unique[-1], 
-        cmap = mycmap)
-    sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
-    sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
-        vmin = y_unique[0], vmax = y_unique[-1], 
-        cmap = mycmap)
-
-    xq_abs_opt = sea.explore.forward_path_model(theta_stack_init, r, xq_now[[-1]])
-    fqw_abs_opt = feature_fn(xq_abs_opt, white_params)
-    xq1_proposed = xq_abs_opt[:, 0][k_step:]
-    xq2_proposed = xq_abs_opt[:, 1][k_step:]
-    yq_proposed = gp.classifier.classify(gp.classifier.predict(fqw_abs_opt, 
-        learned_classifier), y_unique)[k_step:]
-
-    # Plot the proposed path
-    sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
-        s = 60, marker = 'D', 
-        vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-    sea.vis.plot(xq1_proposed, xq2_proposed, c = 'k', linewidth = 2)
-
-    # Plot the horizon
-    gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', linewidth = 2, 
-        marker = '.')
-
-    plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
-        head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
-
-    # Save the plot
-    plt.tight_layout()
-    plt.gca().set_aspect('equal', adjustable = 'box')
-    plt.savefig('%slde_step%d.png' 
-        % (full_directory, i_trials + 1))
-
     while i_trials < n_trials:
 
         # Propose a path
         if m_step <= k_step:
             if METHOD == 'RANDOM':
-                xq_abs_opt, theta_stack_opt, entropy_opt = \
+                xq_opt, theta_stack_opt, entropy_opt = \
                     sea.explore.random_path(theta_stack_init, r, xq_now[-1], 
-                        learned_classifier, feature_fn, white_params,
-                        perturb_deg = 40, chaos = CHAOS, bound = bound)
-            else:
-                xq_abs_opt, theta_stack_opt, entropy_opt = \
-                    sea.explore.optimal_path(theta_stack_init, r, xq_now[-1],
                         learned_classifier, feature_fn, white_params, 
-                        objective = METHOD,
-                        turn_limit = theta_bound,
+                        bound = bound, 
+                        chaos = CHAOS)
+            else:
+                xq_opt, theta_stack_opt, entropy_opt = \
+                    sea.explore.optimal_path(theta_stack_init, r, xq_now[-1], 
+                        learned_classifier, feature_fn, white_params,
+                        objective = METHOD, 
+                        turn_limit = theta_bound, 
+                        bound = bound,
                         theta_stack_low = theta_stack_low, 
-                        theta_stack_high = theta_stack_high, 
-                        walltime = choice_walltime, xtol_rel = xtol_rel, 
-                        ftol_rel = ftol_rel, globalopt = False, bound = bound)
+                        theta_stack_high = theta_stack_high,
+                        walltime = choice_walltime, 
+                        xtol_rel = xtol_rel, 
+                        ftol_rel = ftol_rel, 
+                        globalopt = False,
+                        n_draws = 5000)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
             m_step = M_STEP
@@ -489,16 +450,18 @@ def main():
         else:
             m_step -= 1
             theta_stack_opt = theta_stack_init.copy()
-            xq_abs_opt = sea.explore.forward_path_model(theta_stack_init, r, xq_now[-1])
+            xq_opt = sea.explore.forward_path_model(theta_stack_init, 
+                r, xq_now[-1])
             logging.info('%d steps left' % m_step)
 
         # Path steps into the proposed path
-        xq_now = xq_abs_opt[:k_step]
+        xq_now = xq_opt[:k_step]
 
-        # 
+        # Initialise the next path angles
         theta_stack_init = sea.explore.shift_path(theta_stack_opt, 
             k_step = k_step)
-        np.clip(theta_stack_init, theta_stack_low + 1e-4, theta_stack_high - 1e-4, 
+        np.clip(theta_stack_init, 
+            theta_stack_low + 1e-4, theta_stack_high - 1e-4, 
             out = theta_stack_init)
 
         # Observe the current location
@@ -520,15 +483,15 @@ def main():
         batch_config = \
             gp.classifier.batch_start(optimiser_config, learned_classifier)
         try:
-            learned_classifier = gp.classifier.learn(Fw_now, y_now, kerneldef,
-                responsefunction, batch_config, 
+            learned_classifier = gp.classifier.learn(Fw_now, y_now, 
+                kerneldef, responsefunction, batch_config, 
                 multimethod = multimethod, approxmethod = approxmethod,
                 train = True, ftol = 1e-6)
         except Exception as e:
             logging.warning('Training failed: {0}'.format(e))
             try:
-                learned_classifier = gp.classifier.learn(Fw_now, y_now, kerneldef,
-                    responsefunction, batch_config, 
+                learned_classifier = gp.classifier.learn(Fw_now, y_now, 
+                    kerneldef, responsefunction, batch_config, 
                     multimethod = multimethod, approxmethod = approxmethod,
                     train = False, ftol = 1e-6)
             except Exception as e:
@@ -537,16 +500,17 @@ def main():
         logging.info('Finished Learning')
 
         # This is the finite horizon optimal route
-        fqw_abs_opt = feature_fn(xq_abs_opt, white_params)
-        xq1_proposed = xq_abs_opt[:, 0][k_step:]
-        xq2_proposed = xq_abs_opt[:, 1][k_step:]
-        yq_proposed = gp.classifier.classify(gp.classifier.predict(fqw_abs_opt, 
+        fqw_opt = feature_fn(xq_opt, white_params)
+        xq1_opt = xq_opt[:, 0][k_step:]
+        xq2_opt = xq_opt[:, 1][k_step:]
+        yq_opt = gp.classifier.classify(gp.classifier.predict(fqw_opt, 
             learned_classifier), y_unique)[k_step:]
 
         """ Computing Analysis Maps """
         Fqw = white_fn(Fq, white_params)
 
-        yq_pred, yq_mie, yq_lde = sea.model.predictions(learned_classifier, Fqw,
+        yq_pred, yq_mie, yq_lde = \
+            sea.model.predictions(learned_classifier, Fqw, 
                 fusemethod = fusemethod)
         yq_esd = gp.classifier.equivalent_standard_deviation(yq_lde)
         miss_ratio = sea.model.miss_ratio(yq_pred, yq_truth)
@@ -571,6 +535,7 @@ def main():
         vmax3 = yq_esd.max()
 
         logging.info('Plotting...')
+
         """ Linearised Entropy Map """
 
         # Prepare Figure 1
@@ -596,14 +561,14 @@ def main():
             cmap = mycmap)
 
         # Plot the proposed path
-        sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+        sea.vis.scatter(xq1_opt, xq2_opt, c = yq_opt, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'k', linewidth = 2)
+        sea.vis.plot(xq1_opt, xq2_opt, c = 'k', linewidth = 2)
 
         # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', linewidth = 2, 
-            marker = '.')
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            linewidth = 2, marker = '.')
 
         plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
             head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
@@ -613,7 +578,6 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%slde_step%d.png' 
             % (full_directory, i_trials + 1))
-
 
         """ Equivalent Standard Deviation Map """
 
@@ -640,14 +604,14 @@ def main():
             cmap = mycmap)
 
         # Plot the proposed path
-        sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+        sea.vis.scatter(xq1_opt, xq2_opt, c = yq_opt, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'k', linewidth = 2)
+        sea.vis.plot(xq1_opt, xq2_opt, c = 'k', linewidth = 2)
 
         # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', linewidth = 2, 
-            marker = '.')
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            linewidth = 2, marker = '.')
 
         plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
             head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
@@ -683,14 +647,14 @@ def main():
             cmap = mycmap)
 
         # Plot the proposed path
-        sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+        sea.vis.scatter(xq1_opt, xq2_opt, c = yq_opt, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'k', linewidth = 2)
+        sea.vis.plot(xq1_opt, xq2_opt, c = 'k', linewidth = 2)
 
         # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', linewidth = 2, 
-            marker = '.')
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            linewidth = 2, marker = '.')
 
         plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
             head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
@@ -711,7 +675,8 @@ def main():
             marker = 'x', c = yq_pred, s = 5, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
-        sea.vis.describe_plot(title = 'Query Predictions [Miss Ratio: {0:.2f}%]'.format(100 * miss_ratio), 
+        sea.vis.describe_plot(title = 'Query Predictions [Miss Ratio: \
+            {0:.2f}%]'.format(100 * miss_ratio), 
             xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
             clabel = 'Habitat Labels', cticks = y_unique,
             vis_range = vis_range, aspect_equal = True)
@@ -727,14 +692,14 @@ def main():
             cmap = mycmap)
 
         # Plot the proposed path
-        sea.vis.scatter(xq1_proposed, xq2_proposed, c = yq_proposed, 
+        sea.vis.scatter(xq1_opt, xq2_opt, c = yq_opt, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_proposed, xq2_proposed, c = 'k', linewidth = 2)
+        sea.vis.plot(xq1_opt, xq2_opt, c = 'k', linewidth = 2)
 
         # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', linewidth = 2, 
-            marker = '.')
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            linewidth = 2, marker = '.')
 
         plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
             head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
