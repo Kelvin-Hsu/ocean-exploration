@@ -77,6 +77,12 @@ def optimal_path(theta_stack_init, r, x, memory, feature_fn, white_params,
     # Compute optimal path
     x_abs_opt = forward_path_model(theta_stack_opt, r, x)
 
+    # Replace the optimal coordinates with the closest query locations
+    x_abs_opt = feature_fn.closest_locations(x_abs_opt)
+
+    # Approximate the corresponding path angles
+    theta_stack_opt = backward_path_model(x_abs_opt, x)
+
     # Return path coordinates, path angles, and path entropy
     return x_abs_opt, theta_stack_opt, entropy_opt
 
@@ -107,11 +113,21 @@ def forward_path_model(theta_stack, r, x):
     """
     Compute path coordinates from path angles, step size, and current location
     """
+    # t = np.cumsum(theta_stack)
+    # return x + np.array([np.cumsum(r * np.cos(t)), np.cumsum(r * np.sin(t))]).T
     theta = np.cumsum(theta_stack)
     x1_rel = np.cumsum(r * np.cos(theta))
     x2_rel = np.cumsum(r * np.sin(theta))
-    x_rel = np.array([x1_rel, x2_rel]).T
-    return x + x_rel
+    return x + np.array([x1_rel, x2_rel]).T
+
+def backward_path_model(X, x):
+    """
+    Approximates the path angles from the path coordinates
+    """
+    X_rel = X - x
+    X_stack = np.concatenate((X_rel[[0]], np.diff(X_rel, axis = 0)), axis = 0)
+    theta = np.arctan2(X_stack[:, 1], X_stack[:, 0])
+    return np.concatenate((theta[[0]], np.diff(theta, axis = 0)), axis = 0)
 
 def path_bounds_model(theta_stack, r, x, Xq_ref, bound):
     """

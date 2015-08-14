@@ -184,12 +184,12 @@ def main():
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = Fq[:, k], s = 5, 
-            cmap = mycmap, colorcenter = True)
+            cmap = mycmap, colorcenter = 'mean')
         sea.vis.describe_plot(clabel = '%s (Raw)' % feature_names[k])
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = Fqw[:, k], s = 5,
-            cmap = mycmap, colorcenter = True)
+            cmap = mycmap, colorcenter = 'mean')
         sea.vis.describe_plot(
             title = 'Feature: %s at Query Points' % feature_names[k], 
             xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
@@ -358,6 +358,7 @@ def main():
 
     """Informative Seafloor Exploration: Setup"""
     xq_now = np.array([[START_POINT1, START_POINT2]])
+    xq_now = feature_fn.closest_locations(xq_now)
     horizon = HORIZON
     h_steps = H_STEPS
 
@@ -396,7 +397,7 @@ def main():
     y_now = y.copy()
 
     # Observe the current location
-    i_observe = sea.feature.closest_query_indices(xq_now, Xq)
+    i_observe = sea.feature.closest_indices(xq_now, Xq)
     yq_now = yq_truth[i_observe]
 
     # Add the observed data to the training set
@@ -471,7 +472,7 @@ def main():
             out = theta_stack_init)
 
         # Observe the current location
-        i_observe = sea.feature.closest_query_indices(xq_now, Xq)
+        i_observe = sea.feature.closest_indices(xq_now, Xq)
         yq_now = yq_truth[i_observe]
 
         # Add the observed data to the training set
