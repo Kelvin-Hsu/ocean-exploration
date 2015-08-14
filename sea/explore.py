@@ -38,34 +38,25 @@ def optimal_path(theta_stack_init, r, x, memory, featurefn, whitenparams,
     # Propose an optimal path
     # try:
 
-    c = np.zeros(theta_stack_init.shape[0])
-
     # Select the approach objective
     if objective == 'LDE':
         def objective(theta_stack, grad):
-            entropy, c = path_linearised_entropy_model(theta_stack, r, x, 
-                memory, featurefn, whitenparams, bound)
-            return entropy
+            return path_linearised_entropy_model(theta_stack, r, x, 
+                memory, featurefn, whitenparams)
     elif objective == 'MCJE':
         S = np.random.normal(loc = 0., scale = 1., 
             size = (theta_stack_init.shape[0], n_draws))
         def objective(theta_stack, grad):
-            ntropy, c = path_monte_carlo_entropy_model(theta_stack, r, x, 
-                memory, featurefn, whitenparams, bound, n_draws = n_draws, S = S)
-            return entropy
+            return path_monte_carlo_entropy_model(theta_stack, r, x, 
+                memory, featurefn, whitenparams, n_draws = n_draws, S = S)
     elif objective == 'MIE':
         def objective(theta_stack, grad):
-            ntropy, c = path_marginalised_entropy_model(theta_stack, r, x, 
-                memory, featurefn, whitenparams, bound)
-            return entropy
+            return path_marginalised_entropy_model(theta_stack, r, x, 
+                memory, featurefn, whitenparams)
 
-    # # Define the path constraint
-    # def constraint(theta_stack, grad):
-    #     return path_bounds_model(theta_stack, r, x, featurefn.Xq_ref, bound)
-
-    def quickprint(c):
-        logging.debug(c)
-        return c
+    # Define the path constraint
+    def constraint(theta_stack, grad):
+        return path_bounds_model(theta_stack, r, x, featurefn.Xq_ref, bound)
 
     # Obtain the number of parameters involvevd
     n_params = theta_stack_init.shape[0]
@@ -93,10 +84,7 @@ def optimal_path(theta_stack_init, r, x, memory, featurefn, whitenparams,
     
     # Set the objective and constraint and optimise!
     opt.set_max_objective(objective)
-
-    I = np.arange(theta_stack_init.shape[0])
-    [opt.add_inequality_constraint(lambda theta_stack, grad: quickprint(c[i]), 1e-2) for i in I]
-
+    opt.add_inequality_constraint(constraint, 1e-2)
     theta_stack_opt = opt.optimize(theta_stack_init)
     entropy_opt = opt.last_optimum_value()
 
@@ -124,7 +112,7 @@ def forward_path_model(theta_stack, r, x):
     x_rel = np.array([x1_rel, x2_rel]).T
     return x + x_rel
 
-def path_linearised_entropy_model(theta_stack, r, x, memory, featurefn, whitenparams, bound):
+def path_linearised_entropy_model(theta_stack, r, x, memory, featurefn, whitenparams):
 
     Xq = forward_path_model(theta_stack, r, x)
     Fqw = featurefn(Xq, whitenparams)
@@ -141,10 +129,9 @@ def path_linearised_entropy_model(theta_stack, r, x, memory, featurefn, whitenpa
         (time.clock() - start_time))
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
         np.rad2deg(theta_stack), entropy))
-    c = cdist(Xq, featurefn.Xq_ref).min(axis = 1) - bound
-    return entropy, c
+    return entropy
 
-def path_monte_carlo_entropy_model(theta_stack, r, x, memory, featurefn, whitenparams, bound,
+def path_monte_carlo_entropy_model(theta_stack, r, x, memory, featurefn, whitenparams,
     n_draws = 1000, S = None):
 
     Xq = forward_path_model(theta_stack, r, x)
@@ -163,10 +150,9 @@ def path_monte_carlo_entropy_model(theta_stack, r, x, memory, featurefn, whitenp
         (time.clock() - start_time))
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
         np.rad2deg(theta_stack), entropy))
-    c = cdist(Xq, featurefn.Xq_ref).min(axis = 1) - bound
-    return entropy, c
+    return entropy
 
-def path_marginalised_entropy_model(theta_stack, r, x, memory, featurefn, whitenparams, bound):
+def path_marginalised_entropy_model(theta_stack, r, x, memory, featurefn, whitenparams):
 
     Xq = forward_path_model(theta_stack, r, x)
     Fqw = featurefn(Xq, whitenparams)
@@ -182,9 +168,7 @@ def path_marginalised_entropy_model(theta_stack, r, x, memory, featurefn, whiten
         (time.clock() - start_time))
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
         np.rad2deg(theta_stack), entropy))
-
-    c = cdist(Xq, featurefn.Xq_ref).min(axis = 1) - bound
-    return entropy, c
+    return entropy
 
 def path_bounds_model(theta_stack, r, x, Xq_ref, bound):
     """
