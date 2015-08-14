@@ -11,8 +11,8 @@ from scipy.spatial.distance import cdist
 def optimal_path(theta_stack_init, r, x, memory, feature_fn, white_params,
     objective = 'LDE', turn_limit = np.deg2rad(30), bound = 100,
     theta_stack_low = None, theta_stack_high = None,
-    walltime = None, xtol_rel = 0, ftol_rel = 0, globalopt = False,
-    n_draws = 5000):
+    walltime = None, xtol_rel = 0, ftol_rel = 0, ctol = 1e-6, 
+    globalopt = False, n_draws = 5000):
 
     # Select the approach objective
     if objective == 'LDE':
@@ -70,7 +70,7 @@ def optimal_path(theta_stack_init, r, x, memory, feature_fn, white_params,
 
     # Set the objective and constraint and optimise!
     opt.set_max_objective(objective)
-    opt.add_inequality_mconstraint(constraint, 1e-2 * np.ones(n_params))
+    opt.add_inequality_mconstraint(constraint, ctol * np.ones(n_params))
     theta_stack_opt = opt.optimize(theta_stack_init)
     entropy_opt = opt.last_optimum_value()
 
@@ -187,7 +187,7 @@ def shift_path(theta_stack, k_step = 1):
     theta_stack_next[0] = theta_stack[:(k_step + 1)].sum() % (2 * np.pi)
     theta_stack_next[1:-k_step] = theta_stack[(k_step + 1):]
     return theta_stack_next
-    
+
 def correct_lookahead_predictions(xq_abs_opt, learned_classifier, feature_fn, white_params, 
     decision_boundary):
     """

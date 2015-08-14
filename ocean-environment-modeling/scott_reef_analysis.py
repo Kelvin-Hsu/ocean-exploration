@@ -369,7 +369,8 @@ def main():
         theta_bound = np.deg2rad(180)
         xtol_rel = 1e-1
         ftol_rel = 1e-1
-
+    ctol = 1e-8
+    
     theta_stack_init = -np.deg2rad(15) * np.ones(h_steps)
     # theta_stack_init[int(h_steps/2):] = 0
     theta_stack_init[0] = np.deg2rad(180)
@@ -441,6 +442,7 @@ def main():
                         walltime = choice_walltime, 
                         xtol_rel = xtol_rel, 
                         ftol_rel = ftol_rel, 
+                        ctol = ctol, 
                         globalopt = False,
                         n_draws = 5000)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
