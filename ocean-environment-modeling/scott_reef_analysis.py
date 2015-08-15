@@ -399,7 +399,7 @@ def main():
     if METHOD == 'LDE':
         theta_bound = np.deg2rad(60)
         xtol_rel = 1e-2
-        ftol_rel = 1e-4
+        ftol_rel = 1e-3
     else:
         theta_bound = np.deg2rad(180)
         xtol_rel = 1e-1
