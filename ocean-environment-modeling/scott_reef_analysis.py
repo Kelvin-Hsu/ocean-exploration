@@ -54,6 +54,7 @@ def main():
     fusemethod = 'EXCLUSION'
     responsename = 'probit'
     batchstart = True
+    batchlearn = False
     walltime = 3600.0
     train = not NOTRAIN
     white_fn = pre.standardise
@@ -152,6 +153,7 @@ def main():
                         'fusemethod': fusemethod,
                         'responsename': responsename,
                         'batchstart': batchstart,
+                        'batchlearn': batchlearn,
                         'walltime': walltime,
                         'train': train}
 
@@ -163,6 +165,8 @@ def main():
     filename_training_data = 'training_data_unmerged.npz'
     filename_query_points = 'query_points.npz'
     filename_truth = directory_data + 'truthmodel_t800_q100000_ts250_qs500.npz'
+    filename_start = directory_data + 'finalmodel_t200_q100000_ts250_qs500'\
+        '_method_LDE_start377500_8440000_hsteps30_horizon5000.npz'
     """Sample Training Data and Query Points"""
     X, F, y, Xq, Fq, i_train, i_query = \
         sea.io.sample(*sea.io.load(directory_data, 
@@ -278,7 +282,7 @@ def main():
 
         batch_config = gp.batch_start(optimiser_config, initial_hyperparams)
         logging.info('Using Batch Start Configuration')
-        
+
     else:
         batch_config = optimiser_config
     
@@ -287,10 +291,18 @@ def main():
 
     # Train the classifier!
     logging.info('Learning...')
-    learned_classifier = gp.classifier.learn(Fw, y, 
-        kerneldef, responsefunction, batch_config, 
-        multimethod = multimethod, approxmethod = approxmethod, 
-        train = train, ftol = 1e-10)
+    if batchlearn:
+        previous_history = np.load(filename_start)
+        learned_classifier = list(previous_history['learned_classifier'])
+        white_params = previous_history['white_params']
+        batch_config = \
+            gp.classifier.batch_start(optimiser_config, learned_classifier)
+        Fqw = white_fn(Fq, white_params)
+    else:
+        learned_classifier = gp.classifier.learn(Fw, y, 
+            kerneldef, responsefunction, batch_config, 
+            multimethod = multimethod, approxmethod = approxmethod, 
+            train = train, ftol = 1e-10)
 
     # Print the learnt kernel with its hyperparameters
     print_function = gp.describer(kerneldef)
@@ -384,7 +396,8 @@ def main():
                 t_seed = T_SEED, q_seed = Q_SEED,
                 n_train = n_train, n_query = n_query,
                 i_train = i_train, i_query = i_query,
-                yq_pred = yq_pred, yq_mie = yq_mie, yq_lde = yq_lde)
+                yq_pred = yq_pred, yq_mie = yq_mie, yq_lde = yq_lde,
+                white_params = white_params)
 
     """Informative Seafloor Exploration: Setup"""
     xq_now = np.array([[START_POINT1, START_POINT2]])
@@ -803,7 +816,12 @@ def main():
             yq_lde_mean_array = yq_lde_mean_array,
             yq_mie_mean_array = yq_mie_mean_array,
             entropy_opt_array = entropy_opt_array,
-            yq_esd_mean_array = yq_esd_mean_array)
+            yq_esd_mean_array = yq_esd_mean_array,
+            yq_lde = yq_lde,
+            yq_mie = yq_mie,
+            yq_pred = yq_pred,
+            white_params = white_params)
+        logging.info('White Params: {0}'.format(white_params))
 
     np.savez('%shistory.npz' % full_directory, 
         learned_classifier = learned_classifier,
@@ -811,7 +829,11 @@ def main():
         yq_lde_mean_array = yq_lde_mean_array,
         yq_mie_mean_array = yq_mie_mean_array,
         entropy_opt_array = entropy_opt_array,
-        yq_esd_mean_array = yq_esd_mean_array)
+        yq_esd_mean_array = yq_esd_mean_array,
+        yq_lde = yq_lde,
+        yq_mie = yq_mie,
+        yq_pred = yq_pred,
+        white_params = white_params)
 
     plt.show()
 
