@@ -173,11 +173,11 @@ def main():
     yq_truth = sea.io.load_ground_truth(filename_truth, 
         assert_query_seed = Q_SEED)
 
-    y_unique = np.unique(y).astype(int)
+    y_unique = np.unique(y)
     assert y_unique.shape[0] == 17
     logging.info('There are %d unique labels' % y_unique.shape[0])
 
-    y_names = [y_names_all[i] for i in y_unique]
+    y_names = [y_names_all[i] for i in y_unique.astype(int)]
     logging.info('Habitat Labels: {0}'.format(y_names))
 
     """Whiten the feature space"""
