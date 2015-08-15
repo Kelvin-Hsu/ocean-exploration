@@ -33,6 +33,8 @@ def white_compose(Xq_ref, Fq_ref, white_fn):
     feature_fn.Xq_ref = Xq_ref
     feature_fn.Fq_ref = Fq_ref
     feature_fn.white_fn = white_fn
+    feature_fn.closest_indices = lambda Xq: closest_indices(Xq, Xq_ref)
+    feature_fn.closest_locations = lambda Xq: Xq_ref[closest_indices(Xq, Xq_ref)]
     return feature_fn
 
 def extract(*args, **kwargs):
