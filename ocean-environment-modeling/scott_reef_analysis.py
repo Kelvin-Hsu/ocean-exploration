@@ -820,7 +820,10 @@ def main():
             yq_lde = yq_lde,
             yq_mie = yq_mie,
             yq_pred = yq_pred,
-            white_params = white_params)
+            white_params = white_params,
+            X_now = X_now,
+            Fw_now = Fw_now,
+            y_now = y_now)
         logging.info('White Params: {0}'.format(white_params))
 
     np.savez('%shistory.npz' % full_directory, 
@@ -833,7 +836,10 @@ def main():
         yq_lde = yq_lde,
         yq_mie = yq_mie,
         yq_pred = yq_pred,
-        white_params = white_params)
+        white_params = white_params,
+        X_now = X_now,
+        Fw_now = Fw_now,
+        y_now = y_now)
 
     plt.show()
 
