@@ -106,6 +106,12 @@ def random_path(theta_stack_init, r, x, memory, feature_fn, white_params,
     entropy = path_linearised_entropy_model(theta_stack, r, x, 
                     memory, feature_fn, white_params)
 
+    # Replace the optimal coordinates with the closest query locations
+    x_abs = feature_fn.closest_locations(x_abs)
+
+    # Approximate the corresponding path angles
+    theta_stack = backward_path_model(x_abs, x)
+    
     # Return path coordinates, path angles, and path entropy
     return x_abs, theta_stack, entropy
 
