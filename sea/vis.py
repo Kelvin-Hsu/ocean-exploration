@@ -44,7 +44,7 @@ def plot(*args, colorcenter = 'none', **kwargs):
     return plt.plot(*args, **kwargs)
 
 def describe_plot(title = '', xlabel = '', ylabel = '', clabel = '', 
-    cticks = None, fontsize = 24, ticksize = 14, 
+    cticks = None, cticklabels = None, fontsize = 24, ticksize = 14, 
     vis_range = None, aspect_equal = True):
 
     plt.title(title, fontsize = fontsize)
@@ -59,7 +59,8 @@ def describe_plot(title = '', xlabel = '', ylabel = '', clabel = '',
         cbar.set_label(clabel, fontsize = fontsize)
     if cticks is not None:
         cbar.set_ticks(cticks)
-        cbar.set_ticklabels(cticks)
+    if cticklabels is not None:
+        cbar.set_ticklabels(cticklabels)
     if vis_range is not None:
         plt.xlim(vis_range[:2])
         plt.ylim(vis_range[2:])

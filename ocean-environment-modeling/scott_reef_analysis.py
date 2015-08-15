@@ -41,7 +41,7 @@ def main():
     START_POINT1 = sea.io.parse('-start', 375000.0, arg = 1)
     START_POINT2 = sea.io.parse('-start', 8440000.0, arg = 2)
     H_STEPS = sea.io.parse('-hsteps', 30)
-    HORIZON = sea.io.parse('-horizon', 10000.0)
+    HORIZON = sea.io.parse('-horizon', 5000.0)
     CHAOS = sea.io.parse('-chaos', False)
     M_STEP = sea.io.parse('-mstep', 1)
 
@@ -71,7 +71,34 @@ def main():
     vis_range = (vis_x_min, vis_x_max, vis_y_min, vis_y_max)
     colorcenter_analysis = 'mean'
     colorcenter_lde = 'mean'
+    y_names_all = [ 'None',
+                    'Under-Exposed', 
+                    'Under-Exposed',
+                    'Barron Sand (A)',
+                    'Low Density Coral (A)',
+                    'Sand Biota (A)',
+                    'Low Density Coral (B)',
+                    'Dense Coral (A)',
+                    'Dense Coral (B)',
+                    'Dense Coral (C)',
+                    'Sand Biota (B)',
+                    'Low Density Coral (C)',
+                    'Low Density Coral (D)',
+                    'Patch (A)',
+                    'Patch (B)',
+                    'Patch (C)',
+                    'Barron Sand (B)',
+                    'Sand Biota (C)',
+                    'Over-Exposed',
+                    'Barron Sand (C)',
+                    'Under-Exposed',
+                    'Under-Exposed',
+                    'Sand Biota (D)',
+                    'Misc',
+                    'Under-Exposed']
 
+    assert len(y_names_all) == 25
+               
     """Initialise Result Logging"""
     if SAVE_RESULTS:
         home_directory = "../../../Results/scott-reef/"
@@ -146,9 +173,12 @@ def main():
     yq_truth = sea.io.load_ground_truth(filename_truth, 
         assert_query_seed = Q_SEED)
 
-    y_unique = np.unique(y)
+    y_unique = np.unique(y).astype(int)
     assert y_unique.shape[0] == 17
     logging.info('There are %d unique labels' % y_unique.shape[0])
+
+    y_names = [y_names_all[i] for i in y_unique]
+    logging.info('Habitat Labels: {0}'.format(y_names))
 
     """Whiten the feature space"""
     logging.info('Applying whitening on training and query features...')
@@ -175,7 +205,7 @@ def main():
         cmap = mycmap)
     sea.vis.describe_plot(title = 'Training Labels', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
-        clabel = 'Habitat Labels', cticks = y_unique,
+        clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True)
 
     """Visualise Features at Sampled Query Locations"""
@@ -288,7 +318,7 @@ def main():
         cmap = mycmap)
     sea.vis.describe_plot(title = 'Synthetic Ground Truth', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
-        clabel = 'Habitat Labels', cticks = y_unique,
+        clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True)
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -301,7 +331,7 @@ def main():
         title = 'Query Predictions [Miss Ratio: {0:.2f}%]'.format(
                 100 * miss_ratio), 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
-        clabel = 'Habitat Labels', cticks = y_unique,
+        clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True)
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -686,7 +716,7 @@ def main():
             title = 'Query Predictions [Miss Ratio: {0:.2f}%]'.format(
                 100 * miss_ratio), 
             xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
-            clabel = 'Habitat Labels', cticks = y_unique,
+            clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
             vis_range = vis_range, aspect_equal = True)
 
         # Plot the path on top
