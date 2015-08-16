@@ -75,16 +75,16 @@ def optimal_path(theta_stack_init, r, x, memory, feature_fn, white_params,
     entropy_opt = opt.last_optimum_value()
 
     # Compute optimal path
-    x_abs_opt = forward_path_model(theta_stack_opt, r, x)
+    x_path_opt = forward_path_model(theta_stack_opt, r, x)
 
     # Replace the optimal coordinates with the closest query locations
-    x_abs_opt = feature_fn.closest_locations(x_abs_opt)
+    x_path_opt = feature_fn.closest_locations(x_path_opt)
 
     # Approximate the corresponding path angles
-    theta_stack_opt = backward_path_model(x_abs_opt, x)
+    theta_stack_opt = backward_path_model(x_path_opt, x)
 
     # Return path coordinates, path angles, and path entropy
-    return x_abs_opt, theta_stack_opt, entropy_opt
+    return x_path_opt, theta_stack_opt, entropy_opt
 
 def random_path(theta_stack_init, r, x, memory, feature_fn, white_params, 
     bound = 100, chaos = False):
@@ -100,20 +100,47 @@ def random_path(theta_stack_init, r, x, memory, feature_fn, white_params,
         theta_stack = np.random.uniform(0, 2 * pi, size = n_params)
 
     # Compute path coordinates
-    x_abs = forward_path_model(theta_stack, r, x)
+    x_path = forward_path_model(theta_stack, r, x)
 
     # Compute path entropy
     entropy = path_linearised_entropy_model(theta_stack, r, x, 
                     memory, feature_fn, white_params)
 
     # Replace the optimal coordinates with the closest query locations
-    x_abs = feature_fn.closest_locations(x_abs)
+    x_path = feature_fn.closest_locations(x_path)
 
     # Approximate the corresponding path angles
-    theta_stack = backward_path_model(x_abs, x)
+    theta_stack = backward_path_model(x_path, x)
     
     # Return path coordinates, path angles, and path entropy
-    return x_abs, theta_stack, entropy
+    return x_path, theta_stack, entropy
+
+def fixed_path(theta_stack_init, r, x, memory, feature_fn, white_params,
+    bound = 100, current_step = 0, turns = {}):
+
+    assert theta_stack_init.shape[0] == 1
+
+    if current_step in turns:
+        turn_angle = np.deg2rad(turns[current_step])
+    else:
+        turn_angle = 0.0
+
+    # Step forward
+    theta_stack = np.mod(theta_stack_init + turn_angle, 2 * np.pi)
+    x_path = forward_path_model(theta_stack, r, x)
+
+    # Replace the optimal coordinates with the closest query locations
+    x_path = feature_fn.closest_locations(x_path)
+
+    # Approximate the corresponding path angles
+    theta_stack = backward_path_model(x_path, x)
+
+    # Compute path entropy
+    entropy = path_linearised_entropy_model(theta_stack, r, x, 
+                    memory, feature_fn, white_params)
+
+    # Return path coordinates, path angles, and path entropy
+    return x_path, theta_stack, entropy
 
 def forward_path_model(theta_stack, r, x):
     """

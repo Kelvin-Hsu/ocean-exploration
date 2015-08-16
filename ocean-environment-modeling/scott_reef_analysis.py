@@ -44,7 +44,8 @@ def main():
     HORIZON = sea.io.parse('-horizon', 5000.0)
     CHAOS = sea.io.parse('-chaos', False)
     M_STEP = sea.io.parse('-mstep', 1)
-
+    N_DRAWS = sea.io.parse('-ndraws', 5000)
+    
     # NOTRAIN = True
     """Model Options"""
     SAVE_RESULTS = True
@@ -406,7 +407,7 @@ def main():
     horizon = HORIZON
     h_steps = H_STEPS
 
-    if GREEDY or (METHOD == 'RANDOM'):
+    if GREEDY or (METHOD == 'RANDOM') or (METHOD == 'LINE'):
         horizon /= h_steps
         h_steps /= h_steps 
 
@@ -421,7 +422,6 @@ def main():
     ctol = 1e-10
 
     theta_stack_init = -np.deg2rad(15) * np.ones(h_steps)
-    # theta_stack_init[int(h_steps/2):] = 0
     theta_stack_init[0] = np.deg2rad(180)
     theta_stack_low = -theta_bound * np.ones(h_steps)
     theta_stack_high = theta_bound * np.ones(h_steps)
@@ -434,6 +434,10 @@ def main():
     m_step = 1
 
     bound = 100
+
+    if METHOD == 'LINE':
+        turns = {50: 90, 100: 90, 150: 90}
+        logging.info('Line Turns: {0}'.format(turns))
 
     """Informative Seafloor Exploration: Initialisation"""
     # The observed data till now
@@ -474,13 +478,20 @@ def main():
         # Propose a path
         if m_step <= k_step:
             if METHOD == 'RANDOM':
-                xq_opt, theta_stack_opt, entropy_opt = \
+                xq_path, theta_stack_opt, entropy_opt = \
                     sea.explore.random_path(theta_stack_init, r, xq_now[-1], 
                         learned_classifier, feature_fn, white_params, 
                         bound = bound, 
                         chaos = CHAOS)
+            elif METHOD == 'LINE':
+                xq_path, theta_stack_opt, entropy_opt = \
+                    sea.explore.fixed_path(theta_stack_init, r, xq_now[-1], 
+                        learned_classifier, feature_fn, white_params,
+                        bound = bound, 
+                        current_step = i_trials, 
+                        turns = turns)
             else:
-                xq_opt, theta_stack_opt, entropy_opt = \
+                xq_path, theta_stack_opt, entropy_opt = \
                     sea.explore.optimal_path(theta_stack_init, r, xq_now[-1], 
                         learned_classifier, feature_fn, white_params,
                         objective = METHOD, 
@@ -493,7 +504,7 @@ def main():
                         ftol_rel = ftol_rel, 
                         ctol = ctol, 
                         globalopt = False,
-                        n_draws = 5000)
+                        n_draws = N_DRAWS)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
             m_step = M_STEP
@@ -501,12 +512,12 @@ def main():
         else:
             m_step -= 1
             theta_stack_opt = theta_stack_init.copy()
-            xq_opt = sea.explore.forward_path_model(theta_stack_init, 
+            xq_path = sea.explore.forward_path_model(theta_stack_init, 
                 r, xq_now[-1])
             logging.info('%d steps left' % m_step)
 
         # Path steps into the proposed path
-        xq_now = xq_opt[:k_step]
+        xq_now = xq_path[:k_step]
 
         # Initialise the next path angles
         theta_stack_init = sea.explore.shift_path(theta_stack_opt, 
@@ -551,9 +562,9 @@ def main():
         logging.info('Finished Learning')
 
         # This is the finite horizon optimal route
-        fqw_opt = feature_fn(xq_opt, white_params)
-        xq1_opt = xq_opt[:, 0][k_step:]
-        xq2_opt = xq_opt[:, 1][k_step:]
+        fqw_opt = feature_fn(xq_path, white_params)
+        xq1_path = xq_path[:, 0][k_step:]
+        xq2_path = xq_path[:, 1][k_step:]
         yq_opt = gp.classifier.classify(gp.classifier.predict(fqw_opt, 
             learned_classifier), y_unique)[k_step:]
 
@@ -612,10 +623,10 @@ def main():
             cmap = mycmap)
 
         # Plot the proposed path
-        sea.vis.scatter(xq1_opt, xq2_opt, c = yq_opt, 
+        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_opt, xq2_opt, c = 'k', linewidth = 2)
+        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
@@ -655,10 +666,10 @@ def main():
             cmap = mycmap)
 
         # Plot the proposed path
-        sea.vis.scatter(xq1_opt, xq2_opt, c = yq_opt, 
+        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_opt, xq2_opt, c = 'k', linewidth = 2)
+        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
@@ -698,10 +709,10 @@ def main():
             cmap = mycmap)
 
         # Plot the proposed path
-        sea.vis.scatter(xq1_opt, xq2_opt, c = yq_opt, 
+        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_opt, xq2_opt, c = 'k', linewidth = 2)
+        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
@@ -744,10 +755,10 @@ def main():
             cmap = mycmap)
 
         # Plot the proposed path
-        sea.vis.scatter(xq1_opt, xq2_opt, c = yq_opt, 
+        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_opt, xq2_opt, c = 'k', linewidth = 2)
+        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
