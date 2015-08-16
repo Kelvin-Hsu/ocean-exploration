@@ -1,2 +1,7 @@
 Entropy can be considered by points
 But the joint distribution says more things and in fact the entropy of a region can be summarised by jointly querying
+
+Data acquired:
+
+h_compare results between horizons on laptop's Results Folder
+lde good performance results in desktop's data folder (with movies) 
