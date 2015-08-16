@@ -37,7 +37,7 @@ def main():
 
     METHOD = sea.io.parse('-method', 'LDE')
     GREEDY = sea.io.parse('-greedy', False)
-    N_TRIALS = sea.io.parse('-ntrials', 300)
+    N_TRIALS = sea.io.parse('-ntrials', 200)
     START_POINT1 = sea.io.parse('-start', 375000.0, arg = 1)
     START_POINT2 = sea.io.parse('-start', 8440000.0, arg = 2)
     H_STEPS = sea.io.parse('-hsteps', 30)
@@ -157,6 +157,7 @@ def main():
                         'walltime': walltime,
                         'train': train}
 
+    logging.info(sys.argv)
     logging.info(test_options)
     logging.info(model_options)
 
