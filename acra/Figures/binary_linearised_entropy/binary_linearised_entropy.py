@@ -464,6 +464,60 @@ def main():
     logging.info('Plotted Sample Query Labels')
     plt.gca().set_aspect('equal', adjustable = 'box')
 
+    """
+    Plot: Latent
+    """  
+
+    fig = plt.figure(figsize = (15, 15))
+    gp.classifier.utils.visualise_map(expectance_latent_plt, test_ranges, 
+        cmap = cm.coolwarm)
+    plt.title('Latent Expectance', fontsize = fontsize)
+    plt.xlabel('x1', fontsize = fontsize)
+    plt.ylabel('x2', fontsize = fontsize)
+    plt.colorbar()
+    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    plt.xlim((test_range_min, test_range_max))
+    plt.ylim((test_range_min, test_range_max))
+    logging.info('Plotted Latent Expectance on Training Set')
+    plt.gca().set_aspect('equal', adjustable = 'box')
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+
+    fig = plt.figure(figsize = (15, 15))
+    gp.classifier.utils.visualise_map(variance_latent_plt, test_ranges, 
+        cmap = cm.coolwarm)
+    plt.title('Latent Variance', fontsize = fontsize)
+    plt.xlabel('x1', fontsize = fontsize)
+    plt.ylabel('x2', fontsize = fontsize)
+    plt.colorbar()
+    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    plt.xlim((test_range_min, test_range_max))
+    plt.ylim((test_range_min, test_range_max))
+    logging.info('Plotted Latent Variance on Training Set')
+    plt.gca().set_aspect('equal', adjustable = 'box')
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+
+    fig = plt.figure(figsize = (15, 15))
+    gp.classifier.utils.visualise_map(yq_prob_plt, test_ranges, 
+        cmap = cm.coolwarm)
+    plt.title('Prediction Probabilities', fontsize = fontsize)
+    plt.xlabel('x1', fontsize = fontsize)
+    plt.ylabel('x2', fontsize = fontsize)
+    plt.colorbar()
+    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    plt.xlim((test_range_min, test_range_max))
+    plt.ylim((test_range_min, test_range_max))
+    logging.info('Plotted Prediction Probabilities on Training Set')
+    plt.gca().set_aspect('equal', adjustable = 'box')
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
 
     """
     Plot: Sample Query Draws

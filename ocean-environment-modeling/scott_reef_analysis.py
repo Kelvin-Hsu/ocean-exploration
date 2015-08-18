@@ -472,7 +472,6 @@ def main():
     yq_lde_mean_array = np.nan * np.ones(n_trials)
     entropy_opt_array = np.nan * np.ones(n_trials)
     yq_esd_mean_array = np.nan * np.ones(n_trials)
-
     while i_trials < n_trials:
 
         # Propose a path
@@ -835,7 +834,10 @@ def main():
             white_params = white_params,
             X_now = X_now,
             Fw_now = Fw_now,
-            y_now = y_now)
+            y_now = y_now,
+            xq1_nows = xq1_nows,
+            xq2_nows = xq2_nows,
+            yq_nows = yq_nows)
         logging.info('White Params: {0}'.format(white_params))
 
     np.savez('%shistory.npz' % full_directory, 
@@ -851,7 +853,10 @@ def main():
         white_params = white_params,
         X_now = X_now,
         Fw_now = Fw_now,
-        y_now = y_now)
+        y_now = y_now,
+        xq1_nows = xq1_nows,
+        xq2_nows = xq2_nows,
+        yq_nows = yq_nows)
 
     plt.show()
 

@@ -5,3 +5,5 @@ Data acquired:
 
 h_compare results between horizons on laptop's Results Folder
 lde good performance results in desktop's data folder (with movies) 
+
+next: store the paths too for visualisation
