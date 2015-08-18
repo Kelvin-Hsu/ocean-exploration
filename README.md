@@ -1,4 +1,4 @@
-# Ocean Exploration
-Active Path Planning of Autonomous Underwater Vehicles for Ocean Terrain Exploration
+# Informative Seafloor Exploration
+Receding Horizon Approach to Informative Seafloor Exploration with Linearised Differential Entropy of Gaussian Process Classifiers
 	
 Author: Kelvin Hsu
