@@ -169,6 +169,7 @@ def main():
     filename_truth = directory_data + 'truthmodel_t800_q100000_ts250_qs500.npz'
     filename_start = directory_data + 'finalmodel_t200_q100000_ts250_qs500'\
         '_method_LDE_start377500_8440000_hsteps30_horizon5000.npz'
+
     """Sample Training Data and Query Points"""
     X, F, y, Xq, Fq, i_train, i_query = \
         sea.io.sample(*sea.io.load(directory_data, 
@@ -407,7 +408,7 @@ def main():
     horizon = HORIZON
     h_steps = H_STEPS
 
-    if GREEDY or (METHOD == 'RANDOM') or (METHOD == 'LINE'):
+    if GREEDY or (METHOD == 'RANDOM') or (METHOD == 'FIXED'):
         horizon /= h_steps
         h_steps /= h_steps 
 
@@ -434,10 +435,6 @@ def main():
     m_step = 1
 
     bound = 100
-
-    if METHOD == 'LINE':
-        turns = {50: 90, 100: 90, 150: 90}
-        logging.info('Line Turns: {0}'.format(turns))
 
     """Informative Seafloor Exploration: Initialisation"""
     # The observed data till now
@@ -472,6 +469,11 @@ def main():
     yq_lde_mean_array = np.nan * np.ones(n_trials)
     entropy_opt_array = np.nan * np.ones(n_trials)
     yq_esd_mean_array = np.nan * np.ones(n_trials)
+
+    if METHOD == 'FIXED':
+        turns = np.deg2rad(5) * np.sin(np.linspace(0, 20*np.pi, num = n_trials))
+        # turns = np.linspace(np.deg2rad(60), np.deg2rad(0), num = n_trials)
+
     while i_trials < n_trials:
 
         # Propose a path
@@ -482,7 +484,7 @@ def main():
                         learned_classifier, feature_fn, white_params, 
                         bound = bound, 
                         chaos = CHAOS)
-            elif METHOD == 'LINE':
+            elif METHOD == 'FIXED':
                 xq_path, theta_stack_opt, entropy_opt = \
                     sea.explore.fixed_path(theta_stack_init, r, xq_now[-1], 
                         learned_classifier, feature_fn, white_params,

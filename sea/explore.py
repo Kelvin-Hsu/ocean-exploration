@@ -116,12 +116,12 @@ def random_path(theta_stack_init, r, x, memory, feature_fn, white_params,
     return x_path, theta_stack, entropy
 
 def fixed_path(theta_stack_init, r, x, memory, feature_fn, white_params,
-    bound = 100, current_step = 0, turns = {}):
+    bound = 100, current_step = 0, turns = np.array([])):
 
     assert theta_stack_init.shape[0] == 1
 
-    if current_step in turns:
-        turn_angle = np.deg2rad(turns[current_step])
+    if current_step <= turns.shape[0]:
+        turn_angle = turns[current_step]
     else:
         turn_angle = 0.0
 
