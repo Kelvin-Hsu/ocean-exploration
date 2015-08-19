@@ -419,19 +419,23 @@ def main():
         h_steps /= h_steps 
 
     if METHOD == 'LDE':
-        theta_bound = np.deg2rad(10)
+        theta_bound = np.deg2rad(20)
+        theta_bounds = np.linspace(theta_bound, np.deg2rad(90), num = h_steps) 
+        theta_stack_low  = -theta_bounds
+        theta_stack_high = +theta_bounds
         xtol_rel = 1e-2
         ftol_rel = 1e-3
     else:
         theta_bound = np.deg2rad(180)
+        theta_bounds = theta_bound * np.ones(h_steps)
+        theta_stack_low  = -theta_bounds
+        theta_stack_high = +theta_bounds
         xtol_rel = 1e-1
         ftol_rel = 1e-1
     ctol = 1e-10
 
-    theta_stack_init = -np.deg2rad(15) * np.ones(h_steps)
+    theta_stack_init = np.deg2rad(0) * np.ones(h_steps)
     theta_stack_init[0] = np.deg2rad(180)
-    theta_stack_low = -theta_bound * np.ones(h_steps)
-    theta_stack_high = theta_bound * np.ones(h_steps)
     theta_stack_low[0] = 0.0
     theta_stack_high[0] = 2 * np.pi
     r = horizon/h_steps
@@ -476,7 +480,7 @@ def main():
     entropy_opt_array = np.nan * np.ones(n_trials)
     yq_esd_mean_array = np.nan * np.ones(n_trials)
 
-    if METHOD == 'FIXED':
+    if (METHOD == 'FIXED') or (METHOD == 'LDE'):
         turns = np.zeros(n_trials)
         turns[[0, 49, 99, 149]] = np.deg2rad(-90.0)
 
@@ -485,6 +489,10 @@ def main():
         # turns = np.linspace(np.deg2rad(60), np.deg2rad(0), num = n_trials)
 
     while i_trials < n_trials:
+
+        if METHOD == 'LDE':
+            theta_stack_init[0] += turns[i_trials]
+            theta_stack_init[0] = np.mod(theta_stack_init[0], 2 * np.pi)
 
         # Propose a path
         if m_step <= k_step:
@@ -532,7 +540,7 @@ def main():
 
         # Initialise the next path angles
         theta_stack_init = sea.explore.shift_path(theta_stack_opt, 
-            k_step = k_step)
+            k_step = k_step, theta_bounds = theta_bounds)
         np.clip(theta_stack_init, 
             theta_stack_low + 1e-4, theta_stack_high - 1e-4, 
             out = theta_stack_init)

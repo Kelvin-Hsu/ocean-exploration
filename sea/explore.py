@@ -228,13 +228,18 @@ def path_marginalised_entropy_model(theta_stack, r, x, memory, feature_fn, white
         np.rad2deg(theta_stack), entropy))
     return entropy
 
-def shift_path(theta_stack, k_step = 1):
+def shift_path(theta_stack, k_step = 1, theta_bounds = None):
     """
     Shift the stacking angles k_steps ahead
     """
     theta_stack_next = np.zeros(theta_stack.shape)
-    theta_stack_next[0] = theta_stack[:(k_step + 1)].sum() % (2 * np.pi)
     theta_stack_next[1:-k_step] = theta_stack[(k_step + 1):]
+
+    if theta_bounds is not None:
+        np.clip(theta_stack_next, -theta_bounds - 1e-2, +theta_bounds + 1e-2, 
+            out = theta_stack_next)
+    theta_stack_next[0] = np.mod(theta_stack[:(k_step + 1)].sum(), (2 * np.pi))
+
     return theta_stack_next
 
 def correct_lookahead_predictions(xq_abs_opt, learned_classifier, feature_fn, white_params, 
