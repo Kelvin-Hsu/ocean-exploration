@@ -322,7 +322,13 @@ def main():
         fusemethod = fusemethod)
     yq_esd = gp.classifier.equivalent_standard_deviation(yq_lde)
     miss_ratio = sea.model.miss_ratio(yq_pred, yq_truth)
+    yq_lde_mean = yq_lde.mean()
+    yq_mie_mean = yq_mie.mean()
     logging.info('Miss Ratio: {0:.2f}%'.format(100 * miss_ratio))
+    logging.info('Average Marginalised Linearised Differential Entropy: '\
+        '{0:.2f}'.format(yq_lde_mean))
+    logging.info('Average Marginalised Information Entropy: '\
+        '{0:.2f}'.format(yq_mie_mean))
 
     """Visualise Query Prediction and Entropy"""
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -471,7 +477,8 @@ def main():
     yq_esd_mean_array = np.nan * np.ones(n_trials)
 
     if METHOD == 'FIXED':
-        turns = np.deg2rad(5) * np.sin(np.linspace(0, 20*np.pi, num = n_trials))
+        turns = np.linspace(np.deg2rad(20), np.deg2rad(0), num = n_trials)
+        # turns = np.deg2rad(30) * np.sin(np.linspace(0, 20*np.pi, num = n_trials))
         # turns = np.linspace(np.deg2rad(60), np.deg2rad(0), num = n_trials)
 
     while i_trials < n_trials:
@@ -581,6 +588,11 @@ def main():
         yq_lde_mean = yq_lde.mean()
         yq_esd_mean = yq_esd.mean()
         logging.info('Miss Ratio: {0:.2f}%'.format(100 * miss_ratio))
+        logging.info('Average Marginalised Linearised Differential Entropy: '\
+            '{0:.2f}'.format(yq_lde_mean))
+        logging.info('Average Marginalised Information Entropy: '\
+            '{0:.2f}'.format(yq_mie_mean))
+
 
         """ Save history """
         miss_ratio_array[i_trials] = miss_ratio
@@ -623,12 +635,6 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
 
-        # Plot the proposed path
-        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
-            s = 60, marker = 'D', 
-            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
-
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
             linewidth = 2, marker = '.')
@@ -640,6 +646,18 @@ def main():
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%slde_step%d.png' 
+            % (full_directory, i_trials + 1))
+
+        # Plot the proposed path
+        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
+
+        # Save the plot
+        plt.tight_layout()
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('%slde_propose_step%d.png' 
             % (full_directory, i_trials + 1))
 
         """ Equivalent Standard Deviation Map """
@@ -666,12 +684,6 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
 
-        # Plot the proposed path
-        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
-            s = 60, marker = 'D', 
-            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
-
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
             linewidth = 2, marker = '.')
@@ -683,6 +695,18 @@ def main():
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%sesd_step%d.png' 
+            % (full_directory, i_trials + 1))
+
+        # Plot the proposed path
+        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
+
+        # Save the plot
+        plt.tight_layout()
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('%sesd_propose_step%d.png' 
             % (full_directory, i_trials + 1))
 
         """ True Entropy Map """
@@ -709,11 +733,11 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
 
-        # Plot the proposed path
-        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
-            s = 60, marker = 'D', 
-            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
+        # Save the plot
+        plt.tight_layout()
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('%smie_step%d.png' 
+            % (full_directory, i_trials + 1))
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
@@ -722,10 +746,16 @@ def main():
         plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
             head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
+        # Plot the proposed path
+        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
+
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%smie_step%d.png' 
+        plt.savefig('%smie_propose_step%d.png' 
             % (full_directory, i_trials + 1))
 
         """ Class Prediction Map """
@@ -755,12 +785,6 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
 
-        # Plot the proposed path
-        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
-            s = 60, marker = 'D', 
-            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
-
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
             linewidth = 2, marker = '.')
@@ -772,6 +796,18 @@ def main():
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%spred_step%d.png' 
+            % (full_directory, i_trials + 1))
+
+        # Plot the proposed path
+        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
+            s = 60, marker = 'D', 
+            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
+        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
+
+        # Save the plot
+        plt.tight_layout()
+        plt.gca().set_aspect('equal', adjustable = 'box')
+        plt.savefig('%spred_propose_step%d.png' 
             % (full_directory, i_trials + 1))
 
 
