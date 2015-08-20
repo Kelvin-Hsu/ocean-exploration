@@ -56,6 +56,8 @@ def main():
         directory41 = main_directory + 'loc_20150818_221107__t200_q100000_ts250_qs500_method_MIE_start380000.08440000.0_hsteps30_horizon5000.0/'
         directory50 = main_directory + 'loc_20150818_122531__t200_q100000_ts250_qs500_method_FIXED_start377500.08440000.0_hsteps30_horizon5000.0/'
         directory51 = main_directory + 'loc_20150818_120403__t200_q100000_ts250_qs500_method_FIXED_start380000.08440000.0_hsteps30_horizon5000.0/'
+        directory60 = main_directory + 'loc_20150819_095126__t200_q100000_ts250_qs500_method_FIXED_start377500.08440000.0_hsteps30_horizon5000.0/'
+        directory61 = main_directory + 'loc_20150819_095211__t200_q100000_ts250_qs500_method_FIXED_start380000.08440000.0_hsteps30_horizon5000.0/'
 
         data00 = obtain_data(directory00, {'index': 0, 'label': 'Location 1 with LDE', 'steps': 200})
         data01 = obtain_data(directory01, {'index': 0, 'label': 'Location 2 with LDE', 'steps': 200})
@@ -67,19 +69,34 @@ def main():
         data31 = obtain_data(directory31, {'index': 3, 'label': 'Location 2 with MCJIE', 'steps': 140})
         data40 = obtain_data(directory40, {'index': 4, 'label': 'Location 1 with MIE', 'steps': 200})
         data41 = obtain_data(directory41, {'index': 4, 'label': 'Location 2 with MIE', 'steps': 200})
-        data50 = obtain_data(directory50, {'index': 5, 'label': 'Location 1 with FIXED', 'steps': 200})
-        data51 = obtain_data(directory51, {'index': 5, 'label': 'Location 2 with FIXED', 'steps': 200})
+        data50 = obtain_data(directory50, {'index': 5, 'label': 'Location 1 with FIXED - SPIRAL', 'steps': 200})
+        data51 = obtain_data(directory51, {'index': 5, 'label': 'Location 2 with FIXED - SPIRAL', 'steps': 200})
+        data60 = obtain_data(directory60, {'index': 6, 'label': 'Location 1 with FIXED - LINES', 'steps': 200})
+        data61 = obtain_data(directory61, {'index': 6, 'label': 'Location 2 with FIXED - LINES', 'steps': 200})
 
-        plot_data(main_directory, data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, ncolors = 6, descript = 'methods')
+        plot_data(main_directory, data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, data60, data61, ncolors = 7, descript = 'methods', label_font_size = 18)
         logging.info('Compared methods')
+        rank_data(data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, data60, data61)
 
     logging.basicConfig(level = logging.DEBUG)
 
     compare_starting_locations()
     compare_horizons()
     compare_methods()
-    
+
     plt.show()
+
+def rank_data(*args):
+
+    performances = np.array([arg[0][arg[-1].get('steps') - 1] for arg in args])
+    names = [arg[-1].get('label') for arg in args]
+    ind = performances.argsort()
+    table = [(names[i], performances[i]) for i in ind]
+    [print(t) for t in table]
+    print('----------')
+    [print(t) for t in table if 'Location 1' in t[0]]
+    print('----------')
+    [print(t) for t in table if 'Location 2' in t[0]]
 
 def obtain_data(directory, info):
 
@@ -96,15 +113,15 @@ def obtain_data(directory, info):
         logging.info('Failed to obtain data for {0}'.format(info))
     return miss_ratio_array, yq_lde_mean_array, yq_mie_mean_array, info
 
-def plot_data(directory, *args, ncolors = 1, descript = ''):
+def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24):
 
     fig = plt.figure(figsize = (20, 20))
 
     L = 0.0
     colors = cm.rainbow(np.linspace(0 + L, 1 - L, num = ncolors))
 
-    fontsize = 24
-    axis_tick_font_size = 14
+    fontsize = 40
+    axis_tick_font_size = 24
 
     ax1 = fig.add_subplot(311)
     ax2 = fig.add_subplot(312)
@@ -130,8 +147,8 @@ def plot_data(directory, *args, ncolors = 1, descript = ''):
         ax2.plot(iterations_plt, yq_lde_plt, c = color, label = label)
         ax3.plot(iterations_plt, yq_mie_plt, c = color, label = label)
 
-    ax1.legend(bbox_to_anchor=(0., 0.0, 1., .05), loc=3,
-           ncol=4, borderaxespad=0.)
+    ax1.legend(bbox_to_anchor = (0., 0.0, 1., .05), loc = 3,
+           ncol = 4, borderaxespad = 0., fontsize = label_font_size)
 
     plt.subplot(3, 1, 1)
     plt.title('Percentage of Prediction Misses', fontsize = fontsize)

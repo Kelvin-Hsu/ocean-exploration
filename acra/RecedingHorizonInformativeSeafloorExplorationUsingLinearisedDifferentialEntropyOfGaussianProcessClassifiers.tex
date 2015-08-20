@@ -1,6 +1,6 @@
 %%%% acra.tex
 
-\typeout{Receding Horizon Informative Seafloor Exploration using Linearised Differential Entropy of Gaussian Process Classifiers}
+\typeout{Receding Horizon Informative Seafloor Exploration with Linearised Differential Entropy of Gaussian Process Classifiers}
 
 % This is the instructions for authors for ACRA.
 \documentclass{article}
@@ -54,7 +54,8 @@ Kelvin.Hsu@nicta.com.au}
 \maketitle
 
 \begin{abstract}
-	While seafloor bathymetry have been mapped extensively over the last century, geological and ecological observations of seafloor benthic zones only began recently. Unlike bathymetric mapping, data collection of benthic imagery requires \textit{in situ} exploration - a significantly slower and costly endeavour. An efficient exploration policy would therefore require solving the informative path planning problem. This paper investigates a receding horizon approach to the informative path planning problem using linearised differential entropy as the proposed acquisition function. We model the benthic environment upon five bathymetric features through Gaussian process classifiers, whose linearised differential entropy would be defined and derived. We compare our method to a monte carlo approach for estimating joint entropy under a prediction accuracy criterion, demonstrating advantages of the linearised differential entropy approach. Under the same acquisition criterion, we also show the benefits of a receding horizon approach over simpler approaches such as greedy and open loop methods. Finally, we test our method on collected benthic datasets from past AUV missions to Scott Reef, Western Australia. 
+	While seafloor bathymetry have been mapped extensively over the last century, geological and ecological observations of seafloor benthic zones only began recently. Unlike bathymetric mapping, data collection of benthic imagery requires \textit{in situ} exploration - a significantly slower and costly endeavour. An efficient exploration policy would therefore require solving the informative path planning problem. This paper investigates a receding horizon approach to the informative path planning problem using linearised differential entropy as the proposed acquisition function. We model the benthic environment upon five bathymetric features through Gaussian process classifiers, whose linearised differential entropy would be defined and derived. We compare receding horizon methods under several acquisition functions, such as joint information entropy through Monte Carlo sampling and marginalised information entropy, demonstrating advantages of the linearised differential entropy approach under a prediction accuracy criterion. We also show the benefits of a receding horizon approach over simpler approaches such as greedy and open loop methods. Finally, we test our method on collected benthic datasets from past AUV missions to Scott Reef, Western Australia.
+	
 \end{abstract}
 
 \section{Introduction}
@@ -141,40 +142,62 @@ Kelvin.Hsu@nicta.com.au}
 \section{Mapping Benthic Habitats with Gaussian Process Classifiers}
 \label{Section:BenthicMapping}
 
+	\begin{figure*}[!htbp]
+	\centering
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure1.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure2.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure3.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure4.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure5.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure6.png}
+	\caption{Scott Reef Bathymetric Features}
+	\label{Figure:Results:ScottReefBathymetricFeatures}
+	\end{figure*}
+	
+	In this paper we will focus on applying the modeling and path planning techniques on the datasets collected from past missions at Scott Reefs, Western Australia \cite{ScottReefData}. While the dataset consists of a detailed map of the bathymetric features across the seafloor, the benthic habitats have only been observed through seven linear tracks extending from the middle to the edge of the reef (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). The aim is to distinguish between the 17 different benthic zones and map the benthic habitats of the Scott reef region accurately in the shortest amount of travel time.
+		
 	\subsection{Model Structure and Features}
 	
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
+		Subplot 1 in figure \ref{Figure:Results:ScottReefBathymetricFeatures} shows the observed benthic habitats from past mission tracks, which serves as the training labels to our model. To reduce computational time, 200 training points were sampled from those tracks.
 		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
+		Subplot 2 to 6 in figure \ref{Figure:Results:ScottReefBathymetricFeatures} shows the five bathymetric features for which the Gaussian process classifier will model upon - bathymetric depth, aspect (short and long scale), rugosity (short and long scale). The images are built from 10000 query points randomly sampled from the dataset.
 		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
+		To measure the relative performance between modeling and path planning techniques, a synthetic ground truth is generated separately (figure \ref{Figure:Results:ScottReefSyntheticTruth}). Note that this ground truth was generated using a separate sample of the training tracks and does not necessary represent the true benthic regions at Scott reef.
+	
+
+
+
+					
 	\subsection{Gaussian Processes Classifiers}
 	
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7.png}
+		\caption{Scott Reef: Synthetic Ground Truth}
+		\label{Figure:Results:ScottReefSyntheticTruth}
+		\end{figure}
+
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.png}
+		\caption{Scott Reef: Initial Prediction with 200 Training Points}
+		\label{Figure:Results:ScottReefPredictions}
+		\end{figure}
+	
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9.png}
+		\caption{Scott Reef: Prediction Information Entropy}
+		\label{Figure:Results:ScottReefPredictionInformationEntropy}
+		\end{figure}
+		
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure11.png}
+		\caption{Scott Reef: Linearised Differential Entropy}
+		\label{Figure:Results:ScottReefLinearisedDifferentialEntropy}
+		\end{figure}
+					
 		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
 		
 		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
@@ -382,11 +405,33 @@ Kelvin.Hsu@nicta.com.au}
 	\subsection{Properties of the Receding Horizon Approach}
 	
 	\subsection{Results}
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/compare_horizons.png}
+		\caption{Horizon Effects}
+		\label{Figure:Results:CompareHorizons}
+		\end{figure}
 	
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/compare_locations.png}
+		\caption{Horizon Effects}
+		\label{Figure:Results:CompareLocations}
+		\end{figure}
+		
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/compare_methods.png}
+		\caption{Horizon Effects}
+		\label{Figure:Results:CompareMethods}
+		\end{figure}
+				
 		From experimental tests:
 			-A larger horizon is not always more beneficial. The entropy of faraway regions that it considers may become meaningless by the time it actually gets there, as the model would have significantly changed. On the other hand, it cannot be too short, or it will suffer the same problem as a greedy approach (not seeing ahead, getting stuck in local regions, not recognising joint information)
 			-For the scott reef data, a good horizon range is 5000.0 m, for horizons more than 6000.0 m the result will hit diminishing returns and may actually hurt the performance. This happens as the model predictions and entropies at far away regions for which it was considering changes too much that during its way there the model has changed too much and it is no longer interested in such regions. This results in fast varying path proposals and may result in instability. It is about balancing obtaining reasonable information in reasonable time against reaching for information that may be outdated by the time it is collecting it.
 			
+
+		
 		
 \section{Conclusions and Future Work}
 \label{Section:Conclusion}

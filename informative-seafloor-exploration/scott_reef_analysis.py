@@ -45,7 +45,8 @@ def main():
     CHAOS = sea.io.parse('-chaos', False)
     M_STEP = sea.io.parse('-mstep', 1)
     N_DRAWS = sea.io.parse('-ndraws', 5000)
-    
+    MODEL_ONLY = sea.io.parse('-model-only', False)
+
     # NOTRAIN = True
     """Model Options"""
     SAVE_RESULTS = True
@@ -213,7 +214,17 @@ def main():
     sea.vis.describe_plot(title = 'Training Labels', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
-        vis_range = vis_range, aspect_equal = True)
+        vis_range = vis_range, aspect_equal = True, fontsize = 34, ticksize = 24)
+    plt.scatter(
+        X[:, 0], X[:, 1], 
+        marker = 'x', c = y, 
+        vmin = y_unique[0], vmax = y_unique[-1], 
+        cmap = mycmap)
+    sea.vis.describe_plot(title = 'Training Labels', 
+        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_unique,
+        vis_range = vis_range, aspect_equal = True, fontsize = 34, ticksize = 24)
+    plt.tight_layout()
 
     """Visualise Features at Sampled Query Locations"""
     for k in range(k_features):
@@ -222,7 +233,7 @@ def main():
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = Fq[:, k], s = 5, 
             cmap = mycmap, colorcenter = 'mean')
-        sea.vis.describe_plot(clabel = '%s (Raw)' % feature_names[k])
+        sea.vis.describe_plot(clabel = '%s (Raw)' % feature_names[k], fontsize = 34, ticksize = 24)
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = Fqw[:, k], s = 5,
@@ -231,7 +242,8 @@ def main():
             title = 'Feature: %s at Query Points' % feature_names[k], 
             xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
             clabel = '%s (Whitened)' % feature_names[k],
-            vis_range = vis_range, aspect_equal = True)
+            vis_range = vis_range, aspect_equal = True, fontsize = 34, ticksize = 24)
+        plt.tight_layout()
 
     """Classifier Training"""
     logging.info('===Begin Classifier Training===')
@@ -341,6 +353,7 @@ def main():
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True)
+    plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
@@ -354,6 +367,7 @@ def main():
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True)
+    plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
@@ -364,6 +378,7 @@ def main():
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Information Entropy',
         vis_range = vis_range, aspect_equal = True)
+    plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
@@ -374,6 +389,7 @@ def main():
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Information Entropy',
         vis_range = vis_range, aspect_equal = True)
+    plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
@@ -384,6 +400,7 @@ def main():
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Differential Entropy',
         vis_range = vis_range, aspect_equal = True)
+    plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
@@ -394,7 +411,8 @@ def main():
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Standard Deviation',
         vis_range = vis_range, aspect_equal = True)
-
+    plt.tight_layout()
+    
     """Visualise Query Draws"""
 
     if SAVE_RESULTS:
@@ -407,6 +425,8 @@ def main():
                 i_train = i_train, i_query = i_query,
                 yq_pred = yq_pred, yq_mie = yq_mie, yq_lde = yq_lde,
                 white_params = white_params)
+    if MODEL_ONLY:
+        return
 
     """Informative Seafloor Exploration: Setup"""
     xq_now = np.array([[START_POINT1, START_POINT2]])
