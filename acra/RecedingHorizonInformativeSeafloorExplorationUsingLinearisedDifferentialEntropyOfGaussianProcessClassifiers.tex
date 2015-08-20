@@ -44,7 +44,7 @@
 % Receding Horizon Approach to Informative Seafloor Exploration with Gaussian Process Classifiers
 % Receding Horizon Approach to Informative Seafloor Exploration with Linearised Differential Entropy of Gaussian Process Classifiers
 
-\author{Kelvin Hsu \\ University of Sydney, Australia \\ 
+\author{Kelvin YS Hsu, Stefan B Williams, Simon O Callaghan \\ University of Sydney, Australia \\ 
 Kelvin.Hsu@nicta.com.au}
 
 
@@ -125,7 +125,7 @@ Kelvin.Hsu@nicta.com.au}
 		
 		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
 		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
+		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is justt a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
 		
 		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
 		
@@ -157,18 +157,12 @@ Kelvin.Hsu@nicta.com.au}
 	In this paper we will focus on applying the modeling and path planning techniques on the datasets collected from past missions at Scott Reefs, Western Australia \cite{ScottReefData}. While the dataset consists of a detailed map of the bathymetric features across the seafloor, the benthic habitats have only been observed through seven linear tracks extending from the middle to the edge of the reef (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). The aim is to distinguish between the 17 different benthic zones and map the benthic habitats of the Scott reef region accurately in the shortest amount of travel time.
 		
 	\subsection{Model Structure and Features}
-	
-		Subplot 1 in figure \ref{Figure:Results:ScottReefBathymetricFeatures} shows the observed benthic habitats from past mission tracks, which serves as the training labels to our model. To reduce computational time, 200 training points were sampled from those tracks.
 		
-		Subplot 2 to 6 in figure \ref{Figure:Results:ScottReefBathymetricFeatures} shows the five bathymetric features for which the Gaussian process classifier will model upon - bathymetric depth, aspect (short and long scale), rugosity (short and long scale). The images are built from 10000 query points randomly sampled from the dataset.
+		The benthic habitat observations obtained from past mission tracks, together with the bathymetric features observed at those locations, form the training data and labels for the Gaussian process classifier (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). To reduce computational requirements, 200 training points were sampled from those tracks for initial modeling.
 		
-		To measure the relative performance between modeling and path planning techniques, a synthetic ground truth is generated separately (figure \ref{Figure:Results:ScottReefSyntheticTruth}). Note that this ground truth was generated using a separate sample of the training tracks and does not necessary represent the true benthic regions at Scott reef.
-	
-
-
-
-					
-	\subsection{Gaussian Processes Classifiers}
+		The Gaussian process classifier is chosen to model the benthic habitats upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale) (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). The images are built from 10000 query points randomly sampled from the dataset. It is presumed that the nature of the habitat depends on the structure of the seafloor terrain and depth, and that the locations of the habitat itself should have minimal effect. Thus, spatial coordinates are not included in the feature set.
+		
+		To measure the relative performance between modeling and path planning techniques, a synthetic ground truth is generated separately (figure \ref{Figure:Results:ScottReefSyntheticTruth}). Note that this ground truth was generated using a separate sample of the training tracks and does not necessary represent the physical reality at Scott reef.
 	
 		\begin{figure}[!htbp]
 		\centering
@@ -176,58 +170,10 @@ Kelvin.Hsu@nicta.com.au}
 		\caption{Scott Reef: Synthetic Ground Truth}
 		\label{Figure:Results:ScottReefSyntheticTruth}
 		\end{figure}
+		
+	\subsection{Gaussian Processes Classifiers}
 
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.png}
-		\caption{Scott Reef: Initial Prediction with 200 Training Points}
-		\label{Figure:Results:ScottReefPredictions}
-		\end{figure}
-	
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9.png}
-		\caption{Scott Reef: Prediction Information Entropy}
-		\label{Figure:Results:ScottReefPredictionInformationEntropy}
-		\end{figure}
-		
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure11.png}
-		\caption{Scott Reef: Linearised Differential Entropy}
-		\label{Figure:Results:ScottReefLinearisedDifferentialEntropy}
-		\end{figure}
-					
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
+		The Scott reef bathymetric-benthic modeling problem is a multiclass classification problem with 17 distinct classes. We perform the modeling using a Gaussian process classifier under Laplace's approximation with a squared exponential (Gaussian) kernel. The likelihood response function employed is the probit response (figure \ref{Figure:LikelihoodResponses}), which provide better linearisation properties discussed in the next section.
 		
 		\begin{figure}[!htbp]
 			\centering
@@ -235,16 +181,13 @@ Kelvin.Hsu@nicta.com.au}
 			\caption{Likelihood Responses}
 			\label{Figure:LikelihoodResponses}
 		\end{figure}
-	
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
+				
+
+					
+
 		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
+
+
 		
 \section{Linearised Differential Entropy of Gaussian Process Classifiers}
 \label{Section:LinearisedEntropy}
@@ -276,11 +219,11 @@ Kelvin.Hsu@nicta.com.au}
 		\label{Section:LinearisedEntropy:Equation:Response}
 		\end{equation}
 		
-		As a straightforward transformation of the latent vector, the predictive probability vector $\vec{\pi^{\star}}$ is thus a random vector itself. The usual procedure is then to treat the expected predition probabilities $\mathbb{E}(\vec{\pi^{\star}})$ as the posterior class probabilities for further inference. However, this discards any information regarding the joint behaviour at the query points. As a result, a measure of mutual information shared amongst the query points cannot be obtained.
+		As a straightforward transformation of the latent vector, the predictive probability vector $\vec{\pi^{\star}}$ is thus a random vector itself. The usual procedure is then to treat the expected predition probabilities $\mathbb{E}[\vec{\pi^{\star}}]$ as the posterior class probabilities for further inference. However, this discards any information regarding the joint behaviour at the query points. As a result, a measure of mutual information shared amongst the query points cannot be obtained.
 		
 		One straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP, assigning class label 1 for positive latent values and -1 otherwise, and compute the Shannon entropy \cite{ShannonEntropy} from the estimated joint distribution. Aside from the relatively long computational time required for sampling enough draws for accurate joint distribution estimation, the Monte Carlo approach also has the tendency to overestimate variances at locations with low densities of training observations.
 				
-		Instead, we propose using the joint distribution of the predictive probabilities $\vec{\pi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}(\vec{\pi^{\star}})$ such that structural information from the latent GP is compromised, we utilise also the covariance $\mathbb{V}(\vec{\pi^{\star}})$, which withholds information regarding both the latent GP and the response likelihood.
+		Instead, we propose using the joint distribution of the predictive probabilities $\vec{\pi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\vec{\pi^{\star}}]$ such that structural information from the latent GP is compromised, we utilise also the covariance $\mathbb{V}[\vec{\pi^{\star}}]$, which withholds information regarding both the latent GP and the response likelihood.
 	
 		\begin{figure}[!htbp]
 			\centering
@@ -289,7 +232,7 @@ Kelvin.Hsu@nicta.com.au}
 			\label{Figure:Linearisation}
 		\end{figure}
 			
-		As the predictive probabilities are nonlinear transformations (Figure \ref{Figure:LikelihoodResponses}) of the Gaussian distributed latent vector, they are no longer Gaussian distributed. Hence, we propose linearising the response function about the latent expectance $\bar{f}^{\star}_{i} := \mathbb{E}(f^{\star}_{i})$. Figure \ref{Figure:Linearisation} illustrates the linearisation accuracy for a probit response. Observe that points with latent expectance far away from zero translate to near zero predictive variance even under high latent variance. Linearisation is thus very accurate for those points. For points with latent expectances near zero, we require the latent variances to be sufficiently small for linearisation to be accurate.
+		As the predictive probabilities are nonlinear transformations (Figure \ref{Figure:LikelihoodResponses}) of the Gaussian distributed latent vector, they are no longer Gaussian distributed. Hence, we propose linearising the response function about the latent expectance $\bar{f}^{\star}_{i} := \mathbb{E}[f^{\star}_{i}]$. Figure \ref{Figure:Linearisation} illustrates the linearisation accuracy for a probit response. Observe that points with latent expectance far away from zero translate to near zero predictive variance even under high latent variance. Linearisation is thus very accurate for those points. For points with latent expectances near zero, we require the latent variances to be sufficiently small for linearisation to be accurate.
 
 		\begin{figure*}[tb]
 		\centering
@@ -300,7 +243,7 @@ Kelvin.Hsu@nicta.com.au}
 		
 		\subsubsection{Derivation}
 		
-			We proceed to derive the linearisation which also serves to construct the definition of linearised differential entropy. With first order Taylor expansion, we linearise the response about the chosen linearisation point $\bar{f}^{\star}_{i} = \mathbb{E}(f^{\star}_{i})$.
+			We proceed to derive the linearisation which also serves to construct the definition of linearised differential entropy. With first order Taylor expansion, we linearise the response about the chosen linearisation point $\bar{f}^{\star}_{i} = \mathbb{E}[f^{\star}_{i}]$.
 			
 			\begin{equation}
 				\sigma(f^{\star}_{i}) \approx \sigma_{L}(f^{\star}_{i}) := \sigma(\bar{f}^{\star}_{i}) + \sigma'(\bar{f}^{\star}_{i}) (f^{\star}_{i} - \bar{f}^{\star}_{i})
@@ -312,17 +255,15 @@ Kelvin.Hsu@nicta.com.au}
 			\begin{align*}
 			\numberthis \label{Section:LinearisedEntropy:Equation:MomentsLinearisedSigmoid}
 					\vec{\sigma}_{L}(\vec{f}^{\star}) & \sim \mathcal{N}(\vec{\mu}^{\star}_{L}, \Sigma^{\star}_{L}) \\
-					\mathbb{E}(\sigma_{L}(f^{\star}_{i})) & = \mathbb{E}(\sigma(f^{\star}_{i})) = ({\mu^{\star}_{L}})_{i} \\
-					\mathbb{C}\mathrm{ov}(\sigma_{L}(f^{\star}_{i}), \sigma_{L}(f^{\star}_{j})) & =  \mathbb{C}\mathrm{ov}(\sigma(\bar{f}^{\star}_{i}) + \sigma'(\bar{f}^{\star}_{i}) (f^{\star}_{i} - \bar{f}^{\star}_{i}),\\ 
-					& \qquad \;\;\;\;\; \sigma(\bar{f}^{\star}_{j}) + \sigma'(\bar{f}^{\star}_{j}) (f^{\star}_{j} - \bar{f}^{\star}_{j})) \\
-					& = \sigma'(\bar{f}^{\star}_{i}) \sigma'(\bar{f}^{\star}_{j}) \mathbb{C}\mathrm{ov}(f^{\star}_{i}, f^{\star}_{j}) = ({\Sigma^{\star}_{L}})_{ij}			
+					({\mu^{\star}_{L}})_{i} & = \mathbb{E}[\sigma_{L}(f^{\star}_{i})] = \sigma(\bar{f}^{\star}_{i}) \\
+					({\Sigma^{\star}_{L}})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma_{L}(f^{\star}_{i}), \sigma_{L}(f^{\star}_{j})] = \sigma'(\bar{f}^{\star}_{i}) \sigma'(\bar{f}^{\star}_{j}) \mathbb{C}\mathrm{ov}[f^{\star}_{i}, f^{\star}_{j}]
 			\end{align*}
 			
-			We then define the linearised differential entropy $H^{\star}_{L}$ at the query points $X^{\star}$ to be the differential entropy for which the random vector $\vec{\sigma}_{L}(\vec{f}^{\star})$ holds. Since $\vec{\sigma}_{L}(\vec{f}^{\star})$ is multivariate Gaussian distributed, $H_{L}$ exhibits a closed form \eqref{Section:LinearisedEntropy:Equation:LinearisedEntropy}.
+			We then define the linearised differential entropy $H^{\star}_{L}$ at the query points $X^{\star}$ to be the differential entropy for which the random vector $\vec{\sigma}_{L}(\vec{f}^{\star})$ holds. Since $\vec{\sigma}_{L}(\vec{f}^{\star})$ is multivariate Gaussian distributed, $H_{L}$ exhibits a closed form \eqref{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy}.
 			
 			\begin{equation}
-				H^{\star}_{L} := \frac{1}{2} \log\Big((2 \pi e)^{n^{\star}} |\Sigma^{\star}_{L}|\Big)
-			\label{Section:LinearisedEntropy:Equation:LinearisedEntropy}
+				H^{\star}_{L} := \frac{1}{2} \log\Big((2 \pi e)^{n^{\star}} \det(\Sigma^{\star}_{L})\Big)
+			\label{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy}
 			\end{equation}			
 
 
@@ -336,47 +277,77 @@ Kelvin.Hsu@nicta.com.au}
 		\label{Figure:Results:MulticlassLinearisedEntropy}
 		\end{figure*}
 			
-		For multiclass classification, linearisation is performed on the softmax response functions which returns the predictive class probability $\vec{\pi}^{m}$ for each of the $c$ classes \eqref{Section:LinearisedEntropy:Equation:Softmax}. For notational clarity we move the query star ($^\star$) to the left and use the superscript $m$ to index the classes. The latent vector $\bvec{f}_{i}$ represents the collection of $c$ latent values across classes at the query point $i$, and is distinct from $\vec{f}_{m}$ which represents the collection of $n^{\star}$ latent values across query points for class $m$.
+		For multiclass classification, linearisation is performed on the softmax function $\sigma^{m}$ which returns the corresponding predictive class probability $\vec{\pi}^{m}$ for class $m$ \eqref{Section:LinearisedEntropy:Equation:Softmax}. For notational clarity we move the query star ($^\star$) to the left and use the superscript $m$ to index the classes. The latent vector $\vec{f}_{i} := \{f^{m}_{i}\}_{m \in \{1, 2, \dots, c\}}$ represents the collection of $c$ latent values across classes at the query point $i$, and is distinct from $\vec{f}^{m} := \{f^{m}_{i}\}_{i \in \{1, 2, \dots, n^{\star}\}}$ which represents the collection of $n^{\star}$ latent values across query points for class $m$.
 
 		\begin{equation}
-			^{\star}\pi^{m}_{i} = \sigma(^{\star}\bvec{f}_{i}) := \frac{\exp(^{\star}f^{m}_{i})}{\sum_{k = 1}^{c} \exp(^{\star}f^{k}_{i})} \qquad m \in \{1, 2, \dots, c\}
+			^{\star}\pi^{m}_{i} = \sigma^{m}(^{\star}\vec{f}_{i}) := \frac{\exp(^{\star}f^{m}_{i})}{\sum_{l = 1}^{c} \exp(^{\star}f^{l}_{i})} \qquad m \in \{1, 2, \dots, c\}
 		\label{Section:LinearisedEntropy:Equation:Softmax}
-		\end{equation}	
-					
+		\end{equation}
+			
 		\subsubsection{Derivation}
 		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
+			Similar to the binary case, to linearise we first find the gradient of each of the $c$ softmax functions \eqref{Section:LinearisedEntropy:Equation:SoftmaxGradient}. For notational simplicity, the query stars ($^{\star}$) are omitted in this derivation.
+			
+			\begin{equation}
+				\frac{\partial \sigma^{m}}{\partial f^{k}_{i}}(\vec{f}_{i}) =
+				\begin{cases} 
+					- \frac{\exp(f^{m}_{i}) \exp(f^{k}_{i})}{\sum_{l = 1}^{c} \exp(f^{l}_{i})} & \text{for } k \neq m  \\
+					- \frac{\exp(f^{m}_{i})^{2}}{\big(\sum_{l = 1}^{c} \exp(f^{l}_{i})\big)^{2}} + \frac{\exp(f^{m}_{i})}{\sum_{l = 1}^{c} \exp(f^{l}_{i})}& \text{for } k = m
+				\end{cases}
+			\label{Section:LinearisedEntropy:Equation:SoftmaxGradient}
+			\end{equation}			
 		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
-		{\color{BurntOrange} This is a random paragraph of stuff. I talk about things. This is just a filler paragraph. Today is sunny. Rainbows are colorful. Blah blah blah.}
-		
+			The numerators are explicitly left in the products of exponentiation instead of exponentiation of sums to reflect ways to cache quantities during computation. 
+			
+			Hence, for each class $m$ at query point $i$ we have compute a softmax gradient vector \eqref{Section:LinearisedEntropy:Equation:SoftmaxGradientVector}.
+			
+			\begin{equation}
+				\frac{\partial \sigma^{m}}{\partial \vec{f}_{i}}(\vec{f}_{i}) := \begin{bmatrix} \frac{\partial \sigma^{m}}{\partial f^{1}_{i}}(\vec{f}_{i}) & \frac{\partial \sigma^{m}}{\partial f^{2}_{i}}(\vec{f}_{i}) & \dots & \frac{\partial \sigma^{m}}{\partial f^{c}_{i}}(\vec{f}_{i}) \end{bmatrix}^{T}
+			\label{Section:LinearisedEntropy:Equation:SoftmaxGradientVector}
+			\end{equation}
+			
+			The linearisation is again performed on the mean latent predictions $\bar{\vec{f}}_{i} = \mathbb{E}[\vec{f}_{i}]$ so that the we can approximate the softmax $\sigma^{m}(\vec{f}_{i})$ with the linearised softmax $\sigma^{m}_{L}(\vec{f}_{i})$ \eqref{Section:LinearisedEntropy:Equation:LinearisedSoftmax} in an analogous form as \eqref{Section:LinearisedEntropy:Equation:LinearisingSigmoid}.
+			
+			\begin{equation}
+				\begin{aligned}
+					\sigma^{m}(\vec{f}_{i}) \approx \sigma^{m}_{L}(\vec{f}_{i}) & := \sigma^{m}(\bar{\vec{f}}_{i}) + \left. \frac{\partial \sigma^{m}}{\partial \vec{f}_{i}} \right|^{T}_{\vec{f}_{i} = \bar{\vec{f}}_{i}} (\vec{f}_{i} - \bar{\vec{f}}_{i}) \\
+					& = \vec{c}^{m}_{i} + (\vec{g}^{m}_{i})^{T} (\vec{f}_{i} - \bar{\vec{f}}_{i})
+				\end{aligned}
+			\label{Section:LinearisedEntropy:Equation:LinearisedSoftmax}
+			\end{equation}
+			
+			where we have notated the constants $\vec{c}^{m}_{i} := \sigma^{m}(\bar{\vec{f}}_{i})$ and $\vec{g}^{m}_{i} := \frac{\partial \sigma^{m}}{\partial \vec{f}_{i}}(\bar{\vec{f}}_{i})$.
+			
+			To determine the distribution of the vector of softmax values across query points, we first define the following \eqref{Section:LinearisedEntropy:Equation:Definitions}.
+			
+			\begin{equation}
+				\begin{aligned}
+					F &:= \{f^{m}_{i}\}_{m \in \{1, 2, \dots, c\}, i \in \{1, 2, \dots, n^{\star}\}} \in \mathbb{R}^{c \times n^{\star}} \\
+					\vec{\sigma}^{m}_{L}(F) &:= \begin{bmatrix} \sigma^{m}_{L}(\vec{f}_{1}) & \sigma^{m}_{L}(\vec{f}_{2}) & \dots & \sigma^{m}_{L}(\vec{f}_{n^{\star}}) \end{bmatrix}^{T}
+				\end{aligned}
+			\label{Section:LinearisedEntropy:Equation:Definitions}
+			\end{equation}
+						
+			We can now compute compute the covariance of the linearised sigmoid of a particular class $m$ between two query points $i$ and $j$, as well as the expectance at a particular query point $i$ \eqref{Section:LinearisedEntropy:Equation:MomentsLinearisedSoftmax}.
+			
+			\begin{align*}
+			\numberthis \label{Section:LinearisedEntropy:Equation:MomentsLinearisedSoftmax}
+					\vec{\sigma}^{m}_{L}(F) & \sim \mathcal{N}(\vec{\mu}^{m}_{L}, \Sigma^{m}_{L}) \\
+					(\mu^{m}_{L})_{i} & = \mathbb{E}[\sigma^{m}_{L}(\vec{f}_{i})] =  \sigma^{m}(\bar{\vec{f}}_{i}) \\
+					(\Sigma^{m}_{L})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma^{m}_{L}(\vec{f}_{i}), \sigma^{m}_{L}(\vec{f}_{i})] \\
+					& = \mathbb{C}\mathrm{ov}[(\vec{g}^{m}_{i})^{T} \vec{f}_{i}, (\vec{g}^{m}_{j})^{T} \vec{f}_{j}] \\
+					& = \sum_{k = 1}^{c} (g^{m}_{i})^{k} (g^{m}_{j})^{k} \mathbb{C}\mathrm{ov}[f^{k}_{i}, f^{k}_{j}]
+			\end{align*}
+						
+			where $(g^{m}_{i})^{k}$ denotes the $k^{\text{th}}$ element of $\vec{g}^{m}_{i}$. The last equality arises as a result of employing the OVA multiclass classification, where latent values of class $i$ and class $j$ are conditionally independent given training observations.
+			
+			Finally, we define the linearised entropy of the OVA multiclass Gaussian process classifier as follows \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}.
+			
+			\begin{equation}
+				H_{L} := \frac{1}{2} \log\Bigg((2 \pi e)^{n^{\star}} \det\bigg(\sum_{m = 1}^{c} \Sigma^{m}_{L}\bigg)\Bigg)
+			\label{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}
+			\end{equation}				
+			
 	\subsection{Results}
 		
 		Here we compare the linearised differential entropy with the usual prediction information entropy of the Gaussian process classifier. For visualisation purposes, only the marginalised entropies are shown. We show examples where abundant information is available, where the difference in the properties in the two measures can be emphasized. 
@@ -391,7 +362,27 @@ Kelvin.Hsu@nicta.com.au}
 		
 		Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. This classifier is trained through an one v.s. all approach with 4 binary classifiers using the same setup described above. Clearly the same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
 		
-
+	
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.png}
+		\caption{Scott Reef: Initial Prediction with 200 Training Points}
+		\label{Figure:Results:ScottReefPredictions}
+		\end{figure}
+	
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9.png}
+		\caption{Scott Reef: Prediction Information Entropy}
+		\label{Figure:Results:ScottReefPredictionInformationEntropy}
+		\end{figure}
+		
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure11.png}
+		\caption{Scott Reef: Linearised Differential Entropy}
+		\label{Figure:Results:ScottReefLinearisedDifferentialEntropy}
+		\end{figure}
 		
 
 					
