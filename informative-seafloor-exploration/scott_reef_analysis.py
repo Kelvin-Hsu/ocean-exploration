@@ -426,7 +426,7 @@ def main():
         xtol_rel = 1e-2
         ftol_rel = 1e-3
     else:
-        theta_bound = np.deg2rad(180)
+        theta_bound = np.deg2rad(270)
         theta_bounds = theta_bound * np.ones(h_steps)
         theta_stack_low  = -theta_bounds
         theta_stack_high = +theta_bounds
@@ -482,7 +482,7 @@ def main():
 
     if (METHOD == 'FIXED') or (METHOD == 'LDE'):
         turns = np.zeros(n_trials)
-        turns[[0, 49, 99, 149]] = np.deg2rad(-90.0)
+        turns[[49, 99, 149]] = np.deg2rad(-90.0)
 
         # turns = np.linspace(np.deg2rad(20), np.deg2rad(0), num = n_trials)
         # turns = np.deg2rad(30) * np.sin(np.linspace(0, 20*np.pi, num = n_trials))
@@ -514,7 +514,7 @@ def main():
                     sea.explore.optimal_path(theta_stack_init, r, xq_now[-1], 
                         learned_classifier, feature_fn, white_params,
                         objective = METHOD, 
-                        turn_limit = theta_bound if (i_trials > 0) else np.pi, 
+                        turn_limit = theta_bound, 
                         bound = bound,
                         theta_stack_low = theta_stack_low, 
                         theta_stack_high = theta_stack_high,
