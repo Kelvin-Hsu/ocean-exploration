@@ -420,7 +420,7 @@ def main():
 
     if METHOD == 'LDE':
         theta_bound = np.deg2rad(20)
-        theta_bounds = np.linspace(theta_bound, np.deg2rad(90), num = h_steps) 
+        theta_bounds = np.linspace(theta_bound, np.deg2rad(60), num = h_steps) 
         theta_stack_low  = -theta_bounds
         theta_stack_high = +theta_bounds
         xtol_rel = 1e-2
@@ -511,17 +511,17 @@ def main():
                         turns = turns)
             else:
                 xq_path, theta_stack_opt, entropy_opt = \
-                    sea.explore.optimal_path(theta_stack_init, r, xq_now[-1], 
+                    sea.explore.optimal_path(theta_stack_init, r, xq_now[-1],
                         learned_classifier, feature_fn, white_params,
-                        objective = METHOD, 
-                        turn_limit = theta_bound, 
+                        objective = METHOD,
+                        turn_limit = theta_bound,
                         bound = bound,
-                        theta_stack_low = theta_stack_low, 
+                        theta_stack_low = theta_stack_low,
                         theta_stack_high = theta_stack_high,
-                        walltime = choice_walltime, 
-                        xtol_rel = xtol_rel, 
-                        ftol_rel = ftol_rel, 
-                        ctol = ctol, 
+                        walltime = choice_walltime,
+                        xtol_rel = xtol_rel,
+                        ftol_rel = ftol_rel,
+                        ctol = ctol,
                         globalopt = False,
                         n_draws = N_DRAWS)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
