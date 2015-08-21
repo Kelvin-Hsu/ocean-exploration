@@ -526,7 +526,7 @@ def main():
 
     if (METHOD == 'FIXED') or (METHOD == 'LDE') or (METHOD == 'MCJE'):
         turns = np.zeros(n_trials)
-        turns[[49, 99, 149]] = np.deg2rad(-90.0)
+        # turns[[49, 99, 149]] = np.deg2rad(-90.0)
 
         # turns = np.linspace(np.deg2rad(15), np.deg2rad(0), num = n_trials)
         # turns = np.deg2rad(30) * np.sin(np.linspace(0, 20*np.pi, num = n_trials))
