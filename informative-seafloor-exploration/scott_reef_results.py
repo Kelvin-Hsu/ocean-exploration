@@ -14,17 +14,19 @@ def main():
     # Comparing different starting locations
     def compare_starting_locations():
 
-        directory0 = main_directory + 'loc1_20150815_040758__t200_q100000_ts250_qs500_method_LDE_start377500_8440000_hsteps30_horizon5000/'
+        directory0 = main_directory + 'loc1_20150819_235313__t200_q100000_ts250_qs500_method_LDE_start377500_8440000_hsteps30_horizon5000/'
         directory1 = main_directory + 'loc2_20150815_221358__t200_q100000_ts250_qs500_method_LDE_start380000_8440000_hsteps30_horizon5000/'
         directory2 = main_directory + 'loc3_20150816_232942__t200_q100000_ts250_qs500_method_LDE_start375000_8445000_hsteps30_horizon5000/'
         directory3 = main_directory + 'loc4_20150817_214222__t200_q100000_ts250_qs500_method_LDE_start365000_8445000_hsteps30_horizon5000/'
+        directory4 = main_directory + 'loc5_20150819_235323__t200_q100000_ts250_qs500_method_LDE_start380000_8446000_hsteps30_horizon5000/'
 
         data0 = obtain_data(directory0, {'index': 0, 'label': 'Starting Location 1', 'steps': 200})
         data1 = obtain_data(directory1, {'index': 1, 'label': 'Starting Location 2', 'steps': 200})
         data2 = obtain_data(directory2, {'index': 2, 'label': 'Starting Location 3', 'steps': 200})
         data3 = obtain_data(directory3, {'index': 3, 'label': 'Starting Location 4', 'steps': 200})
+        data4 = obtain_data(directory3, {'index': 4, 'label': 'Starting Location 5', 'steps': 200})
 
-        plot_data(main_directory, data0, data1, data2, data3, ncolors = 4, descript = 'locations')
+        plot_data(main_directory, data0, data1, data2, data3, data4, ncolors = 5, descript = 'locations')
         logging.info('Compared starting locations')
 
     # Comparing different horizons
@@ -44,7 +46,7 @@ def main():
     # Compare with other methods
     def compare_methods():
 
-        directory00 = main_directory + 'loc1_20150815_040758__t200_q100000_ts250_qs500_method_LDE_start377500_8440000_hsteps30_horizon5000/'
+        directory00 = main_directory + 'loc1_20150819_235313__t200_q100000_ts250_qs500_method_LDE_start377500_8440000_hsteps30_horizon5000/'
         directory01 = main_directory + 'loc2_20150815_221358__t200_q100000_ts250_qs500_method_LDE_start380000_8440000_hsteps30_horizon5000/'
         directory10 = main_directory + 'loc_20150816_015647__t200_q100000_ts250_qs500_method_MIE_GREEDY_start377500.08440000.0_hsteps30_horizon5000.0/'
         directory11 = main_directory + 'loc_20150816_015641__t200_q100000_ts250_qs500_method_MIE_GREEDY_start380000.08440000.0_hsteps30_horizon5000.0/'
@@ -143,7 +145,7 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
         yq_mie_plt = np.append(2.14, yq_mie_mean_array[:steps])
 
         ax1.plot(iterations_plt, miss_ratio_plt, c = color, label = label)
-        ax1.set_ylim((0, 60))
+        ax1.set_ylim((0, 50))
         ax2.plot(iterations_plt, yq_lde_plt, c = color, label = label)
         ax3.plot(iterations_plt, yq_mie_plt, c = color, label = label)
 

@@ -500,17 +500,17 @@ def main():
     entropy_opt_array = np.nan * np.ones(n_trials)
     yq_esd_mean_array = np.nan * np.ones(n_trials)
 
-    if (METHOD == 'FIXED') or (METHOD == 'LDE'):
+    if (METHOD == 'FIXED') or (METHOD == 'LDE') or (METHOD == 'MCJE'):
         turns = np.zeros(n_trials)
         turns[[49, 99, 149]] = np.deg2rad(-90.0)
 
-        # turns = np.linspace(np.deg2rad(20), np.deg2rad(0), num = n_trials)
+        # turns = np.linspace(np.deg2rad(60), np.deg2rad(0), num = n_trials)
         # turns = np.deg2rad(30) * np.sin(np.linspace(0, 20*np.pi, num = n_trials))
         # turns = np.linspace(np.deg2rad(60), np.deg2rad(0), num = n_trials)
 
     while i_trials < n_trials:
 
-        if METHOD == 'LDE':
+        if (METHOD == 'FIXED') or (METHOD == 'LDE') or (METHOD == 'MCJE'):
             theta_stack_init[0] += turns[i_trials]
             theta_stack_init[0] = np.mod(theta_stack_init[0], 2 * np.pi)
 
