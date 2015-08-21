@@ -15,13 +15,13 @@ def optimal_path(theta_stack_init, r, x, memory, feature_fn, white_params,
     globalopt = False, n_draws = 5000):
 
     # Select the approach objective
-    if objective == 'LDE':
+    if objective in ['LE', 'LDE']:
 
         def objective(theta_stack, grad):
             return path_linearised_entropy_model(theta_stack, r, x, 
                 memory, feature_fn, white_params)
 
-    elif objective == 'MCJE':
+    elif objective in ['MCJE', 'MCJIE']:
 
         S = np.random.normal(loc = 0., scale = 1., 
             size = (theta_stack_init.shape[0], n_draws))
@@ -30,7 +30,7 @@ def optimal_path(theta_stack_init, r, x, memory, feature_fn, white_params,
             return path_monte_carlo_entropy_model(theta_stack, r, x, 
                 memory, feature_fn, white_params, n_draws = n_draws, S = S)
 
-    elif objective == 'MIE':
+    elif objective in ['IE', 'SIE', 'MIE', 'SMIE']:
 
         def objective(theta_stack, grad):
             return path_marginalised_entropy_model(theta_stack, r, x, 
