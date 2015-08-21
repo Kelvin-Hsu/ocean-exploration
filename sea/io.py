@@ -97,7 +97,8 @@ def load(directory_data, filename_training_data, filename_query_points):
     return X, F, y, Xq, Fq
 
 def sample(X, F, y, Xq, Fq, 
-    n_train = 200, n_query = 10000, t_seed = None, q_seed = None):
+    n_train = 200, n_query = 10000, t_seed = None, q_seed = None, 
+    features = None):
     """Sample Training Data"""
     assert n_train < 2000
     assert n_query < 250000
@@ -123,6 +124,12 @@ def sample(X, F, y, Xq, Fq,
     Fq_sample = Fq[i_query_sample]
 
     logging.info('Sampled Number of Query Points: %d' % Xq_sample.shape[0])
+
+    """Pick Features"""
+    if features is not None:
+        F_sample = F_sample[:, features]
+        Fq_sample = Fq_sample[:, features]
+
 
     """Loading and Sampling Assertions"""
     assert ~np.any(np.isnan(Fq))
