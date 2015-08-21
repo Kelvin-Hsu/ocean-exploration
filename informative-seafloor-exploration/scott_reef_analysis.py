@@ -438,7 +438,7 @@ def main():
         horizon /= h_steps
         h_steps /= h_steps 
 
-    if METHOD == 'LDE':
+    if (METHOD == 'LDE') or (METHOD == 'MCJE'):
         theta_bound = np.deg2rad(20)
         theta_bounds = np.linspace(theta_bound, np.deg2rad(60), num = h_steps) 
         theta_stack_low  = -theta_bounds
@@ -453,6 +453,10 @@ def main():
         xtol_rel = 1e-1
         ftol_rel = 1e-1
     ctol = 1e-10
+
+    if METHOD == 'MCJE':
+        xtol_rel = 1e-1
+        ftol_rel = 1e-1        
 
     theta_stack_init = np.deg2rad(0) * np.ones(h_steps)
     theta_stack_init[0] = np.deg2rad(180)
@@ -504,7 +508,7 @@ def main():
         turns = np.zeros(n_trials)
         turns[[49, 99, 149]] = np.deg2rad(-90.0)
 
-        # turns = np.linspace(np.deg2rad(60), np.deg2rad(0), num = n_trials)
+        # turns = np.linspace(np.deg2rad(15), np.deg2rad(0), num = n_trials)
         # turns = np.deg2rad(30) * np.sin(np.linspace(0, 20*np.pi, num = n_trials))
         # turns = np.linspace(np.deg2rad(60), np.deg2rad(0), num = n_trials)
 
