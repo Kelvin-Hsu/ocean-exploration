@@ -348,21 +348,32 @@ Kelvin.Hsu@nicta.com.au}
 			\label{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}
 			\end{equation}				
 			
-	\subsection{Results}
+	\subsection{Discussion}
 		
-		Here we compare the linearised differential entropy with the usual prediction information entropy of the Gaussian process classifier. For visualisation purposes, only the marginalised entropies are shown. We show examples where abundant information is available, where the difference in the properties in the two measures can be emphasized. 
+		\subsubsection{Examples}
 		
-		Figure \ref{Figure:Results:BinaryLinearisedEntropy} show a simple binary classification problem with abundant data, allowing a misclassification rate of only 3.298\%. The classifier is trained with a axis aligned Gaussian kernel with a probit response under Laplace approximation.
-		
-		Intuitively, under abundant data, we would like the classifier to only indicate high entropies at decision boundaries. In figure \ref{Figure:Results:BinaryLinearisedEntropy}, we see that the prediction information entropy is indeed near its maximum at the predict decision boundaries. However, it is also quite high around the edges where training data density is slightly lower, as there are no training points outside the region of interest that is shown. This suggests that if the prediction information entropy is used as the acquisition function for path planning, the vehicle would be suggested to spent some time travelling around the region of interest, collecting data it is already expecting. This is one of the fundamental properties of prediction information entropy - it is high at both predicted decision boundaries and also places with lower relative data density compared. 
-		
-		This leads to the classic exploration-exploitation dilemma most machine learning algorithms face. It is possible that there exists decision boundaries yet to be detected at regions of lower relative data density. Is it worth it for the vehicle to explore and discover such regions, or exploit the currently known boundaries and map it better? In most exploration applications, the priority is to map the region of interest as accurately and fast as possible in order to reduce time and cost. While it is possible that there exists undiscovered decision boundaries at regions of lower relative data density, it is undesirable under cost constraints that this possibility is weighed heavily by the vehicle even under abundant data.
-		
-		This demonstrates the advantage of linearised differential entropy. We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy is only high at the predicted decision boundaries. Note that the colour scale has been centred around zero differential entropy. Under such an acquisition function, the vehicle would focus strictly on the mapping the predicted decision boundaries better.
-		
-		Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. This classifier is trained through an one v.s. all approach with 4 binary classifiers using the same setup described above. Clearly the same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
-		
+			Here we compare the linearised differential entropy with the usual prediction information entropy of the Gaussian process classifier. For visualisation purposes, only the marginalised entropies are shown. We show examples where abundant information is available, where the difference in the properties in the two measures can be emphasized. 
+			
+			Figure \ref{Figure:Results:BinaryLinearisedEntropy} show a simple binary classification problem with abundant data on features $x_{1}$ and $x_{2}$, allowing a misclassification rate of 2.155\%. The classifier is trained with an axis aligned Gaussian kernel with a probit response under Laplace approximation. 
 	
+			In this example, there are no training points around the edges shown. As a result, the GP classifier learns a slightly lower signal to noise ratio in the latent function, and bounces back to its latent GP prior for which it remains uncertain regarding class label assignments. The prediction information entropy reflects this change more rapidly, so that it is high both at the decision boundaries and wherever observations are lacking. If the acquisition function for informative exploration is a function of the prediction information entropy, the vehicle would be suggested to explore both places with lacking observations and the decision boundaries. 
+			
+			On the other hand, linearised differential entropy focuses on the decision boundary as it is constructed to be only high when the latent function is near zero \ref{Figure:Linearisation}. We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy emphasizes on where the latent expectance is close to zero, and filters out the rest. If the linearised differential entropy is used as the acquisition function, the vehicle would focus on the decision boundaries within the feature space. Notice that regions far away from observations in the feature space are also assigned with high linearised differential entropy, as the latent function bounces back to its prior, so that the vehicle would explore those parts of the feature space if necessary.
+			
+	%		Intuitively, under abundant data, we would like the classifier to only indicate high entropies at decision boundaries. In figure \ref{Figure:Results:BinaryLinearisedEntropy}, we see that the prediction information entropy is indeed near its maximum at the predict decision boundaries. As an artefact of the Laplace approximation, however, it is also quite high around the edges where the classifier has learned a slightly lower signal to noise ratio. As there are no data points around the edges, the GP classifier learns a latent function that bounces back to its latent GP prior for which it remains uncertain regarding the class labels. 
+			
+	%		This suggests that if the prediction information entropy is used as the acquisition function for path planning, the vehicle would be suggested to spent some time travelling around the region of interest, collecting data it is already expecting. The prediction entropy is high at both predicted decision boundaries and also places with lower relative data density compared. 
+	%		
+	%		This leads to the classic exploration-exploitation dilemma most machine learning algorithms face. It is possible that there exists decision boundaries yet to be detected at regions of lower relative data density. Is it worth it for the vehicle to explore and discover such regions, or exploit the currently known boundaries and map it better? In most exploration applications, the priority is to map the region of interest as accurately and fast as possible in order to reduce time and cost. While it is possible that there exists undiscovered decision boundaries at regions of lower relative data density, it is undesirable under cost constraints that this possibility is weighed heavily by the vehicle even under abundant data.
+			
+			This demonstrates the advantage of linearised differential entropy. We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy is only high at the predicted decision boundaries. Note that the colour scale has been centred around zero differential entropy. Under such an acquisition function, the vehicle would focus strictly on the mapping the predicted decision boundaries better.
+			
+			Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. This classifier is trained through an one v.s. all approach with 4 binary classifiers using the same setup described above. Clearly the same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
+		
+	\subsubsection{Scott Reef}
+	
+		The difference between the two measures of entropy is further reinforced when the feature space is distinct from the spatial space for which path planning is to be performed. For our Scott reef example, notice from figure \ref{Figure:Results:ScottReefBathymetricFeatures} that training data is scarce and covers a very limited portion of the feature space. While we can map the reef with an accuracy of 58.46\% using only 200 training points, the prediction information entropy is rather quite high everywhere 
+		
 		\begin{figure}[!htbp]
 		\centering
 			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.png}
@@ -374,13 +385,20 @@ Kelvin.Hsu@nicta.com.au}
 		\centering
 			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9.png}
 		\caption{Scott Reef: Prediction Information Entropy}
+		\label{Figure:Results:ScottReefPredictionInformationEntropyNatural}
+		\end{figure}
+		
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9.png}
+		\caption{Scott Reef: Prediction Information Entropy (Adjusted colour scale)}
 		\label{Figure:Results:ScottReefPredictionInformationEntropy}
 		\end{figure}
 		
 		\begin{figure}[!htbp]
 		\centering
 			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure11.png}
-		\caption{Scott Reef: Linearised Differential Entropy}
+		\caption{Scott Reef: Linearised Differential Entropy (Adjusted colour scale)}
 		\label{Figure:Results:ScottReefLinearisedDifferentialEntropy}
 		\end{figure}
 		

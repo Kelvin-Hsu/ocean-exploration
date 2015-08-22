@@ -37,8 +37,8 @@ def main():
     # Feature Generation Parameters and Demonstration Options
     SAVE_OUTPUTS = True # We don't want to make files everywhere for a demo.
     SHOW_RAW_BINARY = True
-    test_range_min = -2.0
-    test_range_max = +2.0
+    test_range_min = -2.5
+    test_range_max = +2.5
     test_ranges = (test_range_min, test_range_max)
     n_train = 500
     n_query = 1000
@@ -109,7 +109,7 @@ def main():
 
     # X = np.concatenate((X1, X2, X3, X4, X5, X6, X7, X8), axis = 0)
 
-    X = np.random.uniform(test_range_min, test_range_max, 
+    X = np.random.uniform(test_range_min + 0.5, test_range_max - 0.5, 
         size = (n_train, n_dims))
     x1 = X[:, 0]
     x2 = X[:, 1]

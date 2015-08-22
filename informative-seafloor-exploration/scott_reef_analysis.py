@@ -62,7 +62,7 @@ def main():
     multimethod = 'OVA'
     fusemethod = 'EXCLUSION'
     responsename = 'probit'
-    batchstart = False
+    batchstart = True
     batchlearn = False
     walltime = 3600.0
     train = not NOTRAIN
@@ -393,8 +393,8 @@ def main():
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = yq_mie, s = 5, cmap = cm.coolwarm, 
-        colorcenter = colorcenter_analysis)
-    sea.vis.describe_plot(title = 'Query Information Entropy', 
+        colorcenter = 'none')
+    sea.vis.describe_plot(title = 'Query Prediction Information Entropy', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Information Entropy',
         vis_range = vis_range, aspect_equal = True)
@@ -404,7 +404,7 @@ def main():
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = np.log(yq_mie), s = 5, cmap = cm.coolwarm, 
-        colorcenter = colorcenter_analysis)
+        colorcenter = 'none')
     sea.vis.describe_plot(title = 'Log Query Information Entropy', 
         xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
         clabel = 'Information Entropy',
