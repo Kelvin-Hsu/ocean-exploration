@@ -52,8 +52,8 @@ def main():
         directory11 = main_directory + 'loc_20150816_015641__t200_q100000_ts250_qs500_method_MIE_GREEDY_start380000.08440000.0_hsteps30_horizon5000.0/'
         directory20 = main_directory + 'loc_20150816_064319__t200_q100000_ts250_qs500_method_RANDOM_start377500.08440000.0_hsteps30_horizon5000.0/'
         directory21 = main_directory + 'loc_20150816_081923__t200_q100000_ts250_qs500_method_RANDOM_start380000.08440000.0_hsteps30_horizon5000.0/'
-        directory30 = main_directory + 'loc_20150816_202553__t200_q100000_ts250_qs500_method_MCJE_start377500.08440000.0_hsteps30_horizon5000.0/'
-        directory31 = main_directory + 'loc_20150816_202603__t200_q100000_ts250_qs500_method_MCJE_start380000.08440000.0_hsteps30_horizon5000.0/'
+        directory30 = main_directory + 'loc_20150821_022303__t200_q100000_ts250_qs500_method_MCJE_start377500.08440000.0_hsteps30_horizon5000.0/'
+        directory31 = main_directory + 'loc_20150821_085829__t200_q100000_ts250_qs500_method_MCJE_start380000.08440000.0_hsteps30_horizon5000.0/'
         directory40 = main_directory + 'loc_20150818_085143__t200_q100000_ts250_qs500_method_MIE_start377500.08440000.0_hsteps30_horizon5000.0/'
         directory41 = main_directory + 'loc_20150818_221107__t200_q100000_ts250_qs500_method_MIE_start380000.08440000.0_hsteps30_horizon5000.0/'
         directory50 = main_directory + 'loc_20150818_122531__t200_q100000_ts250_qs500_method_FIXED_start377500.08440000.0_hsteps30_horizon5000.0/'
@@ -67,8 +67,8 @@ def main():
         data11 = obtain_data(directory11, {'index': 1, 'label': 'Location 2 with GREEDY', 'steps': 200})
         data20 = obtain_data(directory20, {'index': 2, 'label': 'Location 1 with RANDOM', 'steps': 200})
         data21 = obtain_data(directory21, {'index': 2, 'label': 'Location 2 with RANDOM', 'steps': 200})
-        data30 = obtain_data(directory30, {'index': 3, 'label': 'Location 1 with MCJIE', 'steps': 140})
-        data31 = obtain_data(directory31, {'index': 3, 'label': 'Location 2 with MCJIE', 'steps': 140})
+        data30 = obtain_data(directory30, {'index': 3, 'label': 'Location 1 with MCJIE', 'steps': 200})
+        data31 = obtain_data(directory31, {'index': 3, 'label': 'Location 2 with MCJIE', 'steps': 200})
         data40 = obtain_data(directory40, {'index': 4, 'label': 'Location 1 with MIE', 'steps': 200})
         data41 = obtain_data(directory41, {'index': 4, 'label': 'Location 2 with MIE', 'steps': 200})
         data50 = obtain_data(directory50, {'index': 5, 'label': 'Location 1 with FIXED - SPIRAL', 'steps': 200})
@@ -139,7 +139,7 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
         label = info['label']
         steps = info['steps']
 
-        iterations_plt = np.append(0, iterations[:steps])
+        iterations_plt = np.append(0, iterations[:steps]) * (5000.0/30.0)
         miss_ratio_plt = np.append(41.54, 100 * miss_ratio_array[:steps])
         yq_lde_plt = np.append(-1.03, yq_lde_mean_array[:steps])
         yq_mie_plt = np.append(2.14, yq_mie_mean_array[:steps])
@@ -167,7 +167,7 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
     plt.ylabel('Entropy (nats)', fontsize = fontsize)
     plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
     
-    plt.gca().set_xlabel('Steps', fontsize = fontsize)
+    plt.gca().set_xlabel('Distance Traveled (m)', fontsize = fontsize)
     for tick in plt.gca().xaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
     for tick in plt.gca().yaxis.get_major_ticks():

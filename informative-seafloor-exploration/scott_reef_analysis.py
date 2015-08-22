@@ -32,13 +32,13 @@ def kerneldef3(h, k):
 
 def main():
 
-    """ Test Options """
+    """Test Options"""
     FILENAME = 'scott_reef_analysis.py'
     T_SEED = sea.io.parse('-tseed', 250)
-    Q_SEED = sea.io.parse('-qseed', 500)
-    NOTRAIN = sea.io.parse('-skiptrain', False)
+    Q_SEED = sea.io.parse('-qseed', 500) 
     N_TRAIN = sea.io.parse('-ntrain', 200)
     N_QUERY = sea.io.parse('-nquery', 100000)
+    NOTRAIN = sea.io.parse('-skiptrain', False)
     MODEL_ONLY = sea.io.parse('-model-only', False)
     LONG_SCALE_ONLY = sea.io.parse('-long-scale', False)
 
@@ -52,7 +52,6 @@ def main():
     CHAOS = sea.io.parse('-chaos', False)
     M_STEP = sea.io.parse('-mstep', 1)
     N_DRAWS = sea.io.parse('-ndraws', 500)
-
 
     # NOTRAIN = True
     """Model Options"""
@@ -70,6 +69,38 @@ def main():
 
     n_train = N_TRAIN
     n_query = N_QUERY
+
+    """Process Options"""
+    test_options  = {   'T_SEED': T_SEED,
+                        'Q_SEED': Q_SEED,
+                        'N_TRAIN': N_TRAIN,
+                        'N_QUERY': N_QUERY,
+                        'NOTRAIN': NOTRAIN,
+                        'MODEL_ONLY': MODEL_ONLY,
+                        'LONG_SCALE_ONLY': LONG_SCALE_ONLY,
+                        'METHOD': METHOD,
+                        'GREEDY': GREEDY,
+                        'N_TRIALS': N_TRIALS,
+                        'START_POINT1': START_POINT1,
+                        'START_POINT2': START_POINT2,
+                        'H_STEPS': H_STEPS,
+                        'HORIZON': HORIZON,
+                        'CHAOS': CHAOS,
+                        'M_STEP': M_STEP,
+                        'N_DRAWS', N_DRAWS}
+
+    model_options = {   'approxmethod': approxmethod,
+                        'multimethod': multimethod,
+                        'fusemethod': fusemethod,
+                        'responsename': responsename,
+                        'batchstart': batchstart,
+                        'batchlearn': batchlearn,
+                        'walltime': walltime,
+                        'train': train}
+
+    logging.info(sys.argv)
+    logging.info(test_options)
+    logging.info(model_options)
 
     """Visualisation Options"""
     mycmap = cm.get_cmap(name = 'jet', lut = None)
@@ -142,33 +173,6 @@ def main():
 
     # Add the handler to the root logger
     logging.getLogger().addHandler(console)
-
-    """Process Options"""
-    test_options  = {   'T_SEED': T_SEED,
-                        'Q_SEED': Q_SEED,
-                        'N_TRAIN': N_TRAIN,
-                        'N_QUERY': N_QUERY,
-                        'METHOD': METHOD,
-                        'GREEDY': GREEDY,
-                        'N_TRIALS': N_TRIALS,
-                        'START_POINT1': START_POINT1,
-                        'START_POINT2': START_POINT2,
-                        'H_STEPS': H_STEPS,
-                        'HORIZON': HORIZON,
-                        'CHAOS': CHAOS,
-                        'M_STEP': M_STEP}
-    model_options = {   'approxmethod': approxmethod,
-                        'multimethod': multimethod,
-                        'fusemethod': fusemethod,
-                        'responsename': responsename,
-                        'batchstart': batchstart,
-                        'batchlearn': batchlearn,
-                        'walltime': walltime,
-                        'train': train}
-
-    logging.info(sys.argv)
-    logging.info(test_options)
-    logging.info(model_options)
 
     """File Locations"""
     directory_data = '../../../Data/'
@@ -528,7 +532,8 @@ def main():
         turns = np.zeros(n_trials)
         # turns[[49, 99, 149]] = np.deg2rad(-90.0)
 
-        # turns = np.linspace(np.deg2rad(15), np.deg2rad(0), num = n_trials)
+        # turns = np.linspace(-np.deg2rad(10), np.deg2rad(0), num = n_trials)
+
         # turns = np.deg2rad(30) * np.sin(np.linspace(0, 20*np.pi, num = n_trials))
         # turns = np.linspace(np.deg2rad(60), np.deg2rad(0), num = n_trials)
 

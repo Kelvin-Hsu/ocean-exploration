@@ -251,7 +251,7 @@ def main():
     Xqw_plt = pre.standardise(Xq_plt, whitenparams)
     yq_truth_plt = gp.classifier.utils.make_decision(Xq_plt, decision_boundary)
 
-    fig = plt.figure(figsize = (15 * 1.5, 15))
+    fig = plt.figure(figsize = (15, 15 * 1.5))
     fontsize = 24
     axis_tick_font_size = 14
 
@@ -260,7 +260,7 @@ def main():
     """
 
     # Training
-    plt.subplot(2, 3, 1)
+    plt.subplot(3, 2, 1)
     gp.classifier.utils.visualise_map(yq_truth_plt, test_ranges, cmap = mycmap)
     plt.title('Ground Truth', fontsize = fontsize)
     plt.xlabel('x1', fontsize = fontsize)
@@ -282,7 +282,7 @@ def main():
     """
 
     # Training
-    plt.subplot(2, 3, 2)
+    plt.subplot(3, 2, 2)
     gp.classifier.utils.visualise_decision_boundary(
         test_range_min, test_range_max, decision_boundary)
     
@@ -356,7 +356,7 @@ def main():
     """
 
     # Query (Prediction Map)
-    plt.subplot(2, 3, 3)
+    plt.subplot(3, 2, 3)
     gp.classifier.utils.visualise_map(yq_pred_plt, test_ranges, 
         boundaries = True, cmap = mycmap)
     plt.title('Prediction [Miss Ratio: %.3f %s]' % (100 * mistake_ratio, '%'), fontsize = fontsize)
@@ -377,7 +377,7 @@ def main():
     """
 
     # Query (Prediction Entropy)
-    plt.subplot(2, 3, 4)
+    plt.subplot(3, 2, 4)
     gp.classifier.utils.visualise_map(yq_entropy_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
     plt.title('Prediction Information Entropy', fontsize = fontsize)
@@ -399,7 +399,7 @@ def main():
     """
 
     # Query (Linearised Entropy)
-    plt.subplot(2, 3, 5)
+    plt.subplot(3, 2, 5)
     entropy_linearised_plt_min = entropy_linearised_plt.min()
     entropy_linearised_plt_max = entropy_linearised_plt.max()
     gp.classifier.utils.visualise_map(entropy_linearised_plt, test_ranges, 
@@ -424,7 +424,7 @@ def main():
     """
 
     # Query (Linearised Entropy)
-    plt.subplot(2, 3, 6)
+    plt.subplot(3, 2, 6)
     gp.classifier.utils.visualise_map(eq_sd_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
     plt.title('Equivalent Standard Deviation', fontsize = fontsize)
