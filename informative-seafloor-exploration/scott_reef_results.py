@@ -56,7 +56,7 @@ def main():
         directory31 = main_directory + 'loc_20150821_085829__t200_q100000_ts250_qs500_method_MCJE_start380000.08440000.0_hsteps30_horizon5000.0/'
         directory40 = main_directory + 'loc_20150818_085143__t200_q100000_ts250_qs500_method_MIE_start377500.08440000.0_hsteps30_horizon5000.0/'
         directory41 = main_directory + 'loc_20150818_221107__t200_q100000_ts250_qs500_method_MIE_start380000.08440000.0_hsteps30_horizon5000.0/'
-        directory50 = main_directory + 'loc_20150818_122531__t200_q100000_ts250_qs500_method_FIXED_start377500.08440000.0_hsteps30_horizon5000.0/'
+        directory50 = main_directory + 'loc_20150822_141334__t200_q100000_ts250_qs500_method_FIXED_start377500.08440000.0_hsteps30_horizon5000.0/'
         directory51 = main_directory + 'loc_20150818_120403__t200_q100000_ts250_qs500_method_FIXED_start380000.08440000.0_hsteps30_horizon5000.0/'
         directory60 = main_directory + 'loc_20150819_095126__t200_q100000_ts250_qs500_method_FIXED_start377500.08440000.0_hsteps30_horizon5000.0/'
         directory61 = main_directory + 'loc_20150819_095211__t200_q100000_ts250_qs500_method_FIXED_start380000.08440000.0_hsteps30_horizon5000.0/'

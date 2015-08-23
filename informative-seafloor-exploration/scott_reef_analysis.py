@@ -87,7 +87,7 @@ def main():
                         'HORIZON': HORIZON,
                         'CHAOS': CHAOS,
                         'M_STEP': M_STEP,
-                        'N_DRAWS', N_DRAWS}
+                        'N_DRAWS': N_DRAWS}
 
     model_options = {   'approxmethod': approxmethod,
                         'multimethod': multimethod,
