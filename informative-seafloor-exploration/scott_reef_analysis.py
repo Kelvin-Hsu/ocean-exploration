@@ -70,38 +70,6 @@ def main():
     n_train = N_TRAIN
     n_query = N_QUERY
 
-    """Process Options"""
-    test_options  = {   'T_SEED': T_SEED,
-                        'Q_SEED': Q_SEED,
-                        'N_TRAIN': N_TRAIN,
-                        'N_QUERY': N_QUERY,
-                        'NOTRAIN': NOTRAIN,
-                        'MODEL_ONLY': MODEL_ONLY,
-                        'LONG_SCALE_ONLY': LONG_SCALE_ONLY,
-                        'METHOD': METHOD,
-                        'GREEDY': GREEDY,
-                        'N_TRIALS': N_TRIALS,
-                        'START_POINT1': START_POINT1,
-                        'START_POINT2': START_POINT2,
-                        'H_STEPS': H_STEPS,
-                        'HORIZON': HORIZON,
-                        'CHAOS': CHAOS,
-                        'M_STEP': M_STEP,
-                        'N_DRAWS': N_DRAWS}
-
-    model_options = {   'approxmethod': approxmethod,
-                        'multimethod': multimethod,
-                        'fusemethod': fusemethod,
-                        'responsename': responsename,
-                        'batchstart': batchstart,
-                        'batchlearn': batchlearn,
-                        'walltime': walltime,
-                        'train': train}
-
-    logging.info(sys.argv)
-    logging.info(test_options)
-    logging.info(model_options)
-
     """Visualisation Options"""
     mycmap = cm.get_cmap(name = 'jet', lut = None)
     vis_fix_range = True
@@ -174,6 +142,38 @@ def main():
     # Add the handler to the root logger
     logging.getLogger().addHandler(console)
 
+    """Process Options"""
+    test_options  = {   'T_SEED': T_SEED,
+                        'Q_SEED': Q_SEED,
+                        'N_TRAIN': N_TRAIN,
+                        'N_QUERY': N_QUERY,
+                        'NOTRAIN': NOTRAIN,
+                        'MODEL_ONLY': MODEL_ONLY,
+                        'LONG_SCALE_ONLY': LONG_SCALE_ONLY,
+                        'METHOD': METHOD,
+                        'GREEDY': GREEDY,
+                        'N_TRIALS': N_TRIALS,
+                        'START_POINT1': START_POINT1,
+                        'START_POINT2': START_POINT2,
+                        'H_STEPS': H_STEPS,
+                        'HORIZON': HORIZON,
+                        'CHAOS': CHAOS,
+                        'M_STEP': M_STEP,
+                        'N_DRAWS': N_DRAWS}
+
+    model_options = {   'approxmethod': approxmethod,
+                        'multimethod': multimethod,
+                        'fusemethod': fusemethod,
+                        'responsename': responsename,
+                        'batchstart': batchstart,
+                        'batchlearn': batchlearn,
+                        'walltime': walltime,
+                        'train': train}
+
+    logging.info(sys.argv)
+    logging.info(test_options)
+    logging.info(model_options)
+    
     """File Locations"""
     directory_data = '../../../Data/'
     filename_training_data = 'training_data_unmerged.npz'
