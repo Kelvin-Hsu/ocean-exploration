@@ -305,6 +305,8 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		
 		Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. This classifier is trained through an one v.s. all approach with 4 binary classifiers using the same setup described above. Clearly the same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
 		
+		In the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the Monte Carlo Joint Information Entropy Method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.
+		
 		\subsubsection{Scott Reef}
 		
 			\begin{figure}[!htbp]
@@ -341,51 +343,26 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 	
 	\subsection{Motivation}
 	
-		A 
-		\cite{Meliou:2007:NIP:1619645.1619742}
+		The receding horizon approach is inspired by the philosophy of model predictive control (MPC) in control theory, for which a continuous problem is discretised and an optimal control problem is transcribed into a static optimisation problem at each time step. Similar to MPC, while receding horizon methods are almost always suboptimal, it provides a computationally tractable approach that is rather stable in performance. Furthermore, a receding horizon approach avoids a myopic, or greedy, approach to informative path planning. Myopic approaches often result in the vehicle fixating on a region with local maximum entropy due to its inability to sacrifice immediate gain for future gains in a faraway region. Lastly, a receding horizon approach is simple to implement and sufficient for most missions for which, instead of optimality, only stability of information gain is desired. 
+		
+		Informative path planning is a highly dynamical process in which the observations the vehicle decides to take can significantly impact the belief space of the vehicle and hence alter its action. As a result, Gaussian processes are often used for modeling the environment for which path planning is to be performed. The tractability of Gaussian processes regression allows sophisticated methods for informative path planning, such as  performing sequential Bayesian optimisation to achieve informative path planning over continuous domains \cite{SequentialBayesianOptimisation}. One desired property we would like to achieve with an informative path planning problem is that the search is non-myopic. When the objective is to collect data on a particular spatial phenomenon, Gaussian process regression can be used as the model under which strong theoretical performance guarantees can be made \cite{Meliou:2007:NIP:1619645.1619742}. However, in the case where the objective is to collect data in the form of discrete labels, a Gaussian process classifier is used instead for modeling the phenomenon. As discussed earlier, the joint entropy from a Gaussian process classifier is not available in closed form. Instead, another measure of joint entropy was developed in the previous section which demonstrated desired properties for informative exploration. To take advantage of the tractability of linearised differential entropy over finite collections of query points, we discretise the spatial domain and select paths composed of finitely many query points. The acquisition criterion is then set to be the linearised differential entropy of the query points that compose the path.
+
+		
 	\subsection{Outline of Method}
 
+		The receding horizon approach requires the selection of a horizon length and the number of control points (query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce path that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. For an informative path planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path. The horizon length selected for the Scott Reef data is 5 km with 30 control points.
+		
+		Figure \ref{Figure:Results:RecedingHorizonMethodOutline} describes the basic flow of approach, which resembles the approach of MPC in control theory. The acquisition function to be maximised in each step is the linearised differential entropy \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}. A new path is proposed in each step for which the vehicle only executes the policy for towards the first control point, takes an observation, relearn the GP classifier model, and repeats the process. 
+		
 		\begin{figure}[!htbp]
 		\centering
 			\includegraphics[width = \linewidth]{Figures/receding_horizon_informative_path_planning.png}
 		\caption{Basic Receding Horizon Structure}
 		\label{Figure:Results:RecedingHorizonMethodOutline}
 		\end{figure}
-			
-		
-	\subsection{Properties of the Receding Horizon Approach}
 	
 	\subsection{Results}
 	
-		A comparison in performance over a distance of 33.3 km between several acquisition criterion are shown in figure \ref{Figure:Results:CompareMethods}. Each method is tested with a horizon length is 5 km starting at two distinct initial locations. The acquisition criterion to be compared are linearised differential entropy (LDE), one step ahead information entropy (GREEDY), random walk (RANDOM), Monte Carlo estimated joint information entropy (MCJIE), sum of marginalised information entropy (MIE), pre-determined spiral path (FIXED-SPIRAL), and pre-determined line segmented paths (FIXED-LINES).
-	
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/compare_methods.png}
-		\caption{Horizon Effects}
-		\label{Figure:Results:CompareMethods}
-		\end{figure}
-			
-		There are several measures of performance criterion that can be used to measure performance. As the aim is to reduce misclassification rate, we compare the percentage of prediction misses between each method. From figure \ref{Figure:Results:CompareMethods}, we see that 
-		
-
-			
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/compare_horizons.png}
-		\caption{Horizon Effects}
-		\label{Figure:Results:CompareHorizons}
-		\end{figure}
-	
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/compare_locations.png}
-		\caption{Horizon Effects}
-		\label{Figure:Results:CompareLocations}
-		\end{figure}
-		
-
-				
 		\begin{figure*}[!htbp]
 		\centering
 			\includegraphics[width = 0.24\linewidth]{Figures/location_1_lde_path/mie_propose_step1.png}
@@ -421,13 +398,61 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		\caption{Exploration path under Monte Carlo estimated joint information entropy acquisition}
 		\label{Figure:Results:OptimalPathMCJE}
 		\end{figure*}
+		
+		A comparison in performance over a distance of 33.3 km between several acquisition criterion are shown in figure \ref{Figure:Results:CompareMethods}. Each method is tested with a horizon length of 5 km starting at two distinct initial locations. The acquisition criterion to be compared are linearised differential entropy (LDE), one step ahead information entropy (GREEDY), random walk (RANDOM), Monte Carlo estimated joint information entropy (MCJIE), sum of marginalised information entropy (MIE), predetermined spiral path (FIXED-SPIRAL), and predetermined line segmented paths (FIXED-LINES).
+	
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/compare_methods.png}
+		\caption{Horizon Effects}
+		\label{Figure:Results:CompareMethods}
+		\end{figure}
 			
-		From experimental tests:
-			-A larger horizon is not always more beneficial. The entropy of faraway regions that it considers may become meaningless by the time it actually gets there, as the model would have significantly changed. On the other hand, it cannot be too short, or it will suffer the same problem as a greedy approach (not seeing ahead, getting stuck in local regions, not recognising joint information)
-			-For the scott reef data, a good horizon range is 5000.0 m, for horizons more than 6000.0 m the result will hit diminishing returns and may actually hurt the performance. This happens as the model predictions and entropies at far away regions for which it was considering changes too much that during its way there the model has changed too much and it is no longer interested in such regions. This results in fast varying path proposals and may result in instability. It is about balancing obtaining reasonable information in reasonable time against reaching for information that may be outdated by the time it is collecting it.
+		There are several measures of performance criterion that can be used to measure performance. As the aim is to reduce misclassification rate, we compare the percentage of prediction misses between each method. Each method begins with the same scenario, for which the initial misclassification rate with 200 training points is 41.54\% (figure \ref{Figure:Results:ScottReefInitialPredictions}). From figure \ref{Figure:Results:CompareMethods}, we see that under this performance criterion, the LDE method performs the best, with a final misclassification rate of 19.43\% and 19.40\% for location 1 and 2 respectively at the end of the journey. Methods FIXED-LINES (20.40\% and 25.05\%) and MCJIE (23.26\% and 27.01\%) follow in performance. The predetermined line segmented paths are hand-picked by subjective judgement from after-the-fact knowledge, and serve as an intuitive anchor for comparison. Notice that because the LDE method prioritises on decision boundaries, it achieves a lower misclassification rate through appropriately reducing the entropy at decision boundaries.
 			
-		Mention that:
-			-We are demonstrating that in the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the Monte Carlo Joint Information Entropy Method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.
+%----------
+%('Location 1 with LDE', 0.19427)
+%('Location 1 with FIXED - LINES', 0.20402000000000001)
+%('Location 1 with MCJIE', 0.23258000000000001)
+%('Location 1 with MIE', 0.32114999999999999)
+%('Location 1 with FIXED - SPIRAL', 0.33735999999999999)
+%('Location 1 with RANDOM', 0.34873999999999999)
+%('Location 1 with GREEDY', 0.42856)
+%----------
+%('Location 2 with LDE', 0.19402)
+%('Location 2 with FIXED - LINES', 0.25052000000000002)
+%('Location 2 with MCJIE', 0.27012000000000003)
+%('Location 2 with RANDOM', 0.35681000000000002)
+%('Location 2 with GREEDY', 0.37630000000000002)
+%('Location 2 with MIE', 0.40111999999999998)
+%('Location 2 with FIXED - SPIRAL', 0.43160999999999999)
+
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/compare_horizons.png}
+		\caption{Horizon Effects}
+		\label{Figure:Results:CompareHorizons}
+		\end{figure}
+	
+		In figures \ref{Figure:Results:CompareHorizons} and \ref{Figure:Results:CompareLocations} we show the stability and consistency of the approach under varying horizon lengths and starting locations for the case of Scott reef.
+		
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/compare_locations.png}
+		\caption{Horizon Effects}
+		\label{Figure:Results:CompareLocations}
+		\end{figure}
+		
+
+				
+
+			
+%		From experimental tests:
+%			-A larger horizon is not always more beneficial. The entropy of faraway regions that it considers may become meaningless by the time it actually gets there, as the model would have significantly changed. On the other hand, it cannot be too short, or it will suffer the same problem as a greedy approach (not seeing ahead, getting stuck in local regions, not recognising joint information)
+%			-For the scott reef data, a good horizon range is 5000.0 m, for horizons more than 6000.0 m the result will hit diminishing returns and may actually hurt the performance. This happens as the model predictions and entropies at far away regions for which it was considering changes too much that during its way there the model has changed too much and it is no longer interested in such regions. This results in fast varying path proposals and may result in instability. It is about balancing obtaining reasonable information in reasonable time against reaching for information that may be outdated by the time it is collecting it.
+%			
+%		Mention that:
+%			-We are demonstrating that in the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the Monte Carlo Joint Information Entropy Method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.
 		
 		
 \section{Conclusions and Future Work}
