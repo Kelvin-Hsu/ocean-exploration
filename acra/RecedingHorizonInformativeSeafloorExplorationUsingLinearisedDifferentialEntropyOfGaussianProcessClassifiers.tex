@@ -55,75 +55,32 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 
 \begin{abstract}
 	While seafloor bathymetry have been mapped extensively over the last century, geological and ecological observations of seafloor benthic zones only began recently. Unlike bathymetric mapping, data collection of benthic imagery requires \textit{in situ} exploration - a significantly slower and costly endeavour. An efficient exploration policy would therefore require solving the informative path planning problem. This paper investigates a receding horizon approach to the informative path planning problem using linearised differential entropy as the proposed acquisition function. We model the benthic environment upon five bathymetric features through Gaussian process classifiers, whose linearised differential entropy would be defined and derived. We compare receding horizon methods under several acquisition functions, such as joint information entropy through Monte Carlo sampling and marginalised information entropy, demonstrating advantages of the linearised differential entropy approach under a prediction accuracy criterion. We also show the benefits of a receding horizon approach over simpler approaches such as greedy and open loop methods. Finally, we test our method on collected benthic datasets from past AUV missions to Scott Reef, Western Australia.
-	
 \end{abstract}
 
 \section{Introduction}
 \label{Section:Introduction}
+
+	Autonomous underwater vehicles (AUVs) are now capable of efficiently collecting information and observations from natural environments of large spatial scale. In the case of Benthic habitat mapping, AUVs collect imagery data of seafloor environments, which are clustered into Benthic labels that summarises the corresponding Benthic environment. \citeauthor{Steinberg2015128} uses Gaussian latent Dirichlet allocation (LDA) to perform unsupervised clustering on Benthic imagery, producing 22 unique Benthic class labels in the case of Scott Reef, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting. 
 	
-	Introduce GPs \cite{GaussianProcessForMachineLearning}
+	Nevertheless, the immense spatial scale of the Benthic seafloor to be explored implies that it is impractical to map exhaustively the entire region of interest (ROI) under any reasonable time and cost. Furthermore, AUV missions are limited by power supply, data storage, and computational capabilities. As such, AUVs must prioritise exploring sub-domains of the ROI that ideally withholds the most important and valuable information regarding the ROI, and achieve so in the shortest time possible.
 	
-	\subsection{Motivation}
-		
-
-		
-	\subsection{Problem Statement}
-
-
-		
-	\subsection{Related Work}
+	Thus, practical seafloor exploration must employ informative path planning to navigate through paths that contain the most useful and valuable information regarding the ROI. The AUV is to infer from such data the Benthic class labels at unobserved locations potentially spatially faraway from any observations. To perform such an inference, we model the Benthic habitat labels upon Bathymetric features using a Gaussian process classifier.
 	
-			
-\section{Mapping Benthic Habitats with Gaussian Process Classifiers}
-\label{Section:BenthicMapping}
-
-	\begin{figure*}[!htbp]
-	\centering
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure1.png}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure2.png}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure3.png}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure4.png}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure5.png}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure6.png}
-	\caption{Scott Reef Bathymetric Features}
-	\label{Figure:Results:ScottReefBathymetricFeatures}
-	\end{figure*}
+	Gaussian process (GP) models are non-parametric, Bayesian inference models which makes minimally assumptions onto the type of phenomena to be modelled. The primary inference philosophy behind GP models are that the proximity of observations in feature space determines their corresponding correlation. In the Benthic setting, this translates to the underlying assumption that the type of Benthic habitat at a particular location depends strongly on the local Bathymetric structure.
 	
-	In this paper we will focus on applying the modeling and path planning techniques on the datasets collected from past missions at Scott Reefs, Western Australia \cite{ScottReefData}. While the dataset consists of a detailed map of the bathymetric features across the seafloor, the benthic habitats have only been observed through seven linear tracks extending from the middle to the edge of the reef (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). The aim is to distinguish between the 17 different benthic zones and map the benthic habitats of the Scott reef region accurately in the shortest amount of travel time.
-		
-	\subsection{Model Structure and Features}
-		
-		The benthic habitat observations obtained from past mission tracks, together with the bathymetric features observed at those locations, form the training data and labels for the Gaussian process classifier (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). To reduce computational requirements, 200 training points were sampled from those tracks for initial modeling.
-		
-		The Gaussian process classifier is chosen to model the benthic habitats upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale) (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). The images are built from 10000 query points randomly sampled from the dataset. It is presumed that the nature of the habitat depends on the structure of the seafloor terrain and depth, and that the locations of the habitat itself should have minimal effect. Thus, spatial coordinates are not included in the feature set.
-		
-		To measure the relative performance between modeling and path planning techniques, a synthetic ground truth is generated separately (figure \ref{Figure:Results:ScottReefSyntheticTruth}). Note that this ground truth was generated using a separate sample of the training tracks and does not necessary represent the physical reality at Scott reef.
+	This paper addresses the informative path planning problem for Benthic habitat mapping. Due to the limited computational resources available for \textit{in-situ} exploration with AUVs, we propose a method that is computationally tractable and straightforward for an on-line implementation. While GPs are known for its inference speed of $O({n^{\star}}^{3})$, on-line tractability can be achieved through finite receding horizon methods if the proposed path is only required to be stable in performance.
 	
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7.png}
-		\caption{Scott Reef: Synthetic Ground Truth}
-		\label{Figure:Results:ScottReefSyntheticTruth}
-		\end{figure}
-		
-	\subsection{Gaussian Processes Classifiers}
+	We propose the linearised differential entropy (LDE) his acquisition objective, the AUV is proposed a path of finite horizon which contains the most valuable information with respect to the misclassification criterion. We demonstrate through derivation that the LDE quantities an appropriate form of mutual information through taking advantage of the structure of GP classifiers and their likelihood responses.
+	
+	Finally, we evaluate the receding horizon approach under LDE acquisition with collected datasets from Scott Reef. We demonstrate the advantages of such an approach over simpler methods such as greedy and open loop methods, as well as computationally expensive methods such as acquisition over of joint information entropy estimated from Monte Carlo sampling.
+	
+	The remainder of this paper is structured as follows. Section 
+	
+\section{Related Work}
+\label{Section:RelatedWork}
 
-		The Scott reef bathymetric-benthic modeling problem is a multiclass classification problem with 17 distinct classes. We perform the modeling using a Gaussian process classifier under Laplace's approximation with a squared exponential (Gaussian) kernel. The likelihood response function employed is the probit response (figure \ref{Figure:LikelihoodResponses}), which provide better linearisation properties discussed in the next section.
-		
-		\begin{figure}[!htbp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/responses.png}
-			\caption{Likelihood Responses}
-			\label{Figure:LikelihoodResponses}
-		\end{figure}
-				
+	\cite{AsherBender}
 
-					
-
-		
-
-
-		
 \section{Linearised Differential Entropy of Gaussian Process Classifiers}
 \label{Section:LinearisedEntropy}
 
@@ -167,7 +124,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			\label{Figure:Linearisation}
 		\end{figure}
 			
-		As the predictive probabilities are nonlinear transformations (Figure \ref{Figure:LikelihoodResponses}) of the Gaussian distributed latent vector, they are no longer Gaussian distributed. Hence, we propose linearising the response function about the latent expectance $\bar{f}^{\star}_{i} := \mathbb{E}[f^{\star}_{i}]$. Figure \ref{Figure:Linearisation} illustrates the linearisation accuracy for a probit response. Observe that points with latent expectance far away from zero translate to near zero predictive variance even under high latent variance. Linearisation is thus very accurate for those points. For points with latent expectances near zero, we require the latent variances to be sufficiently small for linearisation to be accurate.
+		As the predictive probabilities are nonlinear transformations of the Gaussian distributed latent vector, they are no longer Gaussian distributed. Hence, we propose linearising the response function about the latent expectance $\bar{f}^{\star}_{i} := \mathbb{E}[f^{\star}_{i}]$. Figure \ref{Figure:Linearisation} illustrates the linearisation accuracy for a probit response. Observe that points with latent expectance far away from zero translate to near zero predictive variance even under high latent variance. Linearisation is thus very accurate for those points. For points with latent expectances near zero, we require the latent variances to be sufficiently small for linearisation to be accurate.
 
 		\begin{figure}[!htbp]
 		\centering
@@ -200,8 +157,6 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 				H^{\star}_{L} := \frac{1}{2} \log\Big((2 \pi e)^{n^{\star}} \det(\Sigma^{\star}_{L})\Big)
 			\label{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy}
 			\end{equation}			
-
-
 					
 	\subsection{Multiclass Classification}
 			
@@ -281,61 +236,8 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			\begin{equation}
 				H_{L} := \frac{1}{2} \log\Bigg((2 \pi e)^{n^{\star}} \det\bigg(\sum_{m = 1}^{c} \Sigma^{m}_{L}\bigg)\Bigg)
 			\label{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}
-			\end{equation}				
-			
-	\subsection{Discussion}
-		
-		It is worthwhile to remember that linearised differential entropy is not an approximation to the usual prediction information entropy - the former is a differential entropy on a multivariate Gaussian distribution and the later is an information entropy on the distribution of discrete class predictions combinations. They have different interpretations and both have advantageous properties under different settings. We propose using linearised differential entropy as an alternative acquisition function for informative path planning which can be more beneficial under specific exploration purposes.
-		
-		Here we compare the linearised differential entropy with the usual prediction information entropy of the Gaussian process classifier. For visualisation purposes, only the marginalised entropies are shown. We show examples where abundant information is available, where the difference in the properties in the two measures can be emphasized. 
-		
-		Figure \ref{Figure:Results:BinaryLinearisedEntropy} show a simple binary classification problem with abundant data on features $x_{1}$ and $x_{2}$, allowing a misclassification rate of 2.155\%. The classifier is trained with an axis aligned Gaussian kernel with a probit response under Laplace approximation. 
-
-		In this example, there are no training points around the edges shown. As a result, the GP classifier learns a slightly lower signal to noise ratio in the latent function, and bounces back to its latent GP prior for which it remains uncertain regarding class label assignments. The prediction information entropy reflects this change more rapidly, so that it is high both at the decision boundaries and wherever observations are lacking. If the acquisition function for informative exploration is a function of the prediction information entropy, the vehicle would be suggested to explore both places with lacking observations and the decision boundaries. 
-		
-		On the other hand, linearised differential entropy focuses on the decision boundary as it is constructed to be only high when the latent function is near zero \ref{Figure:Linearisation}. We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy emphasizes on where the latent expectance is close to zero, and filters out the rest. If the linearised differential entropy is used as the acquisition function, the vehicle would focus on the decision boundaries within the feature space. Notice that regions far away from observations in the feature space are also assigned with high linearised differential entropy, as the latent function bounces back to its prior, so that the vehicle would explore those parts of the feature space if necessary.
-		
-%		Intuitively, under abundant data, we would like the classifier to only indicate high entropies at decision boundaries. In figure \ref{Figure:Results:BinaryLinearisedEntropy}, we see that the prediction information entropy is indeed near its maximum at the predict decision boundaries. As an artefact of the Laplace approximation, however, it is also quite high around the edges where the classifier has learned a slightly lower signal to noise ratio. As there are no data points around the edges, the GP classifier learns a latent function that bounces back to its latent GP prior for which it remains uncertain regarding the class labels. 
-		
-%		This suggests that if the prediction information entropy is used as the acquisition function for path planning, the vehicle would be suggested to spent some time travelling around the region of interest, collecting data it is already expecting. The prediction entropy is high at both predicted decision boundaries and also places with lower relative data density compared. 
-%		
-%		This leads to the classic exploration-exploitation dilemma most machine learning algorithms face. It is possible that there exists decision boundaries yet to be detected at regions of lower relative data density. Is it worth it for the vehicle to explore and discover such regions, or exploit the currently known boundaries and map it better? In most exploration applications, the priority is to map the region of interest as accurately and fast as possible in order to reduce time and cost. While it is possible that there exists undiscovered decision boundaries at regions of lower relative data density, it is undesirable under cost constraints that this possibility is weighed heavily by the vehicle even under abundant data.
-		
-		This demonstrates the advantage of linearised differential entropy. We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy is only high at the predicted decision boundaries. Note that the colour scale has been centred around zero differential entropy. Under such an acquisition function, the vehicle would focus strictly on the mapping the predicted decision boundaries better.
-		
-		Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. This classifier is trained through an one v.s. all approach with 4 binary classifiers using the same setup described above. Clearly the same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
-		
-		In the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the Monte Carlo Joint Information Entropy Method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.
-		
-		\subsubsection{Scott Reef}
-		
-			\begin{figure}[!htbp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.png}
-			\caption{Scott Reef: Initial Prediction}
-			\label{Figure:Results:ScottReefInitialPredictions}
-			\end{figure}
-			
-			The difference between the two measures of entropy is further reinforced when the feature space is distinct from the spatial space for which path planning is to be performed. For our Scott reef example, notice from figure \ref{Figure:Results:ScottReefBathymetricFeatures} that training data is scarce and covers a very limited portion of the feature space. While we can map the reef with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:Results:ScottReefInitialPredictions}), the prediction information entropy is rather quite high everywhere (figure \ref{Figure:Results:ScottReefPredictionInformationEntropy}). In this initial scenario, under the prediction information entropy criterion the vehicle would simply try to map out all regions as much as possible - a very costly policy.
-			
-			\begin{figure}[!htbp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9.png}
-			\caption{Scott Reef: Prediction Information Entropy}
-			\label{Figure:Results:ScottReefPredictionInformationEntropy}
-			\end{figure}
-						
-			The linearised differential entropy, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:Results:ScottReefLinearisedDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:Results:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths. Notice that this is so even though the training data has covered the deepest parts of the reef.
-			
-			\begin{figure}[!htbp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure11.png}
-			\caption{Scott Reef: Linearised Differential Entropy}
-			\label{Figure:Results:ScottReefLinearisedDifferentialEntropy}
-			\end{figure}
-		
-			While these visualisations compare only the marginalised entropies at each query point, the main advantage of using linearised differential entropy as the acquisition function is that the joint linearised differential entropy between an arbitrary set of query points can be readily computed in a straight forward way by \eqref{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy} and \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}. On the other hand, there are no closed form for the joint prediction information entropy, so one would have to use Monte Carlo sampling to estimate the joint distributions. Thus, the accuracy of the mutual entropy measure would depend on the number of sample draws used for the estimation. On top of the properties of the marginalised prediction information entropy discussed earlier, this can make the method of Monte Carlo sampling less desirable.
-					
+			\end{equation}			
+	
 \section{Receding Horizon Approach to Informative Path Planning}
 \label{Section:RecedingHorizonApproach}
 
@@ -360,8 +262,79 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		\caption{Basic Receding Horizon Structure}
 		\label{Figure:Results:RecedingHorizonMethodOutline}
 		\end{figure}
+		
+\section{Discussion}
+
+	\subsection{Interpretation of Linearised differential entropy}
 	
-	\subsection{Results}
+		It is worthwhile to remember that linearised differential entropy is not an approximation to the usual prediction information entropy - the former is a differential entropy on a multivariate Gaussian distribution and the later is an information entropy on the distribution of discrete class predictions combinations. They have different interpretations and both have advantageous properties under different settings. We propose using linearised differential entropy as an alternative acquisition function for informative path planning which can be more beneficial under specific exploration purposes.
+		
+		Here we compare the linearised differential entropy with the usual prediction information entropy of the Gaussian process classifier. For visualisation purposes, only the marginalised entropies are shown. We show examples where abundant information is available, where the difference in the properties in the two measures can be emphasized. 
+		
+		Figure \ref{Figure:Results:BinaryLinearisedEntropy} show a simple binary classification problem with abundant data on features $x_{1}$ and $x_{2}$, allowing a misclassification rate of 2.155\%. The classifier is trained with an axis aligned Gaussian kernel with a probit response under Laplace approximation. 
+
+		In this example, there are no training points around the edges shown. As a result, the GP classifier learns a slightly lower signal to noise ratio in the latent function, and bounces back to its latent GP prior for which it remains uncertain regarding class label assignments. The prediction information entropy reflects this change more rapidly, so that it is high both at the decision boundaries and wherever observations are lacking. If the acquisition function for informative exploration is a function of the prediction information entropy, the vehicle would be suggested to explore both places with lacking observations and the decision boundaries. 
+		
+		On the other hand, linearised differential entropy focuses on the decision boundary as it is constructed to be only high when the latent function is near zero \ref{Figure:Linearisation}. We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy emphasizes on where the latent expectance is close to zero, and filters out the rest. If the linearised differential entropy is used as the acquisition function, the vehicle would focus on the decision boundaries within the feature space. Notice that regions far away from observations in the feature space are also assigned with high linearised differential entropy, as the latent function bounces back to its prior, so that the vehicle would explore those parts of the feature space if necessary.
+		
+%		Intuitively, under abundant data, we would like the classifier to only indicate high entropies at decision boundaries. In figure \ref{Figure:Results:BinaryLinearisedEntropy}, we see that the prediction information entropy is indeed near its maximum at the predict decision boundaries. As an artefact of the Laplace approximation, however, it is also quite high around the edges where the classifier has learned a slightly lower signal to noise ratio. As there are no data points around the edges, the GP classifier learns a latent function that bounces back to its latent GP prior for which it remains uncertain regarding the class labels. 
+		
+%		This suggests that if the prediction information entropy is used as the acquisition function for path planning, the vehicle would be suggested to spent some time travelling around the region of interest, collecting data it is already expecting. The prediction entropy is high at both predicted decision boundaries and also places with lower relative data density compared. 
+%		
+%		This leads to the classic exploration-exploitation dilemma most machine learning algorithms face. It is possible that there exists decision boundaries yet to be detected at regions of lower relative data density. Is it worth it for the vehicle to explore and discover such regions, or exploit the currently known boundaries and map it better? In most exploration applications, the priority is to map the region of interest as accurately and fast as possible in order to reduce time and cost. While it is possible that there exists undiscovered decision boundaries at regions of lower relative data density, it is undesirable under cost constraints that this possibility is weighed heavily by the vehicle even under abundant data.
+		
+		This demonstrates the advantage of linearised differential entropy. We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy is only high at the predicted decision boundaries. Note that the colour scale has been centred around zero differential entropy. Under such an acquisition function, the vehicle would focus strictly on the mapping the predicted decision boundaries better.
+		
+		Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. This classifier is trained through an one v.s. all approach with 4 binary classifiers using the same setup described above. Clearly the same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
+		
+		In the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the Monte Carlo Joint Information Entropy Method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.
+		
+\section{Experiment}
+
+
+	\begin{figure*}[!htbp]
+	\centering
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure1.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure2.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure3.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure4.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure5.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure6.png}
+	\caption{Scott Reef Bathymetric Features}
+	\label{Figure:Results:ScottReefBathymetricFeatures}
+	\end{figure*}
+
+
+	\subsection{Modeling Scott Reef Benthic Zones}
+	
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.png}
+		\caption{Scott Reef: Initial Prediction}
+		\label{Figure:Results:ScottReefInitialPredictions}
+		\end{figure}
+		
+		The difference between the two measures of entropy is further reinforced when the feature space is distinct from the spatial space for which path planning is to be performed. For our Scott reef example, notice from figure \ref{Figure:Results:ScottReefBathymetricFeatures} that training data is scarce and covers a very limited portion of the feature space. While we can map the reef with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:Results:ScottReefInitialPredictions}), the prediction information entropy is rather quite high everywhere (figure \ref{Figure:Results:ScottReefPredictionInformationEntropy}). In this initial scenario, under the prediction information entropy criterion the vehicle would simply try to map out all regions as much as possible - a very costly policy.
+		
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9.png}
+		\caption{Scott Reef: Prediction Information Entropy}
+		\label{Figure:Results:ScottReefPredictionInformationEntropy}
+		\end{figure}
+					
+		The linearised differential entropy, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:Results:ScottReefLinearisedDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:Results:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths. Notice that this is so even though the training data has covered the deepest parts of the reef.
+		
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure11.png}
+		\caption{Scott Reef: Linearised Differential Entropy}
+		\label{Figure:Results:ScottReefLinearisedDifferentialEntropy}
+		\end{figure}
+	
+		While these visualisations compare only the marginalised entropies at each query point, the main advantage of using linearised differential entropy as the acquisition function is that the joint linearised differential entropy between an arbitrary set of query points can be readily computed in a straight forward way by \eqref{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy} and \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}. On the other hand, there are no closed form for the joint prediction information entropy, so one would have to use Monte Carlo sampling to estimate the joint distributions. Thus, the accuracy of the mutual entropy measure would depend on the number of sample draws used for the estimation. On top of the properties of the marginalised prediction information entropy discussed earlier, this can make the method of Monte Carlo sampling less desirable.
+			
+	\subsection{Exploration over Scott Reef Benthic Habitats}
 	
 		\begin{figure*}[!htbp]
 		\centering
@@ -455,6 +428,61 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 %			
 %		Mention that:
 %			-We are demonstrating that in the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the Monte Carlo Joint Information Entropy Method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.
+
+
+
+
+%\section{Mapping Benthic Habitats with Gaussian Process Classifiers}
+%\label{Section:BenthicMapping}
+%
+%	\begin{figure*}[!htbp]
+%	\centering
+%		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure1.png}
+%		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure2.png}
+%		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure3.png}
+%		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure4.png}
+%		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure5.png}
+%		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure6.png}
+%	\caption{Scott Reef Bathymetric Features}
+%	\label{Figure:Results:ScottReefBathymetricFeatures}
+%	\end{figure*}
+%	
+%	In this paper we will focus on applying the modeling and path planning techniques on the datasets collected from past missions at Scott Reefs, Western Australia \cite{ScottReefData}. While the dataset consists of a detailed map of the bathymetric features across the seafloor, the benthic habitats have only been observed through seven linear tracks extending from the middle to the edge of the reef (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). The aim is to distinguish between the 17 different benthic zones and map the benthic habitats of the Scott reef region accurately in the shortest amount of travel time.
+%		
+%	\subsection{Model Structure and Features}
+%		
+%		The benthic habitat observations obtained from past mission tracks, together with the bathymetric features observed at those locations, form the training data and labels for the Gaussian process classifier (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). To reduce computational requirements, 200 training points were sampled from those tracks for initial modeling.
+%		
+%		The Gaussian process classifier is chosen to model the benthic habitats upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale) (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). The images are built from 10000 query points randomly sampled from the dataset. It is presumed that the nature of the habitat depends on the structure of the seafloor terrain and depth, and that the locations of the habitat itself should have minimal effect. Thus, spatial coordinates are not included in the feature set.
+%		
+%		To measure the relative performance between modeling and path planning techniques, a synthetic ground truth is generated separately (figure \ref{Figure:Results:ScottReefSyntheticTruth}). Note that this ground truth was generated using a separate sample of the training tracks and does not necessary represent the physical reality at Scott reef.
+%	
+%		\begin{figure}[!htbp]
+%		\centering
+%			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7.png}
+%		\caption{Scott Reef: Synthetic Ground Truth}
+%		\label{Figure:Results:ScottReefSyntheticTruth}
+%		\end{figure}
+%		
+%	\subsection{Gaussian Processes Classifiers}
+%
+%		The Scott reef bathymetric-benthic modeling problem is a multiclass classification problem with 17 distinct classes. We perform the modeling using a Gaussian process classifier under Laplace's approximation with a squared exponential (Gaussian) kernel. The likelihood response function employed is the probit response (figure \ref{Figure:LikelihoodResponses}), which provide better linearisation properties discussed in the next section.
+%				
+
+					
+
+		
+
+
+		
+		
+
+		
+
+					
+
+	
+
 		
 		
 \section{Conclusions and Future Work}
