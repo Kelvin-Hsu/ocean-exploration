@@ -443,9 +443,11 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		\label{Figure:Results:CompareLocations}
 		\end{figure}
 		
-
-				
-
+		Figures \ref{Figure:Results:OptimalPathLDE} and \ref{Figure:Results:OptimalPathMCJE} show snapshots of the resulting path under linearised differential entropy and Monte Carlo estimated joint information entropy respectively as the acquisition function. The snapshots are taken at 0 km, 8.3 km, 16.7 km, and 33.3 km into the journey. For each method, three snapshot series are presented, visualising the marginalised prediction information entropy, marginalised linearised differential entropy, and the prediction map. The circle represents the horizon length for which the vehicle considers in at each time step. The vehicle resides at the center of that circle. The path with empty circles represent the path it has taken, and the path with fixed hexagons extending from the current location represent the immediate proposed path from the receding horizon optimisation.
+		
+		As we expect, the two paths from the two methods are similar, with only minor differences with the linearised differential entropy approach achieving a misclassification ratio of approximately 4\% less. Unlike other methods, both the LDE and MCJIE method take into consideration the mutual information of the proposed path. In the figure shown, the Monte Carlo approach uses 1000 sample draws from the GP classifier to estimate the joint distribution for 30 control points. It is expected that the Monte Carlo approach can perform slightly better, albeit with high computational requirements, if more sample draws are used.
+		
+		This results demonstrates that under a receding horizon formulation, using linearised differential entropy as the acquisition function achieves lower misclassification rate on average than other acquisition functions - most importantly Monte Carlo estimated joint information entropy.
 			
 %		From experimental tests:
 %			-A larger horizon is not always more beneficial. The entropy of faraway regions that it considers may become meaningless by the time it actually gets there, as the model would have significantly changed. On the other hand, it cannot be too short, or it will suffer the same problem as a greedy approach (not seeing ahead, getting stuck in local regions, not recognising joint information)
@@ -458,9 +460,16 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 \section{Conclusions and Future Work}
 \label{Section:Conclusion}
 
+	In this paper we motivate, define, and derive the use of linearised differential entropy as an alternative acquisition function to informative path planning. We demonstrate the use of such an acquisition function under a receding horizon approach, and verify its performance on collected bathymetric and benthic data at Scott Reef. We show that this approach achieves lower misclassification rate on average in comparison to Monte Carlo methods and Greedy methods.
+	
+	This work is ongoing and more investigation is required to fully understand the properties of the linearised differential entropy measure and its interpretation. As LDE is not an approximation to the usual prediction entropy, theoretical justifications of its use should couple its experimentation justification presented in this paper.
+	
+	We also plan to test the method more thoroughly with more variations. Specifically, the effects of horizon length, number of control points, and the tolerances of the optimisers used should be rigorously investigated. 
+	
 \section*{Acknowledgments}
 
-
+	This work is supported by the Australian Centre of Field Robotics, the University of Sydney, and National ICT Australia (NICTA).
+	
 %% This section was initially prepared using BibTeX.  The .bbl file was
 %% placed here later
 %\bibliography{publications}
