@@ -60,21 +60,21 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 \section{Introduction}
 \label{Section:Introduction}
 
-	Autonomous underwater vehicles (AUVs) are now capable of efficiently collecting information and observations from natural environments of large spatial scale. In the case of Benthic habitat mapping, AUVs collect imagery data of seafloor environments, which are clustered into Benthic labels that summarises the corresponding Benthic environment. \citeauthor{Steinberg2015128} uses Gaussian latent Dirichlet allocation (LDA) to perform unsupervised clustering on Benthic imagery, producing 22 unique Benthic class labels in the case of Scott Reef, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting. 
+	Autonomous underwater vehicles (AUVs) are now capable of efficiently collecting information and observations from natural environments of large spatial scale. In the case of Benthic habitat mapping, AUVs collect imagery data of seafloor environments, which are clustered into Benthic labels that summarises the corresponding Benthic environment. \citeauthor{Steinberg2015128} [\citeyear{Steinberg2015128}] uses Gaussian latent Dirichlet allocation (LDA) to perform unsupervised clustering on Benthic imagery, producing 22 unique Benthic class labels in the case of Scott Reef, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting. This unsupervised clustering approach releases the burden on human experts to analyse collected imagery exhaustively and thus remove a significant bottleneck in the habitat mapping process.
 	
-	Nevertheless, the immense spatial scale of the Benthic seafloor to be explored implies that it is impractical to map exhaustively the entire region of interest (ROI) under any reasonable time and cost. Furthermore, AUV missions are limited by power supply, data storage, and computational capabilities. As such, AUVs must prioritise exploring sub-domains of the ROI that ideally withholds the most important and valuable information regarding the ROI, and achieve so in the shortest time possible.
+	Nevertheless, the immense spatial scale of the Benthic seafloor to be explored implies that it is impractical to map exhaustively the entire region of interest (ROI) under any reasonable time and cost. Furthermore, AUV missions are limited by power supply, data storage, and computational capabilities. As such, AUVs must prioritise exploring sub-domains of the ROI that ideally withhold the most important and valuable information regarding the entire ROI, and achieve so in the shortest time possible.
 	
-	Thus, practical seafloor exploration must employ informative path planning to navigate through paths that contain the most useful and valuable information regarding the ROI. The AUV is to infer from such data the Benthic class labels at unobserved locations potentially spatially faraway from any observations. To perform such an inference, we model the Benthic habitat labels upon Bathymetric features using a Gaussian process classifier.
+	Thus, practical seafloor exploration must employ an informative path planning policy to navigate through paths that contain the most valuable information regarding the ROI. The AUV is to infer from such data the Benthic class labels at unobserved locations, potentially spatially faraway from any observations. To perform such an inference, we model the Benthic habitat labels upon Bathymetric features using a Gaussian process classifier.
 	
-	Gaussian process (GP) models are non-parametric, Bayesian inference models which makes minimally assumptions onto the type of phenomena to be modelled. The primary inference philosophy behind GP models are that the proximity of observations in feature space determines their corresponding correlation. In the Benthic setting, this translates to the underlying assumption that the type of Benthic habitat at a particular location depends strongly on the local Bathymetric structure.
+	Gaussian process (GP) models are non-parametric, Bayesian inference models which makes minimal assumptions onto the type of phenomena to be modelled. The primary inference philosophy behind GP models are that the proximity of observations in feature space determines their corresponding correlation. In the Benthic context, this translates to the underlying assumption that the type of Benthic habitat at a particular location depends strongly on the local Bathymetric structure.
 	
-	This paper addresses the informative path planning problem for Benthic habitat mapping. Due to the limited computational resources available for \textit{in-situ} exploration with AUVs, we propose a method that is computationally tractable and straightforward for an on-line implementation. While GPs are known for its inference speed of $O({n^{\star}}^{3})$, on-line tractability can be achieved through finite receding horizon methods if the proposed path is only required to be stable in performance.
+	This paper addresses the informative path planning problem for Benthic habitat mapping. Due to the limited computational resources available for \textit{in-situ} exploration with AUVs, we propose a method that is computationally tractable and straightforward for an on-line implementation. While GPs are known for its inference speed of $O(n_{\star}^{3})$, on-line tractability can be achieved through finite receding horizon methods if the overall path is not required to be strictly optimal.
 	
-	We propose the linearised differential entropy (LDE) his acquisition objective, the AUV is proposed a path of finite horizon which contains the most valuable information with respect to the misclassification criterion. We demonstrate through derivation that the LDE quantities an appropriate form of mutual information through taking advantage of the structure of GP classifiers and their likelihood responses.
+	We propose linearised differential entropy (LDE) of Gaussian process classifiers (GPC) as the acquisition objective. We demonstrate through derivation that the LDE quantifies an appropriate form of mutual information through taking advantage of the structure of GP classifiers and their likelihood responses.
 	
-	Finally, we evaluate the receding horizon approach under LDE acquisition with collected datasets from Scott Reef. We demonstrate the advantages of such an approach over simpler methods such as greedy and open loop methods, as well as computationally expensive methods such as acquisition over of joint information entropy estimated from Monte Carlo sampling.
+	Finally, we evaluate the receding horizon approach under various acquisition criterion with collected datasets from Scott Reef. We demonstrate the advantages of such an approach over simpler methods such as greedy and open loop methods, as well as computationally expensive methods such as acquisition over of joint information entropy estimated from Monte Carlo sampling.  Under a receding horizon formulation, we demonstrate that LDE acquisition achieves highest rate of information acquisition with respect to the misclassification criterion.
 	
-	The remainder of this paper is structured as follows. Section 
+	The remainder of this paper is structured as follows. Section \ref{Section:RelatedWork} introduces related work in informative seafloor exploration. Section \ref{Section:LinearisedEntropy} introduces and derives the linearised differential entropy (LDE) of Gaussian process classifiers (GPC). Section \ref{Section:RecedingHorizonFormulation} motivates the general receding horizon approach in its basic form. Section \ref{Section:ExperimentalResults} demonstrates the receding horizon approach under LDE acquisition with experimental results on the Scott Reef dataset. Finally, section \ref{Section:Conclusion} provides concluding remarks.
 	
 \section{Related Work}
 \label{Section:RelatedWork}
@@ -84,7 +84,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 \section{Linearised Differential Entropy of Gaussian Process Classifiers}
 \label{Section:LinearisedEntropy}
 
-	In this section we introduce the linearised differential entropy of Gaussian process classifiers. This method attempts to address the need for a measure of mutual entropy that is more computationally viable compared to Monte Carlo methods. We motivate the properties that such a measure much have, and proceed to define and derive such a measure. Finally, we visualise its advantage through simple tests cases in both the binary and multiclass classification setting.
+	In this section we introduce the linearised differential entropy of Gaussian process classifiers. This method attempts to address the need for a measure of mutual entropy that is more computationally viable compared to Monte Carlo methods. We motivate the properties that such a measure is desired to have, and proceed to define, and derive, such a measure. Finally, we discuss its interpretation and visualise its advantage through simple tests cases in both the binary and multiclass classification setting.
 	
 	\subsection{Binary Classification}
 
@@ -97,7 +97,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		\label{Section:LinearisedEntropy:Equation:PredictiveGP}
 		\end{equation}
 		
-		Let $X^{\star} = [ \vec{x}^{\star}_{1}, \vec{x}^{\star}_{2}, \dots, \vec{x}^{\star}_{n^{\star}}]^{T}$ denote the collection of $n^{\star}$ query points for which inference is to be performed. Denote $\vec{f}^{\star}$ the vector of latent function values $f^{\star}_{i} = f(\vec{x}^{\star}_{i})$ at each query point. We have by definition of a GP that $\vec{f}^{\star}$ is multivariate Gaussian distributed with a corresponding means $\mu^{\star}_{i} = m(\vec{x}^{\star}_{i})$ and covariances $\Sigma^{\star}_{ij} = k(\vec{x}^{\star}_{i}, \vec{x}^{\star}_{j})$ \eqref{Section:LinearisedEntropy:Equation:PredictiveGaussianDistribution}.
+		Let $X^{\star} = [ \vec{x}^{\star}_{1}, \vec{x}^{\star}_{2}, \dots, \vec{x}^{\star}_{n^{\star}}]^{T}$ denote the collection of $n^{\star}$ query points for which inference is to be performed upon. Denote $\vec{f}^{\star}$ the vector of latent function values $f^{\star}_{i} = f(\vec{x}^{\star}_{i})$ at each query point. We have by definition of a GP that $\vec{f}^{\star}$ is multivariate Gaussian distributed with a corresponding means $\mu^{\star}_{i} = m(\vec{x}^{\star}_{i})$ and covariances $\Sigma^{\star}_{ij} = k(\vec{x}^{\star}_{i}, \vec{x}^{\star}_{j})$ \eqref{Section:LinearisedEntropy:Equation:PredictiveGaussianDistribution}.
 		
 		\begin{equation}
 			\vec{f}^{\star} = [f^{\star}_{1}, f^{\star}_{2}, \dots, f^{\star}_{n^{\star}}]^{T} \sim \mathcal{N}(\vec{\mu}^{\star}, \Sigma^{\star})
@@ -107,13 +107,13 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		The binary prediction probability $\vec{\pi^{\star}}$ at the query points is obtained through passing the queried latent function random vector $\vec{f}^{\star}$ through a response function in a component wise fashion \eqref{Section:LinearisedEntropy:Equation:Response}.
 		
 		\begin{equation}
-			\vec{\pi}^{\star} = \vec{\sigma}(f^{\star})\mathrm{ \qquad i.e. \;\;}\pi^{\star}_{i} = \sigma(f^{\star}_{i}) \qquad \forall i \in \{1, 2, \dots, n^{\star}\}
+			\vec{\pi}^{\star} = \vec{\sigma}(f^{\star})\mathrm{ \quad i.e. \;\;}\pi^{\star}_{i} = \sigma(f^{\star}_{i}) \quad \forall i \in \{1, 2, \dots, n^{\star}\}
 		\label{Section:LinearisedEntropy:Equation:Response}
 		\end{equation}
 		
-		As a straightforward transformation of the latent vector, the predictive probability vector $\vec{\pi^{\star}}$ is thus a random vector itself. The usual procedure is then to treat the expected predition probabilities $\mathbb{E}[\vec{\pi^{\star}}]$ as the posterior class probabilities for further inference. However, this discards any information regarding the joint behaviour at the query points. As a result, a measure of mutual information shared amongst the query points cannot be obtained.
+		As a straightforward transformation of the latent vector, the predictive probability vector $\vec{\pi^{\star}}$ is thus a random vector itself. The usual procedure is then to treat the expected prediction probabilities $\mathbb{E}[\vec{\pi^{\star}}]$ as the posterior class probabilities for further inference. However, this discards any information regarding the joint behaviour of arbitrary collection of query points. As a result, a measure of mutual information shared amongst the query points cannot be obtained.
 		
-		One straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP, assigning class label 1 for positive latent values and -1 otherwise, and compute the Shannon entropy \cite{ShannonEntropy} from the estimated joint distribution. Aside from the relatively long computational time required for sampling enough draws for accurate joint distribution estimation, the Monte Carlo approach also has the tendency to overestimate variances at locations with low densities of training observations.
+		One straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP, assigning class label 1 for positive latent values and -1 otherwise, and compute the Shannon entropy \cite{ShannonEntropy} from the estimated joint distribution. Aside from the relatively long computational time required for sampling enough draws for accurate joint distribution estimation, Monte Carlo estimated Joint Information Entropy (MCJIE) also has the tendency to over-represent uncertainties under small samples.
 				
 		Instead, we propose using the joint distribution of the predictive probabilities $\vec{\pi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\vec{\pi^{\star}}]$ such that structural information from the latent GP is compromised, we utilise also the covariance $\mathbb{V}[\vec{\pi^{\star}}]$, which withholds information regarding both the latent GP and the response likelihood.
 	
@@ -238,33 +238,6 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			\label{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}
 			\end{equation}			
 	
-\section{Receding Horizon Approach to Informative Path Planning}
-\label{Section:RecedingHorizonApproach}
-
-	In this section we present a receding horizon approach to the informative path planning problem. Specifically, we use the differential linearised entropy derived earlier as the acquisition function. We motivate the use of the approach and discuss its properties. Performance is then assessed with the Scott Reef dataset.
-	
-	\subsection{Motivation}
-	
-		The receding horizon approach is inspired by the philosophy of model predictive control (MPC) in control theory, for which a continuous problem is discretised and an optimal control problem is transcribed into a static optimisation problem at each time step. Similar to MPC, while receding horizon methods are almost always suboptimal, it provides a computationally tractable approach that is rather stable in performance. Furthermore, a receding horizon approach avoids a myopic, or greedy, approach to informative path planning. Myopic approaches often result in the vehicle fixating on a region with local maximum entropy due to its inability to sacrifice immediate gain for future gains in a faraway region. Lastly, a receding horizon approach is simple to implement and sufficient for most missions for which, instead of optimality, only stability of information gain is desired. 
-		
-		Informative path planning is a highly dynamical process in which the observations the vehicle decides to take can significantly impact the belief space of the vehicle and hence alter its action. As a result, Gaussian processes are often used for modeling the environment for which path planning is to be performed. The tractability of Gaussian processes regression allows sophisticated methods for informative path planning, such as  performing sequential Bayesian optimisation to achieve informative path planning over continuous domains \cite{SequentialBayesianOptimisation}. One desired property we would like to achieve with an informative path planning problem is that the search is non-myopic. When the objective is to collect data on a particular spatial phenomenon, Gaussian process regression can be used as the model under which strong theoretical performance guarantees can be made \cite{Meliou:2007:NIP:1619645.1619742}. However, in the case where the objective is to collect data in the form of discrete labels, a Gaussian process classifier is used instead for modeling the phenomenon. As discussed earlier, the joint entropy from a Gaussian process classifier is not available in closed form. Instead, another measure of joint entropy was developed in the previous section which demonstrated desired properties for informative exploration. To take advantage of the tractability of linearised differential entropy over finite collections of query points, we discretise the spatial domain and select paths composed of finitely many query points. The acquisition criterion is then set to be the linearised differential entropy of the query points that compose the path.
-
-		
-	\subsection{Outline of Method}
-
-		The receding horizon approach requires the selection of a horizon length and the number of control points (query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce path that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. For an informative path planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path. The horizon length selected for the Scott Reef data is 5 km with 30 control points.
-		
-		Figure \ref{Figure:Results:RecedingHorizonMethodOutline} describes the basic flow of approach, which resembles the approach of MPC in control theory. The acquisition function to be maximised in each step is the linearised differential entropy \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}. A new path is proposed in each step for which the vehicle only executes the policy for towards the first control point, takes an observation, relearn the GP classifier model, and repeats the process. 
-		
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/receding_horizon_informative_path_planning.png}
-		\caption{Basic Receding Horizon Structure}
-		\label{Figure:Results:RecedingHorizonMethodOutline}
-		\end{figure}
-		
-\section{Discussion}
-
 	\subsection{Interpretation of Linearised differential entropy}
 	
 		It is worthwhile to remember that linearised differential entropy is not an approximation to the usual prediction information entropy - the former is a differential entropy on a multivariate Gaussian distribution and the later is an information entropy on the distribution of discrete class predictions combinations. They have different interpretations and both have advantageous properties under different settings. We propose using linearised differential entropy as an alternative acquisition function for informative path planning which can be more beneficial under specific exploration purposes.
@@ -289,8 +262,33 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		
 		In the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the Monte Carlo Joint Information Entropy Method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.
 		
-\section{Experiment}
+\section{Receding Horizon Approach to Informative Path Planning}
+\label{Section:RecedingHorizonFormulation}
 
+	In this section we present a receding horizon approach to the informative path planning problem. Specifically, we use the differential linearised entropy derived earlier as the acquisition function. We motivate the use of the approach and discuss its properties. Performance is then assessed with the Scott Reef dataset.
+	
+	\subsection{Motivation}
+	
+		The receding horizon approach is inspired by the philosophy of model predictive control (MPC) in control theory, for which a continuous problem is discretised and an optimal control problem is transcribed into a static optimisation problem at each time step. Similar to MPC, while receding horizon methods are almost always suboptimal, it provides a computationally tractable approach that is rather stable in performance. Furthermore, a receding horizon approach avoids a myopic, or greedy, approach to informative path planning. Myopic approaches often result in the vehicle fixating on a region with local maximum entropy due to its inability to sacrifice immediate gain for future gains in a faraway region. Lastly, a receding horizon approach is simple to implement and sufficient for most missions for which, instead of optimality, only stability of information gain is desired. 
+		
+		Informative path planning is a highly dynamical process in which the observations the vehicle decides to take can significantly impact the belief space of the vehicle and hence alter its action. As a result, Gaussian processes are often used for modeling the environment for which path planning is to be performed. The tractability of Gaussian processes regression allows sophisticated methods for informative path planning, such as  performing sequential Bayesian optimisation to achieve informative path planning over continuous domains \cite{SequentialBayesianOptimisation}. One desired property we would like to achieve with an informative path planning problem is that the search is non-myopic. When the objective is to collect data on a particular spatial phenomenon, Gaussian process regression can be used as the model under which strong theoretical performance guarantees can be made \cite{Meliou:2007:NIP:1619645.1619742}. However, in the case where the objective is to collect data in the form of discrete labels, a Gaussian process classifier is used instead for modeling the phenomenon. As discussed earlier, the joint entropy from a Gaussian process classifier is not available in closed form. Instead, another measure of joint entropy was developed in the previous section which demonstrated desired properties for informative exploration. To take advantage of the tractability of linearised differential entropy over finite collections of query points, we discretise the spatial domain and select paths composed of finitely many query points. The acquisition criterion is then set to be the linearised differential entropy of the query points that compose the path.
+
+		
+	\subsection{Outline of Method}
+
+		The receding horizon approach requires the selection of a horizon length and the number of control points (query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce path that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. For an informative path planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path. The horizon length selected for the Scott Reef data is 5 km with 30 control points.
+		
+		Figure \ref{Figure:Results:RecedingHorizonMethodOutline} describes the basic flow of approach, which resembles the approach of MPC in control theory. The acquisition function to be maximised in each step is the linearised differential entropy \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}. A new path is proposed in each step for which the vehicle only executes the policy for towards the first control point, takes an observation, relearn the GP classifier model, and repeats the process. 
+		
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/receding_horizon_informative_path_planning.png}
+		\caption{Basic Receding Horizon Structure}
+		\label{Figure:Results:RecedingHorizonMethodOutline}
+		\end{figure}
+		
+\section{Experimental Results}
+\label{Section:ExperimentalResults}
 
 	\begin{figure*}[!htbp]
 	\centering
