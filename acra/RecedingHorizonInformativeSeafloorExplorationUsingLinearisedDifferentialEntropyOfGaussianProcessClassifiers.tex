@@ -124,7 +124,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			\label{Figure:Linearisation}
 		\end{figure}
 			
-		As the predictive probabilities are nonlinear transformations of the Gaussian distributed latent vector, they are no longer Gaussian distributed. Hence, we propose linearising the response function about the latent expectance $\bar{f}^{\star}_{i} := \mathbb{E}[f^{\star}_{i}]$. Figure \ref{Figure:Linearisation} illustrates the linearisation accuracy for a probit response. Observe that points with latent expectance far away from zero translate to near zero predictive variance even under high latent variance. Linearisation is thus very accurate for those points. For points with latent expectances near zero, we require the latent variances to be sufficiently small for linearisation to be accurate.
+		As the predictive probabilities are nonlinear transformations of the Gaussian distributed latent vector, they are no longer Gaussian distributed. In order to retain analytical tractability, we propose linearising the response function about the latent expectance $\bar{f}^{\star}_{i} := \mathbb{E}[f^{\star}_{i}]$. Figure \ref{Figure:Linearisation} illustrates the linearisation accuracy for a probit response. Observe that points with latent expectance far away from zero translate to near zero predictive variance even under high latent variance. Linearisation is thus very accurate for those points. For points with latent expectances near zero, we require the latent variances to be sufficiently small for linearisation to be accurate.
 
 		\begin{figure}[!htbp]
 		\centering
@@ -160,7 +160,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 					
 	\subsection{Multiclass Classification}
 			
-		For multiclass classification, linearisation is performed on the softmax function $\sigma^{m}$ which returns the corresponding predictive class probability $\vec{\pi}^{m}$ for class $m$ \eqref{Section:LinearisedEntropy:Equation:Softmax}. For notational clarity we move the query star ($^\star$) to the left and use the superscript $m$ to index the classes. The latent vector $\vec{f}_{i} := \{f^{m}_{i}\}_{m \in \{1, 2, \dots, c\}}$ represents the collection of $c$ latent values across classes at the query point $i$, and is distinct from $\vec{f}^{m} := \{f^{m}_{i}\}_{i \in \{1, 2, \dots, n^{\star}\}}$ which represents the collection of $n^{\star}$ latent values across query points for class $m$.
+		For multiclass classification, linearisation is performed on the softmax function $\sigma^{m}$ which returns the corresponding predictive class probability $\vec{\pi}^{m}$ for class $m$ \eqref{Section:LinearisedEntropy:Equation:Softmax} \cite{GaussianProcessForMachineLearning}. For notational clarity we move the query star ($^\star$) to the left and use the superscript $m$ to index the classes. The latent vector $\vec{f}_{i} := \{f^{m}_{i}\}_{m \in \{1, 2, \dots, c\}}$ represents the collection of $c$ latent values across classes at the query point $i$, and is distinct from $\vec{f}^{m} := \{f^{m}_{i}\}_{i \in \{1, 2, \dots, n^{\star}\}}$ which represents the collection of $n^{\star}$ latent values across query points for class $m$.
 
 		\begin{equation}
 			^{\star}\pi^{m}_{i} = \sigma^{m}(^{\star}\vec{f}_{i}) := \frac{\exp(^{\star}f^{m}_{i})}{\sum_{l = 1}^{c} \exp(^{\star}f^{l}_{i})} \qquad m \in \{1, 2, \dots, c\}
@@ -173,6 +173,8 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		\caption{Multiclass Classifier Example}
 		\label{Figure:Results:MulticlassLinearisedEntropy}
 		\end{figure}
+		
+		In this derivation, we focus on the case of OVA, or One V.S. All, multiclass classification, where each class is trained against all other classes independently with a binary classifier. For $c$ classes, $c$ binary classifiers are trained independently and performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Section:LinearisedEntropy:Equation:Softmax}.
 		
 		\subsubsection{Derivation}
 		
@@ -187,9 +189,9 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			\label{Section:LinearisedEntropy:Equation:SoftmaxGradient}
 			\end{equation}			
 		
-			The numerators are explicitly left in the products of exponentiation instead of exponentiation of sums to reflect ways to cache quantities during computation. 
+			The numerators are explicitly left in the form of products of exponentiation instead of exponentiation of sums to reflect ways to cache quantities during computation. 
 			
-			Hence, for each class $m$ at query point $i$ we have compute a softmax gradient vector \eqref{Section:LinearisedEntropy:Equation:SoftmaxGradientVector}.
+			Hence, for each class $m$ at query point $i$ we compute a softmax gradient vector \eqref{Section:LinearisedEntropy:Equation:SoftmaxGradientVector}.
 			
 			\begin{equation}
 				\frac{\partial \sigma^{m}}{\partial \vec{f}_{i}}(\vec{f}_{i}) := \begin{bmatrix} \frac{\partial \sigma^{m}}{\partial f^{1}_{i}}(\vec{f}_{i}) & \frac{\partial \sigma^{m}}{\partial f^{2}_{i}}(\vec{f}_{i}) & \dots & \frac{\partial \sigma^{m}}{\partial f^{c}_{i}}(\vec{f}_{i}) \end{bmatrix}^{T}
@@ -229,7 +231,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 					& = \sum_{k = 1}^{c} (g^{m}_{i})^{k} (g^{m}_{j})^{k} \mathbb{C}\mathrm{ov}[f^{k}_{i}, f^{k}_{j}]
 			\end{align*}
 						
-			where $(g^{m}_{i})^{k}$ denotes the $k^{\text{th}}$ element of $\vec{g}^{m}_{i}$. The last equality arises as a result of employing the OVA multiclass classification, where latent values of class $i$ and class $j$ are conditionally independent given training observations.
+			where $(g^{m}_{i})^{k}$ denotes the $k^{\text{th}}$ element of $\vec{g}^{m}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of class $i$ and class $j$ are conditionally independent given training observations.
 			
 			Finally, we define the linearised entropy of the OVA multiclass Gaussian process classifier as follows \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}.
 			
