@@ -205,7 +205,7 @@ def main():
             t_seed = T_SEED, q_seed = Q_SEED, features = i_features)
 
     yq_truth = sea.io.load_ground_truth(filename_truth, 
-        assert_query_seed = Q_SEED)
+        assert_query_seed = None)
 
     y_unique = np.unique(y)
     assert y_unique.shape[0] == 17

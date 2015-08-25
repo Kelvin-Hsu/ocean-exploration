@@ -1,35 +1,8 @@
-%%%% acra.tex
-
 \typeout{Receding Horizon Informative Seafloor Exploration with Linearised Differential Entropy of Gaussian Process Classifiers}
-
-% This is the instructions for authors for ACRA.
 \documentclass{article}
 \usepackage{acra}
-% The file acra.sty is the style file for ACRA. 
-% The file named.sty contains macros for named citations as produced 
-% by named.bst.
 
-% The preparation of these files was supported by Schlumberger Palo Alto
-% Research, AT\&T Bell Laboratories, and Morgan Kaufmann Publishers.
-% Shirley Jowell, of Morgan Kaufmann Publishers, and Peter F.
-% Patel-Schneider, of AT\&T Bell Laboratories collaborated on their
-% preparation. 
-
-% These instructions can be modified and used in other conferences as long
-% as credit to the authors and supporting agencies is retained, this notice
-% is not changed, and further modification or reuse is not restricted.
-% Neither Shirley Jowell nor Peter F. Patel-Schneider can be listed as
-% contacts for providing assistance without their prior permission.
-
-% To use for other conferences, change references to files and the
-% conference appropriate and use other authors, contacts, publishers, and
-% organizations.
-% Also change the deadline and address for returning papers and the length and
-% page charge instructions.
-% Put where the files are available in the appropriate places.
-
-
-%%%%%% Start: Kelvin's Packages %%%%%% 
+%%%%%% Kelvin's Packages %%%%%% 
 \usepackage{vector}  % Allows "\bvec{}" and "\buvec{}" for "blackboard" style bold vectors in maths
 \usepackage{bm}
 \usepackage{amsmath}
@@ -38,16 +11,10 @@
 \usepackage[usenames, dvipsnames]{color} % pdfLaTeX
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
-
+\newcommand{\incite}[1]{\citeauthor{#1} [\citeyear{#1}]}
 \title{Receding Horizon Informative Seafloor Exploration using Linearised Differential Entropy of Gaussian Process Classifiers}
-% Informative Path Planning with Gaussian Process Classifiers for Seafloor Exploration
-% Receding Horizon Approach to Informative Seafloor Exploration with Gaussian Process Classifiers
-% Receding Horizon Approach to Informative Seafloor Exploration with Linearised Differential Entropy of Gaussian Process Classifiers
-
 \author{Kelvin YS Hsu, Stefan B Williams, Simon O Callaghan \\ University of Sydney, Australia \\ 
 Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com.au}
-
-
 
 \begin{document}
 
@@ -60,7 +27,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 \section{Introduction}
 \label{Section:Introduction}
 
-	Autonomous underwater vehicles (AUVs) are now capable of efficiently collecting information and observations from natural environments of large spatial scale. In the case of Benthic habitat mapping, AUVs collect imagery data of seafloor environments, which are clustered into Benthic labels that summarises the corresponding Benthic environment. \citeauthor{Steinberg2015128} [\citeyear{Steinberg2015128}] uses Gaussian latent Dirichlet allocation (LDA) to perform unsupervised clustering on Benthic imagery, producing 22 unique Benthic class labels in the case of Scott Reef, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting. This unsupervised clustering approach releases the burden on human experts to analyse collected imagery exhaustively and thus remove a significant bottleneck in the habitat mapping process.
+	Autonomous underwater vehicles (AUVs) are now capable of efficiently collecting information and observations from natural environments of large spatial scale. In the case of Benthic habitat mapping, AUVs collect imagery data of seafloor environments, which are clustered into Benthic labels that summarises the corresponding Benthic environment. \incite{Steinberg2015128} uses Gaussian latent Dirichlet allocation (LDA) to perform unsupervised clustering on Benthic imagery, producing 22 unique Benthic class labels in the case of Scott Reef, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting. This unsupervised clustering approach releases the burden on human experts to analyse collected imagery exhaustively and thus remove a significant bottleneck in the habitat mapping process.
 	
 	Nevertheless, the immense spatial scale of the Benthic seafloor to be explored implies that it is impractical to map exhaustively the entire region of interest (ROI) under any reasonable time and cost. Furthermore, AUV missions are limited by power supply, data storage, and computational capabilities. As such, AUVs must prioritise exploring sub-domains of the ROI that ideally withhold the most important and valuable information regarding the entire ROI, and achieve so in the shortest time possible.
 	
@@ -79,7 +46,36 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 \section{Related Work}
 \label{Section:RelatedWork}
 
-	\cite{AsherBender}
+	One of the main challenges of informative path planning include selecting the appropriate acquisition function suitable for the type of exploration task at hand. The effectiveness of an acquisition function that measures mutual information throughout any given path has been thoroughly investigated in the Benthic habitat mapping context. \incite{AsherBender} uses an acquisition criterion given by \eqref{Equation:AsherBenderAcquisitionCriterion} where $\pi^{m}_{i}$ is the probability of the habitat label being a member of class $m$ at query location $i$. 
+	
+	\begin{equation}
+		H = \frac{1}{n^{\star}} \sum_{i = 1}^{n^{\star}} \sum_{m = 1}^{c} \pi^{m}_{i} \log(\pi^{m}_{i})
+	\label{Equation:AsherBenderAcquisitionCriterion}
+	\end{equation}
+	
+	For a given query point $i$, $\sum_{m = 1}^{c} \pi^{m}_{i} \log(\pi^{m}_{i})$ is exactly the prediction information entropy (PIE) at that point, which captures the local model uncertainty. As a result, the acquisition criterion given in \eqref{Equation:AsherBenderAcquisitionCriterion} is the mean, or average, of the marginalised PIE, which does not capture mutual information through considering the joint distributions of the class labels across multiple query points. We will refer to this acquisition criterion as MIE for mean of information entropy. Instead, the quality of the habitat models are assessed by utility functions that evaluate the confidence of the GP classifier prediction, which is the difference of the MIE before and after an observation is made \eqref{Equation:AsherBenderMutualInformationCriterion} \cite{Rigby:ROB20372}. This mutual information criterion is used in conjunction with a GP classifier under probabilistic least squares approximation to optimise selected survey paths through considering the differential entropy across the entire region of interest (ROI). Below, we define $X, y$ to be the observed feature locations and habitat labels, $X^{\star}$ to be the unobserved query locations, and $X_{p}, y_{p}$ to be the observations made after traversing the proposed path.
+
+	\begin{equation}
+		I = H[X^{\star} | X, y] - H[X^{\star} | X \cup X_{p}, y \cup y_{p}]
+	\label{Equation:AsherBenderMutualInformationCriterion}
+	\end{equation}
+	
+	\incite{Krause:2008:NSP:1390681.1390689} instead focuses on sensor placement methodologies to optimse mutual information gained. This aims to reduce predictive variance at all query points. The chosen acquisition function is the difference between the MIE at all \textit{final} unobserved locations $X^{\star} \backslash X_{p}$ before and after the observations are taken.
+	
+	\begin{equation}
+		I = H[X^{\star} \backslash X_{p} | X, y] - H[X^{\star} \backslash X_{p} | X \cup X_{p}, y \cup y_{p}]
+	\label{Equation:KrauseAcquisitionCriterion}
+	\end{equation}
+	
+	Under the GP classification model, however, this results in an integral that can only be estimated through sampling techniques which are computationally expensive. As such, computationally tractable methods usually employ experimental design philosophies in minimising the predictive variance \cite{AsherBender}.
+	
+	\incite{Kapoor} demonstrates the use of posterior mean and covariance of the latent function. While this approach takes full advantage of the analytical forms available for a Gaussian latent process, it does not consider the mutual behaviour of the unobserved locations with the proposed path.
+	
+	On the other hand, \incite{Roman:SequentialBayesianOptimisation} approaches the problem from a continuous path planning perspective for UAVs in which two Gaussian processes are used - one to model the phenomenon and another to assess the quality of proposed paths. However, this layered Sequential Bayesian Optimisation approach is primarily devised for a regression setting which becomes intractable when performed in the classification domain.
+	
+	Much of the intractability discussed in such literature can trace its reason down to the fact that Benthic habitat mapping is a classification problem instead of a regression problem. While Gaussian process regression provide analytical forms for inference, due to a non-Gaussian likelihood response, Gaussian process classification is no longer analytically tractable. Instead, several approximations must be made. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \cite{GaussianProcessForMachineLearning}.
+	
+	In this paper, we employ Laplace approximation with a probit likelihood response, and further address the tractability status of the technique through proposing an alternative acquisition criterion that captures mutual information. In the current literature, acquisition criterion either do not directly capture mutual information, such as \eqref{Equation:AsherBenderAcquisitionCriterion}, or take too long to compute due to required estimations from sampling, such as \eqref{Equation:KrauseAcquisitionCriterion}. We show that linearised differential entropy (LDE) as an acquisition function captures an appropriate form of mutual information. Specifically, it regularises between reducing mutual bias and mutual uncertainty through taking advantage of the structure of both the latent mean and covariance, as well as the non-Gaussian likelihood response. Tractability of the approach is further improved through a linearisation approximation on such an acquisition criterion.
 
 \section{Linearised Differential Entropy of Gaussian Process Classifiers}
 \label{Section:LinearisedEntropy}
@@ -125,13 +121,6 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		\end{figure}
 			
 		As the predictive probabilities are nonlinear transformations of the Gaussian distributed latent vector, they are no longer Gaussian distributed. In order to retain analytical tractability, we propose linearising the response function about the latent expectance $\bar{f}^{\star}_{i} := \mathbb{E}[f^{\star}_{i}]$. Figure \ref{Figure:Linearisation} illustrates the linearisation accuracy for a probit response. Observe that points with latent expectance far away from zero translate to near zero predictive variance even under high latent variance. Linearisation is thus very accurate for those points. For points with latent expectances near zero, we require the latent variances to be sufficiently small for linearisation to be accurate.
-
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/binary_linearised_entropy_horizontal/Figure1.png}
-		\caption{Binary Classifier Example}
-		\label{Figure:Results:BinaryLinearisedEntropy}
-		\end{figure}
 		
 		\subsubsection{Derivation}
 		
@@ -166,15 +155,8 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			^{\star}\pi^{m}_{i} = \sigma^{m}(^{\star}\vec{f}_{i}) := \frac{\exp(^{\star}f^{m}_{i})}{\sum_{l = 1}^{c} \exp(^{\star}f^{l}_{i})} \qquad m \in \{1, 2, \dots, c\}
 		\label{Section:LinearisedEntropy:Equation:Softmax}
 		\end{equation}
-			
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/multiclass_linearised_entropy_horizontal/Figure1.png}
-		\caption{Multiclass Classifier Example}
-		\label{Figure:Results:MulticlassLinearisedEntropy}
-		\end{figure}
 		
-		In this derivation, we focus on the case of OVA, or One V.S. All, multiclass classification, where each class is trained against all other classes independently with a binary classifier. For $c$ classes, $c$ binary classifiers are trained independently and performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Section:LinearisedEntropy:Equation:Softmax}.
+		In this derivation, we focus on the case of OVA, or One V.S. All, multiclass classification, where each class is trained against all other classes independently with a binary classifier. For $c$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Section:LinearisedEntropy:Equation:Softmax}. This approach avoids the Monte Carlo sampling step in the inference stage of a typical GP multiclass classifier under Laplace Approximation \cite{GaussianProcessForMachineLearning}, and is thus faster in computational time. Furthermore, because each classifier is trained independently, both the learning stage and the prediction stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in under a receding horizon formulation, where the inference and prediction stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
 		
 		\subsubsection{Derivation}
 		
@@ -240,17 +222,28 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			\label{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}
 			\end{equation}			
 	
-	\subsection{Interpretation of Linearised differential entropy}
+	\subsection{Interpretation of Linearised Differential Entropy}
 	
-		It is worthwhile to remember that linearised differential entropy is not an approximation to the usual prediction information entropy - the former is a differential entropy on a multivariate Gaussian distribution and the later is an information entropy on the distribution of discrete class predictions combinations. They have different interpretations and both have advantageous properties under different settings. We propose using linearised differential entropy as an alternative acquisition function for informative path planning which can be more beneficial under specific exploration purposes.
+		It is worthwhile to remember that linearised differential entropy is not an approximation to the usual prediction information entropy - the former is a differential entropy on a multivariate Gaussian distribution and the later is an information entropy on the distribution of discrete class predictions combinations, which is a multivariate multinomial distribution. They have different interpretations and both can have advantageous properties under different scenarios. We propose using linearised differential entropy as an alternative acquisition function for informative path planning which can be more beneficial under specific exploration purposes.
 		
-		Here we compare the linearised differential entropy with the usual prediction information entropy of the Gaussian process classifier. For visualisation purposes, only the marginalised entropies are shown. We show examples where abundant information is available, where the difference in the properties in the two measures can be emphasized. 
+		Specifically, while the prediction information entropy (PIE) represents the confidence in the model, the linearised differential entropy (LDE) represents the the separability of classes in the feature space. In fact, LDE quantifies the ambiguity of the predictive probabilities. In particular, it is possible for GP multiclass classifiers to conclude low predictive variance even under uncertain predictive probabilities. In this case, the LDE would be high while the PIE would be low at such locations, indicating that the model is confident about its inability to separate classes \cite{AsherBender}. Similar to the bias-variance trade-off, such a situation indicate high bias, and is distinct from a model that is unconfident about its ability to separate classes, which would correspond to high variance. This demonstrates that PIE and LDE are two complementary measures of entropy that can assist each other in identifying both places of high bias and high variance.
+		
+		In the case of informative path planning, a measure of mutual information is required. While the formulation of LDE readily incorporates joint distributions \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}, to obtain the joint PIE one would need to perform estimations from techniques such as Monte Carlo sampling. We refer to the latter as Monte Carlo estimated Joint Information Entropy (MCJIE).
+		
+		Here we compare linearised differential entropy and the usual prediction information entropy of a Gaussian process classifier. For visualisation purposes, only the marginalised entropies across the feature space are shown. We show examples where abundant information is available, so that the difference in the properties in the two measures can be emphasized. 
+		
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/binary_linearised_entropy_horizontal/Figure1.png}
+		\caption{GP binary classifier: prediction information entropy and linearised differential entropy under abundant data}
+		\label{Figure:Results:BinaryLinearisedEntropy}
+		\end{figure}
 		
 		Figure \ref{Figure:Results:BinaryLinearisedEntropy} show a simple binary classification problem with abundant data on features $x_{1}$ and $x_{2}$, allowing a misclassification rate of 2.155\%. The classifier is trained with an axis aligned Gaussian kernel with a probit response under Laplace approximation. 
 
 		In this example, there are no training points around the edges shown. As a result, the GP classifier learns a slightly lower signal to noise ratio in the latent function, and bounces back to its latent GP prior for which it remains uncertain regarding class label assignments. The prediction information entropy reflects this change more rapidly, so that it is high both at the decision boundaries and wherever observations are lacking. If the acquisition function for informative exploration is a function of the prediction information entropy, the vehicle would be suggested to explore both places with lacking observations and the decision boundaries. 
 		
-		On the other hand, linearised differential entropy focuses on the decision boundary as it is constructed to be only high when the latent function is near zero \ref{Figure:Linearisation}. We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy emphasizes on where the latent expectance is close to zero, and filters out the rest. If the linearised differential entropy is used as the acquisition function, the vehicle would focus on the decision boundaries within the feature space. Notice that regions far away from observations in the feature space are also assigned with high linearised differential entropy, as the latent function bounces back to its prior, so that the vehicle would explore those parts of the feature space if necessary.
+		On the other hand, linearised differential entropy focuses on the decision boundary as it is constructed to be only high when the latent function is near zero (figure \ref{Figure:Linearisation}). We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy emphasizes on where the latent expectance is close to zero, and filters out the rest. If the linearised differential entropy is used as the acquisition function, the vehicle would focus on the decision boundaries within the feature space. Notice that regions far away from observations in the feature space are also assigned with high linearised differential entropy, as the latent function bounces back to its prior, so that the vehicle would explore those parts of the feature space if necessary.
 		
 %		Intuitively, under abundant data, we would like the classifier to only indicate high entropies at decision boundaries. In figure \ref{Figure:Results:BinaryLinearisedEntropy}, we see that the prediction information entropy is indeed near its maximum at the predict decision boundaries. As an artefact of the Laplace approximation, however, it is also quite high around the edges where the classifier has learned a slightly lower signal to noise ratio. As there are no data points around the edges, the GP classifier learns a latent function that bounces back to its latent GP prior for which it remains uncertain regarding the class labels. 
 		
@@ -260,9 +253,16 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		
 		This demonstrates the advantage of linearised differential entropy. We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy is only high at the predicted decision boundaries. Note that the colour scale has been centred around zero differential entropy. Under such an acquisition function, the vehicle would focus strictly on the mapping the predicted decision boundaries better.
 		
-		Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. This classifier is trained through an one v.s. all approach with 4 binary classifiers using the same setup described above. Clearly the same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/multiclass_linearised_entropy_horizontal/Figure1.png}
+		\caption{GP multiclass classifier: prediction information entropy and linearised differential entropy under abundant data}
+		\label{Figure:Results:MulticlassLinearisedEntropy}
+		\end{figure}
 		
-		In the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the Monte Carlo Joint Information Entropy Method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.
+		Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. The same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
+		
+%		In the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the MCJIE method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.
 		
 \section{Receding Horizon Approach to Informative Path Planning}
 \label{Section:RecedingHorizonFormulation}
@@ -273,7 +273,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 	
 		The receding horizon approach is inspired by the philosophy of model predictive control (MPC) in control theory, for which a continuous problem is discretised and an optimal control problem is transcribed into a static optimisation problem at each time step. Similar to MPC, while receding horizon methods are almost always suboptimal, it provides a computationally tractable approach that is rather stable in performance. Furthermore, a receding horizon approach avoids a myopic, or greedy, approach to informative path planning. Myopic approaches often result in the vehicle fixating on a region with local maximum entropy due to its inability to sacrifice immediate gain for future gains in a faraway region. Lastly, a receding horizon approach is simple to implement and sufficient for most missions for which, instead of optimality, only stability of information gain is desired. 
 		
-		Informative path planning is a highly dynamical process in which the observations the vehicle decides to take can significantly impact the belief space of the vehicle and hence alter its action. As a result, Gaussian processes are often used for modeling the environment for which path planning is to be performed. The tractability of Gaussian processes regression allows sophisticated methods for informative path planning, such as  performing sequential Bayesian optimisation to achieve informative path planning over continuous domains \cite{SequentialBayesianOptimisation}. One desired property we would like to achieve with an informative path planning problem is that the search is non-myopic. When the objective is to collect data on a particular spatial phenomenon, Gaussian process regression can be used as the model under which strong theoretical performance guarantees can be made \cite{Meliou:2007:NIP:1619645.1619742}. However, in the case where the objective is to collect data in the form of discrete labels, a Gaussian process classifier is used instead for modeling the phenomenon. As discussed earlier, the joint entropy from a Gaussian process classifier is not available in closed form. Instead, another measure of joint entropy was developed in the previous section which demonstrated desired properties for informative exploration. To take advantage of the tractability of linearised differential entropy over finite collections of query points, we discretise the spatial domain and select paths composed of finitely many query points. The acquisition criterion is then set to be the linearised differential entropy of the query points that compose the path.
+		Informative path planning is a highly dynamical process in which the observations the vehicle decides to take can significantly impact the belief space of the vehicle and hence alter its action. As a result, Gaussian processes are often used for modeling the environment for which path planning is to be performed. The tractability of Gaussian processes regression allows sophisticated methods for informative path planning, such as  performing sequential Bayesian optimisation to achieve informative path planning over continuous domains \cite{Roman:SequentialBayesianOptimisation}. One desired property we would like to achieve with an informative path planning problem is that the search is non-myopic. When the objective is to collect data on a particular spatial phenomenon, Gaussian process regression can be used as the model under which strong theoretical performance guarantees can be made \cite{Meliou:2007:NIP:1619645.1619742}. However, in the case where the objective is to collect data in the form of discrete labels, a Gaussian process classifier is used instead for modeling the phenomenon. As discussed earlier, the joint entropy from a Gaussian process classifier is not available in closed form. Instead, another measure of joint entropy was developed in the previous section which demonstrated desired properties for informative exploration. To take advantage of the tractability of linearised differential entropy over finite collections of query points, we discretise the spatial domain and select paths composed of finitely many query points. The acquisition criterion is then set to be the linearised differential entropy of the query points that compose the path.
 
 		
 	\subsection{Outline of Method}
