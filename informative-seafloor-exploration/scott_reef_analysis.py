@@ -919,7 +919,8 @@ def main():
         # Move on to the next step
         i_trials += 1
     
-        np.savez('%shistory.npz' % full_directory, 
+        if (i_trials % 25) == 0:
+        np.savez('%shistory%d.npz' % (full_directory, i_trials), 
             learned_classifier = learned_classifier,
             miss_ratio_array = miss_ratio_array,
             yq_lde_mean_array = yq_lde_mean_array,
