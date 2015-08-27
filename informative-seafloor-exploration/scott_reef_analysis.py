@@ -54,7 +54,7 @@ def main():
     N_DRAWS = sea.io.parse('-ndraws', 500)
 
     FONTSIZE = 50
-    FONTNAME = 'Helvetica'
+    FONTNAME = 'Sans Serif'
     TICKSIZE = 24
 
     # NOTRAIN = True
@@ -120,6 +120,7 @@ def main():
         'xtick.labelsize': 16,
         'ytick.labelsize': 16,
         # 'text.usetex': True,
+        # 'family': 'Helvetica',
         'figure.figsize': sea.vis.fig_size(350.0)
     }
 
@@ -478,6 +479,7 @@ def main():
                 yq_pred = yq_pred, yq_mie = yq_mie, yq_lde = yq_lde,
                 white_params = white_params)
     if MODEL_ONLY:
+        plt.show()
         return
 
     """Informative Seafloor Exploration: Setup"""
