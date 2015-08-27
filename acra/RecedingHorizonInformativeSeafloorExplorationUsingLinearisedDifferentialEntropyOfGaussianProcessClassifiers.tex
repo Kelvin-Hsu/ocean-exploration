@@ -10,6 +10,8 @@
 \usepackage{graphicx}
 \usepackage{psfrag}
 \usepackage{epstopdf}
+%\usepackage{tikz}
+%\usetikzlibrary{shapes,arrows,chains}
 \usepackage[usenames, dvipsnames]{color} % pdfLaTeX
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
@@ -117,7 +119,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 	
 		\begin{figure}[!htbp]
 			\centering
-				\includegraphics[width = \linewidth]{Figures/linearisation.png}
+				\includegraphics[width = \linewidth]{Figures/linearisation.eps}
 			\caption{Linearisation accuracy for a probit response: Green shade represents the latent variance while blue shade represents the predictive variance. Gold lines show local linearisation about latent expectance.}
 			\label{Figure:Linearisation}
 		\end{figure}
@@ -236,7 +238,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		
 		\begin{figure}[!htbp]
 		\centering
-			\includegraphics[width = \linewidth]{Figures/binary_linearised_entropy_horizontal/Figure1.png}
+			\includegraphics[width = \linewidth]{Figures/binary.eps}
 		\caption{GP binary classifier: prediction information entropy and linearised differential entropy under abundant data}
 		\label{Figure:Results:BinaryLinearisedEntropy}
 		\end{figure}
@@ -257,7 +259,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		
 		\begin{figure}[!htbp]
 		\centering
-			\includegraphics[width = \linewidth]{Figures/multiclass_linearised_entropy_horizontal/Figure1.png}
+			\includegraphics[width = \linewidth]{Figures/multiclass.eps}
 		\caption{GP multiclass classifier: prediction information entropy and linearised differential entropy under abundant data}
 		\label{Figure:Results:MulticlassLinearisedEntropy}
 		\end{figure}

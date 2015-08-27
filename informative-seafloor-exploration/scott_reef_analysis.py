@@ -115,13 +115,12 @@ def main():
                
     rcparams = {
         'backend': 'pdf',
-        'axes.labelsize': 20,
-        'text.fontsize': 20,
-        'legend.fontsize': 20,
-        'xtick.labelsize': 16,
-        'ytick.labelsize': 16,
-        # 'text.usetex': True,
-        # 'family': 'Helvetica',
+        'axes.labelsize': TICKSIZE,
+        'text.fontsize': FONTSIZE,
+        'legend.fontsize': FONTSIZE,
+        'xtick.labelsize': TICKSIZE,
+        'ytick.labelsize': TICKSIZE,
+        'text.usetex': True,
         'figure.figsize': sea.vis.fig_size(350.0)
     }
 
@@ -267,7 +266,7 @@ def main():
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_unique,
         vis_range = vis_range, aspect_equal = True, 
         fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
-    plt.tight_layout()
+    fig.tight_layout()
 
     """Visualise Features at Sampled Query Locations"""
     for k in range(k_features):
@@ -288,7 +287,8 @@ def main():
             clabel = '%s (Whitened)' % feature_names[k],
             vis_range = vis_range, aspect_equal = True, 
             fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
-        plt.tight_layout()
+        fig.tight_layout()
+        logging.info('Plotted feature map for: %s' % feature_names[k])
 
     """Classifier Training"""
     logging.info('===Begin Classifier Training===')
@@ -402,7 +402,7 @@ def main():
         vis_range = vis_range, aspect_equal = True, 
         fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
         axis_scale = 1e3)
-    plt.tight_layout()
+    fig.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
@@ -411,14 +411,13 @@ def main():
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
     sea.vis.describe_plot(
-        title = 'Predictions [Miss Ratio: {0:.2f}%]'.format(
-                100 * miss_ratio), 
+        title = 'Predictions [Miss Ratio: {0:.2f}\%]'.format(100 * miss_ratio), 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True, 
         fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
         axis_scale = 1e3)
-    plt.tight_layout()
+    fig.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
@@ -431,7 +430,7 @@ def main():
         vis_range = vis_range, aspect_equal = True, 
         fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
         axis_scale = 1e3)
-    plt.tight_layout()
+    fig.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
@@ -444,7 +443,7 @@ def main():
         vis_range = vis_range, aspect_equal = True, 
         fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
         axis_scale = 1e3)
-    plt.tight_layout()
+    fig.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
@@ -457,7 +456,7 @@ def main():
         vis_range = vis_range, aspect_equal = True, 
         fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
         axis_scale = 1e3)
-    plt.tight_layout()
+    fig.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
@@ -470,7 +469,7 @@ def main():
         vis_range = vis_range, aspect_equal = True, 
         fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
         axis_scale = 1e3)
-    plt.tight_layout()
+    fig.tight_layout()
     
     """Save Results"""
 
@@ -486,7 +485,6 @@ def main():
                 yq_pred = yq_pred, yq_mie = yq_mie, yq_lde = yq_lde,
                 white_params = white_params)
     if MODEL_ONLY:
-        plt.show()
         return
 
     """Informative Seafloor Exploration: Setup"""
@@ -742,7 +740,7 @@ def main():
             head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
         # Save the plot
-        plt.tight_layout()
+        fig1.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%slde%d.png' 
             % (full_directory, i_trials + 1))
@@ -757,7 +755,7 @@ def main():
         sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
 
         # Save the plot
-        plt.tight_layout()
+        fig1.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%slde_propose%d.png' 
             % (full_directory, i_trials + 1))
@@ -792,7 +790,7 @@ def main():
             cmap = mycmap)
 
         # Save the plot
-        plt.tight_layout()
+        fig3.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%smie%d.png' 
             % (full_directory, i_trials + 1))
@@ -814,7 +812,7 @@ def main():
         sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
 
         # Save the plot
-        plt.tight_layout()
+        fig3.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%smie_propose%d.png' 
             % (full_directory, i_trials + 1))
@@ -833,7 +831,7 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
         sea.vis.describe_plot(
-            title = 'Predictions [Miss Ratio: {0:.2f}%]'.format(
+            title = 'Predictions [Miss Ratio: {0:.2f}\%]'.format(
                 100 * miss_ratio), 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
@@ -859,7 +857,7 @@ def main():
             head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
         # Save the plot
-        plt.tight_layout()
+        fig4.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%spred%d.png' 
             % (full_directory, i_trials + 1))
@@ -875,7 +873,7 @@ def main():
         sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
 
         # Save the plot
-        plt.tight_layout()
+        fig4.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%spred_propose%d.png' 
             % (full_directory, i_trials + 1))
@@ -893,7 +891,7 @@ def main():
         ax = plt.subplot(4, 1, 1)
         plt.plot(steps_array, 100 * miss_ratio_array[:(i_trials + 1)])
         plt.title('Percentage of Prediction Misses', fontsize = fontsize)
-        plt.ylabel('Misses (%)', fontsize = fontsize)
+        plt.ylabel('Misses (\%)', fontsize = fontsize)
         ax.set_xticklabels( () )
 
         ax = plt.subplot(4, 1, 2)
@@ -923,7 +921,7 @@ def main():
             tick.label.set_fontsize(ticksize) 
 
         # Save the plot
-        plt.tight_layout()
+        fig5.tight_layout()
         plt.savefig('%shistory%d.png' 
             % (full_directory, i_trials + 1))
         logging.info('Plotted and Saved Iteration')

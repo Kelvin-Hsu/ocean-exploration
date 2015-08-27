@@ -131,13 +131,13 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
     axis_tick_font_size = 24
     
     params = {
-        'backend': 'pdf',
-        'axes.labelsize': 10,
-        'text.fontsize': 10,
-        'legend.fontsize': 10,
-        'xtick.labelsize': 8,
-        'ytick.labelsize': 8,
-        # 'text.usetex': True,
+        'backend': 'ps',
+        # 'axes.labelsize': 10,
+        # 'text.fontsize': 10,
+        # 'legend.fontsize': 10,
+        # 'xtick.labelsize': 8,
+        # 'ytick.labelsize': 8,
+        'text.usetex': True,
         'figure.figsize': fig_size(350.0)
     }
 
@@ -171,34 +171,35 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
     ax1.legend(bbox_to_anchor = (0., 0.0, 1., .05), loc = 3,
            ncol = ncol, borderaxespad = 0., fontsize = label_font_size)
 
-    plt.subplot(3, 1, 1)
-    plt.title('Percentage of Prediction Misses', fontsize = fontsize)
-    plt.ylabel('Misses (%)', fontsize = fontsize)
-    plt.gca().set_xticklabels( () )
+    ax1.set_title('Percentage of Prediction Misses', fontsize = fontsize)
+    ax1.set_ylabel('Misses (\%)', fontsize = fontsize)
+    ax1.set_xticklabels( () )
 
-    plt.subplot(3, 1, 2)
-    plt.title('Average Marginalised Linearised Differential Entropy', fontsize = fontsize)
-    plt.ylabel('Entropy (nats)', fontsize = fontsize)
-    plt.gca().set_xticklabels( () )
+    ax2.set_title('Average Marginalised Linearised Differential Entropy', fontsize = fontsize)
+    ax2.set_ylabel('Entropy (nats)', fontsize = fontsize)
+    ax2.set_xticklabels( () )
 
-    plt.subplot(3, 1, 3)
-    plt.title('Average Marginalised Information Entropy', fontsize = fontsize)
-    plt.ylabel('Entropy (nats)', fontsize = fontsize)
-    plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
-    
-    plt.gca().set_xlabel('Distance Traveled (km)', fontsize = fontsize)
-    for tick in plt.gca().xaxis.get_major_ticks():
-        tick.label.set_fontsize(axis_tick_font_size) 
-    for tick in plt.gca().yaxis.get_major_ticks():
-        tick.label.set_fontsize(axis_tick_font_size) 
+    ax3.set_title('Average Marginalised Information Entropy', fontsize = fontsize)
+    ax3.set_ylabel('Entropy (nats)', fontsize = fontsize)
+    ax3.get_xaxis().get_major_formatter().set_useOffset(False)
+    ax3.set_xlabel('Distance Traveled (km)', fontsize = fontsize)
 
-    ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/1e3))
-    plt.gca().xaxis.set_major_formatter(ticks)
-    plt.gca().yaxis.set_major_formatter(ticks)
+    for tick in ax1.yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size)
+    for tick in ax2.yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size)
+    for tick in ax3.xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size)
+    for tick in ax3.yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size)
+
+    # ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/1e3))
+    # ax3.xaxis.set_major_formatter(ticks)
+    # ax3.yaxis.set_major_formatter(ticks)
 
     # Save the plot
-    plt.tight_layout()
-    plt.savefig('%scompare_%s.eps' % (directory, descript))
+    fig.tight_layout()
+    fig.savefig('%scompare_%s.eps' % (directory, descript))
 
 if __name__ == "__main__":
     main()
