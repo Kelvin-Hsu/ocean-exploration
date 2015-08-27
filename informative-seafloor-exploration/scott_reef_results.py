@@ -115,6 +115,13 @@ def obtain_data(directory, info):
         logging.info('Failed to obtain data for {0}'.format(info))
     return miss_ratio_array, yq_lde_mean_array, yq_mie_mean_array, info
 
+def fig_size(fig_width_pt):
+    inches_per_pt = 1.0/72.27               # Convert pt to inch
+    golden_mean = (np.sqrt(5) - 1.0)/2.0    # Aesthetic ratio
+    fig_width = fig_width_pt * inches_per_pt# width in inches
+    fig_height = fig_width * golden_mean    # height in inches
+    return fig_width, fig_height
+
 def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24):
 
     fig = plt.figure(figsize = (20, 20))
@@ -124,6 +131,18 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
 
     fontsize = 40
     axis_tick_font_size = 24
+
+    params = {
+        'backend': 'ps',
+        'axes.labelsize': 10,
+        'text.fontsize': 10,
+        'legend.fontsize': 10,
+        'xtick.labelsize': 8,
+        'ytick.labelsize': 8,
+        'text.usetex': True,
+        'figure.figsize': fig_size(350.0)
+    }
+    plt.rc_context(params)
 
     ax1 = fig.add_subplot(311)
     ax2 = fig.add_subplot(312)
@@ -175,7 +194,7 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
 
     # Save the plot
     plt.tight_layout()
-    plt.savefig('%scompare_%s.png' % (directory, descript))
+    plt.savefig('%scompare_%s.eps' % (directory, descript))
 
 if __name__ == "__main__":
     main()
