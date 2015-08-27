@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import logging
 import time
+import matplotlib.ticker as ticker
 
 def main():
 
@@ -19,13 +20,13 @@ def main():
         directory3 = main_directory + 'loc4_20150817_214222__t200_q100000_ts250_qs500_method_LDE_start365000_8445000_hsteps30_horizon5000/'
         directory4 = main_directory + 'loc5_20150819_235323__t200_q100000_ts250_qs500_method_LDE_start380000_8446000_hsteps30_horizon5000/'
 
-        data0 = obtain_data(directory0, {'index': 0, 'label': 'Starting Location 1', 'steps': 200})
-        data1 = obtain_data(directory1, {'index': 1, 'label': 'Starting Location 2', 'steps': 200})
-        data2 = obtain_data(directory2, {'index': 2, 'label': 'Starting Location 3', 'steps': 200})
-        data3 = obtain_data(directory3, {'index': 3, 'label': 'Starting Location 4', 'steps': 200})
-        data4 = obtain_data(directory3, {'index': 4, 'label': 'Starting Location 5', 'steps': 200})
+        data0 = obtain_data(directory0, {'index': 0, 'label': 'Location 1', 'steps': 200})
+        data1 = obtain_data(directory1, {'index': 1, 'label': 'Location 2', 'steps': 200})
+        data2 = obtain_data(directory2, {'index': 2, 'label': 'Location 3', 'steps': 200})
+        data3 = obtain_data(directory3, {'index': 3, 'label': 'Location 4', 'steps': 200})
+        data4 = obtain_data(directory3, {'index': 4, 'label': 'Location 5', 'steps': 200})
 
-        plot_data(main_directory, data0, data1, data2, data3, data4, ncolors = 5, descript = 'locations')
+        plot_data(main_directory, data0, data1, data2, data3, data4, ncolors = 5, descript = 'locations', label_font_size = 24, ncol = 5)
         logging.info('Compared starting locations')
 
     # Comparing different horizons
@@ -39,7 +40,7 @@ def main():
         data1 = obtain_data(directory1, {'index': 1, 'label': 'Horizon: 7500 m', 'steps': 200})
         data2 = obtain_data(directory2, {'index': 2, 'label': 'Horizon: 6000 m', 'steps': 200})
 
-        plot_data(main_directory, data0, data1, data2, ncolors = 3, descript = 'horizons')
+        plot_data(main_directory, data0, data1, data2, ncolors = 3, descript = 'horizons', label_font_size = 30)
         logging.info('Compared horizons')
 
     # Compare with other methods
@@ -70,10 +71,10 @@ def main():
         data31 = obtain_data(directory31, {'index': 3, 'label': 'Location 2 with MCJIE', 'steps': 200})
         data40 = obtain_data(directory40, {'index': 4, 'label': 'Location 1 with MIE', 'steps': 200})
         data41 = obtain_data(directory41, {'index': 4, 'label': 'Location 2 with MIE', 'steps': 200})
-        data50 = obtain_data(directory50, {'index': 5, 'label': 'Location 1 with FIXED - SPIRAL', 'steps': 200})
-        data51 = obtain_data(directory51, {'index': 5, 'label': 'Location 2 with FIXED - SPIRAL', 'steps': 200})
-        data60 = obtain_data(directory60, {'index': 6, 'label': 'Location 1 with FIXED - LINES', 'steps': 200})
-        data61 = obtain_data(directory61, {'index': 6, 'label': 'Location 2 with FIXED - LINES', 'steps': 200})
+        data50 = obtain_data(directory50, {'index': 5, 'label': 'Location 1 with SPIRAL', 'steps': 200})
+        data51 = obtain_data(directory51, {'index': 5, 'label': 'Location 2 with SPIRAL', 'steps': 200})
+        data60 = obtain_data(directory60, {'index': 6, 'label': 'Location 1 with LINES', 'steps': 200})
+        data61 = obtain_data(directory61, {'index': 6, 'label': 'Location 2 with LINES', 'steps': 200})
 
         plot_data(main_directory, data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, data60, data61, ncolors = 7, descript = 'methods', label_font_size = 18)
         logging.info('Compared methods')
@@ -121,12 +122,12 @@ def fig_size(fig_width_pt):
     fig_height = fig_width * golden_mean    # height in inches
     return fig_width, fig_height
 
-def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24):
+def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24, ncol = 4):
 
     L = 0.0
     colors = cm.rainbow(np.linspace(0 + L, 1 - L, num = ncolors))
 
-    fontsize = 40
+    fontsize = 50
     axis_tick_font_size = 24
     
     params = {
@@ -168,7 +169,7 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
         ax3.plot(iterations_plt, yq_mie_plt, c = color, label = label)
 
     ax1.legend(bbox_to_anchor = (0., 0.0, 1., .05), loc = 3,
-           ncol = 4, borderaxespad = 0., fontsize = label_font_size)
+           ncol = ncol, borderaxespad = 0., fontsize = label_font_size)
 
     plt.subplot(3, 1, 1)
     plt.title('Percentage of Prediction Misses', fontsize = fontsize)
@@ -185,11 +186,15 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
     plt.ylabel('Entropy (nats)', fontsize = fontsize)
     plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
     
-    plt.gca().set_xlabel('Distance Traveled (m)', fontsize = fontsize)
+    plt.gca().set_xlabel('Distance Traveled (km)', fontsize = fontsize)
     for tick in plt.gca().xaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
+
+    ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/1e3))
+    plt.gca().xaxis.set_major_formatter(ticks)
+    plt.gca().yaxis.set_major_formatter(ticks)
 
     # Save the plot
     plt.tight_layout()

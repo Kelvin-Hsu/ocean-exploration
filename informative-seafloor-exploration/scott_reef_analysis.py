@@ -56,6 +56,7 @@ def main():
     FONTSIZE = 50
     FONTNAME = 'Sans Serif'
     TICKSIZE = 24
+    SAVE_TRIALS = 25
 
     # NOTRAIN = True
     """Model Options"""
@@ -399,7 +400,8 @@ def main():
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True, 
-        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
+        axis_scale = 1e3)
     plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -409,12 +411,13 @@ def main():
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
     sea.vis.describe_plot(
-        title = 'Query Predictions [Miss Ratio: {0:.2f}%]'.format(
+        title = 'Predictions [Miss Ratio: {0:.2f}%]'.format(
                 100 * miss_ratio), 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True, 
-        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
+        axis_scale = 1e3)
     plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -422,11 +425,12 @@ def main():
         Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = yq_mie, s = 5, cmap = cm.coolwarm, 
         colorcenter = 'none')
-    sea.vis.describe_plot(title = 'Query Prediction Information Entropy', 
+    sea.vis.describe_plot(title = 'Prediction Information Entropy', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Information Entropy',
         vis_range = vis_range, aspect_equal = True, 
-        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
+        axis_scale = 1e3)
     plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -434,11 +438,12 @@ def main():
         Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = np.log(yq_mie), s = 5, cmap = cm.coolwarm, 
         colorcenter = 'none')
-    sea.vis.describe_plot(title = 'Log Query Information Entropy', 
+    sea.vis.describe_plot(title = 'Log Prediction Information Entropy', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Information Entropy',
         vis_range = vis_range, aspect_equal = True, 
-        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
+        axis_scale = 1e3)
     plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -446,11 +451,12 @@ def main():
         Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = yq_lde, s = 5, cmap = cm.coolwarm, 
         colorcenter = colorcenter_lde)
-    sea.vis.describe_plot(title = 'Query Linearised Differential Entropy', 
+    sea.vis.describe_plot(title = 'Linearised Differential Entropy', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Differential Entropy',
         vis_range = vis_range, aspect_equal = True, 
-        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
+        axis_scale = 1e3)
     plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -458,11 +464,12 @@ def main():
         Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = yq_esd, s = 5, cmap = cm.coolwarm, 
         colorcenter = colorcenter_analysis)
-    sea.vis.describe_plot(title = 'Query Equivalent Standard Deviation', 
+    sea.vis.describe_plot(title = 'Equivalent Standard Deviation', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Standard Deviation',
         vis_range = vis_range, aspect_equal = True, 
-        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
+        axis_scale = 1e3)
     plt.tight_layout()
     
     """Save Results"""
@@ -660,10 +667,10 @@ def main():
         logging.info('Finished Learning')
 
         # This is the finite horizon optimal route
-        fqw_opt = feature_fn(xq_path, white_params)
+        fqw_path = feature_fn(xq_path, white_params)
         xq1_path = xq_path[:, 0][k_step:]
         xq2_path = xq_path[:, 1][k_step:]
-        yq_opt = gp.classifier.classify(gp.classifier.predict(fqw_opt, 
+        yq_path = gp.classifier.classify(gp.classifier.predict(fqw_path, 
             learned_classifier), y_unique)[k_step:]
 
         """ Computing Analysis Maps """
@@ -710,10 +717,12 @@ def main():
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = yq_lde, s = 5, 
             cmap = cm.coolwarm, colorcenter = colorcenter_lde)
-        sea.vis.describe_plot(title = 'Query Linearised Differential Entropy', 
+        sea.vis.describe_plot(title = 'Linearised Differential Entropy', 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Differential Entropy',
-            vis_range = vis_range, aspect_equal = True)
+            vis_range = vis_range, aspect_equal = True, 
+            fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
+            axis_scale = 1e3)
 
         # Plot the path on top
         sea.vis.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
@@ -735,11 +744,14 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%slde_step%d.eps' 
+        plt.savefig('%slde%d.png' 
             % (full_directory, i_trials + 1))
+        if (i_trials % SAVE_TRIALS) == 0:
+            plt.savefig('%slde%d.eps' 
+                % (full_directory, i_trials + 1))
 
         # Plot the proposed path
-        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
+        sea.vis.scatter(xq1_path, xq2_path, c = yq_path, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
         sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
@@ -747,57 +759,11 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%slde_propose_step%d.eps' 
+        plt.savefig('%slde_propose%d.png' 
             % (full_directory, i_trials + 1))
-
-        """ Equivalent Standard Deviation Map """
-
-        # Prepare Figure 2
-        plt.figure(fig2.number)
-        plt.clf()
-        sea.vis.scatter(
-            Xq[:, 0], Xq[:, 1], 
-            marker = 'x', c = yq_esd, s = 5, 
-            cmap = cm.coolwarm, colorcenter = colorcenter_analysis)
-        sea.vis.describe_plot(title = 'Query Equivalent Standard Deviation', 
-            xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
-            clabel = 'Standard Deviation',
-            vis_range = vis_range, aspect_equal = True)
-
-        # Plot the path on top
-        sea.vis.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
-            facecolors = 'none', 
-            vmin = y_unique[0], vmax = y_unique[-1], 
-            cmap = mycmap)
-        sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
-        sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
-            vmin = y_unique[0], vmax = y_unique[-1], 
-            cmap = mycmap)
-
-        # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
-            linewidth = 2, marker = '.')
-
-        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
-            head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
-
-        # Save the plot
-        plt.tight_layout()
-        plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%sesd_step%d.eps' 
-            % (full_directory, i_trials + 1))
-
-        # Plot the proposed path
-        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
-            s = 60, marker = 'D', 
-            vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
-        sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
-
-        # Save the plot
-        plt.tight_layout()
-        plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%sesd_propose_step%d.eps' 
-            % (full_directory, i_trials + 1))
+        if (i_trials % SAVE_TRIALS) == 0:
+            plt.savefig('%slde_propose%d.eps' 
+                % (full_directory, i_trials + 1))
 
         """ True Entropy Map """
 
@@ -808,10 +774,12 @@ def main():
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = yq_mie, s = 5, 
             cmap = cm.coolwarm, colorcenter = colorcenter_analysis)
-        sea.vis.describe_plot(title = 'Query Prediction Information Entropy', 
+        sea.vis.describe_plot(title = 'Prediction Information Entropy', 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Information Entropy',
-            vis_range = vis_range, aspect_equal = True)
+            vis_range = vis_range, aspect_equal = True, 
+            fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
+            axis_scale = 1e3)
 
         # Plot the path on top
         sea.vis.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
@@ -826,8 +794,11 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%smie_step%d.eps' 
+        plt.savefig('%smie%d.png' 
             % (full_directory, i_trials + 1))
+        if (i_trials % SAVE_TRIALS) == 0:
+            plt.savefig('%smie%d.eps' 
+                % (full_directory, i_trials + 1))
 
         # Plot the horizon
         gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
@@ -837,7 +808,7 @@ def main():
             head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
         # Plot the proposed path
-        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
+        sea.vis.scatter(xq1_path, xq2_path, c = yq_path, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
         sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
@@ -845,8 +816,11 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%smie_propose_step%d.eps' 
+        plt.savefig('%smie_propose%d.png' 
             % (full_directory, i_trials + 1))
+        if (i_trials % SAVE_TRIALS) == 0:
+            plt.savefig('%smie_propose%d.eps' 
+                % (full_directory, i_trials + 1))
 
         """ Class Prediction Map """
 
@@ -859,11 +833,13 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
         sea.vis.describe_plot(
-            title = 'Query Predictions [Miss Ratio: {0:.2f}%]'.format(
+            title = 'Predictions [Miss Ratio: {0:.2f}%]'.format(
                 100 * miss_ratio), 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
-            vis_range = vis_range, aspect_equal = True)
+            vis_range = vis_range, aspect_equal = True, 
+            fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, 
+            axis_scale = 1e3)
 
         # Plot the path on top
         sea.vis.scatter(xq1_nows, xq2_nows, c = yq_nows, s = 60, 
@@ -885,11 +861,15 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%spred_step%d.eps' 
+        plt.savefig('%spred%d.png' 
             % (full_directory, i_trials + 1))
+        if (i_trials % SAVE_TRIALS) == 0:
+            plt.savefig('%spred%d.eps' 
+                % (full_directory, i_trials + 1))
+
 
         # Plot the proposed path
-        sea.vis.scatter(xq1_path, xq2_path, c = yq_opt, 
+        sea.vis.scatter(xq1_path, xq2_path, c = yq_path, 
             s = 60, marker = 'D', 
             vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap)
         sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
@@ -897,9 +877,11 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%spred_propose_step%d.eps' 
+        plt.savefig('%spred_propose%d.png' 
             % (full_directory, i_trials + 1))
-
+        if (i_trials % SAVE_TRIALS) == 0:
+            plt.savefig('%spred_propose%d.eps' 
+                % (full_directory, i_trials + 1))
 
         # Prepare Figure 5
         plt.figure(fig5.number)
@@ -942,14 +924,14 @@ def main():
 
         # Save the plot
         plt.tight_layout()
-        plt.savefig('%shistory%d.eps' 
+        plt.savefig('%shistory%d.png' 
             % (full_directory, i_trials + 1))
         logging.info('Plotted and Saved Iteration')
 
         # Move on to the next step
         i_trials += 1
     
-        if (i_trials % 25) == 0:
+        if (i_trials % SAVE_TRIALS) == 0:
             np.savez('%shistory%d.npz' % (full_directory, i_trials), 
                 learned_classifier = learned_classifier,
                 miss_ratio_array = miss_ratio_array,
@@ -967,9 +949,25 @@ def main():
                 X_now = X_now,
                 Fw_now = Fw_now,
                 y_now = y_now,
+                xq1_path = xq1_path,
+                xq2_path = xq2_path,
+                fqw_path = fqw_path,
+                yq_path = yq_path,
                 xq1_nows = xq1_nows,
                 xq2_nows = xq2_nows,
-                yq_nows = yq_nows)
+                yq_nows = yq_nows,
+                vis_range = vis_range,
+                colorcenter_analysis = colorcenter_analysis,
+                y_unique = y_unique,
+                mycmap = mycmap,
+                i_trials = i_trials,
+                theta_stack_opt = theta_stack_opt,
+                theta_stack_init = theta_stack_init,
+                xq_path = xq_path,
+                xq_now = xq_now,
+                yq_now = yq_now,
+                i_observe = i_observe)
+
             logging.info('White Params: {0}'.format(white_params))
 
     np.savez('%shistory.npz' % full_directory, 
@@ -989,9 +987,24 @@ def main():
         X_now = X_now,
         Fw_now = Fw_now,
         y_now = y_now,
+        xq1_path = xq1_path,
+        xq2_path = xq2_path,
+        fqw_path = fqw_path,
+        yq_path = yq_path,
         xq1_nows = xq1_nows,
         xq2_nows = xq2_nows,
-        yq_nows = yq_nows)
+        yq_nows = yq_nows,
+        vis_range = vis_range,
+        colorcenter_analysis = colorcenter_analysis,
+        y_unique = y_unique,
+        mycmap = mycmap,
+        i_trials = i_trials,
+        theta_stack_opt = theta_stack_opt,
+        theta_stack_init = theta_stack_init,
+        xq_path = xq_path,
+        xq_now = xq_now,
+        yq_now = yq_now,
+        i_observe = i_observe)
 
     plt.show()
 
