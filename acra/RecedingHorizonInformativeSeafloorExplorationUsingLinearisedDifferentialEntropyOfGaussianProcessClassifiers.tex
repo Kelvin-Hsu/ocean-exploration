@@ -236,6 +236,8 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		
 		Here we compare linearised differential entropy and the usual prediction information entropy of a Gaussian process classifier. For visualisation purposes, only the marginalised entropies across the feature space are shown. We show examples where abundant information is available, so that the difference in the properties in the two measures can be emphasized. 
 		
+		Figure \ref{Figure:Results:BinaryLinearisedEntropy} show a simple binary classification problem with abundant data on features $x_{1}$ and $x_{2}$, allowing a misclassification rate of 2.155\%. The classifier is trained with an axis aligned Gaussian kernel with a probit response under Laplace approximation. 
+
 		\begin{figure}[!htbp]
 		\centering
 			\includegraphics[width = \linewidth]{Figures/binary.eps}
@@ -243,8 +245,6 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		\label{Figure:Results:BinaryLinearisedEntropy}
 		\end{figure}
 		
-		Figure \ref{Figure:Results:BinaryLinearisedEntropy} show a simple binary classification problem with abundant data on features $x_{1}$ and $x_{2}$, allowing a misclassification rate of 2.155\%. The classifier is trained with an axis aligned Gaussian kernel with a probit response under Laplace approximation. 
-
 		In this example, there are no training points around the edges shown. As a result, the GP classifier learns a slightly lower signal to noise ratio in the latent function, and bounces back to its latent GP prior for which it remains uncertain regarding class label assignments. The prediction information entropy reflects this change more rapidly, so that it is high both at the decision boundaries and wherever observations are lacking. If the acquisition function for informative exploration is a function of the prediction information entropy, the vehicle would be suggested to explore both places with lacking observations and the decision boundaries. 
 		
 		On the other hand, linearised differential entropy focuses on the decision boundary as it is constructed to be only high when the latent function is near zero (figure \ref{Figure:Linearisation}). We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy emphasizes on where the latent expectance is close to zero, and filters out the rest. If the linearised differential entropy is used as the acquisition function, the vehicle would focus on the decision boundaries within the feature space. Notice that regions far away from observations in the feature space are also assigned with high linearised differential entropy, as the latent function bounces back to its prior, so that the vehicle would explore those parts of the feature space if necessary.
@@ -257,15 +257,15 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		
 		This demonstrates the advantage of linearised differential entropy. We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy is only high at the predicted decision boundaries. Note that the colour scale has been centred around zero differential entropy. Under such an acquisition function, the vehicle would focus strictly on the mapping the predicted decision boundaries better.
 		
+		Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. The same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
+	
 		\begin{figure}[!htbp]
 		\centering
 			\includegraphics[width = \linewidth]{Figures/multiclass.eps}
 		\caption{GP multiclass classifier: prediction information entropy and linearised differential entropy under abundant data}
 		\label{Figure:Results:MulticlassLinearisedEntropy}
 		\end{figure}
-		
-		Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. The same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
-		
+			
 %		In the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the MCJIE method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.
 		
 \section{Receding Horizon Approach to Informative Path Planning}
