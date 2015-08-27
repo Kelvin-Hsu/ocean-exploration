@@ -15,22 +15,32 @@ params = {
     'legend.fontsize': 10,
     'xtick.labelsize': 8,
     'ytick.labelsize': 8,
-    # 'text.usetex': True,
+    'text.usetex': True,
     'figure.figsize': fig_size(350.0)
 };
 
 
 x = np.linspace(0, 5, 10)
 y = x ** 2
+z = x ** 3
 
 # for the publication-ready plots
 plt.rc_context(params)
 
-fig, axes = plt.subplots()
-axes.plot(x, y, 'r')
-axes.set_xlabel('x')
-axes.set_ylabel('y')
-axes.set_title('title')
+fig = plt.figure()
+axes1 = fig.add_subplot(211)
+axes2 = fig.add_subplot(212)
+
+axes1.plot(x, y, 'r')
+axes1.set_xlabel('x')
+axes1.set_ylabel('y')
+axes1.set_title('title')
+
+axes2.plot(x, z, 'b')
+axes2.set_xlabel('x')
+axes2.set_ylabel('z')
+axes2.set_title('title')
+
 fig.savefig('plot.eps')
 
 plt.show()

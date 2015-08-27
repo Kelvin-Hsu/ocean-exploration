@@ -22,6 +22,7 @@ function draw_sigmoid()
     ylabel('\it \sigma(f)');
     legend('Probit', 'Logistic')
     saveas(gcf, 'responses.png');
+    print -depsc2 responses.eps
     
     x0 = -10;
     y0 = -0.5;
@@ -44,11 +45,12 @@ function draw_sigmoid()
     
     function fill_compare(f, fbar)
 
+        fill_under(f, normcdf(f), [0, 0.9, 0.1], y0);
+        fill_left(f, normcdf(f), [0, 0.8, 1.0], x0);
         plot_join_axis(fbar, normcdf(fbar), x0, y0, 'k-.');
         L = @(f) linearised_normcdf(f, fbar);
         plot(x, L(x), '--', 'Color', [0.5, 0.5, 0], 'LineWidth', 0.5);
-        fill_under(f, normcdf(f), [0, 0.9, 0.1], y0);
-        fill_left(f, normcdf(f), [0, 0.8, 1.0], x0);
+
         % fill_left(f, L(f), [1, 0.2, 0], -10);
     end
     
@@ -74,6 +76,7 @@ function draw_sigmoid()
 
 
     saveas(gcf, 'linearisation.png');
+    print -depsc2 linearisation.eps
 end
 
 function y = logistic(x)

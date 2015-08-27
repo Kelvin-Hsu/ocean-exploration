@@ -144,7 +144,7 @@ def main():
 
     # Training
     fig = plt.figure()
-    gp.classifier.utils.visualise_decision_boundary(
+    gp.classifier.utils.visualise_decision_boundary(plt.gca(),
         test_range_min, test_range_max, decision_boundary)
     
     plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
@@ -260,11 +260,10 @@ def main():
     """
 
     # Training
-    plt.subplot(3, 2, 1)
-    gp.classifier.utils.visualise_map(yq_truth_plt, test_ranges, cmap = mycmap)
-    plt.title('Ground Truth', fontsize = fontsize)
-    plt.xlabel('x1', fontsize = fontsize)
-    plt.ylabel('x2', fontsize = fontsize)
+    gp.classifier.utils.visualise_map(ax1, yq_truth_plt, test_ranges, cmap = mycmap)
+    ax1.set_title('Ground Truth', fontsize = fontsize)
+    ax1.set_xlabel('x1', fontsize = fontsize)
+    ax1.set_ylabel('x2', fontsize = fontsize)
     cbar = plt.colorbar()
     cbar.set_ticks(y_unique)
     cbar.set_ticklabels(y_unique)
@@ -282,19 +281,17 @@ def main():
     """
 
     # Training
-    plt.subplot(3, 2, 2)
-    gp.classifier.utils.visualise_decision_boundary(
+    gp.classifier.utils.visualise_decision_boundary(ax2,
         test_range_min, test_range_max, decision_boundary)
-    
-    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    plt.title('Training Labels', fontsize = fontsize)
-    plt.xlabel('x1', fontsize = fontsize)
-    plt.ylabel('x2', fontsize = fontsize)
+    ax2.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    ax2.set_title('Training Labels', fontsize = fontsize)
+    ax2.set_xlabel('x1', fontsize = fontsize)
+    ax2.set_ylabel('x2', fontsize = fontsize)
     cbar = plt.colorbar()
     cbar.set_ticks(y_unique)
     cbar.set_ticklabels(y_unique)
-    plt.xlim((test_range_min, test_range_max))
-    plt.ylim((test_range_min, test_range_max))
+    ax2.set_xlim((test_range_min, test_range_max))
+    ax2.set_ylim((test_range_min, test_range_max))
     plt.gca().patch.set_facecolor('gray')
     logging.info('Plotted Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
@@ -356,12 +353,11 @@ def main():
     """
 
     # Query (Prediction Map)
-    plt.subplot(3, 2, 3)
-    gp.classifier.utils.visualise_map(yq_pred_plt, test_ranges, 
+    gp.classifier.utils.visualise_map(ax3, yq_pred_plt, test_ranges, 
         boundaries = True, cmap = mycmap)
-    plt.title('Prediction [Miss Ratio: %.3f %s]' % (100 * mistake_ratio, '%'), fontsize = fontsize)
-    plt.xlabel('x1', fontsize = fontsize)
-    plt.ylabel('x2', fontsize = fontsize)
+    ax3.set_title('Prediction [Miss Ratio: %.3f %s]' % (100 * mistake_ratio, '%'), fontsize = fontsize)
+    ax3.set_xlabel('x1', fontsize = fontsize)
+    ax3.set_ylabel('x2', fontsize = fontsize)
     cbar = plt.colorbar()
     cbar.set_ticks(y_unique)
     cbar.set_ticklabels(y_unique)
@@ -377,16 +373,15 @@ def main():
     """
 
     # Query (Prediction Entropy)
-    plt.subplot(3, 2, 4)
-    gp.classifier.utils.visualise_map(yq_entropy_plt, test_ranges, 
+    gp.classifier.utils.visualise_map(ax4, yq_entropy_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    plt.title('Prediction Information Entropy', fontsize = fontsize)
-    plt.xlabel('x1', fontsize = fontsize)
-    plt.ylabel('x2', fontsize = fontsize)
+    ax4.set_title('Prediction Information Entropy', fontsize = fontsize)
+    ax4.set_xlabel('x1', fontsize = fontsize)
+    ax4.set_ylabel('x2', fontsize = fontsize)
     plt.colorbar()
-    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    plt.xlim((test_range_min, test_range_max))
-    plt.ylim((test_range_min, test_range_max))
+    ax4.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    ax4.set_xlim((test_range_min, test_range_max))
+    ax4.set_ylim((test_range_min, test_range_max))
     logging.info('Plotted Prediction Entropy on Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
     for tick in plt.gca().xaxis.get_major_ticks():
@@ -399,19 +394,18 @@ def main():
     """
 
     # Query (Linearised Entropy)
-    plt.subplot(3, 2, 5)
     entropy_linearised_plt_min = entropy_linearised_plt.min()
     entropy_linearised_plt_max = entropy_linearised_plt.max()
-    gp.classifier.utils.visualise_map(entropy_linearised_plt, test_ranges, 
+    gp.classifier.utils.visualise_map(ax5, entropy_linearised_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm, 
         vmin = -entropy_linearised_plt_max, vmax = entropy_linearised_plt_max)
-    plt.title('Linearised Differential Entropy', fontsize = fontsize)
-    plt.xlabel('x1', fontsize = fontsize)
-    plt.ylabel('x2', fontsize = fontsize)
+    ax5.set_title('Linearised Differential Entropy', fontsize = fontsize)
+    ax5.set_xlabel('x1', fontsize = fontsize)
+    ax5.set_ylabel('x2', fontsize = fontsize)
     plt.colorbar()
-    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    plt.xlim((test_range_min, test_range_max))
-    plt.ylim((test_range_min, test_range_max))
+    ax5.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    ax5.set_xlim((test_range_min, test_range_max))
+    ax5.set_ylim((test_range_min, test_range_max))
     logging.info('Plotted Linearised Prediction Entropy on Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
     for tick in plt.gca().xaxis.get_major_ticks():
@@ -425,15 +419,15 @@ def main():
 
     # Query (Linearised Entropy)
     plt.subplot(3, 2, 6)
-    gp.classifier.utils.visualise_map(eq_sd_plt, test_ranges, 
+    gp.classifier.utils.visualise_map(ax6, eq_sd_plt, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    plt.title('Equivalent Standard Deviation', fontsize = fontsize)
-    plt.xlabel('x1', fontsize = fontsize)
-    plt.ylabel('x2', fontsize = fontsize)
+    ax6.set_title('Equivalent Standard Deviation', fontsize = fontsize)
+    ax6.set_xlabel('x1', fontsize = fontsize)
+    ax6.set_ylabel('x2', fontsize = fontsize)
     plt.colorbar()
-    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    plt.xlim((test_range_min, test_range_max))
-    plt.ylim((test_range_min, test_range_max))
+    ax6.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    ax6.set_xlim((test_range_min, test_range_max))
+    ax6.set_ylim((test_range_min, test_range_max))
     logging.info('Plotted Exponentiated Linearised Prediction Entropy (Equivalent Standard Deviation) on Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
     for tick in plt.gca().xaxis.get_major_ticks():
@@ -442,6 +436,8 @@ def main():
         tick.label.set_fontsize(axis_tick_font_size) 
 
     plt.tight_layout()
+    fig.savefig('binary.eps')
+    return
 
     """
     Plot: Sample Query Predictions

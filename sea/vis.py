@@ -49,9 +49,9 @@ def describe_plot(title = '', xlabel = '', ylabel = '', clabel = '',
     fontname = 'Helvetica', ticksize = 14, vis_range = None, 
     aspect_equal = True, axis_scale = 1):
 
-    plt.title(title, fontsize = fontsize, fontname = fontname)
-    plt.xlabel(xlabel, fontsize = fontsize, fontname = fontname)
-    plt.ylabel(ylabel, fontsize = fontsize, fontname = fontname)
+    plt.gca().set_title(title, fontsize = fontsize, fontname = fontname)
+    plt.gca().set_xlabel(xlabel, fontsize = fontsize, fontname = fontname)
+    plt.gca().set_ylabel(ylabel, fontsize = fontsize, fontname = fontname)
 
     for tick in plt.gca().xaxis.get_major_ticks():
         tick.label.set_fontsize(ticksize) 
@@ -65,8 +65,8 @@ def describe_plot(title = '', xlabel = '', ylabel = '', clabel = '',
     if cticklabels is not None:
         cbar.set_ticklabels(cticklabels)
     if vis_range is not None:
-        plt.xlim(vis_range[:2])
-        plt.ylim(vis_range[2:])
+        plt.gca().set_xlim(vis_range[:2])
+        plt.gca().set_ylim(vis_range[2:])
 
     ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/axis_scale))
     plt.gca().xaxis.set_major_formatter(ticks)
