@@ -8,7 +8,6 @@ import time
 
 def main():
 
-
     main_directory = "../../../Results/scott-reef/"
 
     # Comparing different starting locations
@@ -124,26 +123,26 @@ def fig_size(fig_width_pt):
 
 def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24):
 
-    fig = plt.figure(figsize = (20, 20))
-
     L = 0.0
     colors = cm.rainbow(np.linspace(0 + L, 1 - L, num = ncolors))
 
     fontsize = 40
     axis_tick_font_size = 24
-
+    
     params = {
-        'backend': 'ps',
+        'backend': 'pdf',
         'axes.labelsize': 10,
         'text.fontsize': 10,
         'legend.fontsize': 10,
         'xtick.labelsize': 8,
         'ytick.labelsize': 8,
-        'text.usetex': True,
+        # 'text.usetex': True,
         'figure.figsize': fig_size(350.0)
     }
+
     plt.rc_context(params)
 
+    fig = plt.figure(figsize = (20, 20))
     ax1 = fig.add_subplot(311)
     ax2 = fig.add_subplot(312)
     ax3 = fig.add_subplot(313)

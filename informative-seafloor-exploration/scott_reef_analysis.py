@@ -53,6 +53,8 @@ def main():
     M_STEP = sea.io.parse('-mstep', 1)
     N_DRAWS = sea.io.parse('-ndraws', 500)
 
+    FONTSIZE = 34
+    
     # NOTRAIN = True
     """Model Options"""
     SAVE_RESULTS = True
@@ -108,6 +110,19 @@ def main():
 
     assert len(y_names_all) == 25
                
+    rcparams = {
+        'backend': 'pdf',
+        'axes.labelsize': 20,
+        'text.fontsize': 20,
+        'legend.fontsize': 20,
+        'xtick.labelsize': 16,
+        'ytick.labelsize': 16,
+        # 'text.usetex': True,
+        'figure.figsize': sea.vis.fig_size(350.0)
+    }
+
+    plt.rc_context(rcparams)
+
     """Initialise Result Logging"""
     if SAVE_RESULTS:
         home_directory = "../../../Results/scott-reef/"
@@ -440,7 +455,8 @@ def main():
     """Visualise Query Draws"""
 
     if SAVE_RESULTS:
-        gp.classifier.utils.save_all_figures(full_directory)
+        gp.classifier.utils.save_all_figures(full_directory, 
+            axis_equal = True, extension = 'eps', rcparams = rcparams)
         shutil.copy2('./%s' % FILENAME , full_directory)
         np.savez('%sinitialmodel.npz' % full_directory, 
                 learned_classifier = learned_classifier,
@@ -705,7 +721,7 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%slde_step%d.png' 
+        plt.savefig('%slde_step%d.eps' 
             % (full_directory, i_trials + 1))
 
         # Plot the proposed path
@@ -717,7 +733,7 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%slde_propose_step%d.png' 
+        plt.savefig('%slde_propose_step%d.eps' 
             % (full_directory, i_trials + 1))
 
         """ Equivalent Standard Deviation Map """
@@ -754,7 +770,7 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%sesd_step%d.png' 
+        plt.savefig('%sesd_step%d.eps' 
             % (full_directory, i_trials + 1))
 
         # Plot the proposed path
@@ -766,7 +782,7 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%sesd_propose_step%d.png' 
+        plt.savefig('%sesd_propose_step%d.eps' 
             % (full_directory, i_trials + 1))
 
         """ True Entropy Map """
@@ -796,7 +812,7 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%smie_step%d.png' 
+        plt.savefig('%smie_step%d.eps' 
             % (full_directory, i_trials + 1))
 
         # Plot the horizon
@@ -815,7 +831,7 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%smie_propose_step%d.png' 
+        plt.savefig('%smie_propose_step%d.eps' 
             % (full_directory, i_trials + 1))
 
         """ Class Prediction Map """
@@ -855,7 +871,7 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%spred_step%d.png' 
+        plt.savefig('%spred_step%d.eps' 
             % (full_directory, i_trials + 1))
 
         # Plot the proposed path
@@ -867,7 +883,7 @@ def main():
         # Save the plot
         plt.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
-        plt.savefig('%spred_propose_step%d.png' 
+        plt.savefig('%spred_propose_step%d.eps' 
             % (full_directory, i_trials + 1))
 
 
@@ -912,7 +928,7 @@ def main():
 
         # Save the plot
         plt.tight_layout()
-        plt.savefig('%shistory%d.png' 
+        plt.savefig('%shistory%d.eps' 
             % (full_directory, i_trials + 1))
         logging.info('Plotted and Saved Iteration')
 

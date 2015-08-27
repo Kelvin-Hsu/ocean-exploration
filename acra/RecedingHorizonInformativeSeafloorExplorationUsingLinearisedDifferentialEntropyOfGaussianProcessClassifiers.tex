@@ -8,6 +8,8 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{psfrag}
+\usepackage{epstopdf}
 \usepackage[usenames, dvipsnames]{color} % pdfLaTeX
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
@@ -277,12 +279,12 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 
 	\begin{figure*}[!htbp]
 	\centering
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure1.png}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure2.png}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure3.png}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure4.png}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure5.png}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure6.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure1.eps}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure2.eps}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure3.eps}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure4.eps}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure5.eps}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure6.eps}
 	\caption{Scott Reef Bathymetric Features}
 	\label{Figure:Results:ScottReefBathymetricFeatures}
 	\end{figure*}
@@ -308,8 +310,9 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 	\subsection{Modeling Scott Reef Benthic Zones}
 
 		\begin{figure}[!htbp]
+		\fontsize{24}{12}\selectfont
 		\centering
-			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7.png}
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7.eps}
 		\caption{Scott Reef: Synthetic Ground Truth}
 		\label{Figure:Results:ScottReefSyntheticGroundTruth}
 		\end{figure}
@@ -363,7 +366,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 	
 		\begin{figure}[!htbp]
 		\centering
-			\includegraphics[width = \linewidth]{Figures/compare_methods.png}
+			\includegraphics[width = \linewidth]{Figures/compare_methods.eps}
 		\caption{Comparison of informative exploration methods}
 		\label{Figure:Results:CompareMethods}
 		\end{figure}
@@ -393,7 +396,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			
 		\begin{figure}[!htbp]
 		\centering
-			\includegraphics[width = \linewidth]{Figures/compare_horizons.png}
+			\includegraphics[width = \linewidth]{Figures/compare_horizons.eps}
 		\caption{Variability over horizon lengths}
 		\label{Figure:Results:CompareHorizons}
 		\end{figure}
@@ -402,7 +405,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		
 		\begin{figure}[!htbp]
 		\centering
-			\includegraphics[width = \linewidth]{Figures/compare_locations.png}
+			\includegraphics[width = \linewidth]{Figures/compare_locations.eps}
 		\caption{Variability over starting locations}
 		\label{Figure:Results:CompareLocations}
 		\end{figure}

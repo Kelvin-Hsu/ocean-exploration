@@ -66,3 +66,10 @@ def describe_plot(title = '', xlabel = '', ylabel = '', clabel = '',
         plt.ylim(vis_range[2:])
     if aspect_equal:
         plt.gca().set_aspect('equal', adjustable = 'box')
+
+def fig_size(fig_width_pt):
+    inches_per_pt = 1.0/72.27               # Convert pt to inch
+    golden_mean = (np.sqrt(5) - 1.0)/2.0    # Aesthetic ratio
+    fig_width = fig_width_pt * inches_per_pt# width in inches
+    fig_height = fig_width * golden_mean    # height in inches
+    return fig_width, fig_height
