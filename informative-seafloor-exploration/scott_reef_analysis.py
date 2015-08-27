@@ -929,7 +929,7 @@ def main():
         # Move on to the next step
         i_trials += 1
     
-        if (i_trials % SAVE_TRIALS) == 0:
+        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
             np.savez('%shistory%d.npz' % (full_directory, i_trials), 
                 learned_classifier = learned_classifier,
                 miss_ratio_array = miss_ratio_array,
