@@ -746,7 +746,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%slde%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials % SAVE_TRIALS) == 0:
+        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
             plt.savefig('%slde%d.eps' 
                 % (full_directory, i_trials + 1))
 
@@ -761,7 +761,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%slde_propose%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials % SAVE_TRIALS) == 0:
+        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
             plt.savefig('%slde_propose%d.eps' 
                 % (full_directory, i_trials + 1))
 
@@ -796,7 +796,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%smie%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials % SAVE_TRIALS) == 0:
+        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
             plt.savefig('%smie%d.eps' 
                 % (full_directory, i_trials + 1))
 
@@ -818,7 +818,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%smie_propose%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials % SAVE_TRIALS) == 0:
+        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
             plt.savefig('%smie_propose%d.eps' 
                 % (full_directory, i_trials + 1))
 
@@ -863,7 +863,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%spred%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials % SAVE_TRIALS) == 0:
+        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
             plt.savefig('%spred%d.eps' 
                 % (full_directory, i_trials + 1))
 
@@ -879,7 +879,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%spred_propose%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials % SAVE_TRIALS) == 0:
+        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
             plt.savefig('%spred_propose%d.eps' 
                 % (full_directory, i_trials + 1))
 
