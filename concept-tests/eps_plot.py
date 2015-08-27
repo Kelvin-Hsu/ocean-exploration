@@ -15,7 +15,7 @@ params = {
     'legend.fontsize': 10,
     'xtick.labelsize': 8,
     'ytick.labelsize': 8,
-    'text.usetex': True,
+    # 'text.usetex': True,
     'figure.figsize': fig_size(350.0)
 };
 
@@ -33,3 +33,4 @@ axes.set_ylabel('y')
 axes.set_title('title')
 fig.savefig('plot.eps')
 
+plt.show()

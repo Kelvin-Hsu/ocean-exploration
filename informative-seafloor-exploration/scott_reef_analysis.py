@@ -53,8 +53,10 @@ def main():
     M_STEP = sea.io.parse('-mstep', 1)
     N_DRAWS = sea.io.parse('-ndraws', 500)
 
-    FONTSIZE = 34
-    
+    FONTSIZE = 50
+    FONTNAME = 'Helvetica'
+    TICKSIZE = 24
+
     # NOTRAIN = True
     """Model Options"""
     SAVE_RESULTS = True
@@ -249,18 +251,20 @@ def main():
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
     sea.vis.describe_plot(title = 'Training Labels', 
-        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
-        vis_range = vis_range, aspect_equal = True, fontsize = 34, ticksize = 24)
+        vis_range = vis_range, aspect_equal = True, 
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
     plt.scatter(
         X[:, 0], X[:, 1], 
         marker = 'x', c = y, 
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
     sea.vis.describe_plot(title = 'Training Labels', 
-        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_unique,
-        vis_range = vis_range, aspect_equal = True, fontsize = 34, ticksize = 24)
+        vis_range = vis_range, aspect_equal = True, 
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
     plt.tight_layout()
 
     """Visualise Features at Sampled Query Locations"""
@@ -270,16 +274,18 @@ def main():
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = Fq[:, k], s = 5, 
             cmap = mycmap, colorcenter = 'mean')
-        sea.vis.describe_plot(clabel = '%s (Raw)' % feature_names[k], fontsize = 34, ticksize = 24)
+        sea.vis.describe_plot(clabel = '%s (Raw)' % feature_names[k], 
+            fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = Fqw[:, k], s = 5,
             cmap = mycmap, colorcenter = 'mean')
         sea.vis.describe_plot(
-            title = 'Feature: %s at Query Points' % feature_names[k], 
-            xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+            title = 'Feature: %s' % feature_names[k], 
+            xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = '%s (Whitened)' % feature_names[k],
-            vis_range = vis_range, aspect_equal = True, fontsize = 34, ticksize = 24)
+            vis_range = vis_range, aspect_equal = True, 
+            fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
         plt.tight_layout()
 
     """Classifier Training"""
@@ -389,9 +395,10 @@ def main():
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
     sea.vis.describe_plot(title = 'Synthetic Ground Truth', 
-        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
-        vis_range = vis_range, aspect_equal = True)
+        vis_range = vis_range, aspect_equal = True, 
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
     plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -403,9 +410,10 @@ def main():
     sea.vis.describe_plot(
         title = 'Query Predictions [Miss Ratio: {0:.2f}%]'.format(
                 100 * miss_ratio), 
-        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
-        vis_range = vis_range, aspect_equal = True)
+        vis_range = vis_range, aspect_equal = True, 
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
     plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -414,9 +422,10 @@ def main():
         marker = 'x', c = yq_mie, s = 5, cmap = cm.coolwarm, 
         colorcenter = 'none')
     sea.vis.describe_plot(title = 'Query Prediction Information Entropy', 
-        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Information Entropy',
-        vis_range = vis_range, aspect_equal = True)
+        vis_range = vis_range, aspect_equal = True, 
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
     plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -425,9 +434,10 @@ def main():
         marker = 'x', c = np.log(yq_mie), s = 5, cmap = cm.coolwarm, 
         colorcenter = 'none')
     sea.vis.describe_plot(title = 'Log Query Information Entropy', 
-        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Information Entropy',
-        vis_range = vis_range, aspect_equal = True)
+        vis_range = vis_range, aspect_equal = True, 
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
     plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -436,9 +446,10 @@ def main():
         marker = 'x', c = yq_lde, s = 5, cmap = cm.coolwarm, 
         colorcenter = colorcenter_lde)
     sea.vis.describe_plot(title = 'Query Linearised Differential Entropy', 
-        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Differential Entropy',
-        vis_range = vis_range, aspect_equal = True)
+        vis_range = vis_range, aspect_equal = True, 
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
     plt.tight_layout()
 
     fig = plt.figure(figsize = (19.2, 10.8))
@@ -447,12 +458,13 @@ def main():
         marker = 'x', c = yq_esd, s = 5, cmap = cm.coolwarm, 
         colorcenter = colorcenter_analysis)
     sea.vis.describe_plot(title = 'Query Equivalent Standard Deviation', 
-        xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+        xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Standard Deviation',
-        vis_range = vis_range, aspect_equal = True)
+        vis_range = vis_range, aspect_equal = True, 
+        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
     plt.tight_layout()
     
-    """Visualise Query Draws"""
+    """Save Results"""
 
     if SAVE_RESULTS:
         gp.classifier.utils.save_all_figures(full_directory, 
@@ -697,7 +709,7 @@ def main():
             marker = 'x', c = yq_lde, s = 5, 
             cmap = cm.coolwarm, colorcenter = colorcenter_lde)
         sea.vis.describe_plot(title = 'Query Linearised Differential Entropy', 
-            xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+            xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Differential Entropy',
             vis_range = vis_range, aspect_equal = True)
 
@@ -746,7 +758,7 @@ def main():
             marker = 'x', c = yq_esd, s = 5, 
             cmap = cm.coolwarm, colorcenter = colorcenter_analysis)
         sea.vis.describe_plot(title = 'Query Equivalent Standard Deviation', 
-            xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+            xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Standard Deviation',
             vis_range = vis_range, aspect_equal = True)
 
@@ -795,7 +807,7 @@ def main():
             marker = 'x', c = yq_mie, s = 5, 
             cmap = cm.coolwarm, colorcenter = colorcenter_analysis)
         sea.vis.describe_plot(title = 'Query Prediction Information Entropy', 
-            xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+            xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Information Entropy',
             vis_range = vis_range, aspect_equal = True)
 
@@ -847,7 +859,7 @@ def main():
         sea.vis.describe_plot(
             title = 'Query Predictions [Miss Ratio: {0:.2f}%]'.format(
                 100 * miss_ratio), 
-            xlabel = 'x [Eastings (m)]', ylabel = 'y [Northings (m)]', 
+            xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
             vis_range = vis_range, aspect_equal = True)
 

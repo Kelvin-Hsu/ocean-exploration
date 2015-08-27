@@ -2,6 +2,7 @@
 Informative Seafloor Exploration
 """
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
 
 def color_center_min_max(y):
@@ -44,19 +45,21 @@ def plot(*args, colorcenter = 'none', **kwargs):
     return plt.plot(*args, **kwargs)
 
 def describe_plot(title = '', xlabel = '', ylabel = '', clabel = '', 
-    cticks = None, cticklabels = None, fontsize = 24, ticksize = 14, 
-    vis_range = None, aspect_equal = True):
+    cticks = None, cticklabels = None, fontsize = 40, 
+    fontname = 'Helvetica', ticksize = 14, vis_range = None, 
+    aspect_equal = True, axis_scale = 1):
 
-    plt.title(title, fontsize = fontsize)
-    plt.xlabel(xlabel, fontsize = fontsize)
-    plt.ylabel(ylabel, fontsize = fontsize)
+    plt.title(title, fontsize = fontsize, fontname = fontname)
+    plt.xlabel(xlabel, fontsize = fontsize, fontname = fontname)
+    plt.ylabel(ylabel, fontsize = fontsize, fontname = fontname)
+
     for tick in plt.gca().xaxis.get_major_ticks():
         tick.label.set_fontsize(ticksize) 
     for tick in plt.gca().yaxis.get_major_ticks():
-        tick.label.set_fontsize(ticksize) 
+        tick.label.set_fontsize(ticksize)
     if clabel:
         cbar = plt.colorbar()
-        cbar.set_label(clabel, fontsize = fontsize)
+        cbar.set_label(clabel, fontsize = fontsize, fontname = fontname)
     if cticks is not None:
         cbar.set_ticks(cticks)
     if cticklabels is not None:
@@ -64,6 +67,11 @@ def describe_plot(title = '', xlabel = '', ylabel = '', clabel = '',
     if vis_range is not None:
         plt.xlim(vis_range[:2])
         plt.ylim(vis_range[2:])
+
+    ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/axis_scale))
+    plt.gca().xaxis.set_major_formatter(ticks)
+    plt.gca().yaxis.set_major_formatter(ticks)
+
     if aspect_equal:
         plt.gca().set_aspect('equal', adjustable = 'box')
 
