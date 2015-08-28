@@ -10,9 +10,11 @@
 \usepackage{graphicx}
 \usepackage{psfrag}
 \usepackage{epstopdf}
-%\usepackage{tikz}
+\usepackage{tikz}
+\usepackage{smartdiagram}
+\usepackage{upgreek}
 %\usetikzlibrary{shapes,arrows,chains}
-\usepackage[usenames, dvipsnames]{color} % pdfLaTeX
+%\usepackage[usenames, dvipsnames]{color} % pdfLaTeX
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 \newcommand{\incite}[1]{\citeauthor{#1} [\citeyear{#1}]}
@@ -25,7 +27,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 \maketitle
 
 \begin{abstract}
-	While seafloor bathymetry have been mapped extensively over the last century, geological and ecological observations of seafloor benthic zones only began recently. Unlike bathymetric mapping, data collection of benthic imagery requires \textit{in situ} exploration - a significantly slower and costly endeavour. An efficient exploration policy would therefore require solving the informative path planning problem. This paper investigates a receding horizon approach to the informative path planning problem using linearised differential entropy as the proposed acquisition function. We model the benthic environment upon five bathymetric features through Gaussian process classifiers, whose linearised differential entropy would be defined and derived. We compare receding horizon methods under several acquisition functions, such as joint information entropy through Monte Carlo sampling and marginalised information entropy, demonstrating advantages of the linearised differential entropy approach under a prediction accuracy criterion. We also show the benefits of a receding horizon approach over simpler approaches such as greedy and open loop methods. Finally, we test our method on collected benthic datasets from past AUV missions to Scott Reef, Western Australia.
+	While seafloor bathymetry have been mapped extensively over the last few decades, geological and ecological observations of seafloor benthic zones only began recently. Unlike bathymetric mapping, data collection of benthic imagery requires \textit{in situ} exploration - a significantly slower and costly endeavour. An efficient exploration policy would therefore require solving the informative path planning problem. This paper investigates a receding horizon approach to the informative path planning problem using linearised differential entropy as the proposed acquisition function. We model the benthic environment upon five bathymetric features through Gaussian process classifiers, whose linearised differential entropy would be defined and derived. We compare receding horizon methods under several acquisition functions, such as joint information entropy through Monte Carlo sampling and marginalised information entropy, demonstrating advantages of the linearised differential entropy approach under a prediction accuracy criterion. We also show the benefits of a receding horizon approach over simpler approaches such as greedy and open loop methods. Finally, we test our method on collected benthic datasets from past AUV missions to Scott Reef, Western Australia.
 \end{abstract}
 
 \section{Introduction}
@@ -60,14 +62,14 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 	For a given query point $i$, $\sum_{m = 1}^{c} \pi^{m}_{i} \log(\pi^{m}_{i})$ is exactly the prediction information entropy (PIE) at that point, which captures the local model uncertainty. As a result, the acquisition criterion given in \eqref{Equation:AsherBenderAcquisitionCriterion} is the mean, or average, of the marginalised PIE, which does not capture mutual information through considering the joint distributions of the class labels across multiple query points. We will refer to this acquisition criterion as MIE for mean of information entropy. Instead, the quality of the habitat models are assessed by utility functions that evaluate the confidence of the GP classifier prediction, which is the difference of the MIE before and after an observation is made \eqref{Equation:AsherBenderMutualInformationCriterion} \cite{Rigby:ROB20372}. This mutual information criterion is used in conjunction with a GP classifier under probabilistic least squares approximation to optimise selected survey paths through considering the differential entropy across the entire region of interest (ROI). Below, we define $X, y$ to be the observed feature locations and habitat labels, $X^{\star}$ to be the unobserved query locations, and $X_{p}, y_{p}$ to be the observations made after traversing the proposed path.
 
 	\begin{equation}
-		I = H[X^{\star} | X, y] - H[X^{\star} | X \cup X_{p}, y \cup y_{p}]
+		I = H[X^{\star} | X, \bvec{y}] - H[X^{\star} | X \cup X_{p}, \bvec{y} \cup \bvec{y}_{p}]
 	\label{Equation:AsherBenderMutualInformationCriterion}
 	\end{equation}
 	
 	\incite{Krause:2008:NSP:1390681.1390689} instead focuses on sensor placement methodologies to optimse mutual information gained. This aims to reduce predictive variance at all query points. The chosen acquisition function is the difference between the MIE at all \textit{final} unobserved locations $X^{\star} \backslash X_{p}$ before and after the observations are taken.
 	
 	\begin{equation}
-		I = H[X^{\star} \backslash X_{p} | X, y] - H[X^{\star} \backslash X_{p} | X \cup X_{p}, y \cup y_{p}]
+		I = H[X^{\star} \backslash X_{p} | X, \bvec{y}] - H[X^{\star} \backslash X_{p} | X \cup X_{p}, \bvec{y} \cup \bvec{y}_{p}]
 	\label{Equation:KrauseAcquisitionCriterion}
 	\end{equation}
 	
@@ -90,32 +92,32 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 
 		For binary classification, linearisation is performed on the likelihood response function.
 	
-		Suppose we have trained our Gaussian process classifier using Laplace approximation with respect to a training set $\mathcal{D} = \{X, \vec{y}\} = \{[ \vec{x}_{1}, \vec{x}_{2}, \dots, \vec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]\}$ with $n$ training points. We know that the latent function $f(\vec{x})$ is distributed as a GP with a particular predictive mean $m(\vec{x})$ and covariance $k(\vec{x}, \vec{x}')$ once conditioned on the training data \eqref{Section:LinearisedEntropy:Equation:PredictiveGP}. From here on we omit explicitly notating the training set that was conditioned upon.
+		Suppose we have trained our Gaussian process classifier using Laplace approximation with respect to a training set $\mathcal{D} = \{X, \bvec{y}\} = \{[ \bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]\}$ with $n$ training points. We know that the latent function $f(\bvec{x})$ is distributed as a GP with a particular predictive mean $m(\bvec{x})$ and covariance $k(\bvec{x}, \bvec{x}')$ once conditioned on the training data \eqref{Section:LinearisedEntropy:Equation:PredictiveGP}. From here on we omit explicitly notating the training set that was conditioned upon.
 		
 		\begin{equation}
-			f(\vec{x}) \sim \mathcal{GP}(m(\vec{x}), k(\vec{x}, \vec{x}'))
+			f(\bvec{x}) \sim \mathcal{GP}(m(\bvec{x}), k(\bvec{x}, \bvec{x}'))
 		\label{Section:LinearisedEntropy:Equation:PredictiveGP}
 		\end{equation}
 		
-		Let $X^{\star} = [ \vec{x}^{\star}_{1}, \vec{x}^{\star}_{2}, \dots, \vec{x}^{\star}_{n^{\star}}]^{T}$ denote the collection of $n^{\star}$ query points for which inference is to be performed upon. Denote $\vec{f}^{\star}$ the vector of latent function values $f^{\star}_{i} = f(\vec{x}^{\star}_{i})$ at each query point. We have by definition of a GP that $\vec{f}^{\star}$ is multivariate Gaussian distributed with a corresponding means $\mu^{\star}_{i} = m(\vec{x}^{\star}_{i})$ and covariances $\Sigma^{\star}_{ij} = k(\vec{x}^{\star}_{i}, \vec{x}^{\star}_{j})$ \eqref{Section:LinearisedEntropy:Equation:PredictiveGaussianDistribution}.
+		Let $X^{\star} = [ \bvec{x}^{\star}_{1}, \bvec{x}^{\star}_{2}, \dots, \bvec{x}^{\star}_{n^{\star}}]^{T}$ denote the collection of $n^{\star}$ query points for which inference is to be performed upon. Denote $\bvec{f}^{\star}$ the vector of latent function values $f^{\star}_{i} = f(\bvec{x}^{\star}_{i})$ at each query point. We have by definition of a GP that $\bvec{f}^{\star}$ is multivariate Gaussian distributed with a corresponding means $\mu^{\star}_{i} = m(\bvec{x}^{\star}_{i})$ and covariances $\Sigma^{\star}_{ij} = k(\bvec{x}^{\star}_{i}, \bvec{x}^{\star}_{j})$ \eqref{Section:LinearisedEntropy:Equation:PredictiveGaussianDistribution}.
 		
 		\begin{equation}
-			\vec{f}^{\star} = [f^{\star}_{1}, f^{\star}_{2}, \dots, f^{\star}_{n^{\star}}]^{T} \sim \mathcal{N}(\vec{\mu}^{\star}, \Sigma^{\star})
+			\bvec{f}^{\star} = [f^{\star}_{1}, f^{\star}_{2}, \dots, f^{\star}_{n^{\star}}]^{T} \sim \mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star})
 		\label{Section:LinearisedEntropy:Equation:PredictiveGaussianDistribution}
 		\end{equation}
 			
-		The binary prediction probability $\vec{\pi^{\star}}$ at the query points is obtained through passing the queried latent function random vector $\vec{f}^{\star}$ through a response function in a component wise fashion \eqref{Section:LinearisedEntropy:Equation:Response}.
+		The binary prediction probability $\bvec{\pi^{\star}}$ at the query points is obtained through passing the queried latent function random vector $\bvec{f}^{\star}$ through a response function in a component wise fashion \eqref{Section:LinearisedEntropy:Equation:Response}.
 		
 		\begin{equation}
-			\vec{\pi}^{\star} = \vec{\sigma}(f^{\star})\mathrm{ \quad i.e. \;\;}\pi^{\star}_{i} = \sigma(f^{\star}_{i}) \quad \forall i \in \{1, 2, \dots, n^{\star}\}
+			\bvec{\pi}^{\star} = \vec{\upsigma}(f^{\star})\mathrm{ \quad i.e. \;\;}\pi^{\star}_{i} = \sigma(f^{\star}_{i}) \quad \forall i \in \{1, 2, \dots, n^{\star}\}
 		\label{Section:LinearisedEntropy:Equation:Response}
 		\end{equation}
 		
-		As a straightforward transformation of the latent vector, the predictive probability vector $\vec{\pi^{\star}}$ is thus a random vector itself. The usual procedure is then to treat the expected prediction probabilities $\mathbb{E}[\vec{\pi^{\star}}]$ as the posterior class probabilities for further inference. However, this discards any information regarding the joint behaviour of arbitrary collection of query points. As a result, a measure of mutual information shared amongst the query points cannot be obtained.
+		As a straightforward transformation of the latent vector, the predictive probability vector $\bvec{\pi^{\star}}$ is thus a random vector itself. The usual procedure is then to treat the expected prediction probabilities $\mathbb{E}[\bvec{\pi^{\star}}]$ as the posterior class probabilities for further inference. However, this discards any information regarding the joint behaviour of arbitrary collection of query points. As a result, a measure of mutual information shared amongst the query points cannot be obtained.
 		
 		One straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP, assigning class label 1 for positive latent values and -1 otherwise, and compute the Shannon entropy \cite{ShannonEntropy} from the estimated joint distribution. Aside from the relatively long computational time required for sampling enough draws for accurate joint distribution estimation, Monte Carlo estimated Joint Information Entropy (MCJIE) also has the tendency to over-represent uncertainties under small samples.
 				
-		Instead, we propose using the joint distribution of the predictive probabilities $\vec{\pi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\vec{\pi^{\star}}]$ such that structural information from the latent GP is compromised, we utilise also the covariance $\mathbb{V}[\vec{\pi^{\star}}]$, which withholds information regarding both the latent GP and the response likelihood.
+		Instead, we propose using the joint distribution of the predictive probabilities $\bvec{\pi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\bvec{\pi^{\star}}]$ such that structural information from the latent GP is compromised, we utilise also the covariance $\mathbb{V}[\bvec{\pi^{\star}}]$, which withholds information regarding both the latent GP and the response likelihood.
 	
 		\begin{figure}[!htbp]
 			\centering
@@ -139,12 +141,12 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			
 			\begin{align*}
 			\numberthis \label{Section:LinearisedEntropy:Equation:MomentsLinearisedSigmoid}
-					\vec{\sigma}_{L}(\vec{f}^{\star}) & \sim \mathcal{N}(\vec{\mu}^{\star}_{L}, \Sigma^{\star}_{L}) \\
+					\vec{\upsigma}_{L}(\bvec{f}^{\star}) & \sim \mathcal{N}(\vec{\upmu}^{\star}_{L}, \Sigma^{\star}_{L}) \\
 					({\mu^{\star}_{L}})_{i} & = \mathbb{E}[\sigma_{L}(f^{\star}_{i})] = \sigma(\bar{f}^{\star}_{i}) \\
 					({\Sigma^{\star}_{L}})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma_{L}(f^{\star}_{i}), \sigma_{L}(f^{\star}_{j})] = \sigma'(\bar{f}^{\star}_{i}) \sigma'(\bar{f}^{\star}_{j}) \mathbb{C}\mathrm{ov}[f^{\star}_{i}, f^{\star}_{j}]
 			\end{align*}
 			
-			We then define the linearised differential entropy $H^{\star}_{L}$ at the query points $X^{\star}$ to be the differential entropy for which the random vector $\vec{\sigma}_{L}(\vec{f}^{\star})$ holds. Since $\vec{\sigma}_{L}(\vec{f}^{\star})$ is multivariate Gaussian distributed, $H_{L}$ exhibits a closed form \eqref{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy}.
+			We then define the linearised differential entropy $H^{\star}_{L}$ at the query points $X^{\star}$ to be the differential entropy for which the random vector $\vec{\upsigma}_{L}(\bvec{f}^{\star})$ holds. Since $\vec{\upsigma}_{L}(\bvec{f}^{\star})$ is multivariate Gaussian distributed, $H_{L}$ exhibits a closed form \eqref{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy}.
 			
 			\begin{equation}
 				H^{\star}_{L} := \frac{1}{2} \log\Big((2 \pi e)^{n^{\star}} \det(\Sigma^{\star}_{L})\Big)
@@ -153,10 +155,10 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 					
 	\subsection{Multiclass Classification}
 			
-		For multiclass classification, linearisation is performed on the softmax function $\sigma^{m}$ which returns the corresponding predictive class probability $\vec{\pi}^{m}$ for class $m$ \eqref{Section:LinearisedEntropy:Equation:Softmax} \cite{GaussianProcessForMachineLearning}. For notational clarity we move the query star ($^\star$) to the left and use the superscript $m$ to index the classes. The latent vector $\vec{f}_{i} := \{f^{m}_{i}\}_{m \in \{1, 2, \dots, c\}}$ represents the collection of $c$ latent values across classes at the query point $i$, and is distinct from $\vec{f}^{m} := \{f^{m}_{i}\}_{i \in \{1, 2, \dots, n^{\star}\}}$ which represents the collection of $n^{\star}$ latent values across query points for class $m$.
+		For multiclass classification, linearisation is performed on the softmax function $\sigma^{m}$ which returns the corresponding predictive class probability $\bvec{\pi}^{m}$ for class $m$ \eqref{Section:LinearisedEntropy:Equation:Softmax} \cite{GaussianProcessForMachineLearning}. For notational clarity we move the query star ($^\star$) to the left and use the superscript $m$ to index the classes. The latent vector $\bvec{f}_{i} := \{f^{m}_{i}\}_{m \in \{1, 2, \dots, c\}}$ represents the collection of $c$ latent values across classes at the query point $i$, and is distinct from $\bvec{f}^{m} := \{f^{m}_{i}\}_{i \in \{1, 2, \dots, n^{\star}\}}$ which represents the collection of $n^{\star}$ latent values across query points for class $m$.
 
 		\begin{equation}
-			^{\star}\pi^{m}_{i} = \sigma^{m}(^{\star}\vec{f}_{i}) := \frac{\exp(^{\star}f^{m}_{i})}{\sum_{l = 1}^{c} \exp(^{\star}f^{l}_{i})} \qquad m \in \{1, 2, \dots, c\}
+			^{\star}\pi^{m}_{i} = \sigma^{m}(^{\star}\bvec{f}_{i}) := \frac{\exp(^{\star}f^{m}_{i})}{\sum_{l = 1}^{c} \exp(^{\star}f^{l}_{i})} \qquad m \in \{1, 2, \dots, c\}
 		\label{Section:LinearisedEntropy:Equation:Softmax}
 		\end{equation}
 		
@@ -167,7 +169,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			Similar to the binary case, to linearise we first find the gradient of each of the $c$ softmax functions \eqref{Section:LinearisedEntropy:Equation:SoftmaxGradient}. For notational simplicity, the query stars ($^{\star}$) are omitted in this derivation.
 			
 			\begin{equation}
-				\frac{\partial \sigma^{m}}{\partial f^{k}_{i}}(\vec{f}_{i}) =
+				\frac{\partial \sigma^{m}}{\partial f^{k}_{i}}(\bvec{f}_{i}) =
 				\begin{cases} 
 					- \frac{\exp(f^{m}_{i}) \exp(f^{k}_{i})}{\sum_{l = 1}^{c} \exp(f^{l}_{i})} & \text{for } k \neq m  \\
 					- \frac{\exp(f^{m}_{i})^{2}}{\big(\sum_{l = 1}^{c} \exp(f^{l}_{i})\big)^{2}} + \frac{\exp(f^{m}_{i})}{\sum_{l = 1}^{c} \exp(f^{l}_{i})}& \text{for } k = m
@@ -180,28 +182,28 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			Hence, for each class $m$ at query point $i$ we compute a softmax gradient vector \eqref{Section:LinearisedEntropy:Equation:SoftmaxGradientVector}.
 			
 			\begin{equation}
-				\frac{\partial \sigma^{m}}{\partial \vec{f}_{i}}(\vec{f}_{i}) := \begin{bmatrix} \frac{\partial \sigma^{m}}{\partial f^{1}_{i}}(\vec{f}_{i}) & \frac{\partial \sigma^{m}}{\partial f^{2}_{i}}(\vec{f}_{i}) & \dots & \frac{\partial \sigma^{m}}{\partial f^{c}_{i}}(\vec{f}_{i}) \end{bmatrix}^{T}
+				\frac{\partial \sigma^{m}}{\partial \bvec{f}_{i}}(\bvec{f}_{i}) := \begin{bmatrix} \frac{\partial \sigma^{m}}{\partial f^{1}_{i}}(\bvec{f}_{i}) & \frac{\partial \sigma^{m}}{\partial f^{2}_{i}}(\bvec{f}_{i}) & \dots & \frac{\partial \sigma^{m}}{\partial f^{c}_{i}}(\bvec{f}_{i}) \end{bmatrix}^{T}
 			\label{Section:LinearisedEntropy:Equation:SoftmaxGradientVector}
 			\end{equation}
 			
-			The linearisation is again performed on the mean latent predictions $\bar{\vec{f}}_{i} = \mathbb{E}[\vec{f}_{i}]$ so that the we can approximate the softmax $\sigma^{m}(\vec{f}_{i})$ with the linearised softmax $\sigma^{m}_{L}(\vec{f}_{i})$ \eqref{Section:LinearisedEntropy:Equation:LinearisedSoftmax} in an analogous form as \eqref{Section:LinearisedEntropy:Equation:LinearisingSigmoid}.
+			The linearisation is again performed on the mean latent predictions $\bar{\bvec{f}}_{i} = \mathbb{E}[\bvec{f}_{i}]$ so that the we can approximate the softmax $\sigma^{m}(\bvec{f}_{i})$ with the linearised softmax $\sigma^{m}_{L}(\bvec{f}_{i})$ \eqref{Section:LinearisedEntropy:Equation:LinearisedSoftmax} in an analogous form as \eqref{Section:LinearisedEntropy:Equation:LinearisingSigmoid}.
 			
 			\begin{equation}
 				\begin{aligned}
-					\sigma^{m}(\vec{f}_{i}) \approx \sigma^{m}_{L}(\vec{f}_{i}) & := \sigma^{m}(\bar{\vec{f}}_{i}) + \left. \frac{\partial \sigma^{m}}{\partial \vec{f}_{i}} \right|^{T}_{\vec{f}_{i} = \bar{\vec{f}}_{i}} (\vec{f}_{i} - \bar{\vec{f}}_{i}) \\
-					& = \vec{c}^{m}_{i} + (\vec{g}^{m}_{i})^{T} (\vec{f}_{i} - \bar{\vec{f}}_{i})
+					\sigma^{m}(\bvec{f}_{i}) \approx \sigma^{m}_{L}(\bvec{f}_{i}) & := \sigma^{m}(\bar{\bvec{f}}_{i}) + \left. \frac{\partial \sigma^{m}}{\partial \bvec{f}_{i}} \right|^{T}_{\bvec{f}_{i} = \bar{\bvec{f}}_{i}} (\bvec{f}_{i} - \bar{\bvec{f}}_{i}) \\
+					& = \bvec{c}^{m}_{i} + (\bvec{g}^{m}_{i})^{T} (\bvec{f}_{i} - \bar{\bvec{f}}_{i})
 				\end{aligned}
 			\label{Section:LinearisedEntropy:Equation:LinearisedSoftmax}
 			\end{equation}
 			
-			where we have notated the constants $\vec{c}^{m}_{i} := \sigma^{m}(\bar{\vec{f}}_{i})$ and $\vec{g}^{m}_{i} := \frac{\partial \sigma^{m}}{\partial \vec{f}_{i}}(\bar{\vec{f}}_{i})$.
+			where we have notated the constants $\bvec{c}^{m}_{i} := \sigma^{m}(\bar{\bvec{f}}_{i})$ and $\bvec{g}^{m}_{i} := \frac{\partial \sigma^{m}}{\partial \bvec{f}_{i}}(\bar{\bvec{f}}_{i})$.
 			
 			To determine the distribution of the vector of softmax values across query points, we first define the following \eqref{Section:LinearisedEntropy:Equation:Definitions}.
 			
 			\begin{equation}
 				\begin{aligned}
 					F &:= \{f^{m}_{i}\}_{m \in \{1, 2, \dots, c\}, i \in \{1, 2, \dots, n^{\star}\}} \in \mathbb{R}^{c \times n^{\star}} \\
-					\vec{\sigma}^{m}_{L}(F) &:= \begin{bmatrix} \sigma^{m}_{L}(\vec{f}_{1}) & \sigma^{m}_{L}(\vec{f}_{2}) & \dots & \sigma^{m}_{L}(\vec{f}_{n^{\star}}) \end{bmatrix}^{T}
+					\vec{\upsigma}^{m}_{L}(F) &:= \begin{bmatrix} \sigma^{m}_{L}(\bvec{f}_{1}) & \sigma^{m}_{L}(\bvec{f}_{2}) & \dots & \sigma^{m}_{L}(\bvec{f}_{n^{\star}}) \end{bmatrix}^{T}
 				\end{aligned}
 			\label{Section:LinearisedEntropy:Equation:Definitions}
 			\end{equation}
@@ -210,14 +212,14 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 			
 			\begin{align*}
 			\numberthis \label{Section:LinearisedEntropy:Equation:MomentsLinearisedSoftmax}
-					\vec{\sigma}^{m}_{L}(F) & \sim \mathcal{N}(\vec{\mu}^{m}_{L}, \Sigma^{m}_{L}) \\
-					(\mu^{m}_{L})_{i} & = \mathbb{E}[\sigma^{m}_{L}(\vec{f}_{i})] =  \sigma^{m}(\bar{\vec{f}}_{i}) \\
-					(\Sigma^{m}_{L})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma^{m}_{L}(\vec{f}_{i}), \sigma^{m}_{L}(\vec{f}_{i})] \\
-					& = \mathbb{C}\mathrm{ov}[(\vec{g}^{m}_{i})^{T} \vec{f}_{i}, (\vec{g}^{m}_{j})^{T} \vec{f}_{j}] \\
+					\vec{\upsigma}^{m}_{L}(F) & \sim \mathcal{N}(\vec{\upmu}^{m}_{L}, \Sigma^{m}_{L}) \\
+					(\mu^{m}_{L})_{i} & = \mathbb{E}[\sigma^{m}_{L}(\bvec{f}_{i})] =  \sigma^{m}(\bar{\bvec{f}}_{i}) \\
+					(\Sigma^{m}_{L})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma^{m}_{L}(\bvec{f}_{i}), \sigma^{m}_{L}(\bvec{f}_{i})] \\
+					& = \mathbb{C}\mathrm{ov}[(\bvec{g}^{m}_{i})^{T} \bvec{f}_{i}, (\bvec{g}^{m}_{j})^{T} \bvec{f}_{j}] \\
 					& = \sum_{k = 1}^{c} (g^{m}_{i})^{k} (g^{m}_{j})^{k} \mathbb{C}\mathrm{ov}[f^{k}_{i}, f^{k}_{j}]
 			\end{align*}
 						
-			where $(g^{m}_{i})^{k}$ denotes the $k^{\text{th}}$ element of $\vec{g}^{m}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of class $i$ and class $j$ are conditionally independent given training observations.
+			where $(g^{m}_{i})^{k}$ denotes the $k^{\text{th}}$ element of $\bvec{g}^{m}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of class $i$ and class $j$ are conditionally independent given training observations.
 			
 			Finally, we define the linearised entropy of the OVA multiclass Gaussian process classifier as follows \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}.
 			
@@ -295,9 +297,19 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 
 		The receding horizon approach requires the selection of a horizon length and the number of control points (query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce path that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. For an informative path planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path. The horizon structure selected for the Scott Reef scenario is 5 km in extent with 30 control points.
 
+%		\begin{figure}[!htbp]
+%		\centering
+%			\includegraphics[width = \linewidth]{Figures/receding_horizon_informative_path_planning.png}
+%		\caption{Basic Receding Horizon Structure}
+%		\label{Figure:Results:RecedingHorizonMethodOutline}
+%		\end{figure}
+	
 		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/receding_horizon_informative_path_planning.png}
+			\begin{center}
+				\smartdiagramset{text width = 3cm}
+				% \smartdiagramset{set color list = {orange!50, green!80, blue!50}}
+				\smartdiagram[circular diagram:clockwise]{Learn GP model from collected data, Compute finite optimal path, Record first observation}
+			\end{center}
 		\caption{Basic Receding Horizon Structure}
 		\label{Figure:Results:RecedingHorizonMethodOutline}
 		\end{figure}
@@ -430,7 +442,7 @@ Kelvin.Hsu@nicta.com.au, s.williams@acfr.usyd.edu.au, Simon.Ocallaghan@nicta.com
 		
 \section*{Acknowledgments}
 
-	This work is supported by the Australian Centre for Field Robotics, the University of Sydney, and National ICT Australia (NICTA).
+	This work is supported by the Australian Centre for Field Robotics (ACFR), the University of Sydney, and National ICT Australia (NICTA).
 	
 %% This section was initially prepared using BibTeX.  The .bbl file was
 %% placed here later
