@@ -14,8 +14,8 @@ def main():
     # Comparing different starting locations
     def compare_starting_locations():
 
-        directory0 = main_directory + 'loc1_20150819_235313__t200_q100000_ts250_qs500_method_LDE_start377500_8440000_hsteps30_horizon5000/'
-        directory1 = main_directory + 'loc2_20150815_221358__t200_q100000_ts250_qs500_method_LDE_start380000_8440000_hsteps30_horizon5000/'
+        directory0 = main_directory + 'loc1_new_20150827_072158__method_LDE_start_377500_8440000_hsteps30_horizon5000/'
+        directory1 = main_directory + 'loc2_new_20150827_163015__t200_q100000_ts250_qs500_method_LDE_start380000.08440000.0_hsteps30_horizon5000.0/'
         directory2 = main_directory + 'loc3_20150816_232942__t200_q100000_ts250_qs500_method_LDE_start375000_8445000_hsteps30_horizon5000/'
         directory3 = main_directory + 'loc4_20150817_214222__t200_q100000_ts250_qs500_method_LDE_start365000_8445000_hsteps30_horizon5000/'
         directory4 = main_directory + 'loc5_20150819_235323__t200_q100000_ts250_qs500_method_LDE_start380000_8446000_hsteps30_horizon5000/'
@@ -32,7 +32,7 @@ def main():
     # Comparing different horizons
     def compare_horizons():
 
-        directory0 = main_directory + 'h_compare_20150815_062728__t200_q100000_ts250_qs500_method_LDE_start375000.08440000.0_hsteps30_horizon5000.0/'
+        directory0 = main_directory + 'loc1_new_20150827_072158__method_LDE_start_377500_8440000_hsteps30_horizon5000/'
         directory1 = main_directory + 'h_compare_20150815_062732__t200_q100000_ts250_qs500_method_LDE_start375000.08440000.0_hsteps30_horizon7500.0/'
         directory2 = main_directory + 'h_compare_20150815_062834__t200_q100000_ts250_qs500_method_LDE_start375000.08440000.0_hsteps30_horizon6000.0/'
 
@@ -46,13 +46,13 @@ def main():
     # Compare with other methods
     def compare_methods():
 
-        directory00 = main_directory + 'loc1_20150819_235313__t200_q100000_ts250_qs500_method_LDE_start377500_8440000_hsteps30_horizon5000/'
-        directory01 = main_directory + 'loc2_20150815_221358__t200_q100000_ts250_qs500_method_LDE_start380000_8440000_hsteps30_horizon5000/'
+        directory00 = main_directory + 'loc1_new_20150827_072158__method_LDE_start_377500_8440000_hsteps30_horizon5000/'
+        directory01 = main_directory + 'loc2_new_20150827_163015__t200_q100000_ts250_qs500_method_LDE_start380000.08440000.0_hsteps30_horizon5000.0/'
         directory10 = main_directory + 'loc_20150816_015647__t200_q100000_ts250_qs500_method_MIE_GREEDY_start377500.08440000.0_hsteps30_horizon5000.0/'
         directory11 = main_directory + 'loc_20150816_015641__t200_q100000_ts250_qs500_method_MIE_GREEDY_start380000.08440000.0_hsteps30_horizon5000.0/'
         directory20 = main_directory + 'loc_20150816_064319__t200_q100000_ts250_qs500_method_RANDOM_start377500.08440000.0_hsteps30_horizon5000.0/'
         directory21 = main_directory + 'loc_20150816_081923__t200_q100000_ts250_qs500_method_RANDOM_start380000.08440000.0_hsteps30_horizon5000.0/'
-        directory30 = main_directory + 'loc_20150821_022303__t200_q100000_ts250_qs500_method_MCJE_start377500.08440000.0_hsteps30_horizon5000.0/'
+        directory30 = main_directory + 'loc1_new_20150827_072830__method_MCJE_start_377500_8440000_hsteps30_horizon5000/'
         directory31 = main_directory + 'loc_20150821_085829__t200_q100000_ts250_qs500_method_MCJE_start380000.08440000.0_hsteps30_horizon5000.0/'
         directory40 = main_directory + 'loc_20150818_085143__t200_q100000_ts250_qs500_method_MIE_start377500.08440000.0_hsteps30_horizon5000.0/'
         directory41 = main_directory + 'loc_20150818_221107__t200_q100000_ts250_qs500_method_MIE_start380000.08440000.0_hsteps30_horizon5000.0/'

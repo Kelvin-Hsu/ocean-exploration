@@ -13,6 +13,7 @@
 \usepackage{tikz}
 \usepackage{smartdiagram}
 \usepackage{upgreek}
+\usepackage{stfloats}
 %\usetikzlibrary{shapes,arrows,chains}
 %\usepackage[usenames, dvipsnames]{color} % pdfLaTeX
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
@@ -33,14 +34,17 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 \section{Introduction}
 \label{Section:Introduction}
 
+	Today, less than five percent of the ocean have been explored \cite{NOAA}. As the ocean covers more than 70\% of the globe, this leaves more than 67\% of the planet's habitats unexplored despite our deep reliance on much of these undiscovered ecosystems.
 	
-	Autonomous underwater vehicles (AUVs) are now capable of efficiently collecting information and observations from natural environments of large spatial scale. In the case of benthic habitat mapping, AUVs collect imagery data of seafloor environments, which are clustered into benthic labels that summarises the corresponding benthic environment. \incite{Steinberg2015128} uses Gaussian latent Dirichlet allocation (LDA) to perform unsupervised clustering on benthic imagery, producing 22 unique benthic class labels in the case of Scott Reef, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting. This unsupervised clustering approach releases the burden on human experts to analyse collected imagery exhaustively and thus remove a significant bottleneck in the habitat mapping process.
+	In order to understand the ecological, geological, chemical, and archaeological aspects of the ocean floor, autonomous underwater vehicles (AUVs) are now capable of efficiently collecting information and observations from natural environments of large spatial scale. In the case of benthic habitat mapping, AUVs collect imagery data of seafloor environments. However, it is impractical and often infeasible to identify semantic meaning from the images with human experts. Instead, visual data are clustered into benthic labels that summarises the corresponding benthic environment. For example, \incite{Steinberg2015128} uses Gaussian latent Dirichlet allocation (LDA) to perform unsupervised clustering of benthic imagery, releasing the burden on human experts to analyse collected imagery exhaustively and thus remove a significant bottleneck in the habitat mapping process.
+
+	Nevertheless, the immense spatial scale of the benthic seafloor to be explored implies that it is impractical to map exhaustively the entire region of interest (ROI) under any reasonable time and cost. Furthermore, AUV missions are limited by power supply, data storage, and computational capabilities. As such, AUVs must prioritise exploring sub-domains of the ROI that ideally withhold the most important and valuable information.
 	
-	Nevertheless, the immense spatial scale of the benthic seafloor to be explored implies that it is impractical to map exhaustively the entire region of interest (ROI) under any reasonable time and cost. Furthermore, AUV missions are limited by power supply, data storage, and computational capabilities. As such, AUVs must prioritise exploring sub-domains of the ROI that ideally withhold the most important and valuable information regarding the entire ROI, and achieve so in the shortest time possible.
-	
-	Thus, practical seafloor exploration must employ an informative path-planning policy to navigate through paths that contain the most valuable information regarding the ROI. The AUV is to infer from such data the benthic class labels at unobserved locations, potentially spatially far away from any observations. To perform such an inference, we model the benthic habitat labels upon Bathymetric features using a Gaussian process classifier.
-	
+	Thus, practical seafloor exploration must employ an inference model that allows the AUV to quantify the expected amount of information at a given region or location. To perform such an inference, we model the habitat classes onto bathymetric features that summarises the local depth and seafloor structure using a Gaussian process classifier.
+
 	Gaussian process (GP) models are non-parametric, Bayesian inference models which makes relatively few assumptions onto the type of phenomena to be modelled as compared to parametric models. In contrast to non-Bayesian methods, GPs handles uncertainty inherently in its model and is thus an excellent framework for informative path planning. Under the class of radial basis function (RBF) kernels, the primary inference philosophy behind GP models are that the proximity of observations in feature space determines their corresponding correlation. In the benthic context, this translates to the underlying assumption that the type of habitat at a particular location depends strongly on the local bathymetric structure.
+		
+	Once the AUV is able to quantify the expected amount of information at a given location, it is natural to consider the paths the AUV could take to maximise information gain over its mission, thus achieving efficient habitat mapping. As such, we employ an informative path-planning policy to navigate through paths that contain the most valuable information regarding the ROI. 
 	
 	This paper addresses the informative path-planning problem for benthic habitat mapping. Due to the limited computational resources available for \textit{in-situ} exploration with AUVs, we propose a method that is computationally tractable and straightforward for an online implementation. While GPs are typically $O(n^{3})$ algorithms, online tractability can be achieved through finite receding horizon methods if the overall path is not required to be strictly optimal.
 	
@@ -241,7 +245,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		
 		Figure \ref{Figure:Results:BinaryLinearisedEntropy} show a simple binary classification problem with abundant data on features $x_{1}$ and $x_{2}$, allowing a misclassification rate of 2.155\%. The classifier is trained with an axis aligned Gaussian kernel with a probit response under Laplace approximation. 
 
-		\begin{figure}[!htbp]
+		\begin{figure}[t]
 		\centering
 			\includegraphics[width = \linewidth]{Figures/binary.eps}
 		\caption{GP binary classifier: prediction information entropy and linearised differential entropy under abundant data}
@@ -262,7 +266,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		
 		Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. The same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
 	
-		\begin{figure}[!htbp]
+		\begin{figure}[t]
 		\centering
 			\includegraphics[width = \linewidth]{Figures/multiclass.eps}
 		\caption{GP multiclass classifier: prediction information entropy and linearised differential entropy under abundant data}
@@ -322,9 +326,11 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 
 	In this section we demonstrate the performance of LDE acquisition under a receding horizon structure. We compare the results to path planning under other acquisition functions, as well as myopic approaches. Under a misclassification performance criterion, we show that LDE acquisition achieves stable and desirable results, and experimentally outperform competing methods.
 	
+	We test our approach on the Scott Reef data set provided by \incite{IMOS}. The benthic labels are obtained through unsupervised clustering on benthic imagery using Gaussian latent Dirichlet allocation (LDA) \cite{Steinberg2015128}, producing 22 unique benthic class labels, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting. 
+
 	\subsection{Modeling Scott Reef Benthic Zones}
 
-		\begin{figure}[!htbp]
+		\begin{figure}[t]
 		\fontsize{24}{12}\selectfont
 		\centering
 			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7.eps}
@@ -332,29 +338,29 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		\label{Figure:Results:ScottReefSyntheticGroundTruth}
 		\end{figure}
 		
-		An OVA GP multiclass classifier is to model the benthic habitats upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale) (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). It is presumed that the nature of the habitat depends on the location implicitly through explicit dependence on bathymetric structure of the seafloor. Thus, spatial coordinates are not included in the feature set. As training labels are only available around past mission tracks (figure \ref{Figure:Results:ScottReefBathymetricFeatures}), to assess the relative performance between modeling and path-planning techniques, a synthetic ground truth is generated separately (figure \ref{Figure:Results:ScottReefSyntheticGroundTruth}). Note that this ground truth is generated in accordance to the limited training labels available in the Scott Reef dataset and does not necessary represent the physical reality at Scott Reef. 
+		An OVA GP multiclass classifier is to model the benthic habitats using five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale) (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). It is assumed that the nature of the habitat depends on the location implicitly through explicit dependence on bathymetric structure of the seafloor. Thus, spatial coordinates are not included in the feature set. As training labels are only available around past mission tracks (figure \ref{Figure:Results:ScottReefBathymetricFeatures}), a synthetic ground truth is generated separately in order to assess the relative performance between path-planning techniques (figure \ref{Figure:Results:ScottReefSyntheticGroundTruth}). Note that this ground truth is generated in accordance to the limited training labels available in the dataset and does not necessary represent the physical reality at Scott Reef. 
 
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.eps}
-		\caption{Scott Reef: Initial Prediction}
-		\label{Figure:Results:ScottReefInitialPredictions}
-		\end{figure}
-				
-		To reduce computational requirements, 200 training points were sampled from those tracks for initial modeling, which achieves a 41.54\% misclassification rate, or 58.46\% prediction accuracy (figure \ref{Figure:Results:ScottReefInitialPredictions}). This demonstrates the advantage of modeling the benthic environment upon a bathymetric feature space instead of spatial coordinates. The tracks clearly cover less than 5\% of the region even given a large interpolation margin of a few hundred meters, yet more than half ot he region can be accurately modeled with such scarce data. This model takes advantage of the fact that while habitats can be far away spatially, they can have similar bathymetric features such that they are close in the bathymetric feature space.
-
-		While we can map the reef with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:Results:ScottReefInitialPredictions}), the prediction information entropy is rather quite high everywhere (figure \ref{Figure:Results:ScottReefPredictionInformationEntropy}). In this initial scenario, under the prediction information entropy criterion the vehicle would simply try to map out all regions as much as possible - a very costly policy.
-		
-		\begin{figure}[!htbp]
+		\begin{figure}[bp]
 		\centering
 			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9.eps}
 		\caption{Scott Reef: Prediction Information Entropy}
 		\label{Figure:Results:ScottReefPredictionInformationEntropy}
 		\end{figure}
+				
+		To reduce computational requirements, 200 training points were sampled from those tracks for initial modeling, which achieves a 41.54\% misclassification rate, or 58.46\% prediction accuracy (figure \ref{Figure:Results:ScottReefInitialPredictions}). This demonstrates the advantage of modeling the benthic environment upon a bathymetric feature space instead of spatial coordinates. The tracks cover less than 5\% of the region, yet more than half of the region can be accurately modeled with such scarce data. This model takes advantage of the fact that although habitats can be far away spatially, they can have similar bathymetric structures such that they are close in the bathymetric feature space.
+
+		While we can map the reef with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:Results:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:Results:ScottReefPredictionInformationEntropy}). In this initial scenario, under the prediction information entropy criterion the vehicle would simply try to map out all regions as much as possible - a very costly policy.
+		
+		\begin{figure}[t]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.eps}
+		\caption{Scott Reef: Initial Prediction}
+		\label{Figure:Results:ScottReefInitialPredictions}
+		\end{figure}
 					
 		The linearised differential entropy, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:Results:ScottReefLinearisedDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:Results:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths.
 		
-		\begin{figure}[!htbp]
+		\begin{figure}[bp]
 		\centering
 			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure11.eps}
 		\caption{Scott Reef: Linearised Differential Entropy}
@@ -365,7 +371,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 			
 	\subsection{Exploration over Scott Reef Benthic Habitats}
 	
-		\begin{figure*}[!htbp]
+		\begin{figure*}[t]
 		\centering
 			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lde/mie_propose1.eps}
 			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lde/mie_propose100.eps}
@@ -378,60 +384,67 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		\end{figure*}
 		
 		A comparison in performance over a distance of 33.3 km between several acquisition criterion are shown in figure \ref{Figure:Results:CompareMethods}. Each method is tested with a horizon length of 5 km starting at two distinct initial locations - (377.5, 8440.0) and (380.0, 8440.0) meters in Eastings-Northings frame. The acquisition criterion to be compared are linearised differential entropy (LDE), one step ahead information entropy (GREEDY), random walk (RANDOM), Monte Carlo estimated joint information entropy (MCJIE), sum of marginalised information entropy (MIE), predetermined spiral path (FIXED-SPIRAL), and predetermined line segmented paths (FIXED-LINES). Of these, only LDE and MCJIE acquisitions consider mutual information.
-	
+
+%('Location 1 with LDE', 0.16442000000000001)
+%('Location 1 with LINES', 0.20402000000000001)
+%('Location 1 with MCJIE', 0.22992000000000001)
+%('Location 1 with MIE', 0.32114999999999999)
+%('Location 1 with SPIRAL', 0.33735999999999999)
+%('Location 1 with RANDOM', 0.34873999999999999)
+%('Location 1 with GREEDY', 0.42856)
+%----------
+%('Location 2 with LDE', 0.20383999999999999)
+%('Location 2 with LINES', 0.25052000000000002)
+%('Location 2 with MCJIE', 0.27012000000000003)
+%('Location 2 with RANDOM', 0.35681000000000002)
+%('Location 2 with GREEDY', 0.37630000000000002)
+%('Location 2 with MIE', 0.40111999999999998)
+%('Location 2 with SPIRAL', 0.43160999999999999)
+		  				
+		There are several measures of performance criterion that can be used to measure performance. As the aim is to reduce misclassification rate, we compare the percentage of prediction misses between each method. Each method begins with the same scenario, for which the initial misclassification rate with 200 training points is 41.54\% (figure \ref{Figure:Results:ScottReefInitialPredictions}). From table \ref{Table:Results:CompareMethods}, we see that under this performance criterion, the LDE method performs the best, with a final misclassification rate of 16.44\% and 20.38\% for location 1 and 2 respectively at the end of the journey. Methods FIXED-LINES (20.40\% and 25.05\%) and MCJIE (22.29\% and 27.01\%) follow in performance. The predetermined line segmented paths are hand-picked by subjective judgement from after-the-fact knowledge, and serve as an intuitive anchor for comparison. Notice that because the LDE method prioritises on decision boundaries, it achieves a lower misclassification rate through appropriately reducing both bias and variance at decision boundaries.
+			
+		Figures \ref{Figure:Results:OptimalPaths} show snapshots of the resulting path under LDE and MCJIE acquisition respectively, layered onto the prediction information entropy map. The snapshots are taken at 0.17 km, 16.67 km, and 33.33 km into the journey. The circle represents the horizon length for which the vehicle considers in at each time step, with the vehicle at the center. The path with empty circles represent the path it has taken, and the path with filled hexagons extending from the current location represent the immediate proposed path from the receding horizon optimisation.
+		
+		As we expect, the two paths from the two methods are similar, with LDE acquisition achieving a misclassification ratio of approximately 4\% less. This difference is visible through the lower amount of information entropy around the inner regions of the reef under LDE acquisition compared to MCJIE acquisition. Unlike other methods, both the LDE and MCJIE method take into consideration the mutual information of the proposed path, so that both methods outperform myopic or open loop methods (figure \ref{Figure:Results:CompareMethods}). In the figure shown, the Monte Carlo approach uses 1000 sample draws from the GP classifier to estimate the joint distribution for 30 control points, and experiences little improvement under misclassification criterion with more samples. This results demonstrates that under a receding horizon formulation, using LDE acquisition achieves lower misclassification rate on average than other acquisition functions - most importantly MCJIE acquisition. Furthermore, a receding horizon method achieves lower misclassification rate than myopic approaches under the same acquisition function.	
+
+		\begin{table*}[t]
+			\begin{center}
+				\begin{tabular}{ |c||c|c|c|c|c|c|c| }
+				\hline
+				Method & LDE & MCJIE & MIE & GREEDY & RANDOM & FIXED - LINES & FIXED - SPIRAL \\
+				\hline
+				Location 1 & 16.44 & 22.99 & 32.11 & 43.86 & 34.87 & 20.40 & 33.74 \\
+				Location 2 & 20.38 & 27.01 & 40.11 & 37.63 & 35.68 & 25.05 & 43.16 \\
+				\hline
+				\end{tabular}
+			\end{center}
+	  	\caption{Comparison of final misclassification rate (\%) between informative exploration methods}
+	  	\label{Table:Results:CompareMethods}			
+	  	\end{table*}	
+	  	
 		\begin{figure}[!htbp]
 		\centering
 			\includegraphics[width = \linewidth]{Figures/compare_methods.eps}
 		\caption{Comparison of informative exploration methods}
 		\label{Figure:Results:CompareMethods}
 		\end{figure}
-			
-		There are several measures of performance criterion that can be used to measure performance. As the aim is to reduce misclassification rate, we compare the percentage of prediction misses between each method. Each method begins with the same scenario, for which the initial misclassification rate with 200 training points is 41.54\% (figure \ref{Figure:Results:ScottReefInitialPredictions}). From figure \ref{Figure:Results:CompareMethods}, we see that under this performance criterion, the LDE method performs the best, with a final misclassification rate of 19.43\% and 19.40\% for location 1 and 2 respectively at the end of the journey. Methods FIXED-LINES (20.40\% and 25.05\%) and MCJIE (23.26\% and 27.01\%) follow in performance. The predetermined line segmented paths are hand-picked by subjective judgement from after-the-fact knowledge, and serve as an intuitive anchor for comparison. Notice that because the LDE method prioritises on decision boundaries, it achieves a lower misclassification rate through appropriately reducing both bias and variance at decision boundaries.
-			
-%----------
-%('Location 1 with LDE', 0.19427)
-%('Location 1 with FIXED - LINES', 0.20402000000000001)
-%('Location 1 with MCJIE', 0.23258000000000001)
-%('Location 1 with MIE', 0.32114999999999999)
-%('Location 1 with FIXED - SPIRAL', 0.33735999999999999)
-%('Location 1 with RANDOM', 0.34873999999999999)
-%('Location 1 with GREEDY', 0.42856)
-%----------
-%('Location 2 with LDE', 0.19402)
-%('Location 2 with FIXED - LINES', 0.25052000000000002)
-%('Location 2 with MCJIE', 0.27012000000000003)
-%('Location 2 with RANDOM', 0.35681000000000002)
-%('Location 2 with GREEDY', 0.37630000000000002)
-%('Location 2 with MIE', 0.40111999999999998)
-%('Location 2 with FIXED - SPIRAL', 0.43160999999999999)
 		
-		Figures \ref{Figure:Results:OptimalPaths} show snapshots of the resulting path under LDE and MCJIE acquisition respectively, layered onto the prediction information entropy map. The snapshots are taken at 0 km, 16.7 km, and 33.3 km into the journey. The circle represents the horizon length for which the vehicle considers in at each time step, with the vehicle at the center. The path with empty circles represent the path it has taken, and the path with filled hexagons extending from the current location represent the immediate proposed path from the receding horizon optimisation.
-		
-		As we expect, the two paths from the two methods are similar, with LDE acquisition achieving a misclassification ratio of approximately 4\% less. This difference is visible through the lower amount of information entropy around the inner regions of the reef under LDE acquisition compared to MCJIE acquisition. Unlike other methods, both the LDE and MCJIE method take into consideration the mutual information of the proposed path, so that both methods outperform myopic or open loop methods (figure \ref{Figure:Results:CompareMethods}). In the figure shown, the Monte Carlo approach uses 1000 sample draws from the GP classifier to estimate the joint distribution for 30 control points, and experiences little improvement under misclassification criterion with more samples. This results demonstrates that under a receding horizon formulation, using LDE acquisition achieves lower misclassification rate on average than other acquisition functions - most importantly MCJIE acquisition. Furthermore, a receding horizon method achieves lower misclassification rate than myopic approaches under the same acquisition function.
-			
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/compare_horizons.eps}
-		\caption{Variability over horizon lengths}
-		\label{Figure:Results:CompareHorizons}
-		\end{figure}
-	
-		In figures \ref{Figure:Results:CompareHorizons} and \ref{Figure:Results:CompareLocations} we show the stability and consistency of the approach under varying horizon lengths and starting locations for the case of Scott Reef. 
-		
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = \linewidth]{Figures/compare_locations.eps}
-		\caption{Variability over starting locations}
-		\label{Figure:Results:CompareLocations}
-		\end{figure}
-		
-%		From experimental tests:
-%			-A larger horizon is not always more beneficial. The entropy of faraway regions that it considers may become meaningless by the time it actually gets there, as the model would have significantly changed. On the other hand, it cannot be too short, or it will suffer the same problem as a greedy approach (not seeing ahead, getting stuck in local regions, not recognising joint information)
-%			-For the scott reef data, a good horizon range is 5000.0 m, for horizons more than 6000.0 m the result will hit diminishing returns and may actually hurt the performance. This happens as the model predictions and entropies at far away regions for which it was considering changes too much that during its way there the model has changed too much and it is no longer interested in such regions. This results in fast varying path proposals and may result in instability. It is about balancing obtaining reasonable information in reasonable time against reaching for information that may be outdated by the time it is collecting it.
-%			
-%		Mention that:
-%			-We are demonstrating that in the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the Monte Carlo Joint Information Entropy Method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.		
-		
+%		\begin{figure}[!htbp]
+%		\centering
+%			\includegraphics[width = \linewidth]{Figures/compare_horizons.eps}
+%		\caption{Variability over horizon lengths}
+%		\label{Figure:Results:CompareHorizons}
+%		\end{figure}
+%	
+%		In figures \ref{Figure:Results:CompareHorizons} and \ref{Figure:Results:CompareLocations} we show the stability and consistency of the approach under varying horizon lengths and starting locations for the case of Scott Reef. 
+%		
+%		\begin{figure}[!htbp]
+%		\centering
+%			\includegraphics[width = \linewidth]{Figures/compare_locations.eps}
+%		\caption{Variability over starting locations}
+%		\label{Figure:Results:CompareLocations}
+%		\end{figure}
+
 \section{Conclusions and Future Work}
 \label{Section:Conclusion}
 
