@@ -28,7 +28,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 \maketitle
 
 \begin{abstract}
-	While seafloor bathymetry have been mapped extensively over the last few decades, geological and ecological observations of seafloor benthic zones only began recently. Unlike bathymetric mapping, data collection of benthic imagery requires \textit{in situ} exploration - a significantly slower and costly endeavour. An efficient exploration policy would therefore require solving the informative path-planning problem. This paper investigates a receding horizon approach to the informative path-planning problem using linearised differential entropy as the proposed acquisition function. We model the benthic environment using five bathymetric features through Gaussian process classifiers, whose linearised differential entropy (LDE) would be defined and derived. We demonstrate that LDE acquisition achieves the lowest misclassification rate under a receding horizon formulation, outperforming acquisition under both Monte Carlo based joint information entropy (MCJIE) and marginalised information entropy (MIE). In particular, it avoids the time complexity of Monte Carlo sampling for which MCJIE acquisition requires, while still retaining a measure of mutual information. We also show the benefits of a receding horizon approach over simpler techniques such as greedy and open loop methods. Finally, we test our method on collected benthic datasets from past AUV missions to Scott Reef, Western Australia.
+	While seafloor bathymetry have been mapped extensively over the last few decades, geological and ecological observations of seafloor benthic zones only began recently. Unlike bathymetric mapping, data collection of benthic imagery requires \textit{in situ} exploration - a significantly slower and costly endeavour. An efficient exploration policy would therefore require solving the informative path-planning problem. This paper investigates a receding horizon approach to the informative path-planning problem using linearised differential entropy as the proposed acquisition function. We model the benthic environment using five bathymetric features through Gaussian process classifiers, whose linearised differential entropy (LDE) would be defined and derived. We demonstrate that LDE acquisition achieves the lowest misclassification rate under a receding horizon formulation, outperforming acquisition under both Monte Carlo based joint information entropy and marginalised information entropy. In particular, it avoids the time complexity of Monte Carlo sampling, while still retaining a measure of mutual information. We also show the benefits of a receding horizon approach over simpler techniques such as greedy and open loop methods. Finally, we test our method on collected benthic datasets from past AUV missions to Scott Reef, Western Australia.
 \end{abstract}
 
 \section{Introduction}
@@ -38,7 +38,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 	
 	In order to understand the ecological, geological, chemical, and archaeological aspects of the ocean floor, autonomous underwater vehicles (AUVs) are now capable of efficiently collecting information and observations from natural environments of large spatial scale. In the case of benthic habitat mapping, AUVs collect imagery data of seafloor environments. However, it is impractical and often infeasible to identify semantic meaning from the images with human experts. Instead, visual data are clustered into benthic labels that summarises the corresponding benthic environment. For example, \incite{Steinberg2015128} uses Gaussian latent Dirichlet allocation (LDA) to perform unsupervised clustering of benthic imagery, releasing the burden on human experts to analyse collected imagery exhaustively and thus remove a significant bottleneck in the habitat mapping process.
 
-	Nevertheless, the immense spatial scale of the benthic seafloor to be explored implies that it is impractical to map exhaustively the entire region of interest (ROI) under any reasonable time and cost. Furthermore, AUV missions are limited by power supply, data storage, and computational capabilities. As such, AUVs must prioritise exploring sub-domains of the ROI that ideally withhold the most important and valuable information.
+	Nevertheless, the immense spatial scale of the benthic seafloor to be explored implies that it is impractical to map exhaustively the entire region of interest (ROI) under any reasonable time and cost. Furthermore, AUV missions are limited by power supply, data storage, and computational capabilities. As such, AUVs must prioritise exploring sub-domains of the ROI that ideally contain the most important and valuable information.
 	
 	Thus, practical seafloor exploration must employ an inference model that allows the AUV to quantify the expected amount of information at a given region or location. To perform such an inference, we model the habitat classes onto bathymetric features that summarises the local depth and seafloor structure using a Gaussian process classifier.
 
@@ -122,11 +122,11 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		
 		One straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP, assigning class label 1 for positive latent values and -1 otherwise, and compute the Shannon entropy \cite{ShannonEntropy} from the estimated joint distribution. Aside from the relatively long computational time required for sampling enough draws for accurate joint distribution estimation, Monte Carlo estimated Joint Information Entropy (MCJIE) also has the tendency to over-represent uncertainties under small samples.
 				
-		Instead, we propose using the joint distribution of the predictive probabilities $\vec{\uppi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\vec{\uppi^{\star}}]$ such that structural information from the latent GP is compromised, we utilise also the covariance $\mathbb{V}[\vec{\uppi^{\star}}]$, which withholds information regarding both the latent GP and the response likelihood.
+		Instead, we propose using the joint distribution of the predictive probabilities $\vec{\uppi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\vec{\uppi^{\star}}]$ such that structural information from the latent GP is compromised, we utilise also the covariance $\mathbb{V}[\vec{\uppi^{\star}}]$, which contains information regarding both the latent GP and the response likelihood.
 	
 		\begin{figure}[!htbp]
 			\centering
-				\includegraphics[width = \linewidth]{Figures/linearisation.eps}
+				\includegraphics[width = \linewidth]{Figures/linearisation-eps-converted-to.png}
 			\caption{Linearisation accuracy for a probit response: Green shade represents the latent variance while blue shade represents the predictive variance. Gold lines show local linearisation about latent expectance.}
 			\label{Figure:Linearisation}
 		\end{figure}
@@ -247,7 +247,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 
 		\begin{figure}[t]
 		\centering
-			\includegraphics[width = \linewidth]{Figures/binary.eps}
+			\includegraphics[width = \linewidth]{Figures/binary-eps-converted-to.png}
 		\caption{GP binary classifier: prediction information entropy and linearised differential entropy under abundant data}
 		\label{Figure:Results:BinaryLinearisedEntropy}
 		\end{figure}
@@ -268,7 +268,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 	
 		\begin{figure}[t]
 		\centering
-			\includegraphics[width = \linewidth]{Figures/multiclass.eps}
+			\includegraphics[width = \linewidth]{Figures/multiclass-eps-converted-to.png}
 		\caption{GP multiclass classifier: prediction information entropy and linearised differential entropy under abundant data}
 		\label{Figure:Results:MulticlassLinearisedEntropy}
 		\end{figure}
@@ -288,12 +288,12 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 
 	\begin{figure*}[!htbp]
 	\centering
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure1.eps}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure2.eps}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure3.eps}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure4.eps}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure5.eps}
-		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure6.eps}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure1-eps-converted-to.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure2-eps-converted-to.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure3-eps-converted-to.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure4-eps-converted-to.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure5-eps-converted-to.png}
+		\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure6-eps-converted-to.png}
 	\caption{Scott Reef Bathymetric Features}
 	\label{Figure:Results:ScottReefBathymetricFeatures}
 	\end{figure*}
@@ -333,7 +333,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		\begin{figure}[t]
 		\fontsize{24}{12}\selectfont
 		\centering
-			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7.eps}
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7-eps-converted-to.png}
 		\caption{Scott Reef: Synthetic Ground Truth}
 		\label{Figure:Results:ScottReefSyntheticGroundTruth}
 		\end{figure}
@@ -342,7 +342,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 
 		\begin{figure}[bp]
 		\centering
-			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9.eps}
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9-eps-converted-to.png}
 		\caption{Scott Reef: Prediction Information Entropy}
 		\label{Figure:Results:ScottReefPredictionInformationEntropy}
 		\end{figure}
@@ -353,7 +353,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		
 		\begin{figure}[t]
 		\centering
-			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.eps}
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8-eps-converted-to.png}
 		\caption{Scott Reef: Initial Prediction}
 		\label{Figure:Results:ScottReefInitialPredictions}
 		\end{figure}
@@ -362,7 +362,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		
 		\begin{figure}[bp]
 		\centering
-			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure11.eps}
+			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure11-eps-converted-to.png}
 		\caption{Scott Reef: Linearised Differential Entropy}
 		\label{Figure:Results:ScottReefLinearisedDifferentialEntropy}
 		\end{figure}
@@ -373,12 +373,12 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 	
 		\begin{figure*}[t]
 		\centering
-			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lde/mie_propose1.eps}
-			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lde/mie_propose100.eps}
-			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lde/mie_propose200.eps}
-			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcje/mie_propose1.eps}
-			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcje/mie_propose100.eps}
-			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcje/mie_propose200.eps}	
+			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lde/mie_propose1-eps-converted-to.png}
+			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lde/mie_propose100-eps-converted-to.png}
+			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lde/mie_propose200-eps-converted-to.png}
+			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcje/mie_propose1-eps-converted-to.png}
+			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcje/mie_propose100-eps-converted-to.png}
+			\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcje/mie_propose200-eps-converted-to.png}	
 		\caption{Exploration path under LDE acquisition (top) and MCJIE acquisition (bottom)}
 		\label{Figure:Results:OptimalPaths}
 		\end{figure*}
@@ -402,8 +402,15 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 %('Location 2 with SPIRAL', 0.43160999999999999)
 		  				
 		There are several measures of performance criterion that can be used to measure performance. As the aim is to reduce misclassification rate, we compare the percentage of prediction misses between each method. Each method begins with the same scenario, for which the initial misclassification rate with 200 training points is 41.54\% (figure \ref{Figure:Results:ScottReefInitialPredictions}). From table \ref{Table:Results:CompareMethods}, we see that under this performance criterion, the LDE method performs the best, with a final misclassification rate of 16.44\% and 20.38\% for location 1 and 2 respectively at the end of the journey. Methods FIXED-LINES (20.40\% and 25.05\%) and MCJIE (22.29\% and 27.01\%) follow in performance. The predetermined line segmented paths are hand-picked by subjective judgement from after-the-fact knowledge, and serve as an intuitive anchor for comparison. Notice that because the LDE method prioritises on decision boundaries, it achieves a lower misclassification rate through appropriately reducing both bias and variance at decision boundaries.
-			
-		Figures \ref{Figure:Results:OptimalPaths} show snapshots of the resulting path under LDE and MCJIE acquisition respectively, layered onto the prediction information entropy map. The snapshots are taken at 0.17 km, 16.67 km, and 33.33 km into the journey. The circle represents the horizon length for which the vehicle considers in at each time step, with the vehicle at the center. The path with empty circles represent the path it has taken, and the path with filled hexagons extending from the current location represent the immediate proposed path from the receding horizon optimisation.
+	
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/informative_seafloor_exploration/lde/pred200-eps-converted-to.png}
+		\caption{Final Predictions}
+		\label{Figure:Results:FinalPredictions}
+		\end{figure}
+				
+		Figures \ref{Figure:Results:OptimalPaths} show snapshots of the resulting path under LDE and MCJIE acquisition respectively, layered onto the prediction information entropy map. The snapshots are taken at 0.17 km, 16.67 km, and 33.33 km into the journey. Figure \ref{Figure:Results:FinalPredictions} shows the final predictions after 33.33 km under LDE acquisition. The circle represents the horizon length for which the vehicle considers in at each time step, with the vehicle at the center. The path with empty circles represent the path it has taken, and the path with filled hexagons extending from the current location represent the immediate proposed path from the receding horizon optimisation.
 		
 		As we expect, the two paths from the two methods are similar, with LDE acquisition achieving a misclassification ratio of approximately 4\% less. This difference is visible through the lower amount of information entropy around the inner regions of the reef under LDE acquisition compared to MCJIE acquisition. Unlike other methods, both the LDE and MCJIE method take into consideration the mutual information of the proposed path, so that both methods outperform myopic or open loop methods (figure \ref{Figure:Results:CompareMethods}). In the figure shown, the Monte Carlo approach uses 1000 sample draws from the GP classifier to estimate the joint distribution for 30 control points, and experiences little improvement under misclassification criterion with more samples. This results demonstrates that under a receding horizon formulation, using LDE acquisition achieves lower misclassification rate on average than other acquisition functions - most importantly MCJIE acquisition. Furthermore, a receding horizon method achieves lower misclassification rate than myopic approaches under the same acquisition function.	
 
@@ -424,14 +431,14 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 	  	
 		\begin{figure}[!htbp]
 		\centering
-			\includegraphics[width = \linewidth]{Figures/compare_methods.eps}
+			\includegraphics[width = \linewidth]{Figures/compare_methods-eps-converted-to.png}
 		\caption{Comparison of informative exploration methods}
 		\label{Figure:Results:CompareMethods}
 		\end{figure}
 		
 %		\begin{figure}[!htbp]
 %		\centering
-%			\includegraphics[width = \linewidth]{Figures/compare_horizons.eps}
+%			\includegraphics[width = \linewidth]{Figures/compare_horizons-eps-converted-to.png}
 %		\caption{Variability over horizon lengths}
 %		\label{Figure:Results:CompareHorizons}
 %		\end{figure}
@@ -440,7 +447,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 %		
 %		\begin{figure}[!htbp]
 %		\centering
-%			\includegraphics[width = \linewidth]{Figures/compare_locations.eps}
+%			\includegraphics[width = \linewidth]{Figures/compare_locations-eps-converted-to.png}
 %		\caption{Variability over starting locations}
 %		\label{Figure:Results:CompareLocations}
 %		\end{figure}

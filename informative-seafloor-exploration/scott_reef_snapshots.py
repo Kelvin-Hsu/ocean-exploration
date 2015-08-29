@@ -26,7 +26,7 @@ def main():
     logging.basicConfig(level = logging.DEBUG)
 
     main_directory = "../../../Results/scott-reef/"
-    directory = main_directory + "loc1_new_20150827_072830__method_MCJE_start_377500_8440000_hsteps30_horizon5000/"
+    directory = main_directory + "loc1_new_20150827_072158__method_LDE_start_377500_8440000_hsteps30_horizon5000/"
     trials = np.arange(100, 201, 25)
     logging.info(trials)
 
@@ -265,8 +265,8 @@ def save_maps(  X, F, y, Xq, Fq,
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
     sea.vis.describe_plot(
-        title = 'Predictions [Miss Ratio: {0:.2f}\%]'.format(
-            100 * miss_ratio), 
+        title = 'Predictions [Miss Ratio: {0:.2f}{1}]'.format(
+            100 * miss_ratio, '%'), 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True, 

@@ -62,19 +62,19 @@ def main():
         directory61 = main_directory + 'loc_20150819_095211__t200_q100000_ts250_qs500_method_FIXED_start380000.08440000.0_hsteps30_horizon5000.0/'
 
         data00 = obtain_data(directory00, {'index': 0, 'label': 'Location 1 with LDE', 'steps': 200})
-        data01 = obtain_data(directory01, {'index': 0, 'label': 'Location 2 with LDE', 'steps': 200})
+        data01 = obtain_data(directory01, {'index': 0, 'label': 'Location 2 with LDE', 'steps': 200, 'linestyle': 'dashed'})
         data10 = obtain_data(directory10, {'index': 1, 'label': 'Location 1 with GREEDY', 'steps': 200})
-        data11 = obtain_data(directory11, {'index': 1, 'label': 'Location 2 with GREEDY', 'steps': 200})
+        data11 = obtain_data(directory11, {'index': 1, 'label': 'Location 2 with GREEDY', 'steps': 200, 'linestyle': 'dashed'})
         data20 = obtain_data(directory20, {'index': 2, 'label': 'Location 1 with RANDOM', 'steps': 200})
-        data21 = obtain_data(directory21, {'index': 2, 'label': 'Location 2 with RANDOM', 'steps': 200})
+        data21 = obtain_data(directory21, {'index': 2, 'label': 'Location 2 with RANDOM', 'steps': 200, 'linestyle': 'dashed'})
         data30 = obtain_data(directory30, {'index': 3, 'label': 'Location 1 with MCJIE', 'steps': 200})
-        data31 = obtain_data(directory31, {'index': 3, 'label': 'Location 2 with MCJIE', 'steps': 200})
+        data31 = obtain_data(directory31, {'index': 3, 'label': 'Location 2 with MCJIE', 'steps': 200, 'linestyle': 'dashed'})
         data40 = obtain_data(directory40, {'index': 4, 'label': 'Location 1 with MIE', 'steps': 200})
-        data41 = obtain_data(directory41, {'index': 4, 'label': 'Location 2 with MIE', 'steps': 200})
+        data41 = obtain_data(directory41, {'index': 4, 'label': 'Location 2 with MIE', 'steps': 200, 'linestyle': 'dashed'})
         data50 = obtain_data(directory50, {'index': 5, 'label': 'Location 1 with SPIRAL', 'steps': 200})
-        data51 = obtain_data(directory51, {'index': 5, 'label': 'Location 2 with SPIRAL', 'steps': 200})
+        data51 = obtain_data(directory51, {'index': 5, 'label': 'Location 2 with SPIRAL', 'steps': 200, 'linestyle': 'dashed'})
         data60 = obtain_data(directory60, {'index': 6, 'label': 'Location 1 with LINES', 'steps': 200})
-        data61 = obtain_data(directory61, {'index': 6, 'label': 'Location 2 with LINES', 'steps': 200})
+        data61 = obtain_data(directory61, {'index': 6, 'label': 'Location 2 with LINES', 'steps': 200, 'linestyle': 'dashed'})
 
         plot_data(main_directory, data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, data60, data61, ncolors = 7, descript = 'methods', label_font_size = 18)
         logging.info('Compared methods')
@@ -93,7 +93,7 @@ def rank_data(*args):
     performances = np.array([arg[0][arg[-1].get('steps') - 1] for arg in args])
     names = [arg[-1].get('label') for arg in args]
     ind = performances.argsort()
-    table = [(names[i], performances[i]) for i in ind]
+    table = [(names[i], np.round(100 * performances[i], 2)) for i in ind]
     [print(t) for t in table]
     print('----------')
     [print(t) for t in table if 'Location 1' in t[0]]
@@ -157,16 +157,20 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
         color = colors[info['index']]
         label = info['label']
         steps = info['steps']
+        if 'linestyle' in info:
+            linestyle = info['linestyle']
+        else:
+            linestyle = 'solid'
 
         iterations_plt = np.append(0, iterations[:steps]) * (5000.0/30.0)
         miss_ratio_plt = np.append(41.54, 100 * miss_ratio_array[:steps])
         yq_lde_plt = np.append(-1.03, yq_lde_mean_array[:steps])
         yq_mie_plt = np.append(2.14, yq_mie_mean_array[:steps])
 
-        ax1.plot(iterations_plt, miss_ratio_plt, c = color, label = label)
+        ax1.plot(iterations_plt, miss_ratio_plt, c = color, label = label, linewidth = 2.0, linestyle = linestyle)
         ax1.set_ylim((0, 50))
-        ax2.plot(iterations_plt, yq_lde_plt, c = color, label = label)
-        ax3.plot(iterations_plt, yq_mie_plt, c = color, label = label)
+        ax2.plot(iterations_plt, yq_lde_plt, c = color, label = label, linewidth = 2.0, linestyle = linestyle)
+        ax3.plot(iterations_plt, yq_mie_plt, c = color, label = label, linewidth = 2.0, linestyle = linestyle)
 
     ax1.legend(bbox_to_anchor = (0., 0.0, 1., .05), loc = 3,
            ncol = ncol, borderaxespad = 0., fontsize = label_font_size)
