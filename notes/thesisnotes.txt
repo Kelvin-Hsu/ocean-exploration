@@ -12,4 +12,6 @@ Use the following to compress pdf (in normal windows command window not GIT base
 gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile=output.pdf input.pdf
 
 also try: -dPDFSETTINGS=/ebook, -dPDFSETTINGS=/printer
+
+gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=output.pdf input.pdf
 ftp://ftp.yzu.edu.tw/CTAN/graphics/pgf/contrib/smartdiagram/smartdiagram.pdf
