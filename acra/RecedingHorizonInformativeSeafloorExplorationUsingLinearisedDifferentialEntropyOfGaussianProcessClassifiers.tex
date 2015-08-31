@@ -1,4 +1,4 @@
-\typeout{Receding Horizon Informative Seafloor Exploration with Linearised Differential Entropy of Gaussian Process Classifiers}
+\typeout{Informative Seafloor Exploration with Linearised Differential Entropy of Gaussian Process Classifiers}
 \documentclass{article}
 \usepackage{acra}
 
@@ -14,14 +14,14 @@
 \usepackage{smartdiagram}
 \usepackage{upgreek}
 \usepackage{stfloats}
-%\usetikzlibrary{shapes,arrows,chains}
-%\usepackage[usenames, dvipsnames]{color} % pdfLaTeX
+
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 \newcommand{\incite}[1]{\citeauthor{#1} [\citeyear{#1}]}
-\title{Receding Horizon Informative Seafloor Exploration using Linearised Differential Entropy of Gaussian Process Classifiers}
-\author{Kelvin YS Hsu, Simon O'Callaghan, Stefan B Williams \\ Australian Centre for Field Robotics, University of Sydney, Australia \\ 
-Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu.au}
+
+\title{Informative Seafloor Exploration using the Linearised Differential Entropy of Gaussian Process Classifiers}
+\author{Kelvin YS Hsu\textsuperscript{\textnormal{12}}, Simon O'Callaghan\textsuperscript{\textnormal{1}}, Alistair Reid\textsuperscript{\textnormal{1}}, Stefan B Williams\textsuperscript{\textnormal{2}} \\ National ICT Australia\textsuperscript{1} \\ Australian Centre for Field Robotics, University of Sydney\textsuperscript{2} \\ 
+\{Kelvin.Hsu, Simon.Ocallaghan, Alistair.Reid\}@nicta.com.au, s.williams@acfr.usyd.edu.au}
 
 \begin{document}
 
@@ -120,7 +120,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		
 		As a straightforward transformation of the latent vector, the predictive probability vector $\vec{\uppi^{\star}}$ is thus a random vector itself. The usual procedure is then to treat the expected prediction probabilities $\mathbb{E}[\vec{\uppi^{\star}}]$ as the posterior class probabilities for further inference. However, this discards any information regarding the joint behaviour of an arbitrary collection of query points. As a result, a measure of mutual information shared amongst the query points cannot be obtained.
 		
-		One straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP, assigning class label 1 for positive latent values and -1 otherwise, and compute the Shannon entropy \cite{ShannonEntropy} from the estimated joint distribution. Aside from the relatively long computational time required for sampling enough draws for accurate joint distribution estimation, Monte Carlo estimated Joint Information Entropy (MCJIE) also has the tendency to over-represent uncertainties under small samples.
+		One straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP, assigning class label 1 for positive latent values and -1 otherwise, and compute the Shannon entropy \cite{ShannonEntropy} from the estimated joint distribution. Aside from the time complexity required for sampling enough draws for accurate joint distribution estimation, Monte Carlo estimated Joint Information Entropy (MCJIE) also has the tendency to over-represent uncertainties under small samples.
 				
 		Instead, we propose using the joint distribution of the predictive probabilities $\vec{\uppi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\vec{\uppi^{\star}}]$ such that structural information from the latent GP is compromised, we utilise also the covariance $\mathbb{V}[\vec{\uppi^{\star}}]$, which contains information regarding both the latent GP and the response likelihood.
 	
@@ -135,39 +135,31 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		
 		\subsubsection{Derivation}
 		
-			We proceed to derive the linearisation which also serves to construct the definition of linearised differential entropy. With first order Taylor expansion, we linearise the response about the chosen linearisation point $\bar{f}^{\star}_{i} = \mathbb{E}[f^{\star}_{i}]$.
-			
-			\begin{equation}
+			We proceed to derive the linearisation which also serves to construct the definition of linearised differential entropy. With first order Taylor expansion, we linearise the response about the latent mean $\bar{f}^{\star}_{i} = \mathbb{E}[f^{\star}_{i}]$ \eqref{Section:LinearisedEntropy:Equation:LinearisingSigmoid}. \begin{equation}
 				\sigma(f^{\star}_{i}) \approx \sigma_{L}(f^{\star}_{i}) := \sigma(\bar{f}^{\star}_{i}) + \sigma'(\bar{f}^{\star}_{i}) (f^{\star}_{i} - \bar{f}^{\star}_{i})
 			\label{Section:LinearisedEntropy:Equation:LinearisingSigmoid}
 			\end{equation}
 			
-			The prediction probabilities are now approximated as a linear transformation $\sigma_{L}(f)$ of the latent vector, so that it is also multivariate Gaussian distributed with expectance and covariance available in analytical form \eqref{Section:LinearisedEntropy:Equation:MomentsLinearisedSigmoid}.
-			
-			\begin{align*}
+			The prediction probabilities are now approximated as a linear transformation $\sigma_{L}(f)$ of the latent vector, so that it is also multivariate Gaussian distributed with expectance and covariance available in analytical form \eqref{Section:LinearisedEntropy:Equation:MomentsLinearisedSigmoid}. \begin{align*}
 			\numberthis \label{Section:LinearisedEntropy:Equation:MomentsLinearisedSigmoid}
 					\vec{\upsigma}_{L}(\bvec{f}^{\star}) & \sim \mathcal{N}(\vec{\upmu}^{\star}_{L}, \Sigma^{\star}_{L}) \\
 					({\mu^{\star}_{L}})_{i} & = \mathbb{E}[\sigma_{L}(f^{\star}_{i})] = \sigma(\bar{f}^{\star}_{i}) \\
 					({\Sigma^{\star}_{L}})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma_{L}(f^{\star}_{i}), \sigma_{L}(f^{\star}_{j})] = \sigma'(\bar{f}^{\star}_{i}) \sigma'(\bar{f}^{\star}_{j}) \mathbb{C}\mathrm{ov}[f^{\star}_{i}, f^{\star}_{j}]
 			\end{align*}
 			
-			We then define the linearised differential entropy $H^{\star}_{L}$ at the query points $X^{\star}$ to be the differential entropy for which the random vector $\vec{\upsigma}_{L}(\bvec{f}^{\star})$ holds. Since $\vec{\upsigma}_{L}(\bvec{f}^{\star})$ is multivariate Gaussian distributed, $H_{L}$ exhibits a closed form \eqref{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy}.
-			
-			\begin{equation}
+			We then define the linearised differential entropy $H^{\star}_{L}$ at the query points $X^{\star}$ to be the differential entropy for which the random vector $\vec{\upsigma}_{L}(\bvec{f}^{\star})$ holds. Since $\vec{\upsigma}_{L}(\bvec{f}^{\star})$ is multivariate Gaussian distributed, $H_{L}$ exhibits a closed form \eqref{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy}. \begin{equation}
 				H^{\star}_{L} := \frac{1}{2} \log\Big((2 \pi e)^{n^{\star}} \det(\Sigma^{\star}_{L})\Big)
 			\label{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy}
 			\end{equation}			
 					
 	\subsection{Multiclass Classification}
 			
-		For multiclass classification, linearisation is performed on the softmax function $\sigma^{m}$ which returns the corresponding predictive class probability $\vec{\uppi}^{m}$ for class $m \in \{1, 2, \dots, c\}$ \eqref{Section:LinearisedEntropy:Equation:Softmax} \cite{GaussianProcessForMachineLearning}. For notational clarity we move the query star ($^\star$) to the left and use the superscript $m$ to index the classes. The latent vector $\bvec{f}_{i} := \{f^{m}_{i}\}_{m \in \{1, 2, \dots, c\}}$ represents the collection of $c$ latent values across classes at the query point $i$, and is distinct from $\bvec{f}^{m} := \{f^{m}_{i}\}_{i \in \{1, 2, \dots, n^{\star}\}}$ which represents the collection of $n^{\star}$ latent values across query points for class $m$.
-
-		\begin{equation}
+		For multiclass classification, linearisation is performed on the softmax function $\sigma^{m}$ which returns the corresponding predictive class probability $\vec{\uppi}^{m}$ for class $m \in \{1, 2, \dots, c\}$ \eqref{Section:LinearisedEntropy:Equation:Softmax} \cite{GaussianProcessForMachineLearning}. For notational clarity we move the query star ($^\star$) to the left and use the superscript $m$ to index the classes. The latent vector $\bvec{f}_{i} := \{f^{m}_{i}\}_{m \in \{1, 2, \dots, c\}}$ represents the collection of $c$ latent values across classes at the query point $i$, and is distinct from $\bvec{f}^{m} := \{f^{m}_{i}\}_{i \in \{1, 2, \dots, n^{\star}\}}$ which represents the collection of $n^{\star}$ latent values across query points for class $m$. \begin{equation}
 			^{\star}\pi^{m}_{i} = \sigma^{m}(^{\star}\bvec{f}_{i}) := \frac{\exp(^{\star}f^{m}_{i})}{\sum_{l = 1}^{c} \exp(^{\star}f^{l}_{i})} \qquad m \in \{1, 2, \dots, c\}
 		\label{Section:LinearisedEntropy:Equation:Softmax}
 		\end{equation}
 		
-		In this derivation, we focus on the case of OVA, or One V.S. All, multiclass classification, where each class is trained against all other classes independently with a binary classifier. For $c$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Section:LinearisedEntropy:Equation:Softmax}. This approach avoids the Monte Carlo sampling step in the inference stage of a typical GP multiclass classifier under Laplace Approximation \cite{GaussianProcessForMachineLearning}, and is thus faster in computational time. Furthermore, because each classifier is trained independently, both the learning stage and the inference stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in under a receding horizon formulation, where the inference stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
+		In this derivation, we focus on the case of OVA, or one versus all, multiclass classification, where each class is trained against all other classes independently with a binary classifier. For $c$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Section:LinearisedEntropy:Equation:Softmax}. This approach avoids the Monte Carlo sampling step in the inference stage of a typical GP multiclass classifier under Laplace Approximation \cite{GaussianProcessForMachineLearning}, and is thus faster in computational time. Furthermore, because each classifier is trained independently, both the learning stage and the inference stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in under a receding horizon formulation, where the inference stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
 		
 		\subsubsection{Derivation}
 		
@@ -213,7 +205,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 			\label{Section:LinearisedEntropy:Equation:Definitions}
 			\end{equation}
 						
-			We can now compute compute the covariance of the linearised sigmoid of a particular class $m$ between two query points $i$ and $j$, as well as the expectance at a particular query point $i$ \eqref{Section:LinearisedEntropy:Equation:MomentsLinearisedSoftmax}.
+			We can now compute the covariance of the linearised sigmoid of a particular class $m$ between two query points $i$ and $j$, as well as the expectance at a particular query point $i$ \eqref{Section:LinearisedEntropy:Equation:MomentsLinearisedSoftmax}.
 			
 			\begin{align*}
 			\numberthis \label{Section:LinearisedEntropy:Equation:MomentsLinearisedSoftmax}
@@ -235,7 +227,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 	
 	\subsection{Interpretation of Linearised Differential Entropy}
 	
-		It is worthwhile to remember that linearised differential entropy is not an approximation to the usual prediction information entropy - the former is a differential entropy on a multivariate Gaussian distribution and the later is an information entropy on the distribution of discrete class predictions combinations, which is a multivariate multinomial distribution. They have different interpretations and both can have advantageous properties under different scenarios. We propose using linearised differential entropy as an alternative acquisition function for informative path planning which can be more beneficial under specific exploration purposes.
+		It is worthwhile to remember that linearised differential entropy is not an approximation to the usual prediction information entropy - the former is a differential entropy on a multivariate Gaussian distribution and the latter is an information entropy on the distribution of discrete class predictions combinations, which is a multivariate multinomial distribution. They have different interpretations and both can have advantageous properties under different scenarios. We propose using linearised differential entropy as an alternative acquisition function for informative path planning which can be more beneficial under specific exploration purposes.
 		
 		Specifically, while the prediction information entropy (PIE) represents the confidence in the model, the linearised differential entropy (LDE) represents the the separability of classes in the feature space. In fact, LDE quantifies the ambiguity of the predictive probabilities. In particular, it is possible for GP multiclass classifiers to conclude low predictive variance even under uncertain predictive probabilities. In this case, the LDE would be high while the PIE would be low at such locations, indicating that the model is confident about its inability to separate classes \cite{AsherBender}. Similar to the bias-variance trade-off, such a situation indicate high bias, and is distinct from a model that is unconfident about its ability to separate classes, which would correspond to high variance. This demonstrates that PIE and LDE are two complementary measures of entropy that can assist each other in identifying both places of high bias and high variance.
 		
@@ -243,7 +235,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		
 		Here we compare linearised differential entropy and the usual prediction information entropy of a Gaussian process classifier. For visualisation purposes, only the marginalised entropies across the feature space are shown. We show examples where abundant information is available, so that the difference in the properties in the two measures can be emphasized. 
 		
-		Figure \ref{Figure:Results:BinaryLinearisedEntropy} show a simple binary classification problem with abundant data on features $x_{1}$ and $x_{2}$, allowing a misclassification rate of 2.155\%. The classifier is trained with an axis aligned Gaussian kernel with a probit response under Laplace approximation. 
+		Figure \ref{Figure:Results:BinaryLinearisedEntropy} shows a simple binary classification problem with abundant data on features $x_{1}$ and $x_{2}$, allowing a misclassification rate of 2.155\%. The classifier is trained with an axis aligned Gaussian kernel with a probit response under Laplace approximation. 
 
 		\begin{figure}[t]
 		\centering
@@ -254,15 +246,15 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		
 		In this example, there are no training points around the edges shown. As a result, the GP classifier learns a slightly lower signal to noise ratio in the latent function, and bounces back to its latent GP prior for which it remains uncertain regarding class label assignments. The prediction information entropy reflects this change more rapidly, so that it is high both at the decision boundaries and wherever observations are lacking. If the acquisition function for informative exploration is a function of the prediction information entropy, the vehicle would be suggested to explore both places with lacking observations and the decision boundaries. 
 		
-		On the other hand, linearised differential entropy focuses on the decision boundary as it is constructed to be only high when the latent function is near zero (figure \ref{Figure:Linearisation}). We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy emphasizes on where the latent expectance is close to zero, and filters out the rest. If the linearised differential entropy is used as the acquisition function, the vehicle would focus on the decision boundaries within the feature space. Notice that regions far away from observations in the feature space are also assigned with high linearised differential entropy, as the latent function bounces back to its prior, so that the vehicle would explore those parts of the feature space if necessary.
+		On the other hand, linearised differential entropy focuses on the decision boundary as it is constructed to be only high when the latent function is near zero (figure \ref{Figure:Linearisation}). We can see in Figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy emphasizes on where the latent expectance is close to zero, and filters out the rest. If the linearised differential entropy is used as the acquisition function, the vehicle would focus on the decision boundaries within the feature space. Notice that regions far away from observations in the feature space are also assigned with high linearised differential entropy, as the latent function bounces back to its prior, so that the vehicle would explore those parts of the feature space if necessary.
 		
-%		Intuitively, under abundant data, we would like the classifier to only indicate high entropies at decision boundaries. In figure \ref{Figure:Results:BinaryLinearisedEntropy}, we see that the prediction information entropy is indeed near its maximum at the predict decision boundaries. As an artefact of the Laplace approximation, however, it is also quite high around the edges where the classifier has learned a slightly lower signal to noise ratio. As there are no data points around the edges, the GP classifier learns a latent function that bounces back to its latent GP prior for which it remains uncertain regarding the class labels. 
+%		Intuitively, under abundant data, we would like the classifier to only indicate high entropies at decision boundaries. In Figure \ref{Figure:Results:BinaryLinearisedEntropy}, we see that the prediction information entropy is indeed near its maximum at the predict decision boundaries. As an artefact of the Laplace approximation, however, it is also quite high around the edges where the classifier has learned a slightly lower signal to noise ratio. As there are no data points around the edges, the GP classifier learns a latent function that bounces back to its latent GP prior for which it remains uncertain regarding the class labels. 
 		
 %		This suggests that if the prediction information entropy is used as the acquisition function for path planning, the vehicle would be suggested to spent some time travelling around the region of interest, collecting data it is already expecting. The prediction entropy is high at both predicted decision boundaries and also places with lower relative data density compared. 
 %		
 %		This leads to the classic exploration-exploitation dilemma most machine learning algorithms face. It is possible that there exists decision boundaries yet to be detected at regions of lower relative data density. Is it worth it for the vehicle to explore and discover such regions, or exploit the currently known boundaries and map it better? In most exploration applications, the priority is to map the region of interest as accurately and fast as possible in order to reduce time and cost. While it is possible that there exists undiscovered decision boundaries at regions of lower relative data density, it is undesirable under cost constraints that this possibility is weighed heavily by the vehicle even under abundant data.
 		
-		This demonstrates the advantage of linearised differential entropy. We can see in figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy is only high at the predicted decision boundaries. Note that the colour scale has been centred around zero differential entropy. Under such an acquisition function, the vehicle would focus strictly on the mapping the predicted decision boundaries better.
+		This demonstrates the advantage of linearised differential entropy. We can see in Figure \ref{Figure:Results:BinaryLinearisedEntropy} that the linearised differential entropy is only high at the predicted decision boundaries. Note that the colour scale has been centred around zero differential entropy. Under such an acquisition function, the vehicle would focus strictly on the mapping the predicted decision boundaries better.
 		
 		Figure \ref{Figure:Results:MulticlassLinearisedEntropy} shows a similar scenario with a multi-class scenario with 4 labels. The same behaviour as the binary case is observed, where the linearised differential entropy approach pushes down the entropy level of all regions except the predicted decision boundaries.
 	
@@ -278,12 +270,10 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 \section{Receding Horizon Approach to Informative Path Planning}
 \label{Section:RecedingHorizonFormulation}
 
-	In this section we present a receding horizon approach to the informative path-planning problem. Specifically, we use the linearised differential entropy derived earlier as the acquisition function. We motivate the use of the approach and discuss its properties.
+	In this section we present a receding horizon approach to the informative path-planning problem. Specifically, we use the linearised differential entropy derived earlier as the acquisition function. We motivate the use of the approach and discuss its structure.
 	
-	\subsection{Motivation}
+	The receding horizon approach is inspired by the philosophy of model predictive control (MPC) in control theory, for which a continuous problem is discretised such that an optimal control problem is transcribed into a static optimisation problem at each time step. Similar to MPC, while receding horizon methods are almost always suboptimal, it provides a computationally tractable approach that is rather stable in performance. Furthermore, a receding horizon approach avoids a myopic and greedy approach to informative path planning. Myopic approaches often result in the vehicle fixating on a region with local maximum entropy due to its inability to sacrifice immediate rewards for future rewards in a faraway region. Lastly, a receding horizon approach is simple to implement and sufficient for most missions for which strict optimality is not necessary.
 	
-		The receding horizon approach is inspired by the philosophy of model predictive control (MPC) in control theory, for which a continuous problem is discretised such that an optimal control problem is transcribed into a static optimisation problem at each time step. Similar to MPC, while receding horizon methods are almost always suboptimal, it provides a computationally tractable approach that is rather stable in performance. Furthermore, a receding horizon approach avoids a myopic and greedy approach to informative path planning. Myopic approaches often result in the vehicle fixating on a region with local maximum entropy due to its inability to sacrifice immediate rewards for future rewards in a faraway region. Lastly, a receding horizon approach is simple to implement and sufficient for most missions for which strict optimality is not necessary.
-		
 %		Informative path planning is a highly dynamical process in which the observations the vehicle decides to take can significantly impact the belief space of the vehicle and hence alter its action. As a result, Gaussian processes are often used for modeling the environment for which path planning is to be performed. The tractability of Gaussian processes regression allows sophisticated methods for informative path planning, such as  performing sequential Bayesian optimisation to achieve informative path planning over continuous domains \cite{Roman:SequentialBayesianOptimisation}. One desired property we would like to achieve with an informative path-planning problem is that the search is non-myopic. When the objective is to collect data on a particular spatial phenomenon, Gaussian process regression can be used as the model under which strong theoretical performance guarantees can be made \cite{Meliou:2007:NIP:1619645.1619742}. However, in the case where the objective is to collect data in the form of discrete labels, a Gaussian process classifier is used instead for modeling the phenomenon. As discussed earlier, the joint entropy from a Gaussian process classifier is not available in closed form. Instead, another measure of joint entropy was developed in the previous section which demonstrated desired properties for informative exploration. To take advantage of the tractability of linearised differential entropy over finite collections of query points, we discretise the spatial domain and select paths composed of finitely many query points. The acquisition criterion is then set to be the linearised differential entropy of the query points that compose the path.
 
 	\begin{figure*}[!htbp]
@@ -300,7 +290,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 	
 	\subsection{Formulation and Structure}
 
-		The receding horizon approach requires the selection of a horizon length and the number of control points (query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce path that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. For an informative path-planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path. The horizon structure selected for the Scott Reef scenario is 5 km in extent with 30 control points.
+		The receding horizon approach requires the selection of a horizon length and the number of control points (query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce paths that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. For an informative path-planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path.
 
 %		\begin{figure}[!htbp]
 %		\centering
@@ -313,13 +303,13 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 			\begin{center}
 				\smartdiagramset{text width = 3cm}
 				% \smartdiagramset{set color list = {orange!50, green!80, blue!50}}
-				\smartdiagram[circular diagram:clockwise]{Learn GP model from collected data, Compute finite optimal path, Record first observation}
+				\smartdiagram[circular diagram:clockwise]{Learn GP model from collected data, Compute finite optimal path, Move to first control point \& record observation}
 			\end{center}
 		\caption{Basic Receding Horizon Structure}
 		\label{Figure:Results:RecedingHorizonMethodOutline}
 		\end{figure}
 				
-		Figure \ref{Figure:Results:RecedingHorizonMethodOutline} describes the basic flow of approach, which resembles the approach of MPC in control theory. The acquisition function to be maximised in each step is flexible, and we compare LDE acquisition \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy} against MCJIE acquisition and other acquisition functions under the receding horizon structure in the next section. In each time step, a new path, 5 km in length, is proposed for which the vehicle only executes the policy for $\frac{5 \mathrm{km}}{30}$ = 167 meters towards the first control point. It then takes an observation, relearn the GP classifier model, and repeats the process. 
+		Figure \ref{Figure:Results:RecedingHorizonMethodOutline} describes the basic flow of the receding horizon approach approach, which resembles the technique of model predictive control (MPC) in control theory. That is, it computes an optimal policy of finite horizon in each time step, and only executes the first action from the policy. The acquisition function to be maximised in each step is flexible, and we compare LDE acquisition \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy} against MCJIE acquisition and other acquisition functions under the receding horizon structure in the next section. In each time step, a new path of a certain horizon length is proposed, which is discretised into a finite set of control points. The vehicle only executes the policy towards the first control point while recording observations. It then relearns the GP classifier model with new observations, and repeats the process. 
 		
 \section{Experimental Results}
 \label{Section:ExperimentalResults}
@@ -329,6 +319,8 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 	We test our approach on the Scott Reef data set provided by \incite{IMOS}. The benthic labels are obtained through unsupervised clustering on benthic imagery using Gaussian latent Dirichlet allocation (LDA) \cite{Steinberg2015128}, producing 22 unique benthic class labels, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting. 
 
 	\subsection{Modeling Scott Reef Benthic Zones}
+		
+		An OVA GP multiclass classifier is to model the benthic habitats using five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale) (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). It is assumed that the nature of the habitat depends on the location implicitly through explicit dependence on bathymetric structure of the seafloor. Thus, spatial coordinates are not included in the feature set. As training labels are only available around past mission tracks (figure \ref{Figure:Results:ScottReefBathymetricFeatures}), a synthetic ground truth is generated separately in order to assess the relative performance between path-planning techniques (figure \ref{Figure:Results:ScottReefSyntheticGroundTruth}). Note that this ground truth is generated in accordance to the limited training labels available in the dataset and does not necessary represent the physical reality at Scott Reef. 
 
 		\begin{figure}[t]
 		\fontsize{24}{12}\selectfont
@@ -338,8 +330,6 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		\label{Figure:Results:ScottReefSyntheticGroundTruth}
 		\end{figure}
 		
-		An OVA GP multiclass classifier is to model the benthic habitats using five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale) (figure \ref{Figure:Results:ScottReefBathymetricFeatures}). It is assumed that the nature of the habitat depends on the location implicitly through explicit dependence on bathymetric structure of the seafloor. Thus, spatial coordinates are not included in the feature set. As training labels are only available around past mission tracks (figure \ref{Figure:Results:ScottReefBathymetricFeatures}), a synthetic ground truth is generated separately in order to assess the relative performance between path-planning techniques (figure \ref{Figure:Results:ScottReefSyntheticGroundTruth}). Note that this ground truth is generated in accordance to the limited training labels available in the dataset and does not necessary represent the physical reality at Scott Reef. 
-
 		\begin{figure}[bp]
 		\centering
 			\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9-eps-converted-to.png}
@@ -383,7 +373,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		\label{Figure:Results:OptimalPaths}
 		\end{figure*}
 		
-		A comparison in performance over a distance of 33.3 km between several acquisition criterion are shown in figure \ref{Figure:Results:CompareMethods}. Each method is tested with a horizon length of 5 km starting at two distinct initial locations - (377.5, 8440.0) and (380.0, 8440.0) km in Eastings-Northings frame. The acquisition criterion to be compared are linearised differential entropy (LDE), one step ahead information entropy (GREEDY), random walk (RANDOM), Monte Carlo estimated joint information entropy (MCJIE), mean of marginalised information entropy (MIE), predetermined spiral path (FIXED-SPIRAL), and predetermined line segmented paths (FIXED-LINES). Of these, only LDE and MCJIE acquisitions consider mutual information.
+		The horizon structure selected for the Scott Reef scenario is 5 km in extent with 30 control points. Each control step is therefore $\frac{5 \mathrm{km}}{30}$ = 167 meters in length.  A comparison in performance over a distance of 33.3 km between several acquisition criterion is shown in Figure \ref{Figure:Results:CompareMethods}. Each method is tested with a horizon length of 5 km starting at two distinct initial locations - (377.5, 8440.0) and (380.0, 8440.0) km in Eastings-Northings frame. The acquisition criterion to be compared are linearised differential entropy (LDE), one step ahead information entropy (GREEDY), random walk (RANDOM), Monte Carlo estimated joint information entropy (MCJIE), mean of marginalised information entropy (MIE), predetermined spiral path (FIXED-SPIRAL), and predetermined line segmented paths (FIXED-LINES). Of these, only LDE and MCJIE acquisitions consider mutual information.
 
 %('Location 1 with LDE', 0.16442000000000001)
 %('Location 1 with LINES', 0.20402000000000001)
@@ -412,7 +402,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 				
 		Figures \ref{Figure:Results:OptimalPaths} show snapshots of the resulting path under LDE and MCJIE acquisition respectively, layered onto the prediction information entropy map. The snapshots are taken at 0.17 km, 16.67 km, and 33.33 km into the journey. Figure \ref{Figure:Results:FinalPredictions} shows the final predictions after 33.33 km under LDE acquisition. The circle represents the horizon length for which the vehicle considers in at each time step, with the vehicle at the center. The path with empty circles represent the path it has taken, and the path with filled hexagons extending from the current location represent the immediate proposed path from the receding horizon optimisation.
 		
-		As we expect, the two paths from the two methods are similar, with LDE acquisition achieving a misclassification ratio of approximately 4\% less. This difference is visible through the lower amount of information entropy around the inner regions of the reef under LDE acquisition compared to MCJIE acquisition. Unlike other methods, both the LDE and MCJIE method take into consideration the mutual information of the proposed path, so that both methods outperform myopic or open loop methods (figure \ref{Figure:Results:CompareMethods}). In the figure shown, the Monte Carlo approach uses 1000 sample draws from the GP classifier to estimate the joint distribution for 30 control points, and experiences little improvement under misclassification criterion with more samples. This results demonstrates that under a receding horizon formulation, using LDE acquisition achieves lower misclassification rate on average than other acquisition functions - most importantly MCJIE acquisition. Furthermore, a receding horizon method achieves lower misclassification rate than myopic approaches under the same acquisition function.	
+		As we expect, the paths from the two methods are similar, with LDE acquisition achieving a misclassification ratio of approximately 4\% less. This difference is visible through the lower amount of information entropy around the inner regions of the reef under LDE acquisition compared to MCJIE acquisition. Unlike other methods, both the LDE and MCJIE method take into consideration the mutual information of the proposed path, so that both methods outperform myopic or open loop methods (figure \ref{Figure:Results:CompareMethods}). In the figure shown, the Monte Carlo approach uses 1000 sample draws from the GP classifier to estimate the joint distribution for 30 control points, and experiences little improvement under misclassification criterion with more samples. This results demonstrates that under a receding horizon formulation, using LDE acquisition achieves lower misclassification rate on average than other acquisition functions - most importantly MCJIE acquisition. Furthermore, a receding horizon method achieves lower misclassification rate than myopic approaches under the same acquisition function.	
 
 		\begin{table*}[t]
 			\begin{center}
@@ -463,7 +453,7 @@ Kelvin.Hsu@nicta.com.au, Simon.Ocallaghan@nicta.com.au, s.williams@acfr.usyd.edu
 		
 \section*{Acknowledgments}
 
-	This work is supported by the Australian Centre for Field Robotics (ACFR), the University of Sydney, and National ICT Australia (NICTA).
+	This work is supported by the Australian Centre for Field Robotics (ACFR), the University of Sydney, and National ICT Australia (NICTA). NICTA is funded by the Australian Government through the ICT Centre of Excellence program. 
 	
 %% This section was initially prepared using BibTeX.  The .bbl file was
 %% placed here later
