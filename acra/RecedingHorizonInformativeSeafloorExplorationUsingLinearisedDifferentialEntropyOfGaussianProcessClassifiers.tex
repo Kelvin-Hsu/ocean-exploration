@@ -114,7 +114,7 @@
 		The binary prediction probability $\vec{\uppi^{\star}}$ at the query points is obtained through passing the queried latent function random vector $\bvec{f}^{\star}$ through a response function in a component wise fashion \eqref{Section:LinearisedEntropy:Equation:Response}.
 		
 		\begin{equation}
-			\vec{\uppi}^{\star} = \vec{\upsigma}(f^{\star})\mathrm{ \quad i.e. \;\;}\pi^{\star}_{i} = \sigma(f^{\star}_{i}) \quad \forall i \in \{1, 2, \dots, n^{\star}\}
+			\vec{\uppi}^{\star} = \vec{\upsigma}(\bvec{f}^{\star})\mathrm{ \quad i.e. \;\;}\pi^{\star}_{i} = \sigma(f^{\star}_{i}) \quad \forall i \in \{1, 2, \dots, n^{\star}\}
 		\label{Section:LinearisedEntropy:Equation:Response}
 		\end{equation}
 		
@@ -216,7 +216,7 @@
 					& = \sum_{k = 1}^{c} (g^{m}_{i})^{k} (g^{m}_{j})^{k} \mathbb{C}\mathrm{ov}[f^{k}_{i}, f^{k}_{j}]
 			\end{align*}
 						
-			where $(g^{m}_{i})^{k}$ denotes the $k^{\text{th}}$ element of $\bvec{g}^{m}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of class $i$ and class $j$ are conditionally independent given training observations.
+			where $(g^{m}_{i})^{k}$ denotes the $k^{\text{th}}$ element of $\bvec{g}^{m}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of classes $k$ and $l$, $k \neq l$, are conditionally independent given training observations.
 			
 			Finally, we define the linearised entropy of the OVA multiclass Gaussian process classifier as follows \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}.
 			
