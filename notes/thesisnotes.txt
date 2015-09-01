@@ -1,8 +1,3 @@
-Entropy can be considered by points
-But the joint distribution says more things and in fact the entropy of a region can be summarised by jointly querying
-
-KelvinHsu-InformativeSeafloorExplorationUsingTheLinearisedDifferentialEntropyOfGaussianProcessClassifiers
-
 Use the following to compress pdf (in normal windows command window not GIT base)
 gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile=output.pdf input.pdf
 
