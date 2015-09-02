@@ -4,4 +4,5 @@ gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -d
 also try: -dPDFSETTINGS=/ebook, -dPDFSETTINGS=/printer
 
 gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=output.pdf input.pdf
+
 ftp://ftp.yzu.edu.tw/CTAN/graphics/pgf/contrib/smartdiagram/smartdiagram.pdf
