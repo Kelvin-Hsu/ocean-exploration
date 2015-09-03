@@ -2,24 +2,29 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.ticker as ticker
 
-x = np.linspace(0, 10, num = 20)
-y = x**2
+def main():
 
-plt.plot(x, y)
-plt.xlabel('x')
-plt.ylabel('y')
-plt.title('plot')
+    x = np.linspace(0, 10, num = 20)
+    y = x**2
 
-ticksize = 30
-axis_scale = 10
+    plt.plot(x, y)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('plot')
 
-for tick in plt.gca().xaxis.get_major_ticks():
-    tick.label.set_fontsize(ticksize) 
-for tick in plt.gca().yaxis.get_major_ticks():
-    tick.label.set_fontsize(ticksize)
+    ticksize = 30
+    axis_scale = 10
 
-ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/axis_scale))
-plt.gca().xaxis.set_major_formatter(ticks)
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(ticksize) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(ticksize)
 
-plt.show()
+    ticks = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/axis_scale))
+    plt.gca().xaxis.set_major_formatter(ticks)
+
+    plt.show()
+
+if __name__ == "__main__":
+    main()
 
