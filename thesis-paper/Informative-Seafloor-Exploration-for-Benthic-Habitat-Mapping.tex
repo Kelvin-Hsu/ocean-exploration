@@ -3,22 +3,24 @@
 %% ---------------------------------------------------------------- 
 
 % Set up the document
-\documentclass[a4paper, 11pt, oneside]{Thesis}  % Use the "Thesis" style, based on the ECS Thesis style by Steve Gunn
+\documentclass[a4paper, 12pt, oneside]{Thesis}  % Use the "Thesis" style, based on the ECS Thesis style by Steve Gunn
 \graphicspath{Figures/}  % Location of the graphics files (set up for graphics to be in PDF format)
-
 % Include any extra LaTeX packages required
-\usepackage[square, numbers, comma, sort&compress]{natbib}  % Use the "Natbib" style for the references in the Bibliography
+\bibliographystyle{apalike}  % Use the "unsrtnat" BibTeX style for formatting the Bibliography
+\usepackage[square, authoryear, comma, sort&compress]{natbib}  % Use the "Natbib" style for the references in the Bibliography
 \usepackage{verbatim}  % Needed for the "comment" environment to make LaTeX comments
 \usepackage{vector}  % Allows "\bvec{}" and "\buvec{}" for "blackboard" style bold vectors in maths
 \hypersetup{urlcolor=cyan, colorlinks=true, linktocpage=true}  % Colours hyperlinks in blue, but this can be distracting if there are many links.
 
 
 %%%%%% Start: Kelvin's Packages %%%%%% 
+%\usepackage{apacite}
 \usepackage{placeins}
 \usepackage{wrapfig}
 \usepackage[noabbrev]{cleveref}
 \usepackage[usenames,dvipsnames]{xcolor}
-\bibliographystyle{unsrtnat}
+\usepackage{CJKutf8}
+%\bibliographystyle{unsrtnat}
 %\usepackage[apaciteclassic]{apacite}
 %\bibliographystyle{apacite}
 %%%%%% End: Kelvin's Packages %%%%%% 
@@ -41,6 +43,7 @@
 \newcommand{\matern}{Mat\'{e}rn }
 \newcommand{\maternmath}{Mat\acute{e}rn }
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\incite}[1]{\citeauthor{#1} [\citeyear{#1}]}
 
 %%%%%% End: Kelvin's Macro's %%%%%% 
 %% ----------------------------------------------------------------
@@ -48,10 +51,10 @@
 \frontmatter      % Begin Roman style (i, ii, iii, iv...) page numbering
 
 % Set up the Title Page
-\title  {Honours Thesis \\ \textnormal{Informative Path Planning with Gaussian Process Classifiers for Seafloor Exploration}}
+\title  {Informative Seafloor Exploration {\Large{for}} Benthic Habitat Mapping}
 \authors  {\texorpdfstring
-            {\href{yhsu9975@uni.sydney.edu.au}{Yuan-Shuo Kelvin Hsu}}
-            {Yuan-Shuo Kelvin Hsu}
+            {\href{yhsu9975@uni.sydney.edu.au}{Kelvin Y.S. Hsu}}
+            {Kelvin YS Hsu}
             }
 \addresses  {\groupname\\\deptname\\\univname}  % Do not change this here, instead these must be set in the "Thesis.cls" file, please look through it instead
 \date       {\today}
@@ -76,7 +79,7 @@
 
 \addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
 
-I, Yuan-Shuo Kelvin Hsu, declare that this thesis titled, `Informative Path Planning with Gaussian Process Classifiers for Seafloor Exploration' and the work presented in it are my own. I confirm that:
+I, Kelvin Y.S. Hsu, declare that this thesis titled, `Informative Path Planning with Gaussian Process Classifiers for Seafloor Exploration' and the work presented in it are my own. I confirm that:
 
 \begin{itemize} 
 \item[\tiny{$\blacksquare$}] This work was done wholly or mainly while in candidature for a research degree at this University.
@@ -108,10 +111,24 @@ Date:\\
 
 \null\vfill
 % Now comes the "Funny Quote", written in italics
-%\textit{``Write a funny quote here.''}
+\begin{CJK*}{UTF8}{bsmi}
+\textit{``{\CJKfamily{bkai}三人行, 必有我師焉}''}
+
+\begin{flushright}
+	{\CJKfamily{bkai}孔子}
+\end{flushright}
+\end{CJK*}
+
+%\textit{``Whatever the mind can conceive and believe, it can achieve.''}
 %
 %\begin{flushright}
-%If the quote is taken from someone, their name goes here
+%	 Napoleon Hill
+%\end{flushright}
+
+%\textit{``Whether you think you can, or you think you can't - you're right.''}
+%
+%\begin{flushright}
+%	Henry Ford
 %\end{flushright}
 
 \vfill\vfill\vfill\vfill\vfill\vfill\null
@@ -122,8 +139,12 @@ Date:\\
 \addtotoc{Abstract}  % Add the "Abstract" page entry to the Contents
 \abstract{
 \addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
+	\begin{center}
+	\textbf{Informative Seafloor Exploration for Benthic Habitat Mapping} \\
+	\end{center}
+	While seafloor bathymetry have been mapped extensively over the last few decades, geological and ecological observations of seafloor benthic zones only began recently. Unlike bathymetric mapping, data collection of benthic imagery requires \textit{in situ} exploration - a significantly slower and costly endeavour. An efficient exploration policy would therefore require solving the informative path planning problem. This thesis investigates a Gaussian process based informative exploration policy for benthic habitat mapping. 
 	
-	While underwater terrains have been mapped extensively over the last century, geological and ecology studies of marine environments only began in recent years. Unlike ocean terrain mapping, collection of marine environment data and imagery requires \textit{in situ} exploration, and is significantly slower and costly. This thesis investigates machine learning methods for autonomous underwater vehicles to intelligently and actively plan an underwater path for data collection. The problem is complicated by the presence of dynamic uncertainties that is highly dependent on the vehicle's planning actions. A dynamic planning method is proposed to maximise information gained, or minimise overall entropy, in a given underwater region, while constrained by cost and time.
+	% Describe some fundamental problems and challanges, such as dynamic modeling, and then list contributoins
 }
 
 \clearpage  % Abstract ended, start a new page
@@ -156,7 +177,7 @@ Date:\\
 \listoftables  % Write out the List of Tables
 
 %% ----------------------------------------------------------------
-\setstretch{1.5}  % Set the line spacing to 1.5, this makes the following tables easier to read
+\setstretch{1.3}  % Set the line spacing to 1.3, this makes the following tables easier to read
 \clearpage  % Start a new page
 \lhead{\emph{Abbreviations}}  % Set the left side page header to "Abbreviations"
 \listofsymbols{ll}  % Include a list of Abbreviations (a table of two columns)
@@ -206,33 +227,33 @@ Date:\\
 		SONAR & Sound Navigation And Ranging \\
 }
 
-%% ----------------------------------------------------------------
-\clearpage  % Start a new page
-\lhead{\emph{Physical Constants}}  % Set the left side page header to "Physical Constants"
-\listofconstants{lrcl}  % Include a list of Physical Constants (a four column table)
-{
-%	% Constant Name & Symbol & = & Constant Value (with units) \\
-%	Speed of Light & $c$ & $=$ & $2.997\ 924\ 58\times10^{8}\ \mbox{ms}^{-\mbox{s}}$ (exact)\\
+%%% ----------------------------------------------------------------
+%\clearpage  % Start a new page
+%\lhead{\emph{Physical Constants}}  % Set the left side page header to "Physical Constants"
+%\listofconstants{lrcl}  % Include a list of Physical Constants (a four column table)
+%{
+%%	% Constant Name & Symbol & = & Constant Value (with units) \\
+%%	Speed of Light & $c$ & $=$ & $2.997\ 924\ 58\times10^{8}\ \mbox{ms}^{-\mbox{s}}$ (exact)\\
+%
+%}
+%
+%%% ----------------------------------------------------------------
+%\clearpage  %Start a new page
+%\lhead{\emph{Symbols}}  % Set the left side page header to "Symbols"
+%\listofnomenclature{lll}  % Include a list of Symbols (a three column table)
+%{
+%%	% symbol & name & unit \\
+%%	$a$ & distance & m \\
+%%	$P$ & power & W (Js$^{-1}$) \\
+%%	& & \\ % Gap to separate the Roman symbols from the Greek
+%%	$\omega$ & angular frequency & rads$^{-1}$ \\
+%}
+%%% ----------------------------------------------------------------
+%% End of the pre-able, contents and lists of things
+%% Begin the Dedication page
 
-}
 
-%% ----------------------------------------------------------------
-\clearpage  %Start a new page
-\lhead{\emph{Symbols}}  % Set the left side page header to "Symbols"
-\listofnomenclature{lll}  % Include a list of Symbols (a three column table)
-{
-%	% symbol & name & unit \\
-%	$a$ & distance & m \\
-%	$P$ & power & W (Js$^{-1}$) \\
-%	& & \\ % Gap to separate the Roman symbols from the Greek
-%	$\omega$ & angular frequency & rads$^{-1}$ \\
-}
-%% ----------------------------------------------------------------
-% End of the pre-able, contents and lists of things
-% Begin the Dedication page
-
-
-\lhead{Active Path Planning for Ocean Terrain Exploration}
+\lhead{Informative Seafloor Exploration for Benthic Habitat Mapping}
 \setstretch{1.3}  % Return the line spacing back to 1.3
 
 %\pagestyle{empty}  % Page style needs to be empty for this page
@@ -252,12 +273,11 @@ Date:\\
 
 \input{Chapters/Background}
 
-\input{Chapters/Building-Gaussian-Process-Classifiers}
+\input{Chapters/Benthic-Habitat-Mapping}
 
-\input{Chapters/Modeling-the-Ocean-Environment}
+\input{Chapters/Informative-Seafloor-Exploration}
 
-\input{Chapters/Receding-Horizon-Approach-to-Informative-Path-Planning}
-
+\input{Chapters/Conclusion}
 
 %% ----------------------------------------------------------------
 % Now begin the Appendices, including them as separate files
@@ -277,7 +297,6 @@ Date:\\
 %% ----------------------------------------------------------------
 \label{Bibliography}
 \lhead{\emph{Bibliography}}  % Change the left side page header to "Bibliography"
-\bibliographystyle{unsrtnat}  % Use the "unsrtnat" BibTeX style for formatting the Bibliography
 \small
 \bibliography{Bibliography}  % The references (bibliography) information are stored in the file named "Bibliography.bib"
 
