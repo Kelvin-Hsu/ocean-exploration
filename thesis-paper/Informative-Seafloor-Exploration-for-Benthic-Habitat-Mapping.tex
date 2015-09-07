@@ -20,6 +20,16 @@
 \usepackage[noabbrev]{cleveref}
 \usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{CJKutf8}
+\usepackage{bm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{psfrag}
+\usepackage{epstopdf}
+\usepackage{tikz}
+\usepackage{smartdiagram}
+\usepackage{upgreek}
+\usepackage{stfloats}
 %\bibliographystyle{unsrtnat}
 %\usepackage[apaciteclassic]{apacite}
 %\bibliographystyle{apacite}
@@ -44,6 +54,7 @@
 \newcommand{\maternmath}{Mat\acute{e}rn }
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand{\incite}[1]{\citeauthor{#1} [\citeyear{#1}]}
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 
 %%%%%% End: Kelvin's Macro's %%%%%% 
 %% ----------------------------------------------------------------
@@ -186,7 +197,7 @@ Date:\\
 		ACFR & Australian Centre of Field Robotics \\
 		API & Application Programming Interface \\
 		AUV & Autonomous Underwater Vehicle \\
-		AVA & All v.s. All \\
+		AVA & All Versus All \\
 		\\
 		BDKD & Big Data Knowledge Discovery \\
 		BO & Bayesian Optimisation \\
@@ -204,19 +215,20 @@ Date:\\
 		GPMC & Gaussian Process Multi-Class Classification \\
 		GPR & Gaussian Process Regression \\
 		\\
-		LE & Linearised Entropy \\
 		LIDAR & Light Detection And Ranging \\
+		LMDE & Linearised Model Differential Entropy \\
 		LP & Laplace Approximation \\
 		\\
-		MCJE & Monte Carlo Joint Entropy \\
+		MCJIE & Monte Carlo Joint Information Entropy \\
 		MDP & Markov Decision Processes \\
 		\\
 		NICTA & National ICT Australia \\
 		\\
-		OVA & One v.s. All \\
+		OVA & One Versus All \\
 		\\
 		P1NN & Probabilistic One Nearest Neighbor \\
 		PDF & Probability Distribution Function \\
+		PIE & Predictive Information Entropy \\
 		PLS & Probabilistic Least Squares \\
 		POMDP & Partially Observable Markov Decision Processes \\
 		PRM	& Probabilistic Road Map \\

@@ -1,0 +1,17 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Illustration of Gaussian Process Bayesian Modeling: The mean prediction is shown as the solid line. Four samples are drawn in each case, represented by the dashed line. The shared region represents the 2-$\sigma $ bounds of the prediction at each input feature value $x$. Two points are observed which updated the distribution from the prior to the posterior. Figure (a) shows the situation for the prior distribution. Figure (b) shows the situation for the posterior distribution. Source: Rasmussen and Williams (2006) \citep {GaussianProcessForMachineLearning}\relax }}{12}{figure.caption.28}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Illustration of non-stationary Gaussian process for terrain modeling \citep {GaussianProcessTerrainFigure} Flat parts have high length scales (slow varying) while rough parts have low length scales (fast varying)\relax }}{17}{figure.caption.37}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Environment Modeling\relax }}{29}{figure.caption.74}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Illustration of Bathymetric and Label Data Density\relax }}{31}{figure.caption.76}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Finite Difference Methods: Central Difference Coefficients The subscripts $i$ represents \relax }}{32}{figure.caption.78}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Linearisation accuracy for a probit response: Green shade represents the latent variance while blue shade represents the predictive variance. Gold lines show local linearisation about latent expectance.\relax }}{39}{figure.caption.114}
+\contentsline {figure}{\numberline {4.2}{\ignorespaces GP binary classifier: prediction information entropy and linearised differential entropy under abundant data\relax }}{44}{figure.caption.131}
+\contentsline {figure}{\numberline {4.3}{\ignorespaces GP multiclass classifier: prediction information entropy and linearised differential entropy under abundant data\relax }}{46}{figure.caption.132}
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Scott Reef Bathymetric Features\relax }}{46}{figure.caption.134}
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Basic Receding Horizon Structure\relax }}{47}{figure.caption.136}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }

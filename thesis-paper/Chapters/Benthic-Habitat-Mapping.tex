@@ -1,40 +1,10 @@
 \chapter{Benthic Habitat Mapping}
 \lhead{Benthic Habitat Mapping}
 \label{Benthic-Habitat-Mapping}
-
-%	\section{Gaussian Process Classification with Laplace Approximation}
-%	
-%%		\subsection{Theory}
-%%		
-%%		\subsection{Implementation}
-%%		
-%%		\subsection{Results}
-%		
-%	\section{Gaussian Process Classification with Probabilistic Least Squares}
-%
-%%		\subsection{Theory}
-%%		
-%%		\subsection{Implementation}
-%%			
-%%		\subsection{Results}
-%		
-%	\section{Non Stationary GP Classification}
-%	
-%%		\subsection{Theory}
-%%		
-%%		\subsection{Implementation}
-%%			
-%%		\subsection{Results}
-%		
-%	\section{Drawing from Gaussian Process Classifiers}
-%				
-%%		\subsection{Theory}
-%%		
-%%		\subsection{Implementation}
-%%			
-%%		\subsection{Results}
 			
-	\section{Modeling Features}
+	\section{Gaussian Process Classifiers for Benthic Habitat Mapping}
+	
+	\section{Benthic Habitat Modeling}
 	\label{ModelingOceanEnvironment:ModelingFeatures}
 	
 		This thesis project can be broken down into two main parts - ocean environment modeling and path planning. Ocean environment modeling itself includes bathymetric feature extraction and modeling, and environment label modeling. This section will focus on the environment modeling aspect.
@@ -86,7 +56,7 @@
 		
 		\FloatBarrier
 		
-		\subsection{Environment Modeling - Data Matching}
+		\subsection{Data Matching}
 		\label{Background:OceanEnvironmentModeling:DataMatching}
 		
 			A subtlety that arises from the above formulation is that during the training stage, the bathymetric data and the label data are not necessarily observed at the same places. Figure \ref{Background:OceanEnvironmentModeling:Figure:illustrationBathymetricAgainstLabels} illustrates the spatial distribution of the two datasets in a typical setting.
@@ -135,23 +105,49 @@
 							
 			\FloatBarrier
 				
-	\section{Modeling on Test Data Sets}
+	\section{GP Classification with Laplace Approximation}
 	
-	\section{Comparison: Laplace Approximation and Probabilistic Least Squares}
+		\subsection{Theory}
+		
+		\subsection{Implementation}
+		
+		\subsection{Results}
+		
+	\section{GP Classification with Probabilistic Least Squares Approximation}
+
+		\subsection{Theory}
+		
+		\subsection{Implementation}
+			
+		\subsection{Results}
+				
+	\section{Drawing from Gaussian Process Classifiers}
+				
+		\subsection{Theory}
+		
+		\subsection{Implementation}
+			
+		\subsection{Results}
+
+	\section{Laplace Approximation and Probabilistic Least Squares}
 	
 		Compare probability outputs, classification outputs, entropy outputs, etc
+
+	\section{The One Versus All Framework}
 	
-	\section{Comparison: OVA and AVA methods for multiclass classifiers}
+	\section{The All Versus All Framework}
 	
-	\section{Comparison: Probability fusion methods for multiclass classifiers}
+	\section{Properties and Performance of OVA and AVA Classifiers}
 	
-%		\subsection{Normalisation Method}
-%			
-%		\subsection{Mode Keeping}
-%			
-%		\subsection{Exclusion}
+	\section{Probability Fusion Methods}
+	
+		\subsection{Normalisation Method}
 			
-	\section{Modeling the Scott Reef Environment}
+		\subsection{Mode Keeping}
+			
+		\subsection{Exclusion}
+			
+	\section{Mapping Scott Reef Benthic Habitats}
 	
 		\subsection{Problems and Solutions to Big Data Analysis}
 		
@@ -162,48 +158,4 @@
 			(With different amounts of sampled points)
 			
 		\subsection{Case with 17 Labels}
-		
-	\section{Measuring Mutual Information}
-	
-		\subsection{Motivation}
-			For both modeling purposes and path planning purposes, simply knowing the entropy at each query point is not enough. 
-			
-		\subsection{Shannon Entropy}
-		
-		\subsection{Lack of a Closed Form Solution}
-		
-	\section{A Direct Approach: Monte Carlo Sampling}
-		
-		\subsection{Development of Methodology}
-		
-			Provide pseudocode for limited and good way of doing it
-			
-		\subsection{Binary Classification}
-		
-		\subsection{Multi-class Classification}
-		
-	\section{A Faster Approach: Linearised Entropy}
-		
-		\subsection{Development of Methodology}
-		
-		\subsection{Binary Classification}
-		
-			For binary classification, linearisation is performed on the sigmoid, or response, function.
-		
-			The queried latent vector $\vec{f}$, a finite collection of latent function instances at query points, are distributed as a multivariate Gaussian distribution which can be computed from (equation). 
-			
-			\begin{equation}
-				\vec{f} = [f_{1}, f_{2}, \dots, f_{n_{q}}]^{T} \sim \mathcal{N}(\vec{\mu}, \Sigma)
-			\end{equation}
-				
-			\begin{equation}
-				\pi_{i} = \sigma(f_{i}) \qquad \qquad \forall i \in I_{\mathrm{query}} = {1, 2, \dots, n_{q}}
-			\end{equation}
-			
-		\subsection{Multi-class Classification}
-		
-			For multi-class classification, linearisation is performed on the softmax function for each class.
-			
-			Provide intuitive reason for the squashing.
-			
 		
