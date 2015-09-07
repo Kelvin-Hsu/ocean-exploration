@@ -1,7 +1,7 @@
 # Informative Seafloor Exploration for Benthic Habitat Mapping
 
-***Author***
-Kelvin Y.S. Hsu
+***Author***: Kelvin Y.S. Hsu
 
-***Description***
+***Description***:
+
 A receding horizon approach to informative path planning using the linearised differential entropy of Gaussian process classifiers
