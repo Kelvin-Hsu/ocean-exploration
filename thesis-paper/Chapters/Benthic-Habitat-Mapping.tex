@@ -2,89 +2,157 @@
 \lhead{Benthic Habitat Mapping}
 \label{Benthic-Habitat-Mapping}
 			
-	\section{Gaussian Process Classifiers for Benthic Habitat Mapping}
+	\section{GP Classifiers for Benthic Habitat Mapping}
 	
-	\section{Benthic Habitat Modeling}
+	\section{Bathymetric Features}
 	\label{ModelingOceanEnvironment:ModelingFeatures}
 	
-		This thesis project can be broken down into two main parts - ocean environment modeling and path planning. Ocean environment modeling itself includes bathymetric feature extraction and modeling, and environment label modeling. This section will focus on the environment modeling aspect.
+		This thesis project can be broken down into two main parts - benthic habitat mapping and informative path planning. Benthic habitat mapping itself includes bathymetric feature extraction, and habitat class inference. Thus, benthic habitat mapping refers to the two stage process of feature extraction and habitat class inference, with the latter being the main bottleneck for this process. This section will focus on the bathymetric feature extraction and modeling.
 			
 		In order for autonomous underwater vehicles to plan a path that can maximise the amount of information gained regarding a particular ocean region, it would need a method to predict the types of environments it may encounter, with a measure of its prediction uncertainty.
 		
-		While the path planner is to plan in the spatial space, in general the prediction model operates upon some feature space with more direct and explicit relationships with the output we would like to predict.
+		While the path planner is to plan in the spatial space, in general the prediction model operates upon some feature space with more direct and explicit relationships with the output to be inferenced.
 		
-		It is thus important to make a distinction between the feature space $F$ for which label modeling is to occur and the spatial space $S$ for which bathymetric modeling and planning is to occur. The spatial space usually consists of Cartesian coordinates $(x, y)$ in the eastings-northings frame or the longitude-latitude frame. The path is to be planned in this spatial space. The frame is usually converted into a local body frame during the execution of control signals for path tracking. However, this does not affect the formulation presented here. The feature space includes bathymetric features for which the labels will be modeled upon. Depending on the features employed for the modeling process, there are usually approximate analytical forms for extracting such features from raw depth observations.
-
-		The following features in \cref{Background:OceanEnvironmentModeling:Table:Features} were chosen by the author for bathymetric modeling. 
-
+		It is thus important to make a distinction between the feature space $\mathcal{F}$ for which benthic habitat modeling is to occur and the spatial space $\mathcal{S}$ for which bathymetric modeling and planning is to occur. The spatial space usually consists of Cartesian coordinates $(x, y)$ in the eastings-northings frame or the longitude-latitude frame, so that $\mathcal{S} \subseteq \mathbb{R}^{2}$. The path is to be planned in this spatial space. The frame is usually converted into a local body frame during the execution of control signals for path tracking. However, this does not affect the formulation presented here. The feature space includes bathymetric features for which the habitat labels will be modeled upon. Depending on the features employed for the modeling process, there are usually approximate analytical forms for extracting such features from raw depth observations.
+		
+		The following bathymetric features shown in \cref{Table:BathymetricFeatures} were selected for habitat mapping. The benthic habitats would be modelled upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale). Spatial coordinates are chosen to be excluded from the bathymetric feature set. For benthic habitat mapping, it is expected that ecological habitats and geological sites exhibit no explicit relationship with the location of the site, and that its properties arise solely due to the local terrain structure and seafloor characteristics  of that site. This means that the nature of the habitat depends on the location implicitly through explicit dependence on bathymetric structure of the seafloor. These five bathymetric features summarises the local terrain structure at every location of the seafloor, and forms our feature space $\mathcal{F} \subseteq \mathbb{R}^{5}$.
+		
 		\begin{table}[h]
 			\begin{center}
 				\begin{tabular}{ |c|c|c| }
 					\hline
 					Feature Name & Feature Symbol & Feature Units \\
 					\hline
-					Depth & $h$ & m \\
-					Slope (Small Scale) & $m_{s}$ & m/m \\
-					Slope (Large Scale) & $m_{l}$& m/m \\
+					Depth & $z$ & m \\
+					Aspect (Small Scale) & $a_{s}$ & m/m \\
+					Aspect (Large Scale) & $a_{l}$& m/m \\
 					Rugosity (Small Scale) & $r_{s}$ & $\mathrm{m^{2}/m^{2}}$ \\
 					Rugosity (Large Scale) & $r_{l}$ & $\mathrm{m^{2}/m^{2}}$  \\
 					\hline
 				\end{tabular}
 			\end{center}
 	  	\caption{Bathymetric Features}
-	  	\label{Background:OceanEnvironmentModeling:Table:Features}			
+	  	\label{Table:BathymetricFeatures}			
 	  	\end{table}	
 		
-		The raw bathymetric data contains depth information at various spatial locations. Such data are often collected rather uniformly in approximate grid formations such that it is possible to calculate the ocean floor slope through finite differencing. The slope is divided into small scale and large scale variations, as marine environments - especially underwater habitats - often depend not only on the immediate slope but also slope variations on the larger scale. The same idea applies to rugosity, the measure of local height variations. The feature extraction process is detailed in \cref{Background:OceanEnvironmentModeling:FeatureExtraction}. 
-		  
-		Spatial coordinates are chosen to be excluded from the bathymetric feature set. For environment prediction purposes, it is expected that ecological habitats and geological sites exhibit no explicit relationship with the location of the site, and that its properties arise solely due to the local environment characteristics (features) of that site.
+		Aspect also refers to the slope of the seafloor terrain, while rugosity is a measure of small-scale variations or amplitude in the height of a surface.
+		
+		The raw bathymetric data contains depth information at various spatial locations. Such data are often collected rather uniformly in approximate grid formations such that it is possible to calculate the ocean floor slope through finite differencing. The aspect, or slope, is divided into small scale and large scale variations, as marine environments - especially underwater habitats - often depend not only on the immediate slope but also slope variations on the larger scale. The same idea applies to rugosity to measure local height variations at two different scales.
 		
 		\FloatBarrier			
 		
-		Figure \ref{Background:OceanEnvironmentModeling:Figure:modelingprocess} show a high level overview of the ocean environment modeling process. As bathymetric data is available in more quantities and distributed more uniformly, it is often sufficient to employ the feature extraction process outlined in \cref{Background:OceanEnvironmentModeling:FeatureExtraction} to obtain the bathymetric features for modeling. However, if the bathymetric data is sufficiently sparse or is not distributed uniformly for grid based methods, then the feature extraction process itself becomes a prediction problem.
+		Figure \ref{Figure:BenthicHabitatMappingProcess} show a high level overview of the benthic habitat mapping process. As bathymetric data is available in more quantities and distributed more uniformly, it is often sufficient to employ the feature extraction process outlined in \cref{Background:OceanEnvironmentModeling:FeatureExtraction} to obtain the bathymetric features for modeling. However, if the bathymetric data is sufficiently sparse or is not distributed uniformly for grid based methods, then the feature extraction process itself becomes a prediction problem.
 
-		\begin{figure}[!htbp]
-			\centering
-				\includegraphics[width=\textwidth]{Figures/modelingprocess.png}
-			\caption{Environment Modeling}
-			\label{Background:OceanEnvironmentModeling:Figure:modelingprocess}
-		\end{figure}
+%		\begin{figure}[!htbp]
+%			\centering
+%				\includegraphics[width=\textwidth]{Figures/modelingprocess.png}
+%			\caption{Environment Modeling}
+%			\label{Background:OceanEnvironmentModeling:Figure:modelingprocess}
+%		\end{figure}
 				
-		In that case, a Gaussian process regression model is proposed for predicting the features at a given spatial location. While this is much more computationally expensive than performing feature extraction, it is also quite rare that this is necessary under abundant bathymetric data.
+%		\begin{center}
+%		\smartdiagramset{border color = none, back arrow disabled = true, text width = 2cm}
+%		\smartdiagram[flow diagram:horizontal]{Spatial Space $\mathcal{S}$, Feature Space $\mathcal{F}$, Habitat Inference}
+%		\end{center}
+
+		% Define block styles
+		\tikzstyle{block} = [rectangle, draw, fill=blue!30,
+		    text width=7.5em, text centered, rounded corners, minimum height=4em]
+		\tikzstyle{line} = [draw, -latex']
+	
+		\begin{figure}[!ht]
+		\centering\makebox[\textwidth]{
+		\begin{tikzpicture}[node distance =4cm, auto,
+		comment/.style={
+		rectangle, 
+		inner sep= 5pt, 
+		text width=4cm, }]
 		
-		Finally, once the feature vectors are obtained at training locations, the environment type is to be predicted. The environment type is summarised through labels that indicate the type of marine environment that was observed or predicted. Common AUV mission examples include "reef", "sand", and "rocks". These labels are often summarised through processing visual and stereo imagery obtained through past AUV missions. With a discrete set of possible labels, the environment prediction problem is to be modeled as a Gaussian process classification problem. From here on, the environment prediction problem is understood to refer to the two stage process of feature extraction or modeling and environment label prediction, with the latter being the main bottleneck for this process.
+		\node [block] (spatialspace) {Seafloor Spatial Space $\mathcal{S}$};
+		\node [block, right of = spatialspace] (featurespace) {Bathymetric Feature Space $\mathcal{F}$};
+		\node [block, right of = featurespace] (mapspace) {Habitat Map Space $\mathcal{M}$};
+				
+		\draw [line] (spatialspace) -- (featurespace);
+		\draw [line] (featurespace) -- (mapspace);
+		
+		\draw [decorate ,decoration = {brace, amplitude = 10pt, raise = 3mm}]
+		(spatialspace.85) -- (featurespace.95) node [black, midway, yshift = 10mm]
+		{Bathymetric Feature Extraction};
+		
+		\draw [decorate, decoration = {brace, amplitude = 10pt, raise = 3mm}, xshift = 0pt, yshift = 0pt]
+		(featurespace.85) -- (mapspace.95) node [black, midway, yshift = 6mm] 
+		{Habitat Class Inference};
+					
+		\end{tikzpicture}}		
+		\caption{Benthic Habitat Mapping Process}
+		\label{Figure:BenthicHabitatMappingProcess}
+		\end{figure}	
+			
+		In that case, a Gaussian process regression model is proposed for predicting the features at a given spatial location. While this is much more computationally expensive than performing feature extraction, it is also quite rare that this is necessary under abundant bathymetric data. In most cases, it suffices to simply take the nearest neighbouring feature.
 		
 		\FloatBarrier
 		
 		\subsection{Data Matching}
 		\label{Background:OceanEnvironmentModeling:DataMatching}
 		
-			A subtlety that arises from the above formulation is that during the training stage, the bathymetric data and the label data are not necessarily observed at the same places. Figure \ref{Background:OceanEnvironmentModeling:Figure:illustrationBathymetricAgainstLabels} illustrates the spatial distribution of the two datasets in a typical setting.
+			A subtlety that arises from the above formulation is that during the training stage, the bathymetric data and the label data are not necessarily observed at the same places. Figure \ref{Figure:ScottReefBathymetricFeatures} illustrates the spatial distribution of the two datasets in a typical setting using the Scott Reef data set \citep{IMOS} as an example.
 		
 			\begin{figure}[!htbp]
-				\centering
-					\includegraphics[width=0.9\textwidth]{Figures/illustrationBathymetricAgainstLabels.png}
-				\caption{Illustration of Bathymetric and Label Data Density}
-				\label{Background:OceanEnvironmentModeling:Figure:illustrationBathymetricAgainstLabels}
+			\centering
+				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure1.eps}
+				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure2.eps}
+				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure3.eps}
+				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure4.eps}
+				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure5.eps}
+				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure6.eps}
+			\caption{Scott Reef Bathymetric Features}
+			\label{Figure:ScottReefBathymetricFeatures}
 			\end{figure}
 			
-			While bathymetric data are usually collected rather uniformly, the label data are collected from past AUV missions whose trajectory are continuous curves across the ocean floor \citep{Squidle}. Due to slower AUV velocity as compared to surface ships which often employ SONAR or LIDAR techniques for bathymetry mapping, the label data are also spatially denser and concentrated on the mission trajectory, while being almost non-existent elsewhere.
+			In the Scott Reef case, the bathymetric observations span the entire region of interest densely. However, while bathymetric data are usually collected rather uniformly and densely, the label data are collected from past AUV missions whose trajectory are continuous paths across the ocean floor \citep{Squidle}. Often times, these paths are approximate line segments which cover a very limited portion of the region of interest. Due to slower AUV velocity as compared to surface ships which often employ SONAR or LIDAR techniques for bathymetry mapping, the label data are also spatially denser and concentrated on the mission trajectory, while being almost non-existent elsewhere, making it a multi-modal distributed dataset. 
 			
-			Therefore, in order to predict label data, the training data would need to be matched accurately. There are two straight forward choices at hand. The first is to estimate the bathymetric features at places where label data exists. However, at places near past mission paths, bathymetric data appears much more sparsely than label data, so that the feature extraction or regression prediction will yield very similar features across manly label data points. This reduces prediction power through a slow varying and limited feature group.
+			Therefore, in order for the GP classifier to learn the relationship between the bathymetric features and habitat labels, the bathymetric data and label data must have a one-to-one correspondence. In other words, they must exist at the same locations. 
 			
-			Instead, the second choice is to estimate the label data at places where bathymetric data exists. In this setting, regions closer to past mission paths have higher volumes of label data, increasing the amount of training points. Regions further away would naturally generate more prediction uncertainty in the prediction stage.
+			Formally, let $S_{b}, S_{h} \in \mathcal{S}$ be the spatial locations at which bathymetric data and habitat label data have been observed. Let $F_{b} \in \mathcal{F}$ be the bathymetric features observed at $S_{b}$ and $M_{h} \in \mathcal{M}$ be the habitat labels observed at $S_{h}$. The data matching problem is to obtain or infer $F_{h} \in \mathcal{F}$, the bathymetric features at locations $S_{h}$, from $F_{b}$.
 			
-			Hence, second method is chosen to be employed for data matching, in order to form our training set. Naturally, to predict environment labels from bathymetric features, we again need the Gaussian process classification model.
+			This is a standard supervised learning problem. Specifically, the aim is to learn an inference model $\zeta: S_{h} \mapsto F_{h}$ from the empirical relationship $S_{b} \mapsto F_{b}$.
+			
+			While it is possible to employ a separate GP regressor to perform the above inference, this adds unnecessary computational complexity. Since GPs are $O(n^{3})$ algorithms, using a layered GP approach where both stages of the benthic habitat mapping process employs GPs will increase the inference bottleneck.
+			
+			Instead, as there exists an abundance of bathymetric data, without much loss of accuracy it suffices to employ a nearest neighbour interpolation to obtain $F_{h}$. 
+			
+%			Therefore, in order to predict label data, the training data would need to be matched accurately. There are two straight forward choices at hand. The first is to estimate the bathymetric features at places where label data exists. However, at places near past mission paths, bathymetric data appears much more sparsely than label data, so that the feature extraction or regression prediction will yield very similar features across manly label data points. This reduces prediction power through a slow varying and limited feature group.
+%			
+%			Instead, the second choice is to estimate the label data at places where bathymetric data exists. In this setting, regions closer to past mission paths have higher volumes of label data, increasing the amount of training points. Regions further away would naturally generate more prediction uncertainty in the prediction stage.
+%			
+%			Hence, second method is chosen to be employed for data matching, in order to form our training set. Naturally, to predict environment labels from bathymetric features, we again need the Gaussian process classification model.
 			
 			\FloatBarrier
 	
 		\subsection{Feature Extraction}
 		\label{Background:OceanEnvironmentModeling:FeatureExtraction}
 		
-			The feature extraction process assumes that the bathymetric depth data is available in grid form. That is, one can represent the available depth data $H = \{h_{k}\}_{k \in {1, 2, ..., N}}$ as $H = \{h_{ij}\}_{i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}}}$ where varying $i$ and $j$ corresponds to varying data points in axis 1 and 2 respectively. Axis 1 and 2 is required to form an orthonormal frame. While axis 1 and 2 is usually aligned with the eastings-northings frame, it is generally not required for the feature extraction process.
+			The feature extraction process assumes that the bathymetric depth data is available in grid form. That is, one can represent the available depth data $Z = \{z_{k}\}_{k \in {1, 2, ..., N}}$ as $Z = \{z_{ij}\}_{i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}}}$ where varying $i$ and $j$ corresponds to varying data points in axis 1 and 2 respectively. Axis 1 and 2 is required to form an orthonormal frame. While axis 1 and 2 is usually aligned with the eastings-northings frame, it is generally not required for the feature extraction process.
 			
-			Without loss of generality, let $x$ and $y$ denote quantities corresponding to the orthogonal axes. We have that at $(x_{i}, y_{j})$ $(i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}})$ the depth is measured as $h_{ij}$. The partial derivatives of various degrees of accuracy and scale can then be estimated through central differencing, as shown in \cref{Background:OceanEnvironmentModeling:Figure:centraldifferencecofficients} \citep{CentralDifferenceTable}. The author has chosen $N = 3$ neighbors for short scale slope and $N = 9$ neighbors for large scale slope.
+			Without loss of generality, let $x$ and $y$ denote quantities corresponding to the orthogonal axes. We have that at $(x_{i}, y_{j})$ $(i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}})$ the depth is measured as $z_{ij}$. The partial derivatives of various degrees of accuracy and scale can then be estimated through central differencing, as shown in \cref{Background:OceanEnvironmentModeling:Figure:centraldifferencecofficients} \citep{CentralDifferenceTable}. The author has chosen $N = 3$ neighbors for short scale slope and $N = 9$ neighbors for large scale slope.
 			
+			\begin{table}[h]
+				\begin{center}
+					\begin{tabular}{ |c|c| }
+						\hline
+						N & Aspect (Slope) Extraction ($x$)\\
+						\hline
+						3 & $^{3}_{x}a_{i, j} := \frac{z_{i + 1, j} - z_{i - 1, j}}{2h}$ \\
+						5 & $^{5}_{x}a_{i, j} := \frac{z_{i - 2, j} - 8 z_{i - 1, j} + 8 z_{i + 1, j} - z_{i + 2, j}}{12h}$ \\
+						7 & $^{7}_{x}a_{i, j} := \frac{z_{i + 1, j} - z_{i - 1, j}}{60h}$ \\
+						9 & $^{9}_{x}a_{i, j} := \frac{z_{i + 1, j} - z_{i - 1, j}}{840h}$ \\
+						\hline
+					\end{tabular}
+				\end{center}
+		  	\caption{Finite Difference Methods: Central Difference Coefficients}
+		  	\label{Table:CentralDifferences}			
+		  	\end{table}	
+	  	
 			\begin{figure}[!htbp]
 				\centering
 					\includegraphics[width=0.9\textwidth]{Figures/centraldifferencecofficients.png}

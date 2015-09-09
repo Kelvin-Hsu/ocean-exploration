@@ -206,17 +206,7 @@
 		
 	%		Informative path planning is a highly dynamical process in which the observations the vehicle decides to take can significantly impact the belief space of the vehicle and hence alter its action. As a result, Gaussian processes are often used for modeling the environment for which path planning is to be performed. The tractability of Gaussian processes regression allows sophisticated methods for informative path planning, such as  performing sequential Bayesian optimisation to achieve informative path planning over continuous domains \cite{Roman:SequentialBayesianOptimisation}. One desired property we would like to achieve with an informative path-planning problem is that the search is non-myopic. When the objective is to collect data on a particular spatial phenomenon, Gaussian process regression can be used as the model under which strong theoretical performance guarantees can be made \cite{Meliou:2007:NIP:1619645.1619742}. However, in the case where the objective is to collect data in the form of discrete labels, a Gaussian process classifier is used instead for modeling the phenomenon. As discussed earlier, the joint entropy from a Gaussian process classifier is not available in closed form. Instead, another measure of joint entropy was developed in the previous section which demonstrated desired properties for informative exploration. To take advantage of the tractability of linearised differential entropy over finite collections of query points, we discretise the spatial domain and select paths composed of finitely many query points. The acquisition criterion is then set to be the linearised differential entropy of the query points that compose the path.
 	
-		\begin{figure*}[!htbp]
-		\centering
-			\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure1-eps-converted-to.png}
-			\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure2-eps-converted-to.png}
-			\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure3-eps-converted-to.png}
-			\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure4-eps-converted-to.png}
-			\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure5-eps-converted-to.png}
-			\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure6-eps-converted-to.png}
-		\caption{Scott Reef Bathymetric Features}
-		\label{Figure:Results:ScottReefBathymetricFeatures}
-		\end{figure*}
+
 		
 		\subsection{Formulation and Structure}
 	
@@ -231,10 +221,15 @@
 		
 			\begin{figure}[!htbp]
 				\begin{center}
-					\smartdiagramset{text width = 3cm}
-					% \smartdiagramset{set color list = {orange!50, green!80, blue!50}}
-					\smartdiagram[circular diagram:clockwise]{Learn GP model from collected data, Compute finite optimal path, Move to first control point \& record observation}
+				\smartdiagramset{planet font = \small, satellite font = \scriptsize, planet color = orange!60, planet size = 2cm, satellite size = 2 cm, distance planet-satellite = 3.5cm}
+				\smartdiagram[connected constellation diagram]
+				{Receding Horizon Path Planning, Learn GP model from collected data, Compute finite optimal path, Move to first control point, Record observation}
 				\end{center}
+%				\begin{center}
+%					\smartdiagramset{text width = 3cm}
+%					% \smartdiagramset{set color list = {orange!50, green!80, blue!50}}
+%					\smartdiagram[circular diagram:clockwise]{Learn GP model from collected data, Compute finite optimal path, Move to first control point \& record observation}
+%				\end{center}
 			\caption{Basic Receding Horizon Structure}
 			\label{Figure:Results:RecedingHorizonMethodOutline}
 			\end{figure}
