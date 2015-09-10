@@ -29,6 +29,7 @@
 \usepackage{smartdiagram}
 \usepackage{upgreek}
 \usepackage{stfloats}
+\usepackage{dsfont}
 
 %%% FLOW CHARTS
 \usepackage{tikz}
@@ -64,7 +65,8 @@
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand{\incite}[1]{\citeauthor{#1} [\citeyear{#1}]}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
-
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
 %%%%%% End: Kelvin's Macro's %%%%%% 
 %% ----------------------------------------------------------------
 \begin{document}
@@ -225,9 +227,8 @@ Date:\\
 		LIDAR & Light Detection And Ranging \\
 		LMDE & Linearised Model Differential Entropy \\
 		LP & Laplace Approximation \\
-		LPDE & Linearised Probability Differential Entropy \\
 		\\
-		MCJPIE & Monte Carlo Joint Predictive Information Entropy \\
+		MCPIE & Monte Carlo Predictive Information Entropy \\
 		MDE & Model Differential Entropy \\
 		MDP & Markov Decision Processes \\
 		\\
@@ -237,7 +238,6 @@ Date:\\
 		\\
 		P1NN & Probabilistic One Nearest Neighbor \\
 		PDF & Probability Distribution Function \\
-		PDE & Probability Differential Entropy \\
 		PIE & Predictive Information Entropy \\
 		PLS & Probabilistic Least Squares \\
 		POMDP & Partially Observable Markov Decision Processes \\

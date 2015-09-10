@@ -4,79 +4,106 @@
 
 	The Gaussian process based inference model for benthic habitat mapping devised in Chapter \ref{Benthic-Habitat-Mapping} provides a Bayesian framework for habitat inference and prediction. With such an inference model, this chapter proceeds to develop an informative path planning policy for benthic habitat mapping.
 	
-	The outset of this chapter begins by motivating the need for a measure of mutual information (section \ref{Informative-Seafloor-Exploration:Mutual-Information}). Such a measure would allow inference based on the \textit{essential} information contained in any given sub-region of interest. The mutual information criterion can then be employed as the acquisition function for informative path planning, in order to evaluate thus compare the desirability of visiting candidate regions and locations.
+	In order to devise an informative path planning policy, it is important to select an appropriate acquisition criterion which measures the desirability of traversing a particular candidate path. Section \ref{Background:Related-Work} provided an outline of related investigations on various acquisition functions for informative path planning in the benthic habitat mapping context, which motivated the need for a measure of mutual information. Such a measure would allow inference based on the \textit{essential} information contained in any given sub-region of interest. The mutual information criterion can then be employed as the acquisition function for informative path planning, in order to evaluate thus compare the desirability of visiting candidate regions and locations.
 	
-%	Two mutual information criterion are investigated in this thesis - Monte Carlo Joint Predictive Information Entropy (section \ref{Informative-Seafloor-Exploration:MCJPIE}) and Linearised Model Differential Entropy (section \ref{Informative-Seafloor-Exploration:LMDE}).
+	Nevertheless, as Gaussian process classifiers lack analytical forms for the predictive joint distribution of target labels, any mutual information measure derived from the predictive joint distribution must rely on numerical estimation techniques. As such, estimating joint prediction information entropy requires a Monte Carlo sampling based approach. Section \ref{Informative-Seafloor-Exploration:MCJPIE} describes such a mutual information criterion, hereby named Monte Carlo Predictive Information Entropy (MCPIE).
 	
-	As Gaussian process classifiers lack analytical forms for the predictive joint distribution of target labels, any mutual information measure derived from the predictive joint distribution must rely on numerical estimation techniques. As such, estimating joint prediction information entropy requires a Monte Carlo sampling based approach. Section \ref{Informative-Seafloor-Exploration:MCJPIE} describes such a mutual information criterion, hereby named Monte Carlo Joint Predictive Information Entropy (MCJPIE).
-	
-	However, a Monte Carlo approach suffers some several drawbacks, such as computational complexity and limited estimation accuracy. Instead, this thesis proposes a new and alternative mutual information measure, Linearised Model Differential Entropy (LMDE), that is more computationally tractable than MCJPIE. Section \ref{Informative-Seafloor-Exploration:LMDE} defines and derives LMDE, and demonstrates its ability to capture uncertainty in both variance and bias.
+	However, a Monte Carlo approach suffers some several drawbacks, such as computational complexity and limited estimation accuracy. Instead, this thesis proposes a new and alternative mutual information measure, Linearised Model Differential Entropy (LMDE), that is more computationally tractable than MCJPIE. Section \ref{Informative-Seafloor-Exploration:LMDE} defines and derives LMDE as an appropriate form of mutual information. Specifically, it regularises between reducing mutual bias and mutual uncertainty through taking advantage of both the latent mean and covariance structure, as well as the non-Gaussian likelihood response. Tractability of the approach is further improved through a linearisation approximation on such an acquisition criterion.
 	
 	Section \ref{Informative-Seafloor-Exploration:Receding-Horizon-Formulation} then formulates a receding horizon approach to informative path planning. This provides a simple yet effective framework for a large scale exploration task such as seafloor exploration for benthic habitat mapping. In particular, the receding horizon formulation strikes a balance between exploring in a non-myopic way and doing so with reasonable tractability constraints.
 	
-	Finally, section \ref{Informative-Seafloor-Exploration:Informative-Exploration-over-Scott-Reef-Seafloor} assesses the performance of various approaches to informative seafloor exploration for benthic habitat mapping. Multiple acquisition criterions are tested under both the receding horizon approach and a myopic greedy approach, which verifies the benefits of linearised model differential entropy under the receding horizon formulation. Under a mapping accuracy criterion, simulations over the Scott Reef dataset demonstrates that LMDE acquisition outperform other acquisition criterions.
-	
-	\section{Mutual Information}
-	\label{Informative-Seafloor-Exploration:Mutual-Information}
+	Finally, section \ref{Informative-Seafloor-Exploration:Informative-Exploration-over-Scott-Reef-Seafloor} assesses the performance of various approaches to informative seafloor exploration for benthic habitat mapping. Multiple acquisition criterions are tested under both the receding horizon approach and a myopic greedy approach, which verifies the benefits of linearised model differential entropy under the receding horizon formulation. Under a mapping accuracy criterion, simulations over the Scott Reef dataset demonstrates that LMDE acquisition outperform other criterions, including MCJPIE acquisition.
 		
-		In order to devise an informative path planning policy, it is important to select an appropriate acquisition criterion which measures the desirability of traversing a particular candidate path. Section \ref{Background:Related-Work} provided an outline of related investigations on various acquisition functions for informative path planning in the benthic habitat mapping context. 
-		
-		Much of the intractability discussed in such literature can trace its reason down to the fact that benthic habitat mapping is a classification problem instead of a regression problem. While Gaussian process regression provide analytical forms for inference, due to a non-Gaussian likelihood response, Gaussian process classification is no longer analytically tractable. Instead, several approximations must be made, which were discussed in section \ref{Background:GaussianProcesses:Classification}.
-		
-		This thesis addresses the tractability status of the problem through proposing an alternative acquisition criterion that captures mutual information. In the current literature, acquisition criterion either do not directly capture mutual information, such as \eqref{Equation:AsherBenderAcquisitionCriterion}, or take too long to compute due to required estimations from sampling, such as \eqref{Equation:KrauseAcquisitionCriterion}. 
-		
-		Instead, linearised differential entropy (LMDE) as an acquisition function captures an appropriate form of mutual information. Specifically, it regularises between reducing mutual bias and mutual uncertainty through taking advantage of both the latent mean and covariance structure, as well as the non-Gaussian likelihood response. Tractability of the approach is further improved through a linearisation approximation on such an acquisition criterion.
-		
-		
-%		\subsection{Motivation}
-%		
-%			For both modeling purposes and path planning purposes, simply knowing the entropy at each query point is not enough. 
-%			
-%		\subsection{Shannon Entropy}
-%		
-%		\subsection{Lack of a Closed Form Solution}
-		
-	\section{Monte Carlo Joint Predictive Information Entropy}
+	\section{Monte Carlo Predictive Information Entropy}
 	\label{Informative-Seafloor-Exploration:MCJPIE}
-			Provide pseudocode for limited and good way of doing it
-			
+	
+		This section introduces the Monte Carlo predictive information entropy (MCPIE) of Gaussian process classifiers. Monte Carlo sampling methods provide a way to estimate the joint predictive entropy through considering the joint distributions of the latent function at the query points.
+	
+		Monte Carlo sampling, as its name suggests, involve using sampled draws from a particular distribution to estimate a certain quantity that can be characterised completely by the distribution. In this case, the distribution for to be sampled from is the latent GP process of the GP classifier, whose moments are analytically tractable, and the quantity to be estimated is the predictive information entropy of the query points.
+					
+		A brief description of the method is provided for both binary and multiclass classification.
+		
 		\subsection{Binary Classification}
 		
+			Suppose a Gaussian process classifier has been trained under Laplace approximation with respect to a training set $\mathcal{D} = \{X, \bvec{y}\} = \{[ \bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]\}$ with $n$ training points. It is known that the latent function $f(\bvec{x})$ is distributed as a GP with a particular predictive mean $m(\bvec{x})$ and covariance $k(\bvec{x}, \bvec{x}')$ once conditioned on the training data \eqref{Equation:PredictiveLatentGP}. Note that again this section will omit explicitly notating the training data and query data that was conditioned upon.
+			
+			\begin{equation}
+				f(\bvec{x}) \sim \mathcal{GP}(m(\bvec{x}), k(\bvec{x}, \bvec{x}'))
+			\label{Equation:PredictiveLatentGP}
+			\end{equation}
+			
+			Let $X^{\star} = [ \bvec{x}^{\star}_{1}, \bvec{x}^{\star}_{2}, \dots, \bvec{x}^{\star}_{n^{\star}}]^{T}$ denote the collection of $n^{\star}$ query points for which inference is to be performed upon. Denote $\bvec{f}^{\star}$ the vector of latent function values $f^{\star}_{i} = f(\bvec{x}^{\star}_{i})$ at each query point. By definition of a GP, $\bvec{f}^{\star}$ is multivariate Gaussian distributed with corresponding means $\mu^{\star}_{i} = m(\bvec{x}^{\star}_{i})$ and covariances $\Sigma^{\star}_{ij} = k(\bvec{x}^{\star}_{i}, \bvec{x}^{\star}_{j})$ \eqref{Equation:PredictiveGaussianDistribution}.
+			
+			\begin{equation}
+				\bvec{f}^{\star} = [f^{\star}_{1}, f^{\star}_{2}, \dots, f^{\star}_{n^{\star}}]^{T} \sim \mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star})
+			\label{Equation:PredictiveGaussianDistribution}
+			\end{equation}
+				
+			The binary prediction probability $\vec{\uppi^{\star}}$ at the query points is obtained through passing the queried latent function random vector $\bvec{f}^{\star}$ through a response function in a component wise fashion \eqref{Equation:PredictiveResponse}.
+			
+			\begin{equation}
+				\vec{\uppi}^{\star} = \vec{\upsigma}(\bvec{f}^{\star})\mathrm{ \quad i.e. \;\;}\pi^{\star}_{i} = \sigma(f^{\star}_{i}) \quad \forall i \in I_{n^{\star}}
+			\label{Equation:PredictiveResponse}
+			\end{equation}
+			
+			As a straightforward transformation of the latent vector, the predictive probability vector $\vec{\uppi^{\star}}$ is thus a random vector itself. The usual procedure is then to treat the expected prediction probabilities $\mathbb{E}[\vec{\uppi^{\star}}]$ as the posterior class probabilities for further inference. However, this discards any information regarding the joint behaviour of an arbitrary collection of query points. As a result, a measure of mutual information shared amongst the query points cannot be obtained.
+			
+			As such, one straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP. For each jointed sampled vector, the components with positive latent values are assigned class label 1, and -1 otherwise. That is, for a particular sample ${^{s}}\bvec{f}^{l} \sim \mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star})$, $l \in I_{n_{s}}$ where $n_{s}$ is the number of samples, the corresponding class assignments are computed through \eqref{Equation:MonteCarloSampling}. Here, the left superscript denotes a sampled value or vector.
+	
+			\begin{equation}
+				{^{s}}\bvec{y}^{l} = \bvec{H}({^{s}}\bvec{f}^{l}) := \{H({^{s}}f^{l}_{i})\}_{i \in I_{n^{\star}}} \quad \forall l \in I_{n_{s}} \qquad \mathrm{where} \qquad H(x) := \mathds{1}_{x > 0} - \mathds{1}_{x \leq 0}
+			\label{Equation:MonteCarloSamplingBinaryClassifier}
+			\end{equation}
+			
+			where $H(x)$ is the modified Heaviside function which is 1 is $x$ is positive and -1 otherwise. 
+			
+			Further, define $I^{u}_{s}$ as the indices corresponding to the maximal set of samples that are unique \eqref{Equation:UniqueIndexSet}.
+			
+			\begin{equation}
+				I^{u}_{s} := \argmax_{I \subset I_{n_{s}} | {^{s}}\bvec{y}^{i} \neq {^{s}}\bvec{y}^{j} \quad \forall i, j \in I} \bigg\{ \mathrm{cardinality}(I) \bigg\}
+			\label{Equation:UniqueIndexSet}
+			\end{equation}			
+			
+			An estimated probability vector can then be formed \eqref{Equation:EstimatedProbability}.
+
+			\begin{equation}
+				\begin{aligned}
+					{^{s}}\bvec{p} &:= \{ \mathrm{count}_{I_{s}}({^{s}}\bvec{y}^{i}) / n_{s} \}_{i \in I^{u}_{s}} \\
+					\mathrm{count}_{I_{s}}({^{s}}\bvec{y}^{i}) &:= \sum_{j \in I_{s} \backslash \{i\}} \mathds{1}_{{^{s}}\bvec{y}^{i} = {^{s}}\bvec{y}^{j}}
+				\end{aligned}
+			\label{Equation:EstimatedProbability}
+			\end{equation}
+			
+			Finally, the Monte Carlo Predictive Information Entropy, as an instance of Shannon entropy \eqref{Equation:DiscreteEntropy}, can be computed from the estimated probabilities that represent the joint distribution \eqref{Equation:MCPIE}.
+			
+			\begin{equation}
+				{^{s}}H_{\mathrm{MCPIE}} = - \sum_{i \in I^{u}_{s}} {^{s}}p_{i} \log({^{s}}p_{i})
+			\label{Equation:MCPIE}
+			\end{equation}		
+			
 		\subsection{Multiclass Classification}
-		
+			
+			Similar 
+			
+			In this derivation, we focus on the case of OVA, or one versus all, multiclass classification, where each class is trained against all other classes independently with a binary classifier. For $c$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Section:LinearisedEntropy:Equation:Softmax}. This approach avoids the Monte Carlo sampling step in the inference stage of a typical GP multiclass classifier under Laplace Approximation \cite{GaussianProcessForMachineLearning}, and is thus faster in computational time. Furthermore, because each classifier is trained independently, both the learning stage and the inference stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in under a receding horizon formulation, where the inference stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
+			
+			Replace \eqref{Equation:MonteCarloSamplingBinaryClassifier}
+			
+			\begin{equation}
+				{^{s}}\bvec{y}^{l} = \bvec{H}({^{s}}\bvec{f}^{l}) := \{H({^{s}}f^{l}_{i})\}_{i \in I_{n^{\star}}} \quad \forall l \in I_{n_{s}} \qquad \mathrm{where} \qquad H(x) := \mathds{1}_{x > 0} - \mathds{1}_{x \leq 0}
+			\label{Equation:MonteCarloSamplingMulticlassClassifier}
+			\end{equation}
+			
 	\section{Linearised Model Differential Entropy}
 	\label{Informative-Seafloor-Exploration:LMDE}
 	
-		In this section we introduce the linearised differential entropy of Gaussian process classifiers. This method attempts to address the need for a measure of mutual entropy that is more computationally viable compared to Monte Carlo methods. We motivate the properties that such a measure is desired to have, and proceed to define, and derive, such a measure. Finally, we discuss its interpretation and visualise its advantage through simple tests cases in both the binary and multiclass classification setting.
+		This section introduces the linearised model differential entropy (LMDE) of Gaussian process classifiers. This method attempts to address the need for a measure of mutual entropy that is more computationally viable compared than Monte Carlo methods. Through investigating the structure of the GP classification inference model in both the binary and multiclass classification setting, a simple derivation for LMDE is provided. Finally, the interpretation of LMDE is discussed through visualising its properties under simple tests scenarios.
 		
 		\subsection{Binary Classification}
 	
 			For binary classification, linearisation is performed on the likelihood response function.
 		
-			Suppose we have trained our Gaussian process classifier using Laplace approximation with respect to a training set $\mathcal{D} = \{X, \bvec{y}\} = \{[ \bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]\}$ with $n$ training points. We know that the latent function $f(\bvec{x})$ is distributed as a GP with a particular predictive mean $m(\bvec{x})$ and covariance $k(\bvec{x}, \bvec{x}')$ once conditioned on the training data \eqref{Section:LinearisedEntropy:Equation:PredictiveGP}. From here on we omit explicitly notating the training set that was conditioned upon.
-			
-			\begin{equation}
-				f(\bvec{x}) \sim \mathcal{GP}(m(\bvec{x}), k(\bvec{x}, \bvec{x}'))
-			\label{Section:LinearisedEntropy:Equation:PredictiveGP}
-			\end{equation}
-			
-			Let $X^{\star} = [ \bvec{x}^{\star}_{1}, \bvec{x}^{\star}_{2}, \dots, \bvec{x}^{\star}_{n^{\star}}]^{T}$ denote the collection of $n^{\star}$ query points for which inference is to be performed upon. Denote $\bvec{f}^{\star}$ the vector of latent function values $f^{\star}_{i} = f(\bvec{x}^{\star}_{i})$ at each query point. We have by definition of a GP that $\bvec{f}^{\star}$ is multivariate Gaussian distributed with corresponding means $\mu^{\star}_{i} = m(\bvec{x}^{\star}_{i})$ and covariances $\Sigma^{\star}_{ij} = k(\bvec{x}^{\star}_{i}, \bvec{x}^{\star}_{j})$ \eqref{Section:LinearisedEntropy:Equation:PredictiveGaussianDistribution}.
-			
-			\begin{equation}
-				\bvec{f}^{\star} = [f^{\star}_{1}, f^{\star}_{2}, \dots, f^{\star}_{n^{\star}}]^{T} \sim \mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star})
-			\label{Section:LinearisedEntropy:Equation:PredictiveGaussianDistribution}
-			\end{equation}
-				
-			The binary prediction probability $\vec{\uppi^{\star}}$ at the query points is obtained through passing the queried latent function random vector $\bvec{f}^{\star}$ through a response function in a component wise fashion \eqref{Section:LinearisedEntropy:Equation:Response}.
-			
-			\begin{equation}
-				\vec{\uppi}^{\star} = \vec{\upsigma}(\bvec{f}^{\star})\mathrm{ \quad i.e. \;\;}\pi^{\star}_{i} = \sigma(f^{\star}_{i}) \quad \forall i \in \{1, 2, \dots, n^{\star}\}
-			\label{Section:LinearisedEntropy:Equation:Response}
-			\end{equation}
-			
-			As a straightforward transformation of the latent vector, the predictive probability vector $\vec{\uppi^{\star}}$ is thus a random vector itself. The usual procedure is then to treat the expected prediction probabilities $\mathbb{E}[\vec{\uppi^{\star}}]$ as the posterior class probabilities for further inference. However, this discards any information regarding the joint behaviour of an arbitrary collection of query points. As a result, a measure of mutual information shared amongst the query points cannot be obtained.
-			
-			One straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP, assigning class label 1 for positive latent values and -1 otherwise, and compute the Shannon entropy \cite{ShannonEntropy} from the estimated joint distribution. Aside from the time complexity required for sampling enough draws for accurate joint distribution estimation, Monte Carlo estimated Joint Information Entropy (MCJIE) also has the tendency to over-represent uncertainties under small samples.
+
 					
 			Instead, we propose using the joint distribution of the predictive probabilities $\vec{\uppi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\vec{\uppi^{\star}}]$ such that structural information from the latent GP is compromised, we utilise also the covariance $\mathbb{V}[\vec{\uppi^{\star}}]$, which contains information regarding both the latent GP and the response likelihood.
 		
@@ -115,7 +142,7 @@
 			\label{Section:LinearisedEntropy:Equation:Softmax}
 			\end{equation}
 			
-			In this derivation, we focus on the case of OVA, or one versus all, multiclass classification, where each class is trained against all other classes independently with a binary classifier. For $c$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Section:LinearisedEntropy:Equation:Softmax}. This approach avoids the Monte Carlo sampling step in the inference stage of a typical GP multiclass classifier under Laplace Approximation \cite{GaussianProcessForMachineLearning}, and is thus faster in computational time. Furthermore, because each classifier is trained independently, both the learning stage and the inference stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in under a receding horizon formulation, where the inference stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
+			Again, OVA classifiers are employed. (Describe More)
 			
 			\subsubsection{Derivation}
 			
