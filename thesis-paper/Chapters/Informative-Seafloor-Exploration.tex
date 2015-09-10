@@ -2,8 +2,32 @@
 \lhead{Informative Seafloor Exploration}
 \label{Informative-Seafloor-Exploration}
 
-	\section{Mutual Information}
+	The Gaussian process based inference model for benthic habitat mapping devised in Chapter \ref{Benthic-Habitat-Mapping} provides a Bayesian framework for habitat inference and prediction. With such an inference model, this chapter proceeds to develop an informative path planning policy for benthic habitat mapping.
 	
+	The outset of this chapter begins by motivating the need for a measure of mutual information (section \ref{Informative-Seafloor-Exploration:Mutual-Information}). Such a measure would allow inference based on the \textit{essential} information contained in any given sub-region of interest. The mutual information criterion can then be employed as the acquisition function for informative path planning, in order to evaluate thus compare the desirability of visiting candidate regions and locations.
+	
+%	Two mutual information criterion are investigated in this thesis - Monte Carlo Joint Predictive Information Entropy (section \ref{Informative-Seafloor-Exploration:MCJPIE}) and Linearised Model Differential Entropy (section \ref{Informative-Seafloor-Exploration:LMDE}).
+	
+	As Gaussian process classifiers lack analytical forms for the predictive joint distribution of target labels, any mutual information measure derived from the predictive joint distribution must rely on numerical estimation techniques. As such, estimating joint prediction information entropy requires a Monte Carlo sampling based approach. Section \ref{Informative-Seafloor-Exploration:MCJPIE} describes such a mutual information criterion, hereby named Monte Carlo Joint Predictive Information Entropy (MCJPIE).
+	
+	However, a Monte Carlo approach suffers some several drawbacks, such as computational complexity and limited estimation accuracy. Instead, this thesis proposes a new and alternative mutual information measure, Linearised Model Differential Entropy (LMDE), that is more computationally tractable than MCJPIE. Section \ref{Informative-Seafloor-Exploration:LMDE} defines and derives LMDE, and demonstrates its ability to capture uncertainty in both variance and bias.
+	
+	Section \ref{Informative-Seafloor-Exploration:Receding-Horizon-Formulation} then formulates a receding horizon approach to informative path planning. This provides a simple yet effective framework for a large scale exploration task such as seafloor exploration for benthic habitat mapping. In particular, the receding horizon formulation strikes a balance between exploring in a non-myopic way and doing so with reasonable tractability constraints.
+	
+	Finally, section \ref{Informative-Seafloor-Exploration:Informative-Exploration-over-Scott-Reef-Seafloor} assesses the performance of various approaches to informative seafloor exploration for benthic habitat mapping. Multiple acquisition criterions are tested under both the receding horizon approach and a myopic greedy approach, which verifies the benefits of linearised model differential entropy under the receding horizon formulation. Under a mapping accuracy criterion, simulations over the Scott Reef dataset demonstrates that LMDE acquisition outperform other acquisition criterions.
+	
+	\section{Mutual Information}
+	\label{Informative-Seafloor-Exploration:Mutual-Information}
+		
+		In order to devise an informative path planning policy, it is important to select an appropriate acquisition criterion which measures the desirability of traversing a particular candidate path. Section \ref{Background:Related-Work} provided an outline of related investigations on various acquisition functions for informative path planning in the benthic habitat mapping context. 
+		
+		Much of the intractability discussed in such literature can trace its reason down to the fact that benthic habitat mapping is a classification problem instead of a regression problem. While Gaussian process regression provide analytical forms for inference, due to a non-Gaussian likelihood response, Gaussian process classification is no longer analytically tractable. Instead, several approximations must be made, which were discussed in section \ref{Background:GaussianProcesses:Classification}.
+		
+		This thesis addresses the tractability status of the problem through proposing an alternative acquisition criterion that captures mutual information. In the current literature, acquisition criterion either do not directly capture mutual information, such as \eqref{Equation:AsherBenderAcquisitionCriterion}, or take too long to compute due to required estimations from sampling, such as \eqref{Equation:KrauseAcquisitionCriterion}. 
+		
+		Instead, linearised differential entropy (LMDE) as an acquisition function captures an appropriate form of mutual information. Specifically, it regularises between reducing mutual bias and mutual uncertainty through taking advantage of both the latent mean and covariance structure, as well as the non-Gaussian likelihood response. Tractability of the approach is further improved through a linearisation approximation on such an acquisition criterion.
+		
+		
 %		\subsection{Motivation}
 %		
 %			For both modeling purposes and path planning purposes, simply knowing the entropy at each query point is not enough. 
@@ -12,8 +36,8 @@
 %		
 %		\subsection{Lack of a Closed Form Solution}
 		
-	\section{Monte Carlo Estimated Joint Predictive Information Entropy}
-		
+	\section{Monte Carlo Joint Predictive Information Entropy}
+	\label{Informative-Seafloor-Exploration:MCJPIE}
 			Provide pseudocode for limited and good way of doing it
 			
 		\subsection{Binary Classification}
@@ -21,7 +45,8 @@
 		\subsection{Multiclass Classification}
 		
 	\section{Linearised Model Differential Entropy}
-		
+	\label{Informative-Seafloor-Exploration:LMDE}
+	
 		In this section we introduce the linearised differential entropy of Gaussian process classifiers. This method attempts to address the need for a measure of mutual entropy that is more computationally viable compared to Monte Carlo methods. We motivate the properties that such a measure is desired to have, and proceed to define, and derive, such a measure. Finally, we discuss its interpretation and visualise its advantage through simple tests cases in both the binary and multiclass classification setting.
 		
 		\subsection{Binary Classification}
@@ -199,6 +224,7 @@
 	%		In the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the MCJIE method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in our case), this will lead to smoother paths.
 		
 	\section{The Receding Horizon Formulation}
+	\label{Informative-Seafloor-Exploration:Receding-Horizon-Formulation}
 	
 		In this section we present a receding horizon approach to the informative path-planning problem. Specifically, we use the linearised differential entropy derived earlier as the acquisition function. We motivate the use of the approach and discuss its structure.
 		
@@ -263,6 +289,7 @@
 %	\section{Results with Simulated Track Data}
 	
 	\section{Informative Exploration over Scott Reef Seafloor}
+	\label{Informative-Seafloor-Exploration:Informative-Exploration-over-Scott-Reef-Seafloor}
 	
 		\subsection{Ground Truth Generation}
 		
