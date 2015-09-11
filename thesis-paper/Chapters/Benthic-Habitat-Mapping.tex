@@ -1,11 +1,12 @@
 \chapter{Benthic Habitat Mapping}
 \lhead{Benthic Habitat Mapping}
-\label{Benthic-Habitat-Mapping}
+\label{BenthicHabitatMapping}
 			
 	\section{GP Classifiers for Benthic Habitat Mapping}
+	\label{BenthicHabitatMapping:GaussianProcessClassifiers}
 	
 	\section{Bathymetric Features}
-	\label{ModelingOceanEnvironment:ModelingFeatures}
+	\label{BenthicHabitatMapping:BathymetricFeatures}
 	
 		This thesis project can be broken down into two main parts - benthic habitat mapping and informative path planning. Benthic habitat mapping itself includes bathymetric feature extraction, and habitat class inference. Thus, benthic habitat mapping refers to the two stage process of feature extraction and habitat class inference, with the latter being the main bottleneck for this process. This section will focus on the bathymetric feature extraction and modeling.
 			
@@ -93,7 +94,7 @@
 		\FloatBarrier
 		
 		\subsection{Data Matching}
-		\label{Background:OceanEnvironmentModeling:DataMatching}
+		\label{BenthicHabitatMapping:BathymetricFeatures:DataMatching}
 		
 			A subtlety that arises from the above formulation is that during the training stage, the bathymetric data and the label data are not necessarily observed at the same places. Figure \ref{Figure:ScottReefBathymetricFeatures} illustrates the spatial distribution of the two datasets in a typical setting using the Scott Reef data set \citep{IMOS} as an example.
 		
@@ -130,7 +131,7 @@
 			\FloatBarrier
 	
 		\subsection{Feature Extraction}
-		\label{Background:OceanEnvironmentModeling:FeatureExtraction}
+		\label{BenthicHabitatMapping:BathymetricFeatures:FeatureExtraction}
 		
 			The feature extraction process assumes that the bathymetric depth data is available in grid form. That is, one can represent the available depth data $Z = \{z_{k}\}_{k \in {1, 2, ..., N}}$ as $Z = \{z_{ij}\}_{i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}}}$ where varying $i$ and $j$ corresponds to varying data points in axis 1 and 2 respectively. Axis 1 and 2 is required to form an orthonormal frame. While axis 1 and 2 is usually aligned with the eastings-northings frame, it is generally not required for the feature extraction process.
 			

@@ -3,7 +3,7 @@
 \label{Background}
 
 	\section{Related Work}
-	\label{Background:Related-Work}
+	\label{Background:RelatedWork}
 	
 		One of the main challenges of informative path planning include selecting the appropriate acquisition function suitable for the type of exploration task at hand. \textit{Acquisition functions}, or \textit{acquisition criterion}, measures the desirability of observing a particular location. In the informative path planning scenario, the acquisition function evaluates the amount of total information or uncertainty contained by a given candidate path. In this context, the way in which \textit{total information} is quantified determines the acquisition function. The more information the path contains, the more desirable it is for the AUV to follow and take observations on that path. 
 
@@ -41,6 +41,7 @@
 		This thesis addresses the tractability status of the problem through proposing an alternative acquisition criterion, hereby named linearised model differential entropy (LMDE), that captures mutual information. In the current literature, acquisition criterion either do not directly capture mutual information, such as \eqref{Equation:AsherBenderAcquisitionCriterion}, or take too long to compute due to required estimations from sampling, such as \eqref{Equation:KrauseAcquisitionCriterion}. This work shows that LMDE as an acquisition function captures an appropriate form of mutual information. Furthermore, LDME outperforms other acquisitions in both ractability and mapping accuracy.
 		
 	\section{Gaussian Processes}
+	\label{Background:GaussianProcesses}
 	
 		Gaussian processes (GP) are stochastic processes which generalises the multi-variate Gaussian distribution. In a statistical learning and machine learning context, they are categorised as a type of \textit{supervised learning} method, which describes the problem of learning relationships between input and output variables from empirical data. The empirical data is also often referred to as the training set.
 		
@@ -57,6 +58,7 @@
 		The work presented here will be primarily based on \textit{Gaussian Process for Machine Learning} by \cite{GaussianProcessForMachineLearning}. 
 
 		\subsection{Bayesian Modeling with Gaussian Processes}
+		\label{Background:GaussianProcesses:BayesianModeling}
 		
 			The Gaussian process formulation follows the Bayesian modeling philosophy. An important distinction Bayesian modeling makes from the classical approach is the idea of estimating a distribution instead of a point value. While this is often more computationally expensive, it provides a very robust and accurate framework for prediction and inference. More importantly, it provides capabilities that classical approaches do not possess - the ability to quantify prediction uncertainties and, most importantly, potential information. 
 			
@@ -157,6 +159,7 @@
 			Kernel functions can be categorised into stationary kernels and non-stationary kernels.
 						
 			\subsubsection{Stationary Kernels}
+			\label{Background:GaussianProcesses:KernelFunctions:Stationary}
 			
 				Stationary kernels are ones whose covariance properties do not depend explicitly on the locations $\bvec{x}$ and $\bvec{x}'$ of consideration, but only on the difference $\bvec{x} - \bvec{x}'$ between them. Thus, the covariance properties are \textit{stationary}, or invariant, under translations in the feature space.
 				
@@ -214,7 +217,8 @@
 				Together, the squared exponential kernel and the \matern class kernels provide a flexible set of kernel functions that can model a multitude of phenomena from various fields such as geology, ecology, finance, logistics, control theory, and machine learning.
 			
 			\subsubsection{Non-Stationary Kernels}
-				
+			\label{Background:GaussianProcesses:KernelFunctions:Nonstationary}
+			
 				Non-stationary kernels introduce flexibility for modeling phenomenons where the inherent length scales varies across feature locations. The limitations with stationary kernels is that the GP will always learn length scales that are as small as it needs to be for modeling the fastest varying phenomenon in the model. While the marginal likelihood inherently balances modeling accuracy and overfitting, when it comes to the choice between modeling a peak in data variation with a risk of overfitting the rest of the data or ignoring that peak, the optimiser will always prefer the former as marginal likelihood gain from successful modeling is higher than loss from overfitting. Because learning stage is done through optimising the marginal likelihood (see section \ref{Background:GaussianProcess:Regression:HyperparameterLearning}), this forces the length scale to be smaller than it needs at slower varying places.
 
 				Figure \ref{Figure:GaussianProcessLengthScale} illustrates the non-stationary Gaussian process for a terrain modeling application. Note that this does not imply that it is only relevant for GP regression problems - the latent functions used in GP classification is itself a GP regression problem for which length scale interpretation is almost identical to that shown in \cref{Figure:GaussianProcessLengthScale} (see section \ref{Background:GaussianProcesses:Classification}).
@@ -327,6 +331,7 @@
 				In practice, hyperparameter learning can be sped up by employing the fact that $\frac{1}{2} \log|K| = \sum_{i} L_{ii} = \mathrm{trace}(L)$ where $L$ is the Cholesky decomposition of $K$ (or $K + \sigma^{2} I$ in the noisy case). In fact, the Cholesky decomposition $L$ leads to better numerical stability when inverting the matrix $K$ since $K = LL^{T}$ so that $K \backslash \bvec{y} = L^{T} \backslash (L \backslash \bvec{y})$.
 			
 			\subsubsection{Sampling from a Gaussian Process}
+			\label{Background:GaussianProcess:Regression:Sampling}
 			
 	%			\subsubsection{Multi-task Regression}
 	%			
@@ -346,6 +351,7 @@
 			Although the latent function is now continuous such that it is possible to model it with a GP regression model, the posterior probability is in general non-Gaussian distributed, since the "squashing" is usually non-linear such that the likelihood is non-Gaussian. In this way, approximations are necessary. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \citep{GaussianProcessForMachineLearning}. In this thesis, Laplace approximation is chosen as a reasonable balance between accuracy and implementation difficulty, although a short investigation of probabilistic least squares will also be provided.
 			
 			\subsubsection{Response Functions}
+			\label{Background:GaussianProcesses:Classification:ResponseFunction}
 			
 				Before discussions begin regarding the various types of GP classifiers, it is important to understand the role of \textit{response functions} in Bayesian classifiers.
 				
@@ -371,14 +377,18 @@
 				\end{figure}
 				
 			\subsubsection{Binary Classification}
+			\label{Background:GaussianProcesses:Classification:BinaryClassification}
 			
 				The Laplace approximation for GP binary classification works by learning a latent function through an iterative scheme involving successive GP regressions, and "squeezing" that latent function into an appropriate probabilistic range for likelihood interpretation. The Laplace approximation approaches the approximation problem by determining the mean and variance of the true distribution and approximating the said distribution with a Gaussian distribution of the same mean and variance. Assuming Gaussian distributions, the prior and the evidence (marginal likelihood) have analytical forms. Under such assumptions it is therefore possible to marginalise out the likelihood predictions to obtain a posterior estimate. Finally, this learning stage can be trained by optimising the marginal likelihood \footnote{{\color{BurntOrange} At this stage of the thesis progress, it is uncertain whether or not a deeper and more rigorous theoretical grounding should be provided for GP classification. Perhaps it would benefit by only providing an intuitive outline of the procedure, rather than a rigorous derivation, so that the reader is not distracted from the main contributions of this thesis later on.}}.
 				
 			\subsubsection{Laplace Approximation}
-				
+			\label{Background:GaussianProcesses:Classification:LaplaceApproximation}
+			
 			\subsubsection{Probabilistic Least Squares}
+			\label{Background:GaussianProcesses:Classification:ProbabilisticLeastSquares}
 			
 			\subsubsection{Multiclass Classification: One v.s. All}
+			\label{Background:GaussianProcesses:Classification:OVA}
 			
 				While a consistent framework for the GP Multi-class classification using Laplace approximation exist, a simpler and perhaps a more computationally efficient approach is to employ the One v.s. All (OVA) and All v.s. All (AVA) philosophy. The following discussion assumes that there are $c > 2$ classes of labels for which classification is to occur. 
 				
@@ -387,9 +397,11 @@
 				The AVA approach operates similarly. It insteads introduces $\frac{c (c - 1)}{2}$ \textit{independent} classification problems, each classifying between a pair of labels. The same exact philosophy follows in that a final consistent framework is needed for fusing the prediction probabilities into one coherent prediction probability. It is often more difficult for probability fusion in the AVA setting as compared to the OVA setting.
 			
 			\subsubsection{Multiclass Classification: All v.s. All}
-				
+			\label{Background:GaussianProcesses:Classification:AVA}
+			
 			\subsubsection{Fusion of Prediction Probability}
-
+			\label{Background:GaussianProcesses:Classification:ProbabilityFusion}
+			
 				{\color{BurntOrange} This section should be in the GP implementation chapter of this thesis (e.g. Chapter 3). It would further the discussion above regarding the probability fusion problem by introducing the exclusion method and mode keeping method that has been developed and tested. It is anticipated that other methods will be developed by then, so that this section would undergo significant editing.}
 				
 				
@@ -401,6 +413,7 @@
 	%				Consider a single query point for which class prediction is to occur. Let $\pi_{i}$ be the prediction probability obtained through the binary classification of class $i$ against all other classes. Initially, the probability vector $\bvec{\pi} := [\pi_{1}, \pi_{2}, \dots, \pi_{c}]^{T}$ is not a unit vector, so that $\bvec{\pi}$ does not define a proper probability distribution \dots 
 		
 			\subsubsection{Entropy}
+			\label{Background:GaussianProcesses:Classification:Entropy}
 			
 				After a predictive probability distribution is obtained for each query environment location, the uncertainty of such predictions can be quantified through the entropy of of that distribution.
 				
@@ -421,14 +434,19 @@
 				With these entropy measures, predictive uncertainties can be quantified, which allows active information seeking plans to be possible.
 				
 			\subsubsection{Sampling from a Gaussian Process for Classifiers}
+			\label{Background:GaussianProcesses:Classification:Sampling}
 			
 	\section{Active Sampling}
+	\label{Background:ActiveSampling}
 	
 		\subsection{Static Active Sampling}
+		\label{Background:ActiveSampling:Static}
 		
 		\subsection{Dynamic Active Sampling}
-	
+		\label{Background:ActiveSampling:Dynamic}
+		
 	\section{Informative Path Planning}
+	\label{Background:InformativePathPlanning}
 	
 		Path planning under dynamic uncertainty has been a challenging task for all information searching missions. This class of path planning problems have the special property that there is no goal location, and no stationary node, edge, or field cost to be cumulatively minimised. The objective is to reduce the overall uncertainty or entropy of a particular region given indefinite time. The complication is introduced with the non-linear dynamics of the uncertainty or entropy field of the region each time a planned path is executed, which also makes the solution extremely frequency dependent.
 		
@@ -441,5 +459,9 @@
 		In conclusion, POMDP methods are currently one of the most reliable and accurate method for continuous path planning in an information gathering setting. While the technique enforces limitations on the problem dynamics, with sufficient modeling it is deemed possible to perform path planning to an acceptable level. This thesis will thus investigate POMDP methods for active path planning in the ocean exploration setting.
 		
 		\subsection{Myopic and Non-myopic Planning}
+		\label{Background:InformativePathPlanning:MyopicNonmyopicPlanning}
 		
 		\subsection{Advantages of Gaussian Process Models}
+		\label{Background:InformativePathPlanning:GaussianProcessAdvantage}
+		
+		
