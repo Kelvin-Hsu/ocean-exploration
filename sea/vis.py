@@ -1,6 +1,7 @@
 """
 Informative Seafloor Exploration
 """
+import os
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
@@ -81,3 +82,12 @@ def fig_size(fig_width_pt):
     fig_width = fig_width_pt * inches_per_pt# width in inches
     fig_height = fig_width * golden_mean    # height in inches
     return fig_width, fig_height
+
+def savefig(fig, filename):
+
+    directory = '/'.join(filename.split('/')[0:-1]) + '/'
+
+    if not os.path.isdir(directory):
+        os.mkdir(directory)
+
+    fig.savefig(filename)

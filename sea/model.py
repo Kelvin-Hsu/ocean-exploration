@@ -17,10 +17,10 @@ def predictions(learned_classifier, Fqw, fusemethod = 'EXCLUSION'):
     yq_pred = gp.classifier.classify(yq_prob, y_unique)
     logging.info('Computing Prediction Information Entropy...')
     yq_mie = gp.classifier.entropy(yq_prob)    
-    logging.info('Computing Linearised Differential Entropy...')
-    yq_lde = gp.classifier.linearised_entropy(fq_exp, fq_var, 
-        learned_classifier)
-    return yq_pred, yq_mie, yq_lde
+    logging.info('Computing Linearised Model Differential Entropy...')
+    yq_lmde = gp.classifier.linearised_model_differential_entropy(
+        fq_exp, fq_var, learned_classifier)
+    return yq_pred, yq_mie, yq_lmde
 
 def miss_ratio(yq_pred, yq_truth):
     return (yq_pred - yq_truth).nonzero()[0].shape[0] / yq_truth.shape[0]
