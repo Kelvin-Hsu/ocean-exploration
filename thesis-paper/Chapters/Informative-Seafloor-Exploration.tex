@@ -124,34 +124,34 @@
 				
 			As the predictive probabilities are nonlinear transformations of the Gaussian distributed latent vector, they are no longer Gaussian distributed. In order to retain analytical tractability, the proposed approach is to linearise the response function about the latent expectance $\bar{f}^{\star}_{i} := \mathbb{E}[f^{\star}_{i}]$. Figure \ref{Figure:Linearisation} illustrates the linearisation accuracy for a probit response. Observe that points with latent expectance far away from zero translate to near zero predictive variance even under high latent variance. Linearisation is thus very accurate for those points. For points with latent expectances near zero, we require the latent variances to be sufficiently small for linearisation to be accurate.
 			
-			The linearised can thus be derived, which also serves to construct the definition of linearised differential entropy. With first order Taylor expansion, the response is linearised the latent mean $\bar{f}^{\star}_{i} = \mathbb{E}[f^{\star}_{i}]$ \eqref{Section:LinearisedEntropy:Equation:LinearisingSigmoid}. \begin{equation}
+			The linearised can thus be derived, which also serves to construct the definition of linearised differential entropy. With first order Taylor expansion, the response is linearised the latent mean $\bar{f}^{\star}_{i} = \mathbb{E}[f^{\star}_{i}]$ \eqref{Equation:LinearisingSigmoid}. \begin{equation}
 				\sigma(f^{\star}_{i}) \approx \sigma_{L}(f^{\star}_{i}) := \sigma(\bar{f}^{\star}_{i}) + \sigma'(\bar{f}^{\star}_{i}) (f^{\star}_{i} - \bar{f}^{\star}_{i})
-			\label{Section:LinearisedEntropy:Equation:LinearisingSigmoid}
+			\label{Equation:LinearisingSigmoid}
 			\end{equation}
 			
-			The prediction probabilities are now approximated as a linear transformation $\sigma_{L}(f)$ of the latent vector, so that it is also multivariate Gaussian distributed with expectance and covariance available in analytical form \eqref{Section:LinearisedEntropy:Equation:MomentsLinearisedSigmoid}. \begin{align*}
-			\numberthis \label{Section:LinearisedEntropy:Equation:MomentsLinearisedSigmoid}
+			The prediction probabilities are now approximated as a linear transformation $\sigma_{L}(f)$ of the latent vector, so that it is also multivariate Gaussian distributed with expectance and covariance available in analytical form \eqref{Equation:MomentsLinearisedSigmoid}. \begin{align*}
+			\numberthis \label{Equation:MomentsLinearisedSigmoid}
 					\vec{\upsigma}_{L}(\bvec{f}^{\star}) & \sim \mathcal{N}(\vec{\upmu}^{\star}_{L}, \Sigma^{\star}_{L}) \\
 					({\mu^{\star}_{L}})_{i} & = \mathbb{E}[\sigma_{L}(f^{\star}_{i})] = \sigma(\bar{f}^{\star}_{i}) \\
 					({\Sigma^{\star}_{L}})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma_{L}(f^{\star}_{i}), \sigma_{L}(f^{\star}_{j})] = \sigma'(\bar{f}^{\star}_{i}) \sigma'(\bar{f}^{\star}_{j}) \mathbb{C}\mathrm{ov}[f^{\star}_{i}, f^{\star}_{j}]
 			\end{align*}
 			
-			Finally, the linearised model differential entropy $H_{\mathrm{LMDE}}$ at the query points $X^{\star}$ is defined to be the differential entropy corresponding to the random vector $\vec{\upsigma}_{L}(\bvec{f}^{\star})$. Since $\vec{\upsigma}_{L}(\bvec{f}^{\star})$ is multivariate Gaussian distributed, $H_{\mathrm{LMDE}}$ exhibits a closed form \eqref{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy}. \begin{equation}
+			Finally, the linearised model differential entropy $H_{\mathrm{LMDE}}$ at the query points $X^{\star}$ is defined to be the differential entropy corresponding to the random vector $\vec{\upsigma}_{L}(\bvec{f}^{\star})$. Since $\vec{\upsigma}_{L}(\bvec{f}^{\star})$ is multivariate Gaussian distributed, $H_{\mathrm{LMDE}}$ exhibits a closed form \eqref{Equation:BinaryLinearisedEntropy}. \begin{equation}
 				H^{\mathrm{binary}}_{\mathrm{LMDE}} := H^{\mathrm{binary}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Big((2 \pi e)^{n^{\star}} \det(\Sigma^{\star}_{L})\Big)
-			\label{Section:LinearisedEntropy:Equation:BinaryLinearisedEntropy}
+			\label{Equation:BinaryLinearisedEntropy}
 			\end{equation}			
 						
 		\subsection{Multiclass Classification}
 		\label{InformativeSeafloorExploration:LMDE:Multiclass}
 		
-			For multiclass classification, linearisation is performed on the softmax function $\sigma^{c}$ which returns the corresponding predictive class probability $\vec{\uppi}^{c}$ for class $c \in I_{n_{C}} := \{1, 2, \dots, n_{C}\}$ \eqref{Section:LinearisedEntropy:Equation:Softmax} \citep{GaussianProcessForMachineLearning}. \begin{equation}
+			For multiclass classification, linearisation is performed on the softmax function $\sigma^{c}$ which returns the corresponding predictive class probability $\vec{\uppi}^{c}$ for class $c \in I_{n_{C}} := \{1, 2, \dots, n_{C}\}$ \eqref{Equation:Softmax} \citep{GaussianProcessForMachineLearning}. \begin{equation}
 				{\pi^{c}_{i}}^{\star} = \sigma^{c}({\bvec{f}_{i}}^{\star}) := \frac{\exp({f^{c}_{i}}^{\star})}{\sum_{m = 1}^{n_{C}} \exp({f^{m}_{i}}^{\star})} \qquad c \in I_{n_{C}}
-			\label{Section:LinearisedEntropy:Equation:Softmax}
+			\label{Equation:Softmax}
 			\end{equation}
 			
-			Again, OVA classifiers are employed, where each class is trained against all other classes independently with a binary classifier. For $c$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Section:LinearisedEntropy:Equation:Softmax}. This approach avoids the Monte Carlo sampling step in the inference stage of a typical GP multiclass classifier under Laplace Approximation \cite{GaussianProcessForMachineLearning}, and is thus faster in computational time. Note that this Monte Carlo sampling step avoided is separate to the one used in MCJIE. In essence, using OVA classifiers skip one Monte Carlo step, and using LMDE skips another Monte Carlo step through avoiding using MCPIE. Furthermore, because each classifier is trained independently, both the learning stage and the inference stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in under a receding horizon formulation, where the inference stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
+			Again, OVA classifiers are employed, where each class is trained against all other classes independently with a binary classifier. For $c$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Section:LinearisedEntropy:Equation:Softmax}. This approach avoids the Monte Carlo sampling step in the inference stage of a typical GP multiclass classifier under Laplace Approximation \citep{GaussianProcessForMachineLearning}, and is thus faster in computational time. Note that this Monte Carlo sampling step avoided is separate to the one used in MCJIE. In essence, using OVA classifiers skip one Monte Carlo step, and using LMDE skips another Monte Carlo step through avoiding using MCPIE. Furthermore, because each classifier is trained independently, both the learning stage and the inference stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in under a receding horizon formulation, where the inference stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
 			
-			Similar to the binary case, to linearise it is imperative to examine the gradient of each of the $c$ softmax functions \eqref{Section:LinearisedEntropy:Equation:SoftmaxGradient}. For notational simplicity, the query stars ($^{\star}$) are omitted in this derivation except for $n^{\star}$.
+			Similar to the binary case, to linearise it is imperative to examine the gradient of each of the $c$ softmax functions \eqref{Equation:SoftmaxGradient}. For notational simplicity, the query stars ($^{\star}$) are omitted in this derivation except for $n^{\star}$.
 			
 			\begin{equation}
 				\frac{\partial \sigma^{c}}{\partial f^{k}_{i}}(\bvec{f}_{i}) =
@@ -159,44 +159,44 @@
 					- \frac{\exp(f^{c}_{i}) \exp(f^{k}_{i})}{\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})} & \text{for } k \neq c  \\
 					- \frac{\exp(f^{c}_{i})^{2}}{\big(\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})\big)^{2}} + \frac{\exp(f^{c}_{i})}{\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})}& \text{for } k = c
 				\end{cases}
-			\label{Section:LinearisedEntropy:Equation:SoftmaxGradient}
+			\label{Equation:SoftmaxGradient}
 			\end{equation}			
 		
 			The numerators are explicitly left in the form of products of exponentiation instead of exponentiation of sums to reflect ways to cache quantities during computation. 
 			
-			Hence, for each class $c$ at query point $i$ a softmax gradient vector is computed \eqref{Section:LinearisedEntropy:Equation:SoftmaxGradientVector}.
+			Hence, for each class $c$ at query point $i$ a softmax gradient vector is computed \eqref{Equation:SoftmaxGradientVector}.
 			
 			\begin{equation}
 				\frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bvec{f}_{i}) := \begin{bmatrix} \frac{\partial \sigma^{c}}{\partial f^{1}_{i}}(\bvec{f}_{i}) & \frac{\partial \sigma^{c}}{\partial f^{2}_{i}}(\bvec{f}_{i}) & \dots & \frac{\partial \sigma^{c}}{\partial f^{n_{C}}_{i}}(\bvec{f}_{i}) \end{bmatrix}^{T}
-			\label{Section:LinearisedEntropy:Equation:SoftmaxGradientVector}
+			\label{Equation:SoftmaxGradientVector}
 			\end{equation}
 			
-			The linearisation is again performed on the mean latent predictions $\bar{\bvec{f}}_{i} = \mathbb{E}[\bvec{f}_{i}]$ so that each softmax $\sigma^{c}(\bvec{f}_{i})$ can be approximated with the linearised softmax $\sigma^{c}_{L}(\bvec{f}_{i})$ \eqref{Section:LinearisedEntropy:Equation:LinearisedSoftmax} in an analogous form as \eqref{Section:LinearisedEntropy:Equation:LinearisingSigmoid}.
+			The linearisation is again performed on the mean latent predictions $\bar{\bvec{f}}_{i} = \mathbb{E}[\bvec{f}_{i}]$ so that each softmax $\sigma^{c}(\bvec{f}_{i})$ can be approximated with the linearised softmax $\sigma^{c}_{L}(\bvec{f}_{i})$ \eqref{Equation:LinearisedSoftmax} in an analogous form as \eqref{Equation:LinearisingSigmoid}.
 			
 			\begin{equation}
 				\begin{aligned}
 					\sigma^{c}(\bvec{f}_{i}) \approx \sigma^{c}_{L}(\bvec{f}_{i}) & := \sigma^{c}(\bar{\bvec{f}}_{i}) + \left. \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}} \right|^{T}_{\bvec{f}_{i} = \bar{\bvec{f}}_{i}} (\bvec{f}_{i} - \bar{\bvec{f}}_{i}) \\
 					& = \bvec{a}^{c}_{i} + (\bvec{g}^{c}_{i})^{T} (\bvec{f}_{i} - \bar{\bvec{f}}_{i})
 				\end{aligned}
-			\label{Section:LinearisedEntropy:Equation:LinearisedSoftmax}
+			\label{Equation:LinearisedSoftmax}
 			\end{equation}
 			
 			where we have notated the constants $\bvec{a}^{c}_{i} := \sigma^{c}(\bar{\bvec{f}}_{i})$ and $\bvec{g}^{c}_{i} := \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bar{\bvec{f}}_{i})$.
 			
-			To determine the distribution of the vector of softmax values across query points, first define the following \eqref{Section:LinearisedEntropy:Equation:Definitions}.
+			To determine the distribution of the vector of softmax values across query points, first define the following \eqref{Equation:Definitions}.
 			
 			\begin{equation}
 				\begin{aligned}
 					F &:= \{f^{c}_{i}\}_{c \in I_{n_{C}}, i \in I_{n^{\star}}} \in \mathbb{R}^{n_{C} \times n^{\star}} \\
 					\vec{\upsigma}^{c}_{L}(F) &:= \begin{bmatrix} \sigma^{c}_{L}(\bvec{f}_{1}) & \sigma^{c}_{L}(\bvec{f}_{2}) & \dots & \sigma^{c}_{L}(\bvec{f}_{n^{\star}}) \end{bmatrix}^{T} \qquad \forall c \in I_{n_{C}}
 				\end{aligned}
-			\label{Section:LinearisedEntropy:Equation:Definitions}
+			\label{Equation:Definitions}
 			\end{equation}
 						
-			The covariance of the linearised softmax of a particular class $c$ between two query points $i$ and $j$ can now be computed, as well as the expectance at a particular query point $i$ \eqref{Section:LinearisedEntropy:Equation:MomentsLinearisedSoftmax}.
+			The covariance of the linearised softmax of a particular class $c$ between two query points $i$ and $j$ can now be computed, as well as the expectance at a particular query point $i$ \eqref{Equation:MomentsLinearisedSoftmax}.
 			
 			\begin{align*}
-			\numberthis \label{Section:LinearisedEntropy:Equation:MomentsLinearisedSoftmax}
+			\numberthis \label{Equation:MomentsLinearisedSoftmax}
 					\vec{\upsigma}^{c}_{L}(F) & \sim \mathcal{N}(\vec{\upmu}^{c}_{L}, \Sigma^{c}_{L}) \\
 					(\mu^{c}_{L})_{i} & = \mathbb{E}[\sigma^{c}_{L}(\bvec{f}_{i})] =  \sigma^{c}(\bar{\bvec{f}}_{i}) \\
 					(\Sigma^{c}_{L})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma^{c}_{L}(\bvec{f}_{i}), \sigma^{c}_{L}(\bvec{f}_{i})] \\
@@ -206,11 +206,11 @@
 						
 			where $(g^{c}_{i})^{m}$ denotes the $m^{\text{th}}$ element of $\bvec{g}^{c}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of classes $c$ and $m$, $c \neq m$, are conditionally independent given training observations.
 			
-			Finally, the linearised entropy of the OVA multiclass Gaussian process classifier is defined as follows \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}.
+			Finally, the linearised entropy of the OVA multiclass Gaussian process classifier is defined as follows \eqref{Equation:MulticlassLinearisedEntropy}.
 			
 			\begin{equation}
 				H^{\mathrm{multiclass}}_{\mathrm{LMDE}} := H^{\mathrm{multiclass}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Bigg((2 \pi e)^{n^{\star}} \det\bigg(\sum_{c = 1}^{n_{C}} \Sigma^{c}_{L}\bigg)\Bigg)
-			\label{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy}
+			\label{Equation:MulticlassLinearisedEntropy}
 			\end{equation}			
 		
 	\section{Comparison of Mutual Entropy Measures}
@@ -284,47 +284,29 @@
 	\section{The Receding Horizon Formulation}
 	\label{InformativeSeafloorExploration:RecedingHorizonFormulation}
 	
-		In this section we present a receding horizon approach to the informative path-planning problem. Specifically, we use the linearised differential entropy derived earlier as the acquisition function. We motivate the use of the approach and discuss its structure.
+		The previous sections developed two measures of mutual information that can be used as the acquisition criterion for informative path planning. This section moves on to present a receding horizon approach to the informative path planning.
 		
-		The receding horizon approach is inspired by the philosophy of model predictive control (MPC) in control theory, for which a continuous problem is discretised such that an optimal control problem is transcribed into a static optimisation problem at each time step. Similar to MPC, while receding horizon methods are almost always suboptimal, it provides a computationally tractable approach that is rather stable in performance. Furthermore, a receding horizon approach avoids a myopic and greedy approach to informative path planning. Myopic approaches often result in the vehicle fixating on a region with local maximum entropy due to its inability to sacrifice immediate rewards for future rewards in a faraway region. Lastly, a receding horizon approach is simple to implement and sufficient for most missions for which strict optimality is not necessary.
+		The receding horizon approach is inspired by the philosophy of model predictive control (MPC) in control theory, where a continuous problem is discretised such that an optimal control problem is transcribed into a static optimisation problem at each time step. Similar to MPC, while receding horizon methods are almost always suboptimal, it provides a computationally tractable approach that is rather stable in performance. Furthermore, a receding horizon approach avoids a myopic and greedy approach to informative path planning. Myopic approaches often result in the vehicle fixating on a region with local maximum entropy due to its inability to sacrifice immediate rewards for future rewards in a faraway region. Lastly, a receding horizon approach is simple to implement and sufficient for most missions for which strict optimality is not necessary.
 		
-	%		Informative path planning is a highly dynamical process in which the observations the vehicle decides to take can significantly impact the belief space of the vehicle and hence alter its action. As a result, Gaussian processes are often used for modeling the environment for which path planning is to be performed. The tractability of Gaussian processes regression allows sophisticated methods for informative path planning, such as  performing sequential Bayesian optimisation to achieve informative path planning over continuous domains \cite{Roman:SequentialBayesianOptimisation}. One desired property we would like to achieve with an informative path-planning problem is that the search is non-myopic. When the objective is to collect data on a particular spatial phenomenon, Gaussian process regression can be used as the model under which strong theoretical performance guarantees can be made \cite{Meliou:2007:NIP:1619645.1619742}. However, in the case where the objective is to collect data in the form of discrete labels, a Gaussian process classifier is used instead for modeling the phenomenon. As discussed earlier, the joint entropy from a Gaussian process classifier is not available in closed form. Instead, another measure of joint entropy was developed in the previous section which demonstrated desired properties for informative exploration. To take advantage of the tractability of linearised differential entropy over finite collections of query points, we discretise the spatial domain and select paths composed of finitely many query points. The acquisition criterion is then set to be the linearised differential entropy of the query points that compose the path.
-	
-
+		% Informative path planning is a highly dynamical process in which the observations the vehicle decides to take can significantly impact the belief space of the vehicle and hence alter its action. As a result, Gaussian processes are often used for modeling the environment for which path planning is to be performed. The tractability of Gaussian processes regression allows sophisticated methods for informative path planning, such as  performing sequential Bayesian optimisation to achieve informative path planning over continuous domains \cite{Roman:SequentialBayesianOptimisation}. One desired property we would like to achieve with an informative path-planning problem is that the search is non-myopic. When the objective is to collect data on a particular spatial phenomenon, Gaussian process regression can be used as the model under which strong theoretical performance guarantees can be made \cite{Meliou:2007:NIP:1619645.1619742}. However, in the case where the objective is to collect data in the form of discrete labels, a Gaussian process classifier is used instead for modeling the phenomenon. As discussed earlier, the joint entropy from a Gaussian process classifier is not available in closed form. Instead, another measure of joint entropy was developed in the previous section which demonstrated desired properties for informative exploration. To take advantage of the tractability of linearised differential entropy over finite collections of query points, we discretise the spatial domain and select paths composed of finitely many query points. The acquisition criterion is then set to be the linearised differential entropy of the query points that compose the path.
 		
 		\subsection{Formulation and Structure}
 	
-			The receding horizon approach requires the selection of a horizon length and the number of control points (query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce paths that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. For an informative path-planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path.
+			The receding horizon approach requires the selection of a horizon length and the number of control points (path query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce paths that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. For an informative path-planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path.
 	
-	%		\begin{figure}[!htbp]
-	%		\centering
-	%			\includegraphics[width = \linewidth]{Figures/receding_horizon_informative_path_planning.png}
-	%		\caption{Basic Receding Horizon Structure}
-	%		\label{Figure:Results:RecedingHorizonMethodOutline}
-	%		\end{figure}
-		
 			\begin{figure}[!htbp]
 				\begin{center}
 				\smartdiagramset{planet font = \small, satellite font = \scriptsize, planet color = orange!60, planet size = 2cm, satellite size = 2 cm, distance planet-satellite = 3.5cm}
 				\smartdiagram[connected constellation diagram]
 				{Receding Horizon Path Planning, Learn GP model from collected data, Compute finite optimal path, Move to first control point, Record observation}
 				\end{center}
-%				\begin{center}
-%					\smartdiagramset{text width = 3cm}
-%					% \smartdiagramset{set color list = {orange!50, green!80, blue!50}}
-%					\smartdiagram[circular diagram:clockwise]{Learn GP model from collected data, Compute finite optimal path, Move to first control point \& record observation}
-%				\end{center}
 			\caption{Basic Receding Horizon Structure}
 			\label{Figure:Results:RecedingHorizonMethodOutline}
 			\end{figure}
 					
-			Figure \ref{Figure:Results:RecedingHorizonMethodOutline} describes the basic flow of the receding horizon approach approach, which resembles the technique of model predictive control (MPC) in control theory. That is, it computes an optimal policy of finite horizon in each time step, and only executes the first action from the policy. The acquisition function to be maximised in each step is flexible, and we compare LDE acquisition \eqref{Section:LinearisedEntropy:Equation:MulticlassLinearisedEntropy} against MCJIE acquisition and other acquisition functions under the receding horizon structure in the next section. In each time step, a new path of a certain horizon length is proposed, which is discretised into a finite set of control points. The vehicle only executes the policy towards the first control point while recording observations. It then relearns the GP classifier model with new observations, and repeats the process. 
+			Figure \ref{Figure:Results:RecedingHorizonMethodOutline} describes the basic flow of the receding horizon approach approach, shown in anti-clockwise order beginning from the top. This procedure resembles the technique of model predictive control (MPC) in control theory. That is, it computes an optimal policy of finite horizon in each time step, and only executes the first action from the policy. The acquisition function to be maximised in each step is flexible. In each time step, a new path of a certain horizon length is proposed, which is discretised into a finite set of control points. The vehicle only executes the policy towards the first control point while recording observations. It then relearns the GP classifier model with new observations, and repeats the process.
 	
-%			Provide a flow diagram?
-	
-%			Horizon Length
-%			
-			Step Spacing
+			In summary, the receding horizon structure requires the selection of three elements - the horizon length, the number of control points, and an acquisition function. Equivalently, given the horizon length, choosing the number of control points is the same as choosing the step spacing between each control point.
 				
 		\subsection{Implementation}
 
@@ -334,11 +316,11 @@
 			
 			Feature Space Transformations
 			
-		\subsection{Computational Aspects: Optimisation Process and Bottlenecks}
+		\subsection{Optimisation Process and Bottlenecks}
 		
 		Feasibility and Practicality of LMDE emphasized here
 		
-		\subsection{Computational Aspects: Model Update}
+		\subsection{Model Update}
 	
 %	\section{Results with Abundant Uniform Test Data Set}
 %	
