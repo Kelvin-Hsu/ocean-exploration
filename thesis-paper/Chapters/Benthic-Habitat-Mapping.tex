@@ -144,18 +144,21 @@
 			\def\arraystretch{2}%  1 is the default, change whatever you need
 			\begin{table}[h]
 				\begin{center}
-					\begin{tabular}{ |c|c| }
+					\begin{tabular}{ c c }
+						\hline
 						\hline
 						N & Aspect (Slope) Extraction [$x$-direction]\\
+						\hline
 						\hline
 						3 & $^{3}_{x}a_{i, j} := \frac{- z_{i - 1, j} + z_{i + 1, j}}{2h}$ \\
 						5 & $^{5}_{x}a_{i, j} := \frac{z_{i - 2, j} - 8 z_{i - 1, j} + 8 z_{i + 1, j} - z_{i + 2, j}}{12h}$ \\
 						7 & $^{7}_{x}a_{i, j} := \frac{-z_{i - 3, j} + 9 z_{i - 2, j} - 45 z_{i - 1, j} + 45 z_{i + 1, j} - 9 z_{i + 2, j} + z_{i + 3, j}}{60h}$ \\
 						9 & $^{9}_{x}a_{i, j} := \frac{3 z_{i - 4 j} - 32 z_{i - 3, j} + 168 z_{i - 2, j} - 672 z_{i - 1, j} + 672 z_{i + 1, j} - 168 z_{i + 2, j} + 32 z_{i + 3, j} - 3 z_{i + 4, j}}{840h}$ \\
 						\hline
+						\hline
 					\end{tabular}
 				\end{center}
-		  	\caption{Finite Difference Methods: Central Difference Coefficients}
+		  	\caption{Aspect feature extraction using finite (central) difference approximations}
 		  	\label{Table:AspectExtraction}			
 		  	\end{table}	
 	  		\egroup
