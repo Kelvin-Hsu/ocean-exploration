@@ -280,11 +280,65 @@
 			Figure \ref{Figure:mcpie_lmde_comparison_multiclass} shows a similar scenario with a multi-class scenario with 4 labels. The same behaviour as the binary case is observed, where the LMDE approach pushes down the entropy level of all regions except the predicted decision boundaries.
 
 			Furthermore, in the case of a feature space that does not contain the spatial coordinates for which path planning in based on, the MCPIE method may spent a lot of time in a single region where it is locally rich in span of a subspace of the feature space. However, this is suboptimal as this means it is giving up on trying to go for other regions that may have an even richer span of the feature space. The linearised model differential entropy method focuses its efforts (prioritises) the decision boundaries in the feature space at the expense of overlooking regions with less observations. This leads to smoother paths as it will look at all elements of the feature space. As long as one of the features is spatially correlated (depth in the benthic habitat mapping case), this will lead to smoother paths.
+	
+% 62500 QUERIES [MARGINALISED]
+	
+% BINARY 1: INFO:root:{'time_mcpie_high': 18.39458680280154, 'time_mcpie_med': 2.383764856014338, 'time_lmde': 0.009482532012810907, 'time_mcpie_low': 1.3273178461480555, 'time_pie': 0.0020675683150006563}
+
+% MULTICLASS 1: INFO:root:{'time_mcpie_low': 2.2666649940613013, 'time_pie': 0.0048935111084738026, 'time_mcpie_med': 14.068846717692534, 'time_lmde': 0.18608571000102003, 'time_mcpie_high': 161.86858168576953}
+
+% 30 QUERIES [MUTUAL]
+
+% BINARY 2: INFO:root:{'time_mcpie_high': 0.008627792656996647, 'time_mcpie_low': 0.0014215244923594383, 'time_lmde': 0.0005034922289421928, 'time_pie': 3.877403348617747e-05, 'time_mcpie_med': 0.0022112603214488047}
+
+% MULTICLASS 2: INFO:root:{'time_lmde': 0.00633157158570441, 'time_mcpie_med': 0.016457866595658288, 'time_mcpie_high': 0.7391853233440777, 'time_mcpie_low': 0.0015897353729243946, 'time_pie': 3.250176336422328e-05}
+
+% 300 QUERIES [MUTUAL]
+
+% BINARY 3: INFO:root:{'time_mcpie_high': 4.936638667632977, 'time_pie': 5.245898648098546e-05, 'time_lmde': 0.0069382711684848886, 'time_mcpie_med': 0.09106880053097655, 'time_mcpie_low': 0.008598141925508784}
+
+% MULTICLASS 3: INFO:root:{'time_mcpie_med': 0.12034433622561025, 'time_lmde': 0.388328217631809, 'time_mcpie_low': 0.02316748500784982, 'time_mcpie_high': 5.203110931939598, 'time_pie': 5.245898648098546e-05}
+
+% 1000 QUERIES [MUTUAL]
+
+% BINARY 4: INFO:root:{'time_mcpie_high': 17.58592924537178, 'time_pie': 9.636487733999388e-05, 'time_mcpie_low': 0.048404819156196766, 'time_lmde': 0.05436689701103603, 'time_mcpie_med': 0.2604223746700658}
+
+% MULTICLASS 4: INFO:root:{'time_mcpie_high': 18.22034028776035, 'time_lmde': 3.460213565095618, 'time_pie': 0.00012886664070421716, 'time_mcpie_med': 0.5077237304497615, 'time_mcpie_low': 0.1775907754293513}
+
+		\begin{table}[h]
+			\begin{center}
+				\begin{tabular}{ l c c c c }
+					\hline
+					\hline
+					Test Cases & MCPIE (low) & MCPIE (medium) & MCPIE (high) & LMDE \\
+					\hline
+					\hline
+					Binary 1 & 1.3273 & 2.3837 & 18.3945 & 0.0094 \\
+					Multiclass 1 & 2.2666 & 14.0688 & 161.8685 & 0.1860 \\
+					Binary 2 & 0.0014 & 0.0022 & 0.0086 & 0.0005 \\
+					Multiclass 2 & 0.0015 & 0.01645 & 0.7391 & 0.0063 \\
+					Binary 3 & 0.0085 & 0.0910 & 4.9366 & 0.0069 \\
+					Multiclass 3 & 0.0231 & 0.1203 & 5.2031 & 0.3883 \\
+					Binary 4 & 0.0484 & 0.2604 & 17.5859 & 0.0543 \\
+					Multiclass 4 & 0.1775 & 0.5077 & 18.2203 & 3.4602 \\
+					\hline
+					\hline
+				\end{tabular}
+			\end{center}
+	  	\caption{Average Time Complexity Performance in Seconds \\ Low, medium, and high refers to the number of samples used [25, 250, 2500] \\ Case 1: Computing marginalised entropy over 62500 queries \\ Cases [2, 3, 4]: Computing mutual entropy over [30, 300, 1000] queries}
+	  	\label{Table:TimeComplexity}			
+	  	\end{table}	
+	  	
+		Finally, in terms of time complexity, Table \ref{Table:TimeComplexity} shows experimental results for the computational time required for different cases. Specifically, case 1 refers to the computations that generated the LDME in Figures \ref{Figure:mcpie_lmde_comparison_binary} and \ref{Figure:mcpie_lmde_comparison_multiclass}, and the MCPIEs with various numbers of samples in Figures \ref{Figure:mcpie_accuracy_binary} and \ref{Figure:mcpie_accuracy_multiclass}. Since in case 1 only the marginalised entropies are computed, there exist analytical forms for the PIE. The corresponding computational time using the analytical form for the PIE are 0.0020 and 0.0048 seconds respectively, which are significantly faster than even the MCPIE with 25 samples. Nevertheless, the purpose for MCPIE is to compute the mutual entropies for cases 2, 3, and 4. Cases 2, 3, and 4 corresponds to computing the mutual entropy across 30, 300, and 1000 query points respectively, using the same binary and multiclass classification examples as case 1. Unlike case 1 where a mutual entropy is computed for each query point (hence forming the maps shown in the figures), the computations in cases 2, 3, and 4 result in a scalar mutual entropy measures that represents the mutual information of the query points altogether.
 		
+		In most cases, it is clear that the computational time required for LMDE is orders of magnitude smaller than MCPIE. However, as the number of query points increase for the case of mutual entropy computations, MCPIE may be faster for small numbers of samples. However, since the number of query points have increased, more samples are also needed to achieve the same accuracy. In this way, for the same level of accuracy required, LMDE is always orders of magnitude faster to compute than MCPIE.
+		
+		In later sections, a receding horizon formulation for informative path planning is discussed, where the 30 query points is chosen as a reasonable number of path control points. Hence, case 2 serves as a reference for the time complexity involved in each mutual entropy computation that arises.
+
 	\section{The Receding Horizon Formulation}
 	\label{InformativeSeafloorExploration:RecedingHorizonFormulation}
 	
-		The previous sections developed two measures of mutual information that can be used as the acquisition criterion for informative path planning. This section moves on to present a receding horizon approach to the informative path planning.
+		The previous sections developed two measures of mutual information that can be used as the acquisition criterion for informative path planning. This section moves on to present a receding horizon approach to informative path planning.
 		
 		The receding horizon approach is inspired by the philosophy of model predictive control (MPC) in control theory, where a continuous problem is discretised such that an optimal control problem is transcribed into a static optimisation problem at each time step. Similar to MPC, while receding horizon methods are almost always suboptimal, it provides a computationally tractable approach that is rather stable in performance. Furthermore, a receding horizon approach avoids a myopic and greedy approach to informative path planning. Myopic approaches often result in the vehicle fixating on a region with local maximum entropy due to its inability to sacrifice immediate rewards for future rewards in a faraway region. Lastly, a receding horizon approach is simple to implement and sufficient for most missions for which strict optimality is not necessary.
 		
@@ -301,32 +355,34 @@
 				{Receding Horizon Path Planning, Learn GP model from collected data, Compute finite optimal path, Move to first control point, Record observation}
 				\end{center}
 			\caption{Basic Receding Horizon Structure}
-			\label{Figure:Results:RecedingHorizonMethodOutline}
+			\label{Figure:RecedingHorizonMethodOutline}
 			\end{figure}
 					
-			Figure \ref{Figure:Results:RecedingHorizonMethodOutline} describes the basic flow of the receding horizon approach approach, shown in anti-clockwise order beginning from the top. This procedure resembles the technique of model predictive control (MPC) in control theory. That is, it computes an optimal policy of finite horizon in each time step, and only executes the first action from the policy. The acquisition function to be maximised in each step is flexible. In each time step, a new path of a certain horizon length is proposed, which is discretised into a finite set of control points. The vehicle only executes the policy towards the first control point while recording observations. It then relearns the GP classifier model with new observations, and repeats the process.
+			Figure \ref{Figure:RecedingHorizonMethodOutline} describes the basic flow of the receding horizon approach approach, shown in anti-clockwise order beginning from the top. This procedure resembles the technique of model predictive control (MPC) in control theory. That is, it computes an optimal policy of finite horizon in each time step, and only executes the first action from the policy. The acquisition function to be maximised in each step is flexible. In each time step, a new path of the chosen horizon length is proposed, which is discretised into a finite set of control points. The vehicle only executes the policy towards the first control point while recording observations. It then relearns the GP classifier model with new observations, and repeats the process.
 	
 			In summary, the receding horizon structure requires the selection of three elements - the horizon length, the number of control points, and an acquisition function. Equivalently, given the horizon length, choosing the number of control points is the same as choosing the step spacing between each control point.
 				
 		\subsection{Implementation}
 
+			While the basic structure presented above is straightforward, there are several formulation choices that would make the implementation simpler, as well as improve the time complexity of the algorithm. This section presents three such topics - path generation, turn angle limits, and feature space transformations.
+			
 			Path Generation \& Natural Coordinates
 			
 			Turn Angle Limits for Smooth Paths
 			
 			Feature Space Transformations
-			
+	
+		\subsection{Model Update}
+				
 		\subsection{Optimisation Process and Bottlenecks}
 		
-		Feasibility and Practicality of LMDE emphasized here
+			The bottleneck of the receding horizon approach is the optimisation process for the acquisition criterion. While the model update usually involves relearning the model for a large number of observations (usually at least a few hundred data points up to the thousands), since the model is relearning from a previous model, a new observation would not usually drastically change the optimal hyperparameters of the GP. As such, the initial hyperparameters which defines the initial model before an observation is usually within reasonable range of the optimal hyperparameters after an observation such that the relearning stage would not take too many iterations in its corresponding optimiser. On the other hand, entropy measures, including both non-mutual and mutual entropies, are usually highly non-convex functions of the query control points such that the optimisation will take a significant amount of iterations even under low numbers of control points (typically under a hundred).
+			
+			As such, it is important for the acquisition function itself to have favourable complexity properties. As discussed before, LMDE acquisition avoids Monte Carlo sampling techniques that is required in the MCPIE acquisition, thus taking significantly less time to compute.
+			
+			Feasibility and Practicality of LMDE emphasized here
 		
-		\subsection{Model Update}
-	
-%	\section{Results with Abundant Uniform Test Data Set}
-%	
-%	\section{Results with Scarce Uniform Test Data Set}
-%	
-%	\section{Results with Simulated Track Data}
+
 	
 	\section{Informative Exploration over Scott Reef Seafloor}
 	\label{InformativeSeafloorExploration:ScottReef}

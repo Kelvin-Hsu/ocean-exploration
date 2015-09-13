@@ -42,7 +42,7 @@ def main():
     MODEL_ONLY = sea.io.parse('-model-only', False)
     LONG_SCALE_ONLY = sea.io.parse('-long-scale', False)
 
-    METHOD = sea.io.parse('-method', 'LDE')
+    METHOD = sea.io.parse('-method', 'LMDE')
     GREEDY = sea.io.parse('-greedy', False)
     N_TRIALS = sea.io.parse('-ntrials', 200)
     START_POINT1 = sea.io.parse('-start', 375000.0, arg = 1)
@@ -198,7 +198,7 @@ def main():
     filename_query_points = 'query_points.npz'
     filename_truth = directory_data + 'truthmodel_t800_q100000_ts250_qs500.npz'
     filename_start = directory_data + 'finalmodel_t200_q100000_ts250_qs500'\
-        '_method_LDE_start377500_8440000_hsteps30_horizon5000.npz'
+        '_method_LMDE_start377500_8440000_hsteps30_horizon5000.npz'
 
     """Sample Training Data and Query Points"""
     if LONG_SCALE_ONLY:
@@ -497,7 +497,7 @@ def main():
         horizon /= h_steps
         h_steps /= h_steps 
 
-    if (METHOD == 'LDE') or (METHOD == 'MCJE'):
+    if (METHOD == 'LMDE') or (METHOD == 'MCPIE'):
         theta_bound = np.deg2rad(20)
         theta_bounds = np.linspace(theta_bound, np.deg2rad(60), num = h_steps) 
         theta_stack_low  = -theta_bounds
@@ -513,7 +513,7 @@ def main():
         ftol_rel = 1e-1
     ctol = 1e-10
 
-    if METHOD == 'MCJE':
+    if METHOD == 'MCPIE':
         xtol_rel = 1e-1
         ftol_rel = 1e-1        
 
@@ -563,7 +563,7 @@ def main():
     entropy_opt_array = np.nan * np.ones(n_trials)
     yq_esd_mean_array = np.nan * np.ones(n_trials)
 
-    if (METHOD == 'FIXED') or (METHOD == 'LDE') or (METHOD == 'MCJE'):
+    if (METHOD == 'FIXED') or (METHOD == 'LMDE') or (METHOD == 'MCPIE'):
         turns = np.zeros(n_trials)
         # turns[[49, 99, 149]] = np.deg2rad(-90.0)
 
@@ -574,7 +574,7 @@ def main():
 
     while i_trials < n_trials:
 
-        if (METHOD == 'FIXED') or (METHOD == 'LDE') or (METHOD == 'MCJE'):
+        if (METHOD == 'FIXED') or (METHOD == 'LMDE') or (METHOD == 'MCPIE'):
             theta_stack_init[0] += turns[i_trials]
             theta_stack_init[0] = np.mod(theta_stack_init[0], 2 * np.pi)
 

@@ -9,31 +9,31 @@ import time
 from scipy.spatial.distance import cdist
 
 def optimal_path(theta_stack_init, r, x, memory, feature_fn, white_params,
-    objective = 'LDE', turn_limit = np.deg2rad(30), bound = 100,
+    objective = 'LMDE', turn_limit = np.deg2rad(30), bound = 100,
     theta_stack_low = None, theta_stack_high = None,
     walltime = None, xtol_rel = 0, ftol_rel = 0, ctol = 1e-6, 
     globalopt = False, n_draws = 5000):
 
     # Select the approach objective
-    if objective in ['LE', 'LDE']:
+    if objective in ['LMDE', 'LE', 'LDE']:
 
         def objective(theta_stack, grad):
-            return path_linearised_entropy_model(theta_stack, r, x, 
+            return lmde_acquisition(theta_stack, r, x, 
                 memory, feature_fn, white_params)
 
-    elif objective in ['MCJE', 'MCJIE']:
+    elif objective in ['MCPIE', 'MCJE', 'MCJIE']:
 
         S = np.random.normal(loc = 0., scale = 1., 
             size = (theta_stack_init.shape[0], n_draws))
 
         def objective(theta_stack, grad):
-            return path_monte_carlo_entropy_model(theta_stack, r, x, 
+            return mcpie_acquisition(theta_stack, r, x, 
                 memory, feature_fn, white_params, n_draws = n_draws, S = S)
 
-    elif objective in ['IE', 'SIE', 'MIE', 'SMIE']:
+    elif objective in ['PIE', 'IE', 'SIE', 'MIE', 'SMIE']:
 
         def objective(theta_stack, grad):
-            return path_marginalised_entropy_model(theta_stack, r, x, 
+            return pie_acquisition(theta_stack, r, x, 
                 memory, feature_fn, white_params)
 
     # Define the path constraint
@@ -103,7 +103,7 @@ def random_path(theta_stack_init, r, x, memory, feature_fn, white_params,
     x_path = forward_path_model(theta_stack, r, x)
 
     # Compute path entropy
-    entropy = path_linearised_entropy_model(theta_stack, r, x, 
+    entropy = lmde_acquisition(theta_stack, r, x, 
                     memory, feature_fn, white_params)
 
     # Replace the optimal coordinates with the closest query locations
@@ -136,7 +136,7 @@ def fixed_path(theta_stack_init, r, x, memory, feature_fn, white_params,
     theta_stack = backward_path_model(x_path, x)
 
     # Compute path entropy
-    entropy = path_linearised_entropy_model(theta_stack, r, x, 
+    entropy = lmde_acquisition(theta_stack, r, x, 
                     memory, feature_fn, white_params)
 
     # Return path coordinates, path angles, and path entropy
@@ -171,7 +171,7 @@ def path_bounds_model(theta_stack, r, x, Xq_ref, bound):
     logging.debug('Contraint Violation: {0}'.format(c))
     return c
 
-def path_linearised_entropy_model(theta_stack, r, x, memory, feature_fn, white_params):
+def lmde_acquisition(theta_stack, r, x, memory, feature_fn, white_params):
 
     Xq = forward_path_model(theta_stack, r, x)
     Fqw = feature_fn(Xq, white_params)
@@ -182,7 +182,7 @@ def path_linearised_entropy_model(theta_stack, r, x, memory, feature_fn, white_p
     predictors = gp.classifier.query(memory, Fqw)
     yq_exp = gp.classifier.expectance(memory, predictors)
     yq_cov = gp.classifier.covariance(memory, predictors)
-    entropy = gp.classifier.linearised_entropy(yq_exp, yq_cov, memory)
+    entropy = gp.classifier.linearised_model_differential_entropy(yq_exp, yq_cov, memory)
 
     logging.debug('Linearised entropy computational time: %.8f' % 
         (time.clock() - start_time))
@@ -190,7 +190,7 @@ def path_linearised_entropy_model(theta_stack, r, x, memory, feature_fn, white_p
         np.rad2deg(theta_stack), entropy))
     return entropy
 
-def path_monte_carlo_entropy_model(theta_stack, r, x, memory, feature_fn, white_params,
+def mcpie_acquisition(theta_stack, r, x, memory, feature_fn, white_params,
     n_draws = 1000, S = None):
 
     Xq = forward_path_model(theta_stack, r, x)
@@ -202,7 +202,7 @@ def path_monte_carlo_entropy_model(theta_stack, r, x, memory, feature_fn, white_
     predictors = gp.classifier.query(memory, Fqw)
     yq_exp = gp.classifier.expectance(memory, predictors)
     yq_cov = gp.classifier.covariance(memory, predictors)
-    entropy = gp.classifier.monte_carlo_joint_entropy(yq_exp, yq_cov, memory, 
+    entropy = gp.classifier.monte_carlo_prediction_information_entropy(yq_exp, yq_cov, memory, 
         n_draws = n_draws, S = S)
 
     logging.debug('Monte carlo joint entropy computational time: %.8f' % 
@@ -211,7 +211,7 @@ def path_monte_carlo_entropy_model(theta_stack, r, x, memory, feature_fn, white_
         np.rad2deg(theta_stack), entropy))
     return entropy
 
-def path_marginalised_entropy_model(theta_stack, r, x, memory, feature_fn, white_params):
+def pie_acquisition(theta_stack, r, x, memory, feature_fn, white_params):
 
     Xq = forward_path_model(theta_stack, r, x)
     Fqw = feature_fn(Xq, white_params)

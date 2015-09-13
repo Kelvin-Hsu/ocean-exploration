@@ -104,7 +104,7 @@ def main():
             (0.9*(x1 + 1)**2 + x2**2/2) < 1.4) & \
             ((x1 + x2) < 1.5) | (x1 < -1.9) | (x1 > +1.9) | (x2 < -1.9) | (x2 > +1.9) | ((x1 + 0.75)**2 + (x2 - 1.5)**2 < 0.3**2)
     # db9 = lambda x1, x2: ((x1)**2 + (x2)**2 < 0.3**2) | ((x1)**2 + (x2)**2 > 0.5**2) |
-    decision_boundary  = db1b # [db5b, db1c, db4a] # db1b # [db5b, db1c, db4a] # [db5b, db1c, db4a, db8, db6, db7]
+    decision_boundary  = [db5b, db1c, db4a] # db1b # [db5b, db1c, db4a] # [db5b, db1c, db4a, db8, db6, db7]
 
     """
     Data Generation
@@ -341,9 +341,75 @@ def main():
                 'time_mcpie_high': time_mcpie_high}
     logging.info(timing)
 
-    """
-    Plot: Prediction Labels
-    """
+    # """
+    # THIS SECTION IS EXTRA FOR COLLECTING TIME COMPLEXITY DATA
+    # PLEASE COMMENT OUT UNDER NORMAL CIRCUMSTANCES
+    # """
+
+    # # Compute Linearised and True Entropy for plotting
+    # Xq = np.random.rand(1000, 2)
+    # Xqw = pre.whiten(Xq, whitenparams)
+    # logging.info('Plot: Caching Predictor...')
+    # predictor = gp.classifier.query(learned_classifier, Xqw)
+
+    # logging.info('Plot: Computing Expectance...')
+    # exp = gp.classifier.expectance(learned_classifier, predictor)
+
+    # logging.info('Plot: Computing Variance...')
+    # cov = gp.classifier.covariance(learned_classifier, predictor)
+
+    # logging.info('Plot: Computing Linearised Entropy...')
+    # start_time = time.clock()
+    # yq_lmde = gp.classifier.linearised_model_differential_entropy(
+    #     exp, cov, learned_classifier)
+    # time_lmde = time.clock() - start_time
+
+    # logging.info('Plot: Computing Equivalent Standard Deviation')
+    # eqsd = gp.classifier.equivalent_standard_deviation(yq_lmde)
+
+    # logging.info('Plot: Computing Prediction Probabilities...')
+    # yq_prob = gp.classifier.predict_from_latent(exp, cov, learned_classifier, 
+    #     fusemethod = fusemethod)
+
+    # logging.info('Plot: Computing True Entropy...')
+    # start_time = time.clock()
+    # yq_pie = gp.classifier.entropy(yq_prob)
+    # time_pie = time.clock() - start_time
+
+    # n_draws_low = 25
+    # n_draws_med = 250
+    # n_draws_high = 2500
+
+    # logging.info('Plot: Computing MCPIE with %d samples' % n_draws_low)
+    # start_time = time.clock()
+    # yq_mcpie_low = gp.classifier.monte_carlo_prediction_information_entropy(exp, cov, learned_classifier, n_draws = n_draws_low)
+    # time_mcpie_low = time.clock() - start_time
+
+    # logging.info('Plot: Computing MCPIE with %d samples' % n_draws_med)
+    # start_time = time.clock()
+    # yq_mcpie_med = gp.classifier.monte_carlo_prediction_information_entropy(exp, cov, learned_classifier, n_draws = n_draws_med)
+    # time_mcpie_med = time.clock() - start_time
+
+    # logging.info('Plot: Computing MCPIE with %d samples' % n_draws_high)
+    # start_time = time.clock()
+    # yq_mcpie_high = gp.classifier.monte_carlo_prediction_information_entropy(exp, cov, learned_classifier, n_draws = n_draws_high)
+    # time_mcpie_high = time.clock() - start_time
+
+    # logging.info('Plot: Computing Class Predicitons')
+    # yq_pred = gp.classifier.classify(yq_prob, y_unique)
+
+    # timing = {  'time_lmde': time_lmde,
+    #             'time_pie': time_pie,
+    #             'time_mcpie_low': time_mcpie_low,
+    #             'time_mcpie_med': time_mcpie_med,
+    #             'time_mcpie_high': time_mcpie_high}
+    # logging.info(timing)
+    # print(yq_mcpie_high, yq_lmde)
+    # return
+
+    # """
+    # Plot: Prediction Labels
+    # """
 
     # Query (Prediction Map)
     gp.classifier.utils.visualise_map(ax3, yq_pred, test_ranges, 
