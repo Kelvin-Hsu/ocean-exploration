@@ -1,22 +1,47 @@
 \chapter{Benthic Habitat Mapping}
 \lhead{Benthic Habitat Mapping}
 \label{BenthicHabitatMapping}
-			
+	
+	 With the general theory and framework of Gaussian process regression and classification provided in section \ref{Background:GaussianProcesses}, this chapter aims to extend such theory to the benthic habitat mapping context. In particular, specific classifier inference techniques are developed and built upon the existing Gaussian process classifier framework. This chapter focuses strictly on the inference techniques necessary for building a map of benthic habitats across a given region. The following chapter would then continue to build on such inference models for the purpose of informative seafloor exploration. 
+	 
+	 The outset of this chapter, section \ref{BenthicHabitatMapping:GaussianProcessClassifiers}, begins by motivating the use of Gaussian process classifiers for benthic habitat mapping. Most importantly, the inference information flow provided in figure \ref{Figure:InferenceFlow} serves as a visual roadmap of the inference stages to be explored in this thesis, and will thus be reference frequently.
+	 
+	 The benthic modeling process begins with extracting bathymetric features from given seafloor locations. Section \ref{BenthicHabitatMapping:BathymetricFeatures} discusses the process of bathymetric feature extraction which includes the modeling choices and assumptions involved. 
+	 
+	 (GP CHAPTERS DESCRIPTION)
+	 
+	 Finally, section \ref{BenthicHabitatMapping:ScottReef} demonstrates the techniques developed in this chapter through mapping the benthic habitats of the Scott Reef seafloor. 
+				
 	\section{GP Classifiers for Benthic Habitat Mapping}
 	\label{BenthicHabitatMapping:GaussianProcessClassifiers}
-	
+		
+		This thesis employs Gaussian process classifiers as the primary inference model for benthic habitat mapping. Figure \ref{Figure:InferenceFlow} visualises the information flow involved in a Gaussian process classifier, and describes the necessary inference stages involved for both habitat mapping and information inference, the latter of which allows informative exploration and is the focus of the next chapter.
+		
+		This chapter will focus on the learning and inference stages represented by all the {\color{Gray} gray} and {\color{ForestGreen} green} coloured arrows, while the next chapter will focus on the inference stages represented by all the {\color{OrangeRed} red}, {\color{YellowOrange} gold}, and {\color{Cerulean} blue} coloured arrows.
+		
+		\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = 0.8\linewidth]{Figures/inferenceflow.eps}
+		\caption{Inference Information Flow}
+		\label{Figure:InferenceFlow}
+		\end{figure}	
+
+		As the figure suggests, the mapping process is a supervised learning problem for which the habitat labels $\bvec{y}^{\star}$ at the query locations $P^{\star}$ is to be inferred from the query features $X^{\star}$ by learning a relationship between the habitat labels $\bvec{y}$ and the training features $X$ at the training locations $P$. Only the {\color{Gray} gray} and {\color{ForestGreen} green} coloured arrows in Figure \ref{Figure:InferenceFlow} are necessary for mapping to be achieved.
+		
+		As the discussion continues in the following two chapters, each part of the diagram will be expanded and addressed.
+		
 	\section{Bathymetric Features}
 	\label{BenthicHabitatMapping:BathymetricFeatures}
 	
-		This thesis project can be broken down into two main parts - benthic habitat mapping and informative path planning. Benthic habitat mapping itself includes bathymetric feature extraction, and habitat class inference. Thus, benthic habitat mapping refers to the two stage process of feature extraction and habitat class inference, with the latter being the main bottleneck for this process. This section will focus on the bathymetric feature extraction and modeling.
+		This thesis can be broken down into two main parts - benthic habitat mapping and informative path planning. Benthic habitat mapping itself includes bathymetric feature extraction, and habitat class inference. Thus, benthic habitat mapping refers to the two stage process of feature extraction and habitat class inference, with the latter being the main bottleneck for this process. This section will focus on the bathymetric feature extraction and modeling.
 			
 		In order for autonomous underwater vehicles to plan a path that can maximise the amount of information gained regarding a particular ocean region, it would need a method to predict the types of environments it may encounter, with a measure of its prediction uncertainty.
 		
 		While the path planner is to plan in the spatial space, in general the prediction model operates upon some feature space with more direct and explicit relationships with the output to be inferenced.
 		
-		It is thus important to make a distinction between the feature space $\mathcal{F}$ for which benthic habitat modeling is to occur and the spatial space $\mathcal{S}$ for which bathymetric modeling and planning is to occur. The spatial space usually consists of Cartesian coordinates $(x, y)$ in the eastings-northings frame or the longitude-latitude frame, so that $\mathcal{S} \subseteq \mathbb{R}^{2}$. The path is to be planned in this spatial space. The frame is usually converted into a local body frame during the execution of control signals for path tracking. However, this does not affect the formulation presented here. The feature space includes bathymetric features for which the habitat labels will be modeled upon. Depending on the features employed for the modeling process, there are usually approximate analytical forms for extracting such features from raw depth observations.
+		It is thus important to make a distinction between the feature space $\mathcal{X}$ for which benthic habitat modeling is to occur and the spatial space $\mathcal{P}$ for which bathymetric modeling and planning is to occur. The spatial space usually consists of Cartesian coordinates $(x, y)$ in the eastings-northings frame or the longitude-latitude frame, so that $\mathcal{P} \subseteq \mathbb{R}^{2}$. The path is to be planned in this spatial space. The frame is usually converted into a local body frame during the execution of control signals for path tracking. However, this does not affect the formulation presented here. The feature space includes bathymetric features for which the habitat labels will be modeled upon. Depending on the features employed for the modeling process, there are usually approximate analytical forms for extracting such features from raw depth observations.
 		
-		The following bathymetric features shown in \cref{Table:BathymetricFeatures} were selected for habitat mapping. The benthic habitats would be modelled upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale). Spatial coordinates are chosen to be excluded from the bathymetric feature set. For benthic habitat mapping, it is expected that ecological habitats and geological sites exhibit no explicit relationship with the location of the site, and that its properties arise solely due to the local terrain structure and seafloor characteristics  of that site. This means that the nature of the habitat depends on the location implicitly through explicit dependence on bathymetric structure of the seafloor. These five bathymetric features summarises the local terrain structure at every location of the seafloor, and forms our feature space $\mathcal{F} \subseteq \mathbb{R}^{5}$.
+		The following bathymetric features shown in \cref{Table:BathymetricFeatures} were selected for habitat mapping. The benthic habitats would be modelled upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale). Spatial coordinates are chosen to be excluded from the bathymetric feature set. For benthic habitat mapping, it is expected that ecological habitats and geological sites exhibit no explicit relationship with the location of the site, and that its properties arise solely due to the local terrain structure and seafloor characteristics  of that site. This means that the nature of the habitat depends on the location implicitly through explicit dependence on bathymetric structure of the seafloor. These five bathymetric features summarises the local terrain structure at every location of the seafloor, and forms our feature space $\mathcal{X} \subseteq \mathbb{R}^{\tilde{n} \times 5}$, where $\tilde{n}$ is the number of feature points considered.
 		
 		\begin{table}[h]
 			\begin{center}
@@ -45,7 +70,7 @@
 		
 		\FloatBarrier			
 		
-		Figure \ref{Figure:BenthicHabitatMappingProcess} show a high level overview of the benthic habitat mapping process. As bathymetric data is available in more quantities and distributed more uniformly, it is often sufficient to employ the feature extraction process outlined in \cref{Background:OceanEnvironmentModeling:FeatureExtraction} to obtain the bathymetric features for modeling. However, if the bathymetric data is sufficiently sparse or is not distributed uniformly for grid based methods, then the feature extraction process itself becomes a prediction problem.
+		Figure \ref{Figure:BenthicHabitatMappingProcess} show a high level overview of the benthic habitat mapping process. As bathymetric data is available in more quantities and distributed more uniformly, it is often sufficient to employ the feature extraction process outlined in \cref{BenthicHabitatMapping:BathymetricFeatures:FeatureExtraction} to obtain the bathymetric features for modeling. However, if the bathymetric data is sufficiently sparse or is not distributed uniformly for grid based methods, then the feature extraction process itself becomes a prediction problem.
 
 %		\begin{figure}[!htbp]
 %			\centering
@@ -66,28 +91,28 @@
 	
 		\begin{figure}[!ht]
 		\centering\makebox[\textwidth]{
-		\begin{tikzpicture}[node distance =4cm, auto,
-		comment/.style={
-		rectangle, 
-		inner sep= 5pt, 
-		text width=4cm, }]
-		
-		\node [block] (spatialspace) {Seafloor Spatial Space $\mathcal{S}$};
-		\node [block, right of = spatialspace] (featurespace) {Bathymetric Feature Space $\mathcal{F}$};
-		\node [block, right of = featurespace] (mapspace) {Habitat Map Space $\mathcal{M}$};
-				
-		\draw [line] (spatialspace) -- (featurespace);
-		\draw [line] (featurespace) -- (mapspace);
-		
-		\draw [decorate ,decoration = {brace, amplitude = 10pt, raise = 3mm}]
-		(spatialspace.85) -- (featurespace.95) node [black, midway, yshift = 10mm]
-		{Bathymetric Feature Extraction};
-		
-		\draw [decorate, decoration = {brace, amplitude = 10pt, raise = 3mm}, xshift = 0pt, yshift = 0pt]
-		(featurespace.85) -- (mapspace.95) node [black, midway, yshift = 6mm] 
-		{Habitat Class Inference};
+			\begin{tikzpicture}[node distance =4cm, auto,
+			comment/.style={
+			rectangle, 
+			inner sep= 5pt, 
+			text width=4cm, }]
+			
+			\node [block] (spatialspace) {Seafloor Spatial Space $\mathcal{S}$};
+			\node [block, right of = spatialspace] (featurespace) {Bathymetric Feature Space $\mathcal{F}$};
+			\node [block, right of = featurespace] (mapspace) {Habitat Map Space $\mathcal{M}$};
 					
-		\end{tikzpicture}}		
+			\draw [line] (spatialspace) -- (featurespace);
+			\draw [line] (featurespace) -- (mapspace);
+			
+			\draw [decorate ,decoration = {brace, amplitude = 10pt, raise = 3mm}]
+			(spatialspace.85) -- (featurespace.95) node [black, midway, yshift = 10mm]
+			{Bathymetric Feature Extraction};
+			
+			\draw [decorate, decoration = {brace, amplitude = 10pt, raise = 3mm}, xshift = 0pt, yshift = 0pt]
+			(featurespace.85) -- (mapspace.95) node [black, midway, yshift = 6mm] 
+			{Habitat Class Inference};
+						
+			\end{tikzpicture}}		
 		\caption{Benthic Habitat Mapping Process}
 		\label{Figure:BenthicHabitatMappingProcess}
 		\end{figure}	
@@ -117,13 +142,13 @@
 			
 			Therefore, in order for the GP classifier to learn the relationship between the bathymetric features and habitat labels, the bathymetric data and label data must have a one-to-one correspondence. In other words, they must exist at the same locations. 
 			
-			Formally, let $S_{b}, S_{h} \in \mathcal{S}$ be the spatial locations at which bathymetric data and habitat label data have been observed. Let $F_{b} \in \mathcal{F}$ be the bathymetric features observed at $S_{b}$ and $M_{h} \in \mathcal{M}$ be the habitat labels observed at $S_{h}$. The data matching problem is to obtain or infer $F_{h} \in \mathcal{F}$, the bathymetric features at locations $S_{h}$, from $F_{b}$.
+			Formally, let $P_{b}, P_{h} \in \mathcal{P}$ be the spatial positions at which bathymetric data and habitat label data have been observed. Let $X_{b} \in \mathcal{X}$ be the bathymetric features observed at $P_{b}$ and $\bvec{y}_{h} \in \mathcal{Y}$ be the habitat labels observed at $P_{h}$. The data matching problem is to obtain or infer $X_{h} \in \mathcal{X}$, the bathymetric features at locations $P_{h}$, from $X_{b}$.
 			
-			This is a standard supervised learning problem. Specifically, the aim is to learn an inference model $\zeta: S_{h} \mapsto F_{h}$ from the empirical relationship $S_{b} \mapsto F_{b}$.
+			This is a standard supervised learning problem. Specifically, the aim is to learn an inference model $\zeta: P_{h} \mapsto X_{h}$ from the empirical relationship $P_{b} \mapsto X_{b}$.
 			
 			While it is possible to employ a separate GP regressor to perform the above inference, this adds unnecessary computational complexity. Since GPs are $O(n^{3})$ algorithms, using a layered GP approach where both stages of the benthic habitat mapping process employs GPs will increase the inference bottleneck.
 			
-			Instead, as there exists an abundance of bathymetric data, without much loss of accuracy it suffices to employ a nearest neighbour interpolation to obtain $F_{h}$. 
+			Instead, as there exists an abundance of bathymetric data, without much loss of accuracy it suffices to employ a nearest neighbour interpolation to obtain $X_{h}$. 
 			
 %			Therefore, in order to predict label data, the training data would need to be matched accurately. There are two straight forward choices at hand. The first is to estimate the bathymetric features at places where label data exists. However, at places near past mission paths, bathymetric data appears much more sparsely than label data, so that the feature extraction or regression prediction will yield very similar features across manly label data points. This reduces prediction power through a slow varying and limited feature group.
 %			
@@ -170,9 +195,9 @@
 	  						  					
 			Central differencing is chosen as it is more numerically accurate. The disadvantages of instability and slightly higher time complexity from dynamic cases are not present in the static feature extraction process. Nevertheless, forward differencing is to be used at the boundaries of the dataset where neighboring data is missing on one side.
 						
-			With two axis, the result is a 2 element gradient vector. It is possible to treat the 2 elements as separate features. However, this would make the modeling problem frame dependent unnecessarily. Therefore, the magnitude of this gradient vector is taken as the aspect feature \eqref{Equation:AspectExtraction}. 
+			With two axis, the result is a 2 element gradient vector. It is possible to treat the 2 elements as separate features. However, this would make the modeling problem frame dependent which would unnecessarily complicate the modeling process. Therefore, the magnitude of this gradient is taken as the aspect feature \eqref{Equation:AspectExtraction}. 
 			
-			Rugosity is a measure of local height variations in the terrain. By definition, its form is computed as $r = A_{r}/A_{g}$, the real surface area divided by the geometric surface area. Under bathymetry measurements that are geo-referenced through stereo imagery, rugosity can be calculated through a Delaunay triangulated surface mesh and projecting areas onto the plane of best fit using Principal Component Analysis (PCA) \citep{Friedman:Rugosity}.
+			Rugosity is a measure of local height variations in the terrain. By definition, it is computed with $r = A_{r}/A_{g}$, the real surface area divided by the geometric surface area. Under bathymetry measurements that are geo-referenced through stereo imagery, rugosity can be calculated through a Delaunay triangulated surface mesh and projecting areas onto the plane of best fit using Principal Component Analysis (PCA) \citep{Friedman:Rugosity}.
 							
 			\FloatBarrier
 				
@@ -219,6 +244,7 @@
 		\subsection{Exclusion}
 			
 	\section{Mapping Scott Reef Benthic Habitats}
+	\label{BenthicHabitatMapping:ScottReef}
 	
 		\subsection{Problems and Solutions to Big Data Analysis}
 		
