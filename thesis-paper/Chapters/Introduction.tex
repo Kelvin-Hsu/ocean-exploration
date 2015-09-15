@@ -16,11 +16,11 @@
 		
 		This thesis addresses the informative path planning problem for benthic habitat mapping. There are two main aspects to informative seafloor exploration for which this thesis is concerned with. The first part of this thesis is focused on benthic habitat mapping, where techniques of habitat classification and inference are discussed. The basic theory under which information and uncertainty are measured and quantified are developed and formulated in the general framework, which is then applied for benthic habitat mapping. The second part of this thesis then proceed to investigate the informative seafloor exploration problem. Using the properties of inference models developed for benthic habitat mapping, a range of path planning policies are discussed and compared. Practical considerations of computational tractability and flexibility then leads to methods the compromises between optimality and feasibility. Finally, this thesis proposes a practical framework for AUVs to autonomously plan informative paths that achieves the highest mapping rate under a classification accuracy criterion.
 		
-%	We propose linearised differential entropy (LDE) of Gaussian process classifiers (GPC) as the acquisition objective. We demonstrate through derivation that the LDE approximates an appropriate form of mutual information through taking advantage of the structure of GP classifiers and their likelihood responses.
+%	We propose linearised model differential entropy (LMDE) of Gaussian process classifiers (GPC) as the acquisition objective. We demonstrate through derivation that the LMDE approximates an appropriate form of mutual information through taking advantage of the structure of GP classifiers and their likelihood responses.
 %	
-%	Finally, we evaluate the receding horizon approach under various acquisition criterion with collected datasets from Scott Reef \citep{IMOS}. We demonstrate the advantages of such an approach over simpler methods such as greedy and open loop methods, as well as computationally expensive methods such as acquisition over of joint information entropy estimated from Monte Carlo sampling.  Under a receding horizon formulation, we demonstrate that LDE acquisition achieves highest rate of information acquisition with respect to the misclassification criterion.
+%	Finally, we evaluate the receding horizon approach under various acquisition criterion with collected datasets from Scott Reef \citep{IMOS}. We demonstrate the advantages of such an approach over simpler methods such as greedy and open loop methods, as well as computationally expensive methods such as acquisition over of joint information entropy estimated from Monte Carlo sampling.  Under a receding horizon formulation, we demonstrate that LMDE acquisition achieves highest rate of information acquisition with respect to the misclassification criterion.
 %	
-%	The remainder of this paper is structured as follows. Section \ref{Section:RelatedWork} introduces related work in informative seafloor exploration. Section \ref{Section:LinearisedEntropy} introduces and derives the linearised differential entropy (LDE) of Gaussian process classifiers (GPC). Section \ref{Section:RecedingHorizonFormulation} motivates the general receding horizon approach in its basic form. Section \ref{Section:ExperimentalResults} demonstrates the receding horizon approach under LDE acquisition with experimental results on the Scott Reef dataset. Finally, section \ref{Section:Conclusion} provides concluding remarks.
+%	The remainder of this paper is structured as follows. Section \ref{Section:RelatedWork} introduces related work in informative seafloor exploration. Section \ref{Section:LinearisedEntropy} introduces and derives the linearised model differential entropy (LMDE) of Gaussian process classifiers (GPC). Section \ref{Section:RecedingHorizonFormulation} motivates the general receding horizon approach in its basic form. Section \ref{Section:ExperimentalResults} demonstrates the receding horizon approach under LMDE acquisition with experimental results on the Scott Reef dataset. Finally, section \ref{Section:Conclusion} provides concluding remarks.
 %	
 %		This thesis investigates machine learning methods for autonomous underwater vehicles to intelligently and actively plan an underwater path for data collection. The problem is complicated by the presence of dynamic uncertainties that is highly dependent on the vehicle's planning actions. A dynamic planning method is proposed to maximises information, or entropy, gained in a given underwater region, while constrained by cost and time.
 %	
@@ -63,56 +63,42 @@
 			
 			% While \textit{one versus all} (OVA) and \textit{all versus all} (AVA) multiclass classifiers have been employed in many parametric and non-Bayesian classifiers, this thesis proposes an OVA and AVA framework for non-parametric, Bayesian GP classifiers. In this framework, both the learning/training and prediction/inference stage are parallelisable. Furthermore, it avoids the computational complexity from Monte Carlo sampling that is commonly required in the inference stage.
 			
-			\item An alternative, analytically tractable entropy measure hereby named \textit{linearised differential entropy} (LDE). The linearised differential entropy of GP classifiers captures mutual information and uncertainty of a given region of interest. Specifically, instead of examining uncertainty with mainly prediction variance, linearised differential entropy also takes into account the prediction bias. Through addressing the bias-variance trade-off, a common challenge in machine learning algorithms, linearised differential entropy provides an alternative way to quantify uncertainty and information. Analytical tractability is then achieved through linearisation approximations. Linearised differential entropy is proposed as an acquisition function for informative path planning, hereby referred to as \textit{LDE acquisition}.
+			\item An alternative, analytically tractable entropy measure hereby named \textit{linearised model differential entropy} (LMDE). The linearised model differential entropy of GP classifiers captures mutual information and uncertainty of a given region of interest. Specifically, instead of examining uncertainty with mainly prediction variance, linearised model differential entropy also takes into account the prediction bias. Through addressing the bias-variance trade-off, a common challenge in machine learning algorithms, linearised model differential entropy provides an alternative way to quantify uncertainty and information. Analytical tractability is then achieved through linearisation approximations. Linearised model differential entropy is proposed as an acquisition function for informative path planning, hereby referred to as \textit{LMDE acquisition}.
 			
-			\item A receding horizon framework to informative path planning. This aims to provide a framework that is computationally efficient yet produce informative paths that are stable and near optimal. Together with LDE acquisition, the suitability of the receding horizon approach is demonstrated on the Scott Reef data set from \cite{IMOS}. This provides a computationally efficient approach to path planning that is able to run on an AUV in an online manner with suitable hardware. This thesis demonstrates that under a receding horizon framework, acquisition under linearised differential entropy achieves a faster mapping rate than traditional Monte Carlo approaches, and does so with less computational time. 
+			\item A receding horizon framework to informative path planning. This aims to provide a framework that is computationally efficient yet produce informative paths that are stable and near optimal. Together with LMDE acquisition, the suitability of the receding horizon approach is demonstrated on the Scott Reef data set from \cite{IMOS}. This provides a computationally efficient approach to path planning that is able to run on an AUV in an online manner with suitable hardware. This thesis demonstrates that under a receding horizon framework, acquisition under linearised model differential entropy achieves a faster mapping rate than traditional Monte Carlo approaches, and does so with less computational time. 
 			
 		\end{itemize}
 		
-	\newpage
-	\section{Nomenclature}
-	
-		As a rapidly growing community, machine learning literature often contains multiple naming conventions and acronyms for similar concepts. Furthermore, in this thesis, new nomenclatures are introduced for concise reference of the concepts developed for the work presented. This sections summarises the major naming conventions employed in this thesis, as well as the nomenclature  unique to and introduced by this work.
-		
-		\subsection{Naming Conventions}
-		
-			Predictive Information Entropy
-			
-			Marginalised Predictive Information Entropy
-			
-			Monte Carlo estimated Joint Predictive Information Entropy
-			
-		\subsection{New Nomenclature}
-		
-			Model Differential Entropy/Probabilistic Differential Entropy
-			
-			Linearised Model Differential Entropy/Linearised Probabilistic Differential Entropy
+%	\newpage
+%	\section{Nomenclature}
+%	
+%		As a rapidly growing community, machine learning literature often contains multiple naming conventions and acronyms for similar concepts. Furthermore, in this thesis, new nomenclatures are introduced for concise reference of the concepts developed for the work presented. This sections summarises the major naming conventions employed in this thesis, as well as the nomenclature  unique to and introduced by this work.
+%		
+%		\subsection{Naming Conventions}
+%		
+%			Predictive Information Entropy
+%			
+%			Marginalised Predictive Information Entropy
+%			
+%			Monte Carlo estimated Joint Predictive Information Entropy
+%			
+%		\subsection{New Nomenclature}
+%		
+%			Model Differential Entropy/Probabilistic Differential Entropy
+%			
+%			Linearised Model Differential Entropy/Linearised Probabilistic Differential Entropy
 			
 	\newpage
 	\section{Structure}
 	
 		The structure of this thesis is outlined as below.
 		
-%		Section \ref{Section:RelatedWork} introduces related work in informative seafloor exploration. Section \ref{Section:LinearisedEntropy} introduces and derives the linearised differential entropy (LDE) of Gaussian process classifiers (GPC). Section \ref{Section:RecedingHorizonFormulation} motivates the general receding horizon approach in its basic form. Section \ref{Section:ExperimentalResults} demonstrates the receding horizon approach under LDE acquisition with experimental results on the Scott Reef dataset. Finally, section \ref{Section:Conclusion} provides concluding remarks.
+%		Section \ref{Section:RelatedWork} introduces related work in informative seafloor exploration. Section \ref{Section:LinearisedEntropy} introduces and derives the linearised model differential entropy (LMDE) of Gaussian process classifiers (GPC). Section \ref{Section:RecedingHorizonFormulation} motivates the general receding horizon approach in its basic form. Section \ref{Section:ExperimentalResults} demonstrates the receding horizon approach under LMDE acquisition with experimental results on the Scott Reef dataset. Finally, section \ref{Section:Conclusion} provides concluding remarks.
 		
 		Chapter \ref{Background} provides the necessary background and theory for the purpose of understanding this thesis. Related work in informative seafloor exploration are presented, as well as the various approaches that has been undertaken in this area. Most importantly, this chapter introduces and summarises the Gaussian process framework for both regression and classification. Basic concepts involved in active sampling and informative path planning are then discussed. 
 		
-		Chapter \ref{Benthic-Habitat-Mapping} details how the benthic habitat environment are modeled upon bathymetric features using Gaussian process classifiers. A general OVA and AVA framework for multiclass GP classification is developed, which is then applied to test and real datasets to verify performance. The highlight of this chapter is the introduction and derivation of the linearised differential entropy (LDE) for both binary and multiclass GP classifiers. Comparisons with the usual prediction information entropy is presented to demonstrate their differences and respective advantages and disadvantages. This motivates the use of linearised differential entropy as a suitable acquisition function for informative path planning.
+		Chapter \ref{BenthicHabitatMapping} details how the benthic habitat environment are modeled upon bathymetric features using Gaussian process classifiers. A general OVA and AVA framework for multiclass GP classification is developed, which is then applied to test and real datasets to verify performance. The highlight of this chapter is the introduction and derivation of the linearised model differential entropy (LMDE) for both binary and multiclass GP classifiers. Comparisons with the usual prediction information entropy is presented to demonstrate their differences and respective advantages and disadvantages. This motivates the use of linearised model differential entropy as a suitable acquisition function for informative path planning.
 		
-		Chapter \ref{Informative-Seafloor-Exploration} formulates the receding horizon approach to informative path planning, and demonstrate the application of LDE acquisition under this formulation. Description of the simulation experiment are provided, and properties of the approach observed from corresponding results are discussed and analysed. The performance of the proposed exploration policy are then assessed with a classification accuracy criterion.
+		Chapter \ref{InformativeSeafloorExploration} formulates the receding horizon approach to informative path planning, and demonstrate the application of LMDE acquisition under this formulation. Description of the simulation experiment are provided, and properties of the approach observed from corresponding results are discussed and analysed. The performance of the proposed exploration policy are then assessed with a classification accuracy criterion.
 		
 		Finally, chapter \ref{Conclusion} summarises the work presented in this thesis, the contributions made, and potentials for future improvements.
-		
-%		This thesis will rely heavily on the ocean environment modeling formulation presented in \cref{Background:OceanEnvironmentModeling}. The proposed methodology for environment modeling involves the use of Gaussian process models, whose background material is singled out in \cref{Background:GaussianProcesses} for further detailed coverage. Background knowledge for the path planning aspect of this thesis is then summarised in \cref{Background:PathPlanning}.
-%				
-%		Chapter {\color{BurntOrange} 3} \footnote{ {\color{BurntOrange} The following chapters are the contents currently proposed to be included in the final thesis, and is therefore subjected to change. The chapter 3 discussed here is not the same as the progress report currently included in \cref{ProgressReport}, although the material in the progress report ultimately be expanded and included in these later chapters.} } presents the implemented method for environment modeling using Gaussian processes. Simulations results and and tests are discussed to assess the performance of these models on bathymetric modeling and environment label prediction. Regression models and classification models are discussed in section {\color{BurntOrange} 3.2} and {\color{BurntOrange} 3.3} respectively.
-%		
-%		Chapter {\color{BurntOrange} 4} demonstrates the path planning process with partially observable Markov decision processes (POMDPs) in conjunction with the Gaussian process models. Important comparisons with simplified methods combining probabilistic road maps (PRM) and $A^{\star}$ search algorithm will motivate the use of Markov decision processes in section {\color{BurntOrange} 4.2}. The background material from \cref{Background:PathPlanning} will be expanded in section {\color{BurntOrange} 4.3} through a detailed discussion of Markov decision processes in the ocean exploration setting. Observability limitations would then invoke the POMDP formulation whose implementation will also be carefully outlined in section {\color{BurntOrange} 4.4}.
-%		
-%		Chapter {\color{BurntOrange} 5} focuses on the implementation of the above algorithms onto test hardware \footnote{ {\color{BurntOrange} This will depend strongly on the final scope of the thesis.} }. Comparisons of experimental results to simulation results are shown in section {\color{BurntOrange} 5.2}. A simplified and computationally cheaper alternative to the proposed methodology in Chapter {\color{BurntOrange} 4} is outlined in section {\color{BurntOrange} 5.3}. Final results and pseudocode are shown in section {\color{BurntOrange} 5.4}.
-%		
-%		Chapter {\color{BurntOrange} 6} summarises the work presented in this thesis, the contributions made, and potentials for future improvements.
-%		
-%		Finally, the appendices support the thesis with useful information that is not immediately relevant to the main work presented.
-		
-		

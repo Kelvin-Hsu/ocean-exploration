@@ -33,15 +33,15 @@
 	\section{Bathymetric Features}
 	\label{BenthicHabitatMapping:BathymetricFeatures}
 	
-		This thesis can be broken down into two main parts - benthic habitat mapping and informative path planning. Benthic habitat mapping itself includes bathymetric feature extraction, and habitat class inference. Thus, benthic habitat mapping refers to the two stage process of feature extraction and habitat class inference, with the latter being the main bottleneck for this process. This section will focus on the bathymetric feature extraction and modeling.
+		This thesis can be broken down into two main parts - benthic habitat mapping and informative path planning. Benthic habitat mapping itself includes bathymetric feature extraction, and habitat class inference. Thus, benthic habitat mapping refers to the two stage process of feature extraction and habitat class inference, with the latter being the main bottleneck for this process. This section will focus on bathymetric feature extraction and modeling.
 			
-		In order for autonomous underwater vehicles to plan a path that can maximise the amount of information gained regarding a particular ocean region, it would need a method to predict the types of environments it may encounter, with a measure of its prediction uncertainty.
+		In order for autonomous underwater vehicles to infer a map of the benthic habitats, and later plan a path to increase mapping accuracy, it would need a method to predict the types of environments it may encounter, with a measure of its prediction uncertainty.
 		
 		While the path planner is to plan in the spatial space, in general the prediction model operates upon some feature space with more direct and explicit relationships with the output to be inferenced.
 		
-		It is thus important to make a distinction between the feature space $\mathcal{X}$ for which benthic habitat modeling is to occur and the spatial space $\mathcal{P}$ for which bathymetric modeling and planning is to occur. The spatial space usually consists of Cartesian coordinates $(x, y)$ in the eastings-northings frame or the longitude-latitude frame, so that $\mathcal{P} \subseteq \mathbb{R}^{2}$. The path is to be planned in this spatial space. The frame is usually converted into a local body frame during the execution of control signals for path tracking. However, this does not affect the formulation presented here. The feature space includes bathymetric features for which the habitat labels will be modeled upon. Depending on the features employed for the modeling process, there are usually approximate analytical forms for extracting such features from raw depth observations.
+		It is thus important to make a distinction between the feature space $\mathcal{X}$ for which benthic habitat modeling is to occur and the spatial space $\mathcal{P}$ for which bathymetric modeling and planning is to occur. The spatial space usually consists of Cartesian coordinates $(x, y)$ in the eastings-northings frame or the longitude-latitude frame, so that $\mathcal{P} \subseteq \mathbb{R}^{2}$. The path is to be planned in this spatial space. The frame is usually converted into a local body frame during the execution of control signals for path tracking. However, this does not affect the formulation presented here. The feature space $\mathcal{X} \subseteq \mathbb{R}^{d_{f}}$, where $d_{f}$ is the number of features (feature dimensions), includes bathymetric features for which the habitat labels will be modeled upon. Depending on the features employed for the modeling process, there are usually approximate analytical forms for extracting such features from raw depth observations.
 		
-		The following bathymetric features shown in \cref{Table:BathymetricFeatures} were selected for habitat mapping. The benthic habitats would be modelled upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale). Spatial coordinates are chosen to be excluded from the bathymetric feature set. For benthic habitat mapping, it is expected that ecological habitats and geological sites exhibit no explicit relationship with the location of the site, and that its properties arise solely due to the local terrain structure and seafloor characteristics  of that site. This means that the nature of the habitat depends on the location implicitly through explicit dependence on bathymetric structure of the seafloor. These five bathymetric features summarises the local terrain structure at every location of the seafloor, and forms our feature space $\mathcal{X} \subseteq \mathbb{R}^{\tilde{n} \times 5}$, where $\tilde{n}$ is the number of feature points considered.
+		The following bathymetric features shown in \cref{Table:BathymetricFeatures} were selected for habitat mapping. The benthic habitats would be modelled upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale). Spatial coordinates are chosen to be excluded from the bathymetric feature set. For benthic habitat mapping, it is expected that ecological habitats and geological sites exhibit no explicit relationship with the location of the site, and that its properties arise solely due to the local terrain structure and seafloor characteristics  of that site. This means that the nature of the habitat depends on the location implicitly through explicit dependence on bathymetric structure of the seafloor. These five bathymetric features summarises the local terrain structure at every location of the seafloor, and forms our feature space $\mathcal{X} \subseteq \mathbb{R}^{5}$ with $d_{f} = 5$.
 		
 		\begin{table}[h]
 			\begin{center}
@@ -68,22 +68,6 @@
 		
 		The raw bathymetric data contains depth information at various spatial locations. Such data are often collected rather uniformly in approximate grid formations such that it is possible to calculate the ocean floor slope through finite differencing. The aspect, or slope, is divided into small scale and large scale variations, as marine environments - especially underwater habitats - often depend not only on the immediate slope but also slope variations on the larger scale. The same idea applies to rugosity to measure local height variations at two different scales.
 		
-		\FloatBarrier			
-		
-		Figure \ref{Figure:BenthicHabitatMappingProcess} show a high level overview of the benthic habitat mapping process. As bathymetric data is available in more quantities and distributed more uniformly, it is often sufficient to employ the feature extraction process outlined in \cref{BenthicHabitatMapping:BathymetricFeatures:FeatureExtraction} to obtain the bathymetric features for modeling. However, if the bathymetric data is sufficiently sparse or is not distributed uniformly for grid based methods, then the feature extraction process itself becomes a prediction problem.
-
-%		\begin{figure}[!htbp]
-%			\centering
-%				\includegraphics[width=\textwidth]{Figures/modelingprocess.png}
-%			\caption{Environment Modeling}
-%			\label{Background:OceanEnvironmentModeling:Figure:modelingprocess}
-%		\end{figure}
-				
-%		\begin{center}
-%		\smartdiagramset{border color = none, back arrow disabled = true, text width = 2cm}
-%		\smartdiagram[flow diagram:horizontal]{Spatial Space $\mathcal{S}$, Feature Space $\mathcal{F}$, Habitat Inference}
-%		\end{center}
-
 		% Define block styles
 		\tikzstyle{block} = [rectangle, draw, fill=blue!30,
 		    text width=7.5em, text centered, rounded corners, minimum height=4em]
@@ -97,9 +81,9 @@
 			inner sep= 5pt, 
 			text width=4cm, }]
 			
-			\node [block] (spatialspace) {Seafloor Spatial Space $\mathcal{S}$};
-			\node [block, right of = spatialspace] (featurespace) {Bathymetric Feature Space $\mathcal{F}$};
-			\node [block, right of = featurespace] (mapspace) {Habitat Map Space $\mathcal{M}$};
+			\node [block] (spatialspace) {Seafloor Spatial Space $\mathcal{P}$};
+			\node [block, right of = spatialspace] (featurespace) {Bathymetric Feature Space $\mathcal{X}$};
+			\node [block, right of = featurespace] (mapspace) {Habitat Map Space $\mathcal{Y}$};
 					
 			\draw [line] (spatialspace) -- (featurespace);
 			\draw [line] (featurespace) -- (mapspace);
@@ -115,11 +99,21 @@
 			\end{tikzpicture}}		
 		\caption{Benthic Habitat Mapping Process}
 		\label{Figure:BenthicHabitatMappingProcess}
-		\end{figure}	
-			
-		In that case, a Gaussian process regression model is proposed for predicting the features at a given spatial location. While this is much more computationally expensive than performing feature extraction, it is also quite rare that this is necessary under abundant bathymetric data. In most cases, it suffices to simply take the nearest neighbouring feature.
+		\end{figure}
 		
-		\FloatBarrier
+		Figure \ref{Figure:BenthicHabitatMappingProcess} show a high level overview of the benthic habitat mapping process. As bathymetric data is available in more quantities and distributed more uniformly, it is often sufficient to employ the feature extraction process outlined in \cref{BenthicHabitatMapping:BathymetricFeatures:FeatureExtraction} to obtain the bathymetric features for modeling. However, if the bathymetric data is sufficiently sparse or is not distributed uniformly for grid based methods, then the feature extraction process itself becomes a prediction problem.
+
+		In that case, a Gaussian process regression model is proposed for predicting the features at a given spatial location. While this is much more computationally expensive than performing feature extraction, it is also quite rare that this is necessary under abundant bathymetric data. In most cases, it suffices to simply take the nearest neighbouring feature.		
+		
+		\subsection{Formulation}
+		
+			With the basic structure of the benthic habitat mapping process presented above, the model spaces involved can now be formulated formally.
+			
+			As established previously, the spatial space $\mathcal{P} \subseteq \mathbb{R}^{2}$ and feature space $\mathcal{X} \subseteq \mathbb{R}^{5}$ are compact subsets of $\mathbb{R}^{2}$ and $\mathbb{R}^{5}$ respectively. On the other hand, the habitat map space $\mathcal{Y} \subset \mathbb{N}$ is a strict finite subset of the the natural numbers, with each distinct integer representing a particular habitat type.
+			
+			Further, define $\mathscr{P} := \mathscr{P}(\mathcal{P})$, $\mathscr{X} := \mathscr{X}(\mathcal{X})$, and $\mathscr{Y} := \mathscr{Y}(\mathcal{Y})$ as the $\sigma$-algebras generated by $\mathcal{P} \subseteq \mathbb{R}^{2}$, $\mathcal{X} \subseteq \mathbb{R}^{5}$, and $\mathcal{Y} \subset \mathbb{N}$ respectively. Specifically, this means that $X \in \mathscr{X}$ implies $X \subseteq \mathcal{X}$, and similarly for $\mathscr{P}$ and $\mathscr{Y}$.
+			
+			Note that if $X := \{\bvec{x}_{i}\}_{i \in I_{n}} := \{\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}\} \in \mathscr{X}$ is a \textit{finite} collection of feature vectors $\bvec{x}_{i} \in \mathcal{X}$ for all $i \in I_{n}$, then $X$ is equivalent to the matrix $[\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T} \in \mathbb{R}^{n \times d_{f}}$. For notational and analytical convenience, the two quantities will be considered equivalent such that $X := \{\bvec{x}_{i}\}_{i \in I_{n}} := \{\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}\} \equiv [\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}$. This notation is used consistently throughout, and a similar formulation applies to spatial coordinates $P \in \mathscr{P}$. For target labels in the habitat map space, $\bvec{y} := \{y_{i}\}_{i \in I_{n}} := \{y_{1}, y_{2}, \dots, y_{n}\} \in \mathscr{Y}$ is already consistent with existing nomenclature for vectors, and also complies in form with the above matrix formulation. Recall that for an arbitrary quantity $q_{i}$ indexed by $i \in I_{n}$, $\{q_{i}\}_{i \in I_{n}}$ is defined to be $\{q_{1}, q_{2}, \dots, q_{n}\}$ which is equivalent to a vector if $q_{i}$ is a scalar and a matrix if $q_{i}$ is a vector.
 		
 		\subsection{Data Matching}
 		\label{BenthicHabitatMapping:BathymetricFeatures:DataMatching}
