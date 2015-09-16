@@ -76,15 +76,13 @@
 			\label{Equation:MarginalLikelihood}
 			\end{equation}			
 			
-			This procedure is illustrated in \cref{Figure:BayesianModeling} for a Gaussian process with one dimensional input feature and output target, where the prior is updated into a posterior after two observations. This example further serves to illustrate the concept of distributions over functions, which behaves as an infinite dimensional generalisation of a multivariate probability distribution. It is helpful to conceptualise functions as an infinite string of points, where functions can be interpreted as infinite dimensional vectors, such that drawing from an infinite dimensional distribution is equivalent to drawing from processes that operate on function space. Instead of drawing finite dimensional random vectors from distributions, a random function is drawn from a \textit{stochastic process} \footnote{When the input variable is temporal, a stochastic process can be more appropriately interpreted as having indefinite dimensional distributions.}.
+			This procedure is illustrated in \cref{Figure:BayesianModeling} for a Gaussian process with one dimensional input feature and output target. The mean prediction is shown as the black solid curve. Ten sample functions from the GP are drawn from the prior and posterior, represented by the coloured dashed curve. The shaded region represents the 2-$\sigma$ bounds of the prediction at each input feature value $x$. The prior distribution is updated to a posterior distribution after two points are observed. This example further serves to illustrate the concept of distributions over functions, which behaves as an infinite dimensional generalisation of a multivariate probability distribution. It is helpful to conceptualise functions as an infinite string of points, where functions can be interpreted as infinite dimensional vectors, such that drawing from an infinite dimensional distribution is equivalent to drawing from processes that operate on function space. Instead of drawing finite dimensional random vectors from distributions, a random function is drawn from a \textit{stochastic process} \footnote{When the input variable is temporal, a stochastic process can be more appropriately interpreted as having indefinite dimensional distributions.}.
 			
 			\begin{figure}[!htbp]
 				\centering
-					\includegraphics[width=0.9\textwidth]{Figures/bayesianmodeling.png}
-				\caption{Illustration of Gaussian Process Bayesian Modeling: The mean prediction is shown as the solid line. Four samples are drawn in each case, represented by the dashed line. The shared region represents the 2-$\sigma$ bounds of the prediction at each input feature value $x$. Two points are observed which updated the distribution from the prior to the posterior.\\
-				Figure (a) shows the situation for the prior distribution.\\
-				Figure (b) shows the situation for the posterior distribution. \\
-				Adapted from \cite{GaussianProcessForMachineLearning}}
+					\includegraphics[width=0.48\textwidth]{Figures/bayesian_modeling/prior_draws.eps}
+					\includegraphics[width=0.48\textwidth]{Figures/bayesian_modeling/posterior_draws2.eps}
+				\caption{Illustration of Gaussian Process Bayesian Modeling}
 				\label{Figure:BayesianModeling}
 			\end{figure}
 			
@@ -96,6 +94,7 @@
 			
 			With an intuition of Gaussian processes in the Bayesian modeling context, a formal definition of Gaussian processes can now be introduced. In this thesis, the shorthand notation $I_{n} := \{1, 2, \dots, n\}$ will be used for concise indexing unless otherwise indicated, and is not to be confused with identity matrices $I_{p \times p} \in \mathbb{R}^{p \times p}$.
 			
+			\newpage
 			\newtheorem{gpdef}{Gaussian Process}[section]
 			\begin{gpdef}
 				A random function $f(x)$, $x \in \mathbb{R}$, is distributed as a Gaussian process with mean function $m(x)$ and covariance function $k(x, x')$, if for any finite collection of feature points $\bvec{x} := [x_{1}, x_{2}, \dots, x_{n}]^{T}$, the corresponding output targets $\bvec{f}(\bvec{x}) := \{f(x_{i})\}_{i \in I_{n}} := [f(x_{1}), f(x_{2}), \dots, f(x_{n})]^{T}$ is jointly multivariate Gaussian distributed such that 
@@ -221,13 +220,12 @@
 			
 				Non-stationary kernels introduce flexibility for modeling phenomenons where the inherent length scales varies across feature locations. The limitations with stationary kernels is that the GP will always learn length scales that are as small as it needs to be for modeling the fastest varying phenomenon in the model. While the marginal likelihood inherently balances modeling accuracy and overfitting, when it comes to the choice between modeling a peak in data variation with a risk of overfitting the rest of the data or ignoring that peak, the optimiser will always prefer the former as marginal likelihood gain from successful modeling is higher than loss from overfitting. Because learning stage is done through optimising the marginal likelihood (see section \ref{Background:GaussianProcess:Regression:HyperparameterLearning}), this forces the length scale to be smaller than it needs at slower varying places.
 
-				Figure \ref{Figure:GaussianProcessLengthScale} illustrates the non-stationary Gaussian process for a terrain modeling application. Note that this does not imply that it is only relevant for GP regression problems - the latent functions used in GP classification is itself a GP regression problem for which length scale interpretation is almost identical to that shown in \cref{Figure:GaussianProcessLengthScale} (see section \ref{Background:GaussianProcesses:Classification}).
+				Figure \ref{Figure:GaussianProcessLengthScale} illustrates the non-stationary Gaussian process for a terrain modeling application, where flat regions have high length scales (slow varying) while rough regions have low length scales (fast varying). Note that this does not imply that it is only relevant for GP regression problems - the latent functions used in GP classification is itself a GP regression problem for which length scale interpretation is almost identical to that shown in \cref{Figure:GaussianProcessLengthScale} (see section \ref{Background:GaussianProcesses:Classification}).
 				
 				\begin{figure}[!htbp]
 					\centering
 						\includegraphics[width=\textwidth]{Figures/gaussianprocesslengthscale.png}
-					\caption{Illustration of non-stationary Gaussian process for seafloor terrain modeling \citep{GaussianProcessTerrainFigure} \\
-					Flat parts have high length scales (slow varying) while \\ rough parts have low length scales (fast varying)}
+					\caption{Non-stationary Gaussian process for seafloor terrain modeling Adapted from \cite{ROB:ROB21403}}
 					\label{Figure:GaussianProcessLengthScale}
 				\end{figure}
 				
@@ -248,8 +246,8 @@
 					\left.
 						\begin{aligned}
 							k(\bvec{x}_{i}, \bvec{x}_{j}) &= \sigma_{f}^{2} |\Sigma|^{\frac{1}{4}} |\Sigma|^{\frac{1}{4}} \Bigg|\frac{\Sigma + \Sigma}{2}\Bigg|^{-\frac{1}{2}} \exp\Bigg[ -\frac{1}{2} (\bvec{x}_{i} - \bvec{x}_{j}) \Bigg(\frac{\Sigma + \Sigma}{2}\Bigg)^{-1} (\bvec{x}_{i} - \bvec{x}_{j}) \Bigg] \\
-							k(\bvec{x}_{i}, \bvec{x}_{j}) &= \sigma_{f}^{2} |\Sigma|^{\frac{1}{2}} |\Sigma|^{-\frac{1}{2}} \exp\Bigg[ -\frac{1}{2} (\bvec{x}_{i} - \bvec{x}_{j}) (\Sigma)^{-1} (\bvec{x}_{i} - \bvec{x}_{j}) \Bigg] \\
-							k(\bvec{x}_{i}, \bvec{x}_{j}) &= \sigma_{f}^{2} \exp\Bigg[ -\frac{1}{2} (\bvec{x}_{i} - \bvec{x}_{j}) \Sigma^{-1} (\bvec{x}_{i} - \bvec{x}_{j}) \Bigg]
+							&= \sigma_{f}^{2} |\Sigma|^{\frac{1}{2}} |\Sigma|^{-\frac{1}{2}} \exp\Bigg[ -\frac{1}{2} (\bvec{x}_{i} - \bvec{x}_{j}) (\Sigma)^{-1} (\bvec{x}_{i} - \bvec{x}_{j}) \Bigg] \\
+							&= \sigma_{f}^{2} \exp\Bigg[ -\frac{1}{2} (\bvec{x}_{i} - \bvec{x}_{j}) \Sigma^{-1} (\bvec{x}_{i} - \bvec{x}_{j}) \Bigg]
 						\end{aligned}
 					\qquad \right.
 				\label{Equation:NonStationaryKernelToStationaryKernel}
@@ -262,7 +260,7 @@
 		\subsection{Regression}
 		\label{Background:GaussianProcesses:Regression}
 		
-			Gaussian process regression is a regression technique that employs Gaussian processes as its inference model. Because Gaussian processes already operate on function spaces with continuous inputs and outputs, no extra pre-processing or transformations are needed. The bulk of the technique thus lies in learning the kernel function of the Gaussian process. Gaussian process regression is also called \textit{kriging} or Kolmogorov Wiener prediction when used for interpolating geospatial data in a geostatistics setting. This section attempts to summarise the important concepts regarding GP regression and how they work. More rigorous discussions are available from \cite{GaussianProcessForMachineLearning}. 
+			Gaussian process regression is a regression technique that employs Gaussian processes as its inference model. Because Gaussian processes already operate on function spaces with continuous inputs and outputs, no extra pre-processing or transformations are needed. The bulk of the technique thus lies in learning the kernel function of the Gaussian process. Gaussian process regression is also called \textit{kriging} or Kolmogorov Wiener prediction when used for interpolating geospatial data in a geostatistics setting. This section attempts to summarise the important concepts regarding GP regression and how they work.
 			
 			Once a kernel function is chosen, such as the squared exponential or \matern kernels, learning the kernel function becomes equivalent to learning the hyperparameters of the kernel. In this way, the Gaussian process model is actually defined completely by its hyperparameters. % , which are often only handful in quantity. % This illustrates that while its temporal complexity $\mathcal{O}(n^{3})$ is quite high, its spatial complexity and memory requirements are quite moderate at $\frac{m(m + 1)}{2} + 1 + n(m  + 1)$ real numbers, where $n(m  + 1)$ real numbers comes from the training data itself. % Minimally, after assuming a particular kernel functional form, the bulk of the model information is held by the data set itself. Especially in big data applications, unlike generalised linear models and neural networks whose information vector \footnote{The information vector is the vector of all parameters that defines the model.} is proportional to the number of basis functions employed, a Gaussian process model can have its information stored by a few hyperparameters.
 			
@@ -329,26 +327,15 @@
 				The last term is a constant, so it can be ignored during the optimisation stage and included back in once optimisation completes.
 				
 				In practice, hyperparameter learning can be sped up by employing the fact that $\frac{1}{2} \log|K| = \sum_{i} L_{ii} = \mathrm{trace}(L)$ where $L$ is the Cholesky decomposition of $K$ (or $K + \sigma^{2} I$ in the noisy case). In fact, the Cholesky decomposition $L$ leads to better numerical stability when inverting the matrix $K$ since $K = LL^{T}$ so that $K \backslash \bvec{y} = L^{T} \backslash (L \backslash \bvec{y})$.
-			
-			\subsubsection{Sampling from a Gaussian Process}
-			\label{Background:GaussianProcess:Regression:Sampling}
-			
-	%			\subsubsection{Multi-task Regression}
-	%			
-	%				Multi-task regression operates on the same principles as the single-task regression. With multiple outputs, each output is assigned to a single-task regression problem as discussed above. However, a covariance matrix between each output is kept track of such that each output can perform inference on other outputs as well.
-	%				
-	%				The advantage of this approach is that different outputs recorded at different feature positions can assist each other to fill in each other's data gap. In this way, the over all entropy can be reduced.
-	%				
-	%				In an environment modeling setting, the main problem that occurs even after a good model has been learned is that entropy always increases at places where there is less data, as opposed to places that are inherently interesting and high in entropy even after observations. Multi-tasking improves the situation by lowering the entropy at those places with scarce data but inherently uninteresting.
 				
 		\subsection{Classification}
 		\label{Background:GaussianProcesses:Classification}
 		
 			The GP classification method is of vital importance to the benthic habitat modeling process. It is used to distinguish and predict the environment type with a measure of entropy in order to quantify the information reward one can gain by exploring the area.
 			
-			Unlike the regression case, because the output labels are no longer continuous, it cannot be represented by a continuous probability density function such as a Gaussian. As such, a continuous latent function is introduced in the GP classification process. Intuitively, this latent function quantifies and measures the distinct qualities of the label. As a binary classification example, if the classifier is to distinguish between "Apples" and "Oranges", the latent function would then represent the "Appleness" of each observation, with high "Appleness" corresponding to observations likely to be "Apples" and low "Appleness" corresponding to observations likely to be "Oranges". Note that only one latent function is needed in the binary case. The latent function is then "squashed" into the unit range [0, 1] so that it can be interpreted as a probability.
+			Unlike the regression case, because the output labels are no longer continuous, it cannot be represented by a continuous probability density function such as a Gaussian. As such, a continuous latent function is introduced in the GP classification process. Intuitively, this latent function quantifies and measures the distinct qualities of the label. As a binary classification example, if the classifier is to distinguish between ``apples'' and ``oranges'', the latent function would then represent the ``appleness'' of each observation, with high ``appleness'' corresponding to observations likely to be ``apples'' and low ``appleness'' corresponding to observations likely to be ``oranges''. Note that only one latent function is needed in the binary case. The latent function is then monotonically ``squashed'' into the unit range [0, 1] so that it can be interpreted as a probability.
 			
-			Although the latent function is now continuous such that it is possible to model it with a GP regression model, the posterior probability is in general non-Gaussian distributed, since the "squashing" is usually non-linear such that the likelihood is non-Gaussian. In this way, approximations are necessary. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \citep{GaussianProcessForMachineLearning}. In this thesis, Laplace approximation is chosen as a reasonable balance between accuracy and implementation difficulty, although a short investigation of probabilistic least squares will also be provided.
+			Although the latent function is now continuous such that it is possible to model it with a GP regression model, the posterior probability is in general non-Gaussian distributed, since the ``squashing'' is usually non-linear such that the likelihood is non-Gaussian. In this way, approximations are necessary. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \citep{GaussianProcessForMachineLearning}. In this thesis, Laplace approximation is chosen as a reasonable balance between accuracy and implementation difficulty, although a short investigation of probabilistic least squares will also be provided.
 			
 			\subsubsection{Response Functions}
 			\label{Background:GaussianProcesses:Classification:ResponseFunction}
