@@ -2,6 +2,8 @@
 \lhead{Background}
 \label{Background}
 
+	{\color{BurntOrange} Add Background Summary and Introduction}
+	
 	\section{Related Work}
 	\label{Background:RelatedWork}
 	
@@ -114,7 +116,7 @@
 			\label{Definition:GaussianProcess}
 			\end{gpdef}
 			
-			Certainly, this definition generalises finite dimensional multivariate Gaussian distributions, in that any subset of a multivariate Gaussian distributed random vector is also a multivariate Gaussian distributed of lower dimensionality. Hence, 
+			Certainly, this definition generalises finite dimensional multivariate Gaussian distributions, in that any subset of a multivariate Gaussian distributed random vector is also a multivariate Gaussian distributed of lower dimensionality.
 
 			Definition \ref{Definition:GaussianProcess} is defined for a univariate input feature $x$. In fact, this definition generalises naturally to a multivariate input feature $\bvec{x} \in \mathbb{R}^{p}$ with $p$ features. This motivates definition \ref{Definition:GaussianRandomField}.
 			
@@ -241,7 +243,9 @@
 				It is worthwhile to observe that the effective length scale matrix in the exponent is the average of the two length scale matrices, with its effect reduced with increasing distance between the two points of consideration as with all kernels.
 				
 				Note that the normalisation matrix determinants are chosen such that the kernel function is reduced into the squared exponential stationary kernel when $\Sigma_{i} = \Sigma_{j} = \Sigma$, as derived in \eqref{Equation:NonStationaryKernelToStationaryKernel}. 
-				
+		
+				That is, the Paciorek non-stationary kernel reduces to the squared exponential kernel under the stationary limit. In this way, the Paciorek kernel generalises the squared exponential kernel.
+						
 				\begin{equation}
 					\left.
 						\begin{aligned}
@@ -252,65 +256,120 @@
 					\qquad \right.
 				\label{Equation:NonStationaryKernelToStationaryKernel}
 				\end{equation}		
-				
-				That is, the Paciorek non-stationary kernel reduces to the squared exponential kernel under the stationary limit. In this way, the Paciorek kernel generalises the squared exponential kernel.
-				
-				\FloatBarrier
 			
 		\subsection{Regression}
 		\label{Background:GaussianProcesses:Regression}
 		
 			Gaussian process regression is a regression technique that employs Gaussian processes as its inference model. Because Gaussian processes already operate on function spaces with continuous inputs and outputs, no extra pre-processing or transformations are needed. The bulk of the technique thus lies in learning the kernel function of the Gaussian process. Gaussian process regression is also called \textit{kriging} or Kolmogorov Wiener prediction when used for interpolating geospatial data in a geostatistics setting. This section attempts to summarise the important concepts regarding GP regression and how they work.
 			
-			Once a kernel function is chosen, such as the squared exponential or \matern kernels, learning the kernel function becomes equivalent to learning the hyperparameters of the kernel. In this way, the Gaussian process model is actually defined completely by its hyperparameters. % , which are often only handful in quantity. % This illustrates that while its temporal complexity $\mathcal{O}(n^{3})$ is quite high, its spatial complexity and memory requirements are quite moderate at $\frac{m(m + 1)}{2} + 1 + n(m  + 1)$ real numbers, where $n(m  + 1)$ real numbers comes from the training data itself. % Minimally, after assuming a particular kernel functional form, the bulk of the model information is held by the data set itself. Especially in big data applications, unlike generalised linear models and neural networks whose information vector \footnote{The information vector is the vector of all parameters that defines the model.} is proportional to the number of basis functions employed, a Gaussian process model can have its information stored by a few hyperparameters.
+			Once a kernel function is chosen, such as the squared exponential or \matern kernels, learning the kernel function becomes equivalent to learning the hyperparameters of the kernel. In this way, the Gaussian process model is defined completely by its hyperparameters $\vec{\uptheta}$. % , which are often only handful in quantity. % This illustrates that while its temporal complexity $\mathcal{O}(n^{3})$ is quite high, its spatial complexity and memory requirements are quite moderate at $\frac{m(m + 1)}{2} + 1 + n(m  + 1)$ real numbers, where $n(m  + 1)$ real numbers comes from the training data itself. % Minimally, after assuming a particular kernel functional form, the bulk of the model information is held by the data set itself. Especially in big data applications, unlike generalised linear models and neural networks whose information vector \footnote{The information vector is the vector of all parameters that defines the model.} is proportional to the number of basis functions employed, a Gaussian process model can have its information stored by a few hyperparameters.
 			
-			With a given kernel function $k$ as the covariance function, by definition \ref{Definition:GaussianRandomField} we have that the training observations $\bvec{f}$ and the query observations $\bvec{f^{\star}}$ is distributed as a multivariate Gaussian \eqref{Equation:InferenceJointDistribution}.
+			Before presenting the inference process for Gaussian process regression however, it is important to understand the way Gaussian processes are used in general for Bayesian inference, which applies to both regression and classification.
 			
-			\begin{equation}
-				\begin{bmatrix}
-					\bvec{f^{ }} \\ \bvec{f^{\star}}
-				\end{bmatrix}
-				\sim \mathcal{N}\Bigg(\bvec{0}, \begin{bmatrix}
-													K(X, X) & K(X, X^{\star}) \\
-													K(X^{\star}, X) & K(X^{\star}, X^{\star}) \\
-												\end{bmatrix}  \Bigg)
-			\label{Equation:InferenceJointDistribution}
-			\end{equation}
+			\subsubsection{General Gaussian Process Inference Process}
 			
-			% where the matrix $K(X, X')$ is defined to have elements $K_{ij} = k(\bvec{x}_{i}, \bvec{x}'_{j})$ with $X$ and $X'$ defined as the canonical data design matrix form \eqref{Background:GaussianProcess:Equation:DataMatrix}, both of each can take either the matrix of training points $X$ of size $n$ or query points $X^{\star}$ of size $n^{\star}$.
-			
-			To shorten notation, it is customary to define $K := K(X, X)$, $K^{\star} := K(X, X^{\star})$, $K^{\star \star} := K(X^{\star}, X^{\star})$, where the symmetry of the covariance matrix readily yields ${K^{\star}}^{T} := K(X^{\star}, X)$. In this thesis, $K$ will be referred to as the \textit{data kernel} or \textit{training kernel}, $K^{\star}$ as the \textit{inference kernel}, and $K^{\star \star}$ as the \textit{query kernel}.
-			
-			\begin{equation}
-				X = \begin{bmatrix}
-					\bvec{x}_{1}^{T} \\ \bvec{x}_{2}^{T} \\ \dots \\ \bvec{x}_{n}^{T}
-				\end{bmatrix} \qquad X' = \begin{bmatrix}
-									\bvec{x'}_{1}^{T} \\ \bvec{x'}_{2}^{T} \\ \dots \\ \bvec{x'}_{n}^{T}
-								\end{bmatrix}
-			\label{Equation:TrainingQueryDataMatrices}
-			\end{equation}	
+				The formulation for Gaussian processes from definitions \ref{Definition:GaussianProcess} and \ref{Definition:GaussianRandomField} provides an framework for inferring the behaviour of an unknown function $f(\bvec{x})$. In general, however, the output target does not have to be the functional outputs $f := f(\bvec{x})$. Instead, the output targets are some quantity $y$ which can be directly observed and recorded. The function $f$ serves as an intermediate step to infer $y$ from $\bvec{x}$, and in general cannot be directly observed. Therefore, the function $f$ is also called the \textit{latent function}.
 				
-			The joint distribution readily contains information for the conditional distribution of the query points given the training points $p(\bvec{f^{\star}} | \bvec{f})$ knowing the training points and query locations \footnote{Throughout this thesis, since the feature locations $X$ and $X^{\star}$ are always known, they are inherently conditioned upon and will not be shown explicitly in notation.}. This leads to the posterior distribution \eqref{Equation:InfereceConditionalDistribution}.
+				% Define block styles
+				\tikzstyle{line} = [draw, -latex']
+				\tikzstyle{cloud1} = [draw, ellipse, fill = green!30!blue!30, node distance = 3cm, minimum height = 3em,  minimum width = 5em]
+				\tikzstyle{cloud2} = [draw, ellipse, fill = green!60!blue!50, node distance = 3cm, minimum height = 3em,  minimum width = 5em]
+				
+				\begin{figure}[!ht]
+				\centering\makebox[\textwidth]{
+					\begin{tikzpicture}[node distance = 4cm, auto, comment/.style ={rectangle, inner sep = 2pt, text width = 4cm, }]
+					
+					\node [cloud1] (trainingfeatures) {$X$};
+					\node [cloud2, right of = trainingfeatures] (traininglatents) {$\bvec{f}$};
+					\node [cloud1, right of = traininglatents] (trainingtargets) {$\bvec{y}$};
+					\node [cloud2, below of = traininglatents] (querylatents) {$\bvec{f}^{\star}$};
+					\node [cloud1, left of = querylatents] (queryfeatures) {$X^{\star}$};
+					\node [cloud2, right of = querylatents] (querytargets) {$\bvec{y}^{\star}$};
+					
+					\draw [line] (trainingfeatures) -- (traininglatents);
+					\draw [line] (traininglatents) -- (trainingtargets);
+					\draw [line] (traininglatents) -- (querylatents);
+					\draw [line] (queryfeatures) -- (querylatents);
+					\draw [line] (querylatents) -- (querytargets);	
+					\end{tikzpicture}
+					}		
+				\caption{Gaussian Process Graphical Model}
+				\label{Figure:GaussianProcessGraphicalModel}
+				\end{figure}
+				
+				This inference process can be visualised with the graphical model presented in Figure \ref{Figure:GaussianProcessGraphicalModel}. Observed and known quantities are coloured in blue. Quantities to be inferred are coloured in green. Note that in a Bayesian model, the unknown quantities (in green) are inferenced by their probabilistic distributions, and not just their estimated values.
+				
+				Latent functions are usually interpreted as the underlying phenomenon which stochastically generates the target outputs $y$.  The model assumes that a particular phenomenon $f$ is responsible for generating the output target $y$, and that the phenomenon $f$ can be explained reasonably by a particular set of features $\bvec{x}$. A collection of output targets $\bvec{y}$ and corresponding features $X$ are observed. The collected dataset $(X, \bvec{y})$ is termed the \textit{training data}. A \textit{learning process} then occurs where the model learns the underlying phenomenon $\bvec{f}$ at the training points. If the learning process is done through an optimisation procedure in search for an optimal model in some quantifiable sense, the learning process is also termed a \textit{training process}. An \textit{inference process} then occurs where the model is to infer the latent process $\bvec{f}^{\star}$ at the query features $X^{\star}$, which would further allow inference on the corresponding target outputs $\bvec{y}^{\star}$. The inference process in general also includes the act of inferring related quantities regarding the distribution of $\bvec{y}^{\star}$. Typical examples include inferring the uncertainty involved in the inference stage through a variance or entropy measure. If the only quantity to be inferenced is the expected target outputs $\mathbb{E}[\bvec{y}^{\star} | \bvec{y}]$, then the inference process is also termed a \textit{prediction process}. In this way, the GP modeling process is composed of two stages - the learning or training stage and the inference or prediction stage.
+				
+				A typical example in the regression case is a situation where the observable outputs $y$ are related to the underlying phenomenon $f(x)$ through a simple white noise process \eqref{Equation:RegressionNoiseModelScalar}.
+				
+				\begin{equation}
+					y_{i} = f(\bvec{x}_{i}) + \epsilon_{i} \qquad \epsilon_{i} \sim \mathcal{N}(0, \sigma^{2}) \qquad \forall i \in I_{n}
+				\label{Equation:RegressionNoiseModelScalar}
+				\end{equation}
+				
+				In general, however, the relationship between the output target $y$ and the latent functional $f$ is captured through a likelihood response $p(y | f)$, which captures the likelihood of generating a particular output target $y$ \textit{if} the latent functional is $f$. In fact, the choice of the likelihood function is not immediately straightforward and is of vital importance in the classification scenario. 
+				
+				In the regression model above \eqref{Equation:RegressionNoiseModelScalar}, a degenerate case arises when the noise level $\sigma$ is zero such that $y = f$ everywhere. In this case, $p(y | f) = p(f | f) = 1$ such that the Gaussian process model performs inference on the target output directly through obtaining $p (y) = p(f)$. When this is not the case, however, the quantity to be inferred in the end is the output targets $y$. As such, the distribution of interest is $p(y)$. This can be obtained by marginalising away the latent functionals $f$ over the likelihood $p(y | f)$ \eqref{Equation:Marginalisation}.
+				
+				\begin{equation}
+					p(y) = \int_{\mathscr{F}} p(y | f) p(f) df
+				\label{Equation:Marginalisation}
+				\end{equation}
+				
+				where $\mathscr{F}$ is the space of all latent functionals. Note that the form \eqref{Equation:Marginalisation} above is written in functional form to illustrate the relevant concepts. The marginalisation process above plays a vital process in the learning stage for Gaussian process inference discussed shortly.
+		
+			\subsubsection{Inference}
 			
-			\begin{equation}
-				\bvec{f^{\star}} | \bvec{f} \sim \mathcal{N}({K^{\star}}^{T} K^{-1} \bvec{f}, K^{\star \star} - {K^{\star}}^{T} K^{-1} K^{\star})
-			\label{Equation:InfereceConditionalDistribution}
-			\end{equation}						
-			
-			A comparison with the prior $\bvec{f^{\star}} \sim \mathcal{N}(\bvec{0}, K^{\star \star})$ shows the mean effect ${K^{\star}}^{T} K^{-1} \bvec{f}$ and covariance effect $- {K^{\star}}^{T} K^{-1} K^{\star}$ which introduces observed information into the model. Interestingly, as ${K^{\star}}^{T} K^{-1} K^{\star}$ is positive definite, this intuitively means that the observation has reduced uncertainty in the model.
-			
-			The above posterior formulation encompasses the heart of the GP regression model. The rest of the discussion will focus on detailed aspects of its implementation and variants.
-			
-			% \subsubsection{Noisy Observations}
-			
-			Under noisy observations, a hyperparameter $\sigma$ is introduced for the standard deviation of the noise, which is also assumed to be \textit{iid} and Gaussian distributed with standard deviation $\sigma$ and zero mean. The only alteration is the observations are notated as $\bvec{y}$ instead of $\bvec{f}$, where 
-			
-			\begin{equation}
-				\bvec{y}(\bvec{x}) = \bvec{f}(\bvec{x}) + \bvec{\upepsilon} \qquad \bvec{\upepsilon} \sim \mathcal{N}(\bvec{0}, \sigma^{2} I_{n \times n})
-			\label{Equation:RegressionNoiseModel}
-			\end{equation}
-						
-			and most importantly the data kernel is to be replaced with $K \mapsto K + \sigma^{2} I$. Note that however the query points remain as the latent function $\bvec{f^{\star}}$. If one were to predict future observations $\bvec{y^{\star}}$, then it suffices to generate $\bvec{f^{\star}}$ from the posterior and add randomly generated noise with standard deviation $\sigma$.
+				The above general inference process can now be formulated specifically for the regression case.
+				
+				With a given kernel function $k$ as the covariance function, by definition \ref{Definition:GaussianRandomField} we have that the training latents $\bvec{f}$ and the query latents $\bvec{f^{\star}}$ are distributed as a multivariate Gaussian \eqref{Equation:InferenceJointDistribution}.
+				
+				\begin{equation}
+					\begin{bmatrix}
+						\bvec{f^{ }} \\ \bvec{f^{\star}}
+					\end{bmatrix}
+					\sim \mathcal{N}\Bigg(\bvec{0}, \begin{bmatrix}
+														K(X, X) & K(X, X^{\star}) \\
+														K(X^{\star}, X) & K(X^{\star}, X^{\star}) \\
+													\end{bmatrix}  \Bigg)
+				\label{Equation:InferenceJointDistribution}
+				\end{equation}
+				
+				% where the matrix $K(X, X')$ is defined to have elements $K_{ij} = k(\bvec{x}_{i}, \bvec{x}'_{j})$ with $X$ and $X'$ defined as the canonical data design matrix form \eqref{Background:GaussianProcess:Equation:DataMatrix}, both of each can take either the matrix of training points $X$ of size $n$ or query points $X^{\star}$ of size $n^{\star}$.
+				
+				To shorten notation, it is customary to define $K := K(X, X)$, $K^{\star} := K(X, X^{\star})$, $K^{\star \star} := K(X^{\star}, X^{\star})$, where the symmetry of the covariance matrix readily yields ${K^{\star}}^{T} := K(X^{\star}, X)$. In this thesis, $K$ will be referred to as the \textit{data kernel} or \textit{training kernel}, $K^{\star}$ as the \textit{inference kernel}, and $K^{\star \star}$ as the \textit{query kernel}.
+				
+				\begin{equation}
+					X = \{\bvec{x}_{i}\}_{i \in I_{n}}^{T} := \begin{bmatrix}
+						\bvec{x}_{1}^{T} \\ \bvec{x}_{2}^{T} \\ \dots \\ \bvec{x}_{n}^{T}
+					\end{bmatrix} \qquad X' = \{\bvec{x'}_{i}\}_{i \in I_{n}}^{T} := \begin{bmatrix}
+										\bvec{x'}_{1}^{T} \\ \bvec{x'}_{2}^{T} \\ \dots \\ \bvec{x'}_{n}^{T}
+									\end{bmatrix}
+				\label{Equation:TrainingQueryDataMatrices}
+				\end{equation}	
+					
+				The joint distribution readily contains information for the conditional distribution of the query points given the training points $p(\bvec{f^{\star}} | \bvec{f})$ knowing the training points and query locations. This leads to the posterior distribution \eqref{Equation:InfereceConditionalDistribution}. Note that in some literature, the feature locations $X$ and $X^{\star}$ are also included in the conditioned set, so that the conditional distribution is written as $\bvec{f^{\star}} | \bvec{f}, X, X^{\star}$. However, throughout this thesis, since the feature locations $X$ and $X^{\star}$ are always known, they are inherently conditioned upon and will not be shown explicitly in notation for consise presentation. 
+				
+				\begin{equation}
+					\bvec{f^{\star}} | \bvec{f} \sim \mathcal{N}({K^{\star}}^{T} K^{-1} \bvec{f}, K^{\star \star} - {K^{\star}}^{T} K^{-1} K^{\star})
+				\label{Equation:InfereceConditionalDistribution}
+				\end{equation}						
+				
+				A comparison with the prior $\bvec{f^{\star}} \sim \mathcal{N}(\bvec{0}, K^{\star \star})$ shows the mean effect ${K^{\star}}^{T} K^{-1} \bvec{f}$ and covariance effect $- {K^{\star}}^{T} K^{-1} K^{\star}$ which introduces observed information into the model. Interestingly, as ${K^{\star}}^{T} K^{-1} K^{\star}$ is positive definite, this intuitively means that the observation has reduced uncertainty in the model.
+				
+				The above posterior formulation encompasses the heart of the GP regression model. The rest of the discussion will focus on detailed aspects of its implementation and variants.
+				
+				% \subsubsection{Noisy Observations}
+				
+				Under noisy observations, a hyperparameter $\sigma$ is introduced for the standard deviation of the noise, which is also assumed to be \textit{iid} and Gaussian distributed with standard deviation $\sigma$ and zero mean. The only alteration is the observations are notated as $\bvec{y}$ instead of $\bvec{f}$, where 
+				
+				\begin{equation}
+					\bvec{y}(X) = \bvec{f}(X) + \bvec{\upepsilon} \qquad \bvec{\upepsilon} \sim \mathcal{N}(\bvec{0}, \sigma^{2} I_{n \times n})
+				\label{Equation:RegressionNoiseModel}
+				\end{equation}
+							
+				and most importantly the data kernel is to be replaced with $K \mapsto K + \sigma^{2} I$. Note that however the query points remain as the latent function $\bvec{f^{\star}}$. If one were to predict future observations $\bvec{y^{\star}}$, then it suffices to generate $\bvec{f^{\star}}$ from the posterior and add randomly generated noise with standard deviation $\sigma$.
 				
 			\subsubsection{Hyperparameter Learning}
 			\label{Background:GaussianProcess:Regression:HyperparameterLearning}
