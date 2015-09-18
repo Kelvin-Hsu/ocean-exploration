@@ -335,7 +335,7 @@
 				One of the most important yet tricky aspects of GP modeling is the training stage. Since the model is determined entirely by the hyperparameters, the hyperparameters must be optimised in accordance to some fitness metric. The fitness metric employed to be maximised is the marginal likelihood, otherwise termed as evidence, of the observed data. This is usually non-trivial to compute and, in most cases, analytical forms do not exist. Fortunately, due to the Gaussian structure of the GP model, there exists an analytical form for the marginal likelihood. In practice, however, it is computationally faster to compute the log marginal likelihood \eqref{Equation:RegressionLogMarginalLikelihood}. Note that the hyperparameters $\vec{\uptheta}$ includes the kernel sensitivity $\sigma_{f}$, the kernel length scales $\{l_{ij}\}_{i \in I_{p}, j \in I_{p}}$, and the noise level $\sigma$ if noise exists.
 				
 				\begin{equation}
-					\log(p(\bvec{y} | \vec{\uptheta})) = - \frac{1}{2} \bvec{f}^{T} (K(\vec{\uptheta}) + \sigma^{2} I_{n \times n})^{-1} \bvec{f} - \frac{1}{2} \log|K(\vec{\uptheta}) + \sigma^{2} I_{n \times n}| - \frac{n}{2} \log(2 \pi)
+					\log(p(\bvec{y} | \vec{\uptheta})) = - \frac{1}{2} \bvec{y}^{T} (K(\vec{\uptheta}) + \sigma^{2} I_{n \times n})^{-1} \bvec{y} - \frac{1}{2} \log|K(\vec{\uptheta}) + \sigma^{2} I_{n \times n}| - \frac{n}{2} \log(2 \pi)
 				\label{Equation:RegressionLogMarginalLikelihood}
 				\end{equation}
 				
@@ -352,7 +352,7 @@
 				
 				The last term in \eqref{Equation:RegressionLogMarginalLikelihood} is a constant, so it can be ignored during the optimisation stage and included back in once optimisation completes.
 				
-				In practice, hyperparameter learning can be sped up by employing the fact that $\frac{1}{2} \log|K| = \sum_{i} L_{ii} = \mathrm{trace}(L)$ where $L$ is the Cholesky decomposition of $K$ (or $K + \sigma^{2} I$ in the noisy case). In fact, the Cholesky decomposition $L$ leads to better numerical stability when inverting the matrix $K$ since $K = LL^{T}$ so that $K \backslash \bvec{y} = L^{T} \backslash (L \backslash \bvec{y})$.
+				In practice, hyperparameter learning can be sped up by employing the fact that $\frac{1}{2} \log|K + \sigma^{2} I_{n \times n}| = \frac{1}{2} \log|B| = \sum_{i} L_{ii} = \mathrm{trace}(L)$ for the first term in \eqref{Equation:RegressionLogMarginalLikelihood}, where $L$ is the Cholesky decomposition of $B := K + \sigma^{2} I_{n \times n}$. Furthermore, the Cholesky decomposition $L$ leads to better numerical stability when inverting the matrix $B$ since $B = LL^{T}$ so that $B \backslash \bvec{y} = L^{T} \backslash (L \backslash \bvec{y})$ for the first term in \eqref{Equation:RegressionLogMarginalLikelihood}.
 				
 		\subsection{Classification}
 		\label{Background:GaussianProcesses:Classification}
@@ -377,7 +377,7 @@
 			
 				Before discussing the various types of GP classifiers, it is important to understand the role of \textit{response functions} in Bayesian classifiers, which serves to perform the ``squashing'' described previously.
 				
-				The response function is sometimes also called a sigmoid function, and are used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to "squeeze" the latent functions into a range where probabilistic interpretation is possible.
+				The response function, sometimes also called a sigmoid function, are used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to "squeeze" the latent functions into a range where probabilistic interpretation is possible.
 				
 				\begin{figure}[!htbp]
 					\centering
