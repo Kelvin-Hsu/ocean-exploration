@@ -3,45 +3,8 @@
 \label{Background}
 
 	{\color{BurntOrange} Add Background Summary and Introduction}
-	
-	\section{Related Work}
-	\label{Background:RelatedWork}
-	
-		One of the main challenges of informative path planning include selecting the appropriate acquisition function suitable for the type of exploration task at hand. \textit{Acquisition functions}, or \textit{acquisition criterion}, measures the desirability of observing a particular location. In the informative path planning scenario, the acquisition function evaluates the amount of total information or uncertainty contained by a given candidate path. In this context, the way in which \textit{total information} is quantified determines the acquisition function. The more information the path contains, the more desirable it is for the AUV to follow and take observations on that path. 
-
-		The effectiveness of an acquisition function that measures mutual information throughout a particular given path has been thoroughly investigated in the literature \citep{AsherBender, Rigby:ROB20372, Krause:2008:NSP:1390681.1390689, Kapoor}. \textit{Mutual information} refers to a measure of information that takes into account the overlapping information within the region or path in consideration. In most spatial sampling contexts, it is unlikely that two given locations within a region or path are completely unrelated or uncorrelated. Observations in one location provides partial information regarding other locations, which is the primary reason that an accurate benthic habitat map can be obtained without visiting all locations within the region exhaustively. Without considering mutual information, an agent such as an AUV may be prompted to observe locations that contain similar information, thus achieving inefficient mapping.
 		
-		Several types of acquisition functions have been proposed in the benthic habitat mapping context. \cite{AsherBender} uses an acquisition criterion given by \eqref{Equation:AsherBenderAcquisitionCriterion} where $\pi^{m}_{i}$ is the probability of the habitat label being a member of class $m \in \{1, \dots, c\}$ at query location $i \in \{1, \dots, n^{\star}\}$. Here $c$ is the number of classes and $n^{\star}$ is the number of query points.
-		
-		\begin{equation}
-			H = - \frac{1}{n^{\star}} \sum_{i = 1}^{n^{\star}} \sum_{m = 1}^{c} \pi^{m}_{i} \log(\pi^{m}_{i})
-		\label{Equation:AsherBenderAcquisitionCriterion}
-		\end{equation}
-		
-		For a given query point $i$, $- \sum_{m = 1}^{c} \pi^{m}_{i} \log(\pi^{m}_{i})$ is exactly the prediction information entropy (PIE) at location $i$, which captures the local model uncertainty and thus potential information. As a result, the acquisition criterion given in \eqref{Equation:AsherBenderAcquisitionCriterion} is the mean of the marginalised PIE across query points, which does not capture mutual information through considering the joint distributions of the class labels across multiple query points $i \in \{1, \dots, n^{\star}\}$. This acquisition criterion will be referred to as MPIE for mean of marginalised prediction information entropy. In this approach, the quality of the habitat models are assessed by utility functions that evaluate the confidence of the GP classifier prediction, which is the difference of the MPIE before and after an observation is made \eqref{Equation:AsherBenderMutualInformationCriterion} \citep{Rigby:ROB20372}. This utility is used in conjunction with a GP classifier under probabilistic least squares approximation to optimise selected survey paths through considering the differential entropy across the entire region of interest (ROI). Below, $X, \bvec{y}$ are the observed feature locations and habitat labels, $X^{\star}$ to be the unobserved query locations, and $X_{p}, \bvec{y}_{p}$ are the observations made after traversing the proposed path.
-	
-		\begin{equation}
-			I = H[X^{\star} | X, \bvec{y}] - H[X^{\star} | X \cup X_{p}, \bvec{y} \cup \bvec{y}_{p}]
-		\label{Equation:AsherBenderMutualInformationCriterion}
-		\end{equation}
-		
-		\cite{Krause:2008:NSP:1390681.1390689} instead focuses on sensor placement methodologies to optimse mutual information gained. This aims to reduce predictive variance at all query points. The chosen acquisition function is the difference between the MIE at all \textit{final} unobserved locations $X^{\star} \backslash X_{p}$ before and after the observations are taken \eqref{Equation:KrauseAcquisitionCriterion}.
-		
-		\begin{equation}
-			I = H[X^{\star} \backslash X_{p} | X, \bvec{y}] - H[X^{\star} \backslash X_{p} | X \cup X_{p}, \bvec{y} \cup \bvec{y}_{p}]
-		\label{Equation:KrauseAcquisitionCriterion}
-		\end{equation}
-		
-		Under the GP classification model, however, this results in an integral that can only be estimated through sampling techniques which are computationally expensive. As such, computationally tractable methods usually employ experimental design philosophies in minimising the predictive variance \citep{AsherBender}.
-		
-		\cite{Kapoor} demonstrates the use of posterior mean and covariance of the GP classifier latent function. While this approach takes full advantage of the analytical forms available for a Gaussian latent process, it does not consider the mutual behaviour of the unobserved locations with the proposed path.
-		
-		On the other hand, \cite{Roman:SequentialBayesianOptimisation} approaches the problem from a continuous path-planning perspective for UAVs in which two Gaussian processes are used - one to model the phenomenon and another to assess the quality of proposed paths. However, this layered Sequential Bayesian Optimisation approach is primarily devised for a regression setting which becomes intractable when performed in the classification domain.
-		
-		Much of the intractability discussed in such literature can trace its reason down to the fact that benthic habitat mapping is a classification problem instead of a regression problem. While Gaussian process regression provide analytical forms for inference, due to a non-Gaussian likelihood response, Gaussian process classification is no longer analytically tractable. Instead, several approximations must be made, which is discussed in section \ref{Background:GaussianProcesses:Classification}.
-		
-		This thesis addresses the tractability status of the problem through proposing an alternative acquisition criterion, hereby named linearised model differential entropy (LMDE), that captures mutual information. In the current literature, acquisition criterion either do not directly capture mutual information, such as \eqref{Equation:AsherBenderAcquisitionCriterion}, or take too long to compute due to required estimations from sampling, such as \eqref{Equation:KrauseAcquisitionCriterion}. This work shows that LMDE as an acquisition function captures an appropriate form of mutual information. Furthermore, LDME outperforms other acquisitions in both ractability and mapping accuracy.
-		
+	\newpage
 	\section{Gaussian Processes}
 	\label{Background:GaussianProcesses}
 	
@@ -99,7 +62,7 @@
 			\newpage
 			\newtheorem{gpdef}{Gaussian Process}[section]
 			\begin{gpdef}
-				A random function $f(x)$, $x \in \mathbb{R}$, is distributed as a Gaussian process with mean function $m(x)$ and covariance function $k(x, x')$, if for any finite collection of feature points $\bvec{x} := [x_{1}, x_{2}, \dots, x_{n}]^{T}$, the corresponding output targets $\bvec{f}(\bvec{x}) := \{f(x_{i})\}_{i \in I_{n}} := [f(x_{1}), f(x_{2}), \dots, f(x_{n})]^{T}$ is jointly multivariate Gaussian distributed such that 
+				A random function $f(x)$, $x \in \mathbb{R}$, is distributed as a Gaussian process with mean function $m(x)$ and covariance function $k(x, x')$, if for any finite collection of features $\bvec{x} := \{x_{i}\}_{i \in I_{n}} := [x_{1}, x_{2}, \dots, x_{n}]^{T}$, the corresponding vector $\bvec{f}(\bvec{x}) := \{f(x_{i})\}_{i \in I_{n}} := [f(x_{1}), f(x_{2}), \dots, f(x_{n})]^{T}$ is jointly multivariate Gaussian distributed such that 
 
 					\begin{equation}
 						\bvec{f}(\bvec{x}) \sim \mathcal{N}(\bvec{m}(\bvec{x}), K(\bvec{x}, \bvec{x}'))
@@ -122,7 +85,7 @@
 			
 			\newtheorem{grfdef}{Gaussian Random Field}[section]
 			\begin{grfdef}
-				A random function $f(\bvec{x})$, $\bvec{x} \in \mathbb{R}^{p}$, is distributed as a Gaussian random field with mean function $m(\bvec{x})$ and covariance function $k(\bvec{x}, \bvec{x}')$, if for any finite collection of feature points $X := [\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}$, the corresponding output targets $\bvec{f}(X) := \{f(\bvec{x}_{i})\}_{i \in I_{n}} := [f(\bvec{x}_{1}), f(\bvec{x}_{2}), \dots, f(\bvec{x}_{n})]^{T}$ is jointly multivariate Gaussian distributed such that 
+				A random function $f(\bvec{x})$, $\bvec{x} \in \mathbb{R}^{p}$, is distributed as a Gaussian random field with mean function $m(\bvec{x})$ and covariance function $k(\bvec{x}, \bvec{x}')$, if for any finite collection of feature vectors $X := \{\bvec{x}_{i}\}_{i \in I_{n}} := [\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}$, the corresponding vector $\bvec{f}(X) := \{f(\bvec{x}_{i})\}_{i \in I_{n}} := [f(\bvec{x}_{1}), f(\bvec{x}_{2}), \dots, f(\bvec{x}_{n})]^{T}$ is jointly multivariate Gaussian distributed such that 
 
 					\begin{equation}
 						\bvec{f}(X) \sim \mathcal{N}(\bvec{m}(X), K(X, X'))
@@ -266,9 +229,10 @@
 			
 			Before presenting the inference process for Gaussian process regression however, it is important to understand the way Gaussian processes are used in general for Bayesian inference, which applies to both regression and classification.
 			
-			\subsubsection{General Gaussian Process Inference Process}
+			\subsubsection{General Inference Process with Gaussian Processes}
+			\label{Background:GaussianProcess:Regression:GeneralGaussianProcessInferece}
 			
-				The formulation for Gaussian processes from definitions \ref{Definition:GaussianProcess} and \ref{Definition:GaussianRandomField} provides an framework for inferring the behaviour of an unknown function $f(\bvec{x})$. In general, however, the output target does not have to be the functional outputs $f := f(\bvec{x})$. Instead, the output targets are some quantity $y$ which can be directly observed and recorded. The function $f$ serves as an intermediate step to infer $y$ from $\bvec{x}$, and in general cannot be directly observed. Therefore, the function $f$ is also called the \textit{latent function}.
+				The formulation for Gaussian processes from definitions \ref{Definition:GaussianProcess} and \ref{Definition:GaussianRandomField} provides an framework for inferring the behaviour of an unknown function $f(\bvec{x})$. In general, however, the output target does not have to be the functional outputs $f := f(\bvec{x})$. Instead, the output targets are some quantity $y$ which can be directly observed and recorded. The function $f$ serves as an intermediate step to infer $y$ from $\bvec{x}$, and in general cannot be directly observed. Therefore, the function $f$ is often called the \textit{latent function}.
 				
 				% Define block styles
 				\tikzstyle{line} = [draw, -latex']
@@ -297,18 +261,23 @@
 				\label{Figure:GaussianProcessGraphicalModel}
 				\end{figure}
 				
-				This inference process can be visualised with the graphical model presented in Figure \ref{Figure:GaussianProcessGraphicalModel}. Observed and known quantities are coloured in blue. Quantities to be inferred are coloured in green. Note that in a Bayesian model, the unknown quantities (in green) are inferenced by their probabilistic distributions, and not just their estimated values.
+				This inference process can be visualised with the graphical model presented in Figure \ref{Figure:GaussianProcessGraphicalModel}. The feature matrices $X$ and $X^{\star}$ and the corresponding latent values $\bvec{f}$ and $\bvec{f}^{\star}$ are defined in \eqref{Equation:TrainingQueryFeatureMatrices}, with $f$ as a random latent function distributed as a GP. Observed and known quantities are coloured in blue. Quantities to be inferred are coloured in green. Note that in a Bayesian model, the unknown quantities (in green) are inferenced by their probabilistic distributions, and not just their estimated values. 
 				
-				Latent functions are usually interpreted as the underlying phenomenon which stochastically generates the target outputs $y$.  The model assumes that a particular phenomenon $f$ is responsible for generating the output target $y$, and that the phenomenon $f$ can be explained reasonably by a particular set of features $\bvec{x}$. A collection of output targets $\bvec{y}$ and corresponding features $X$ are observed. The collected dataset $(X, \bvec{y})$ is termed the \textit{training data}. A \textit{learning process} then occurs where the model learns the underlying phenomenon $\bvec{f}$ at the training points. If the learning process is done through an optimisation procedure in search for an optimal model in some quantifiable sense, the learning process is also termed a \textit{training process}. An \textit{inference process} then occurs where the model is to infer the latent process $\bvec{f}^{\star}$ at the query features $X^{\star}$, which would further allow inference on the corresponding target outputs $\bvec{y}^{\star}$. The inference process in general also includes the act of inferring related quantities regarding the distribution of $\bvec{y}^{\star}$. Typical examples include inferring the uncertainty involved in the inference stage through a variance or entropy measure. If the only quantity to be inferenced is the expected target outputs $\mathbb{E}[\bvec{y}^{\star} | \bvec{y}]$, then the inference process is also termed a \textit{prediction process}. In this way, the GP modeling process is composed of two stages - the learning or training stage and the inference or prediction stage.
+				\begin{align*} \numberthis\label{Equation:TrainingQueryFeatureMatrices}
+					X &= \{\bvec{x}_{i}\}_{i \in I_{n}} \qquad & X^{\star} &= \{\bvec{x}^{\star}_{i}\}_{i \in I_{n}} \\
+					\bvec{f} &= \{f(\bvec{x}_{i})\}_{i \in I_{n}} \qquad & \bvec{f}^{\star} &= \{f(\bvec{x}^{\star}_{i})\}_{i \in I_{n}} \\
+				\end{align*}
 				
-				A typical example in the regression case is a situation where the observable outputs $y$ are related to the underlying phenomenon $f(x)$ through a simple white noise process \eqref{Equation:RegressionNoiseModelScalar}.
+				Latent functions are usually interpreted as the underlying phenomenon which stochastically generates the target outputs $y$.  The model assumes that a particular phenomenon $f$ is responsible for generating the output target $y$, and that the phenomenon $f$ can be explained reasonably by a particular set of features $\bvec{x}$. A collection of output targets $\bvec{y}$ and corresponding features $X$ are observed. The collected dataset $(X, \bvec{y})$ is termed the \textit{training data}. A \textit{learning process} then occurs where the model learns the underlying phenomenon $\bvec{f}$ at the training points. If the learning process is done through an optimisation procedure in search for an optimal model in some quantifiable sense, the learning process is also termed a \textit{training process}. An \textit{inference process} then occurs where the model is to infer the latent process $\bvec{f}^{\star}$ at the query features $X^{\star}$, which would further allow inference on the corresponding target outputs $\bvec{y}^{\star}$. The inference process in general also includes the act of inferring related quantities regarding the distribution of $\bvec{y}^{\star}$. Typical examples include inferring the uncertainty involved in the inference stage through a variance or entropy measure. If the only quantity to be inferenced is the expected target outputs $\mathbb{E}[\bvec{y}^{\star} | \bvec{y}, X, X^{\star}]$, then the inference process is also termed a \textit{prediction process}. In this way, the GP modeling process is composed of two stages - the learning or training stage and the inference or prediction stage.
+				
+				For regression, a typical example involves observable outputs $y$ that are related to the underlying phenomenon $f$ through a simple white noise process \eqref{Equation:RegressionNoiseModelScalar}.
 				
 				\begin{equation}
-					y_{i} = f(\bvec{x}_{i}) + \epsilon_{i} \qquad \epsilon_{i} \sim \mathcal{N}(0, \sigma^{2}) \qquad \forall i \in I_{n}
+					y_{i} = f(\bvec{x}_{i}) + \epsilon_{i} \qquad \epsilon_{i} \sim \mathcal{N}(0, \sigma^{2}) \qquad \mathrm{iid} \qquad \forall i \in I_{n}
 				\label{Equation:RegressionNoiseModelScalar}
 				\end{equation}
 				
-				In general, however, the relationship between the output target $y$ and the latent functional $f$ is captured through a likelihood response $p(y | f)$, which captures the likelihood of generating a particular output target $y$ \textit{if} the latent functional is $f$. In fact, the choice of the likelihood function is not immediately straightforward and is of vital importance in the classification scenario. 
+				where $\sigma \geq 0$ is the standard deviation of the \textit{iid} zero mean Gaussian distributed noise. In general, however, the relationship between the output target $y$ and the latent functional $f$ is captured through a \textit{likelihood response} $p(y | f)$, which captures the likelihood of generating a particular output target $y$ \textit{if} the latent functional is $f$. In fact, the choice of the likelihood function is not immediately straightforward and is of vital importance in the classification scenario. 
 				
 				In the regression model above \eqref{Equation:RegressionNoiseModelScalar}, a degenerate case arises when the noise level $\sigma$ is zero such that $y = f$ everywhere. In this case, $p(y | f) = p(f | f) = 1$ such that the Gaussian process model performs inference on the target output directly through obtaining $p (y) = p(f)$. When this is not the case, however, the quantity to be inferred in the end is the output targets $y$. As such, the distribution of interest is $p(y)$. This can be obtained by marginalising away the latent functionals $f$ over the likelihood $p(y | f)$ \eqref{Equation:Marginalisation}.
 				
@@ -320,88 +289,102 @@
 				where $\mathscr{F}$ is the space of all latent functionals. Note that the form \eqref{Equation:Marginalisation} above is written in functional form to illustrate the relevant concepts. The marginalisation process above plays a vital process in the learning stage for Gaussian process inference discussed shortly.
 		
 			\subsubsection{Inference}
+			\label{Background:GaussianProcess:Regression:Inference}
 			
-				The above general inference process can now be formulated specifically for the regression case.
+				The above general inference process can now be formulated specifically for the regression case. The inference stage assumes that the distribution of $\bvec{f} := \{f(\bvec{x}_{i})\}_{i \in I_{n}}$ has been learned, which allows inference through correlation for $\bvec{f}^{\star} := \{f(\bvec{x}^{\star}_{i})\}_{i \in I_{n}}$, and finally $\bvec{y}^{\star}$ through a likelihood response (see figure \ref{Figure:GaussianProcessGraphicalModel}). An understanding of such an inference process will motivate the discussion of the learning stage in the following section (section \ref{Background:GaussianProcess:Regression:HyperparameterLearning}), which fills in the link of learning the distribution of $\bvec{f}$.
 				
-				With a given kernel function $k$ as the covariance function, by definition \ref{Definition:GaussianRandomField} we have that the training latents $\bvec{f}$ and the query latents $\bvec{f^{\star}}$ are distributed as a multivariate Gaussian \eqref{Equation:InferenceJointDistribution}.
-				
-				\begin{equation}
+				With a given kernel function $k$ as the covariance function, by definition \ref{Definition:GaussianRandomField} we have that the training latents $\bvec{f}$ at training features $X$ and the query latents $\bvec{f^{\star}}$ at query features $X^{\star}$ are distributed as a multivariate Gaussian \eqref{Equation:InferenceJointDistribution}. \begin{equation}
 					\begin{bmatrix}
-						\bvec{f^{ }} \\ \bvec{f^{\star}}
+						\bvec{f} \\ \bvec{f}^{\star}
 					\end{bmatrix}
 					\sim \mathcal{N}\Bigg(\bvec{0}, \begin{bmatrix}
 														K(X, X) & K(X, X^{\star}) \\
 														K(X^{\star}, X) & K(X^{\star}, X^{\star}) \\
 													\end{bmatrix}  \Bigg)
 				\label{Equation:InferenceJointDistribution}
-				\end{equation}
-				
-				% where the matrix $K(X, X')$ is defined to have elements $K_{ij} = k(\bvec{x}_{i}, \bvec{x}'_{j})$ with $X$ and $X'$ defined as the canonical data design matrix form \eqref{Background:GaussianProcess:Equation:DataMatrix}, both of each can take either the matrix of training points $X$ of size $n$ or query points $X^{\star}$ of size $n^{\star}$.
-				
-				To shorten notation, it is customary to define $K := K(X, X)$, $K^{\star} := K(X, X^{\star})$, $K^{\star \star} := K(X^{\star}, X^{\star})$, where the symmetry of the covariance matrix readily yields ${K^{\star}}^{T} := K(X^{\star}, X)$. In this thesis, $K$ will be referred to as the \textit{data kernel} or \textit{training kernel}, $K^{\star}$ as the \textit{inference kernel}, and $K^{\star \star}$ as the \textit{query kernel}.
-				
-				\begin{equation}
-					X = \{\bvec{x}_{i}\}_{i \in I_{n}}^{T} := \begin{bmatrix}
-						\bvec{x}_{1}^{T} \\ \bvec{x}_{2}^{T} \\ \dots \\ \bvec{x}_{n}^{T}
-					\end{bmatrix} \qquad X' = \{\bvec{x'}_{i}\}_{i \in I_{n}}^{T} := \begin{bmatrix}
-										\bvec{x'}_{1}^{T} \\ \bvec{x'}_{2}^{T} \\ \dots \\ \bvec{x'}_{n}^{T}
-									\end{bmatrix}
-				\label{Equation:TrainingQueryDataMatrices}
-				\end{equation}	
+				\end{equation} To shorten notation, it is customary to define the following kernel matrices \eqref{Equation:KernelMatrices}. \begin{equation}
+					\begin{aligned}
+						& K := K(X, X) := \{k(\bvec{x}_{i}, \bvec{x}_{j})\}_{i \in I_{n}, j \in I_{n}} \\
+						& K^{\star} := K(X, X^{\star}) := \{k(\bvec{x}_{i}, \bvec{x}^{\star}_{j})\}_{i \in I_{n}, j \in I_{n^{\star}}} \\
+						& K^{\star \star} := K(X^{\star}, X^{\star}) := \{k(\bvec{x}^{\star}_{i}, \bvec{x}^{\star}_{j})\}_{i \in I_{n^{\star}, j \in I_{n^{\star}}}}
+					\end{aligned}
+				\label{Equation:KernelMatrices}
+				\end{equation} where the symmetry of covariance matrices readily yields $K(X^{\star}, X) = {K^{\star}}^{T}$. In this thesis, $K$ will be referred to as the \textit{data kernel} or \textit{training kernel}, $K^{\star}$ as the \textit{inference kernel}, and $K^{\star \star}$ as the \textit{query kernel}.
 					
-				The joint distribution readily contains information for the conditional distribution of the query points given the training points $p(\bvec{f^{\star}} | \bvec{f})$ knowing the training points and query locations. This leads to the posterior distribution \eqref{Equation:InfereceConditionalDistribution}. Note that in some literature, the feature locations $X$ and $X^{\star}$ are also included in the conditioned set, so that the conditional distribution is written as $\bvec{f^{\star}} | \bvec{f}, X, X^{\star}$. However, throughout this thesis, since the feature locations $X$ and $X^{\star}$ are always known, they are inherently conditioned upon and will not be shown explicitly in notation for consise presentation. 
-				
-				\begin{equation}
+				The joint distribution readily contains information for the conditional distribution of the query points given the training points $p(\bvec{f^{\star}} | \bvec{f})$ knowing the training points and query locations. This leads to the posterior distribution \eqref{Equation:InferencePosteriorDistribution}. Note that in some literature, the features $X$ and $X^{\star}$ are also included in the conditioned set, so that the conditional distribution is written as $\bvec{f^{\star}} | \bvec{f}, X, X^{\star}$. However, from here on, since the features $X$ and $X^{\star}$ are always known, they are inherently conditioned upon and will not be shown explicitly in notation for consise presentation. \begin{equation}
 					\bvec{f^{\star}} | \bvec{f} \sim \mathcal{N}({K^{\star}}^{T} K^{-1} \bvec{f}, K^{\star \star} - {K^{\star}}^{T} K^{-1} K^{\star})
-				\label{Equation:InfereceConditionalDistribution}
-				\end{equation}						
+				\label{Equation:InferencePosteriorLatentDistribution}
+				\end{equation} A comparison with the prior $\bvec{f^{\star}} \sim \mathcal{N}(\bvec{0}, K^{\star \star})$ shows the mean effect ${K^{\star}}^{T} K^{-1} \bvec{f}$ and covariance effect $- {K^{\star}}^{T} K^{-1} K^{\star}$ which introduces observed information into the model. Interestingly, as ${K^{\star}}^{T} K^{-1} K^{\star}$ is positive definite, this intuitively means that the observation has reduced uncertainty in the model.
 				
-				A comparison with the prior $\bvec{f^{\star}} \sim \mathcal{N}(\bvec{0}, K^{\star \star})$ shows the mean effect ${K^{\star}}^{T} K^{-1} \bvec{f}$ and covariance effect $- {K^{\star}}^{T} K^{-1} K^{\star}$ which introduces observed information into the model. Interestingly, as ${K^{\star}}^{T} K^{-1} K^{\star}$ is positive definite, this intuitively means that the observation has reduced uncertainty in the model.
+				The above posterior distribution encompasses the heart of the GP regression model. The rest of the discussion will focus on detailed aspects of its implementation and variants.
 				
-				The above posterior formulation encompasses the heart of the GP regression model. The rest of the discussion will focus on detailed aspects of its implementation and variants.
-				
-				% \subsubsection{Noisy Observations}
-				
-				Under noisy observations, a hyperparameter $\sigma$ is introduced for the standard deviation of the noise, which is also assumed to be \textit{iid} and Gaussian distributed with standard deviation $\sigma$ and zero mean. The only alteration is the observations are notated as $\bvec{y}$ instead of $\bvec{f}$, where 
-				
-				\begin{equation}
-					\bvec{y}(X) = \bvec{f}(X) + \bvec{\upepsilon} \qquad \bvec{\upepsilon} \sim \mathcal{N}(\bvec{0}, \sigma^{2} I_{n \times n})
-				\label{Equation:RegressionNoiseModel}
+				As in the case of \eqref{Equation:RegressionNoiseModelScalar}, if the noise $\sigma$ is zero such that the output target $y$ degenerates to the latent $f$, then the predictive distribution is also the posterior distribution \eqref{Equation:InferencePosteriorLatentDistribution}, so that all inferences required can be obtained from the posterior. Under noisy observations with $\sigma > 0$ however, $\sigma$ is introduced as a hyperparameter, and the posterior distribution becomes \eqref{Equation:InferencePosteriorDistribution}. This is done by marginalising away $\bvec{f}$ through $p(\bvec{f^{\star}} | \bvec{y}) = \int_{\mathbb{R}^{n}} p(\bvec{f^{\star}} | \bvec{f}) p(\bvec{f} | \bvec{y}) d\bvec{f}$ where $p(\bvec{f} | \bvec{y})$ is specified by \eqref{Equation:TrainingPosterior} as a straightforward consequence from \eqref{Equation:RegressionNoiseModelScalar} and $p(\bvec{f^{\star}} | \bvec{f})$ from the latent posterior distribution \eqref{Equation:InferencePosteriorLatentDistribution}. \begin{equation}
+					\bvec{f} | \bvec{y} \sim \mathcal{N}(\bvec{y}, \sigma^{2} I_{n \times n})
+				\label{Equation:TrainingPosterior}
+				\end{equation} \begin{equation}
+					\bvec{f^{\star}} | \bvec{y} \sim \mathcal{N}({K^{\star}}^{T} (K + \sigma^{2} I_{n \times n})^{-1} \bvec{y}, K^{\star \star} - {K^{\star}}^{T} (K + \sigma^{2} I_{n \times n})^{-1} K^{\star})
+				\label{Equation:InferencePosteriorDistribution}
+				\end{equation} which effectively replaces the data kernel $K$ with $K + \sigma^{2} I_{n \times n}$ which incorporates the noise in the training data. Finally, to find the predictive distribution for $\bvec{y^{\star}} | \bvec{y}$, it suffices to add the noise variance to the posterior distribution \eqref{Equation:InferencePredictiveDistribution}. \begin{equation}
+					\bvec{y^{\star}} | \bvec{y} \sim \mathcal{N}({K^{\star}}^{T} (K + \sigma^{2} I_{n \times n})^{-1} \bvec{y}, K^{\star \star} + \sigma^{2} I_{n^{\star} \times n^{\star}} - {K^{\star}}^{T} (K + \sigma^{2} I_{n \times n})^{-1} K^{\star})
+				\label{Equation:InferencePredictiveDistribution}
 				\end{equation}
-							
-				and most importantly the data kernel is to be replaced with $K \mapsto K + \sigma^{2} I$. Note that however the query points remain as the latent function $\bvec{f^{\star}}$. If one were to predict future observations $\bvec{y^{\star}}$, then it suffices to generate $\bvec{f^{\star}}$ from the posterior and add randomly generated noise with standard deviation $\sigma$.
-				
+								
 			\subsubsection{Hyperparameter Learning}
 			\label{Background:GaussianProcess:Regression:HyperparameterLearning}
 			
-				One of the most important yet tricky aspects of GP modeling is the training stage. Since the model is determined entirely by the hyperparameters, the hyperparameters must be optimised in accordance to some fitness metric. The fitness metric employed to be maximised is the marginal likelihood, otherwise termed as evidence, of the observed data. This is usually non-trivial to compute and, in most cases, analytical forms do not exist. Fortunately, due to the Gaussian structure of the GP model, there exists an analytical form for the marginal likelihood. In practice, however, it is computationally faster to compute the log marginal likelihood \eqref{Background:GaussianProcess:Equation:LogMarginalLikelihood}.
+				One of the most important yet tricky aspects of GP modeling is the training stage. Since the model is determined entirely by the hyperparameters, the hyperparameters must be optimised in accordance to some fitness metric. The fitness metric employed to be maximised is the marginal likelihood, otherwise termed as evidence, of the observed data. This is usually non-trivial to compute and, in most cases, analytical forms do not exist. Fortunately, due to the Gaussian structure of the GP model, there exists an analytical form for the marginal likelihood. In practice, however, it is computationally faster to compute the log marginal likelihood \eqref{Equation:RegressionLogMarginalLikelihood}. Note that the hyperparameters $\vec{\uptheta}$ includes the kernel sensitivity $\sigma_{f}$, the kernel length scales $\{l_{ij}\}_{i \in I_{p}, j \in I_{p}}$, and the noise level $\sigma$ if noise exists.
 				
 				\begin{equation}
-					\log(p(\bvec{f})) = - \frac{1}{2} \bvec{f}^{T} K^{-1} \bvec{f} - \frac{1}{2} \log|K| - \frac{n}{2} \log(2 \pi)
-				\label{Background:GaussianProcess:Equation:LogMarginalLikelihood}
+					\log(p(\bvec{y} | \vec{\uptheta})) = - \frac{1}{2} \bvec{f}^{T} (K(\vec{\uptheta}) + \sigma^{2} I_{n \times n})^{-1} \bvec{f} - \frac{1}{2} \log|K(\vec{\uptheta}) + \sigma^{2} I_{n \times n}| - \frac{n}{2} \log(2 \pi)
+				\label{Equation:RegressionLogMarginalLikelihood}
 				\end{equation}
 				
-				Again, with noisy observations, corresponding substitutions with the data kernel matrix $K \mapsto K + \sigma^{2} I$ and observations $\bvec{f} \mapsto \bvec{y}$ is to be made.
+				Unlike the previous section, here the dependency on hyperparameters are explicitly notated with $K = K(\vec{\uptheta})$ so that the data kernel is a function of all hyperparameters except for $\sigma$. That is, all distributions from the inference stage presented in section \ref{Background:GaussianProcess:Regression:Inference} are implicitly conditioned upon $\vec{\uptheta}$. It is important to understand that the marginal likelihood here refers to the evidence of the following Bayes relation \eqref{Equation:RegressionLogMarginalLikelihoodBayes}.
 				
-				The last term is a constant, so it can be ignored during the optimisation stage and included back in once optimisation completes.
+				\begin{equation}
+					p(\bvec{f} | \bvec{y}, \vec{\uptheta}) = \frac{p(\bvec{y} | \bvec{f}, \vec{\uptheta}) p(\bvec{f} | \vec{\uptheta})}{p(\bvec{y} | \vec{\uptheta})}
+				\label{Equation:RegressionLogMarginalLikelihoodBayes}
+				\end{equation}
+				
+				That is, the Bayes relation is conditioned on the hyperparameters $\vec{\uptheta}$, and the marginalised quantify is the latents $\bvec{f}$.
+				
+				Again, in the degenerate case where $y = f$ everywhere, simply set $\sigma = 0$ in \eqref{Equation:RegressionLogMarginalLikelihood} so that the marginal likelihood simply become the prior $p(\bvec{f} | \vec{\uptheta})$.
+				
+				The last term in \eqref{Equation:RegressionLogMarginalLikelihood} is a constant, so it can be ignored during the optimisation stage and included back in once optimisation completes.
 				
 				In practice, hyperparameter learning can be sped up by employing the fact that $\frac{1}{2} \log|K| = \sum_{i} L_{ii} = \mathrm{trace}(L)$ where $L$ is the Cholesky decomposition of $K$ (or $K + \sigma^{2} I$ in the noisy case). In fact, the Cholesky decomposition $L$ leads to better numerical stability when inverting the matrix $K$ since $K = LL^{T}$ so that $K \backslash \bvec{y} = L^{T} \backslash (L \backslash \bvec{y})$.
 				
 		\subsection{Classification}
 		\label{Background:GaussianProcesses:Classification}
 		
-			The GP classification method is of vital importance to the benthic habitat modeling process. It is used to distinguish and predict the environment type with a measure of entropy in order to quantify the information reward one can gain by exploring the area.
+			Gaussian process classification is of vital importance to the benthic habitat modeling process. It is used to distinguish and infer the environment type with a measure of entropy in order to quantify the information reward one can gain by exploring the area.
 			
-			Unlike the regression case, because the output labels are no longer continuous, it cannot be represented by a continuous probability density function such as a Gaussian. As such, a continuous latent function is introduced in the GP classification process. Intuitively, this latent function quantifies and measures the distinct qualities of the label. As a binary classification example, if the classifier is to distinguish between ``apples'' and ``oranges'', the latent function would then represent the ``appleness'' of each observation, with high ``appleness'' corresponding to observations likely to be ``apples'' and low ``appleness'' corresponding to observations likely to be ``oranges''. Note that only one latent function is needed in the binary case. The latent function is then monotonically ``squashed'' into the unit range [0, 1] so that it can be interpreted as a probability.
+			Unlike the regression case, because the output labels are no longer continuous, the likelihood $p(\bvec{y} | \bvec{f}, \vec{\uptheta})$ is no longer Gaussian distributed \eqref{Equation:ClassificationLogMarginalLikelihoodBayes}.
+
+			\begin{equation}
+				\overbrace{p(\bvec{f} | \bvec{y}, \vec{\uptheta})}^{\mathclap{\substack{\text{Non-Gaussian} \\ \text{as a result}}}} = \frac{\overbrace{p(\bvec{y} | \bvec{f}, \vec{\uptheta})}^{\text{Non-Gaussian}} \; \overbrace{p(\bvec{f} | \vec{\uptheta})}^{\text{Gaussian}}}{\underbrace{p(\bvec{y} | \vec{\uptheta})}_{\mathclap{\substack{= \int\limits_{\mathbb{R}^{n}} p(\bvec{y} | \bvec{f}, \vec{\uptheta})) p(\bvec{f} | \vec{\uptheta})) d\bvec{f} \\ \Rightarrow \; \text{non-Gaussian due to above}}}}}
+			\label{Equation:ClassificationLogMarginalLikelihoodBayes}
+			\end{equation}
+
+			The above Bayes relation \eqref{Equation:ClassificationLogMarginalLikelihoodBayes} demonstrates that the posterior probability is in general non-Gaussian distributed. In this way, approximations are necessary. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \citep{GaussianProcessForMachineLearning}. In this thesis, Laplace approximation is chosen as a reasonable balance between accuracy and implementation difficulty. A short investigation of probabilistic least squares will also be provided.
 			
-			Although the latent function is now continuous such that it is possible to model it with a GP regression model, the posterior probability is in general non-Gaussian distributed, since the ``squashing'' is usually non-linear such that the likelihood is non-Gaussian. In this way, approximations are necessary. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \citep{GaussianProcessForMachineLearning}. In this thesis, Laplace approximation is chosen as a reasonable balance between accuracy and implementation difficulty, although a short investigation of probabilistic least squares will also be provided.
+			The general concept behind the approximation is that the posterior $p(\bvec{f} | \bvec{y}, \vec{\uptheta})$ is approximated by another (multi-)Gaussian distribution $q(\bvec{f} | \bvec{y}, \vec{\uptheta})$ such that the latent function is still distributed as a GP for the inference process presented in Figure \ref{Figure:GaussianProcessGraphicalModel} to remain analytically tractable.
+			
+			In most GP classification schemes, the latent function also has a particular interpretation - it quantifies and measures the how strongly a particular point belongs to a given class. As a binary classification example, if the classifier is to distinguish between ``apples'' and ``oranges'', the latent function would then represent the ``appleness'' of each observation, with high ``appleness'' corresponding to observations likely to be ``apples'' and low ``appleness'' corresponding to observations likely to be ``oranges''. Note that only one latent function is needed in the binary case and there is no need for a latent function for ``orangeness''. Intuitively, the latent function translates to a probability through being monotonically ``squashed'' into the unit range $[0, 1]$.
 			
 			\subsubsection{Response Functions}
 			\label{Background:GaussianProcesses:Classification:ResponseFunction}
 			
-				Before discussions begin regarding the various types of GP classifiers, it is important to understand the role of \textit{response functions} in Bayesian classifiers.
+				Before discussing the various types of GP classifiers, it is important to understand the role of \textit{response functions} in Bayesian classifiers, which serves to perform the ``squashing'' described previously.
 				
-				The response function is sometimes also called a sigmoid function, and are used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda(z): \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to "squeeze" the latent functions into a range where probabilistic interpretation is possible.
+				The response function is sometimes also called a sigmoid function, and are used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to "squeeze" the latent functions into a range where probabilistic interpretation is possible.
+				
+				\begin{figure}[!htbp]
+					\centering
+						\includegraphics[width=0.6\textwidth]{Figures/responses.eps}
+					\caption{Common likelihood responses}
+					\label{Figure:LikelihoodResponses}
+				\end{figure}
 				
 				The most widely used response functions are the logistic function \eqref{Equation:LogisticResponse} and probit \footnote{The probit function is also simply the standard normal cumulative distribution. The term \textit{probit} is used to make explicit its interpretation as a response likelihood function.} response \eqref{Equation:ProbitResponse} (figure \ref{Figure:LikelihoodResponses}).
 				
@@ -414,100 +397,103 @@
 					\lambda(z) = \Phi(z) := \int\limits_{-\infty}^{z} \phi(x) dx =  \int\limits_{-\infty}^{z} \frac{1}{\sqrt{2 \pi}} \exp\Big(- \frac{1}{2} x^{2}\Big) dx
 				\label{Equation:ProbitResponse}
 				\end{equation}
-			
-				\begin{figure}[!htbp]
-					\centering
-						\includegraphics[width=0.75\textwidth]{Figures/responses.eps}
-					\caption{Common likelihood responses}
-					\label{Figure:LikelihoodResponses}
-				\end{figure}
 				
-			\subsubsection{Binary Classification}
-			\label{Background:GaussianProcesses:Classification:BinaryClassification}
-			
-				The Laplace approximation for GP binary classification works by learning a latent function through an iterative scheme involving successive GP regressions, and "squeezing" that latent function into an appropriate probabilistic range for likelihood interpretation. The Laplace approximation approaches the approximation problem by determining the mean and variance of the true distribution and approximating the said distribution with a Gaussian distribution of the same mean and variance. Assuming Gaussian distributions, the prior and the evidence (marginal likelihood) have analytical forms. Under such assumptions it is therefore possible to marginalise out the likelihood predictions to obtain a posterior estimate. Finally, this learning stage can be trained by optimising the marginal likelihood \footnote{{\color{BurntOrange} At this stage of the thesis progress, it is uncertain whether or not a deeper and more rigorous theoretical grounding should be provided for GP classification. Perhaps it would benefit by only providing an intuitive outline of the procedure, rather than a rigorous derivation, so that the reader is not distracted from the main contributions of this thesis later on.}}.
-				
-			\subsubsection{Laplace Approximation}
-			\label{Background:GaussianProcesses:Classification:LaplaceApproximation}
-			
-			\subsubsection{Probabilistic Least Squares}
-			\label{Background:GaussianProcesses:Classification:ProbabilisticLeastSquares}
-			
-			\subsubsection{Multiclass Classification: One v.s. All}
-			\label{Background:GaussianProcesses:Classification:OVA}
-			
-				While a consistent framework for the GP Multi-class classification using Laplace approximation exist, a simpler and perhaps a more computationally efficient approach is to employ the One v.s. All (OVA) and All v.s. All (AVA) philosophy. The following discussion assumes that there are $c > 2$ classes of labels for which classification is to occur. 
-				
-				The OVA approach performs classification by introducing $c$ \textit{independent} classification problems, each trying to classify a label against all others. Each of these problems are thus a binary classification problem for which solution methods are known. Once the predictive probabilities from all learned GP classifiers are obtained, a consistent framework is used for fusing the separate prediction probabilities into a coherent prediction probability. This is necessary as the binary classifiers are independently learned and performs prediction independently, and may not necessarily provide coherent results. In fact, simply stacking the prediction probabilities together yields a "probability" distribution that does not sum up to 1.
-				
-				The AVA approach operates similarly. It insteads introduces $\frac{c (c - 1)}{2}$ \textit{independent} classification problems, each classifying between a pair of labels. The same exact philosophy follows in that a final consistent framework is needed for fusing the prediction probabilities into one coherent prediction probability. It is often more difficult for probability fusion in the AVA setting as compared to the OVA setting.
-			
-			\subsubsection{Multiclass Classification: All v.s. All}
-			\label{Background:GaussianProcesses:Classification:AVA}
-			
-			\subsubsection{Fusion of Prediction Probability}
-			\label{Background:GaussianProcesses:Classification:ProbabilityFusion}
-			
-				{\color{BurntOrange} This section should be in the GP implementation chapter of this thesis (e.g. Chapter 3). It would further the discussion above regarding the probability fusion problem by introducing the exclusion method and mode keeping method that has been developed and tested. It is anticipated that other methods will be developed by then, so that this section would undergo significant editing.}
-				
-				
-				
-	%				The main decision and analysis to be made in both the OVA and AVA setting is the framework for which the probabilities are to be fused. 
-	%							
-	%				The exclusion method centers around the idea that the probabilities are to be made consistent by eliminating, or excluding, the events that are impossible.
-	%				
-	%				Consider a single query point for which class prediction is to occur. Let $\pi_{i}$ be the prediction probability obtained through the binary classification of class $i$ against all other classes. Initially, the probability vector $\bvec{\pi} := [\pi_{1}, \pi_{2}, \dots, \pi_{c}]^{T}$ is not a unit vector, so that $\bvec{\pi}$ does not define a proper probability distribution \dots 
+				\FloatBarrier
 		
-			\subsubsection{Entropy}
-			\label{Background:GaussianProcesses:Classification:Entropy}
+		\subsection{Entropy}
+		\label{Background:GaussianProcesses:Entropy}
+		
+			In either the regression and classification case, after a predictive probability distribution for $\bvec{y}^{\star}$ is obtained for each query feature location, a prediction $\mathbb{E}[\bvec{y}^{\star}]$ can be obtained. Nevertheless, the power of a Bayesian model lies with its ability to also quantify prediction uncertainties. In this thesis, \textit{entropy} is employed as the measure of uncertainty and information which enables the process of informative path planning. Below discusses the entropy of general probability distributions.
 			
-				After a predictive probability distribution is obtained for each query environment location, the uncertainty of such predictions can be quantified through the entropy of of that distribution.
-				
-				The output of a GP classifier is a discrete probability distribution with finite size - equal to the number of classes. For a general discrete probability distribution $p(x)$, the entropy is quantified as below \eqref{Equation:DiscreteEntropy} \cite{ShannonEntropy}.
-				
-				\begin{equation}
-					H(p) = - \sum_{i} p(x_{i}) \log(p(x_{i}))
-				\label{Equation:DiscreteEntropy}
-				\end{equation}
-				
-				Although it is unlikely that the entropy of bathymetric feature modeling is required, the regression posterior is a continuous probability density $p(x)$ for which a similar form for distribution entropy exists \eqref{Equation:ContinuousEntropy}.
-				
-				\begin{equation}
-					H(p) = - \int_{\Omega_{x}} p(x) \log(p(x)) dx
-				\label{Equation:ContinuousEntropy}
-				\end{equation}
-								
-				With these entropy measures, predictive uncertainties can be quantified, which allows active information seeking plans to be possible.
-				
-			\subsubsection{Sampling from a Gaussian Process for Classifiers}
-			\label{Background:GaussianProcesses:Classification:Sampling}
+			Specifically, the \textit{entropy} of a probability distribution is the expected amount of information or unpredictability contained in a distribution. While the variance $\mathbb{V}[\bvec{y}^{\star}]$ is a perfectly valid way to quantify uncertainty, it is usually measured in the squared unit of the quantity interested. On the other hand, entropy is always measured in nats. More importantly however is the fact that entropy directly measures the amount of information to be expected from the query locations, such that informative actions can be taken.
 			
-	\section{Active Sampling}
-	\label{Background:ActiveSampling}
+			For a random variable $\bvec{X} \in A$ with continuous support $A$ and a probability density function $p(\bvec{x})$, the entropy is called a \textit{differential entropy} and is given by \eqref{Equation:ContinuousEntropy}
+			
+			\begin{equation}
+				H(\bvec{x}) = - \int_{A} p(\bvec{z}) \log(p(\bvec{z})) d\bvec{z}
+			\label{Equation:ContinuousEntropy}
+			\end{equation}
+										
+			On the other hand, for a random variable $\bvec{X} \in A$ with discrete support $A$ and a probability mass function $p(\bvec{x})$, the entropy is called a \textit{information entropy} \cite{ShannonEntropy} and is given by \eqref{Equation:DiscreteEntropy}.
+			
+			\begin{equation}
+				H(\bvec{x}) = - \sum_{\bvec{z} \in A} p(\bvec{z}) \log(p(\bvec{z})) d\bvec{z}
+			\label{Equation:DiscreteEntropy}
+			\end{equation}
+			
+			The above notation is often used in most statistics literature. However, in the informative path planning context where the training features $X$ and targets $\bvec{y}$ are observed and the query targets $\bvec{y}^{\star}$ corresponding to query features $X$ are to be inferred, it is customary to write the entropy as \eqref{Equation:EntropyInformativePathPlanningNotation}, which is understood as the ``entropy of the targets $\bvec{y}^{\star}$ at the query locations $X^{\star}$ given the observations $(X, \bvec{y})$''.
+			
+			\begin{equation}
+				H(\bvec{y}^{\star}) \equiv H[X^{\star} | X, \bvec{y}]
+			\label{Equation:EntropyInformativePathPlanningNotation}
+			\end{equation}
+			
+%	\section{Active Sampling}
+%	\label{Background:ActiveSampling}
+%	
+%		\subsection{Static Active Sampling}
+%		\label{Background:ActiveSampling:Static}
+%		
+%		\subsection{Dynamic Active Sampling}
+%		\label{Background:ActiveSampling:Dynamic}
+		
+%	\section{Informative Path Planning}
+%	\label{Background:InformativePathPlanning}
+%		
+%		\subsection{Myopic and Non-myopic Planning}
+%		\label{Background:InformativePathPlanning:MyopicNonmyopicPlanning}
+%		
+%		\subsection{Advantages of Gaussian Process Models}
+%		\label{Background:InformativePathPlanning:GaussianProcessAdvantage}
+		
+	\section{Related Work}
+	\label{Background:RelatedWork}
+		
+		This section discusses the related work and approaches in the field of informative path planning. Section \ref{Background:RelatedWork:InformativePathPlanning} provides an overview of general informative path planning schemes, while section \ref{Background:RelatedWork:AcquisitoinFunctions} focuses on various acquisition functions that has been employed in the past to measure information.
+				
+		\subsection{Informative Path Planning}
+		\label{Background:RelatedWork:InformativePathPlanning}
+			
+			Path planning under dynamic uncertainty has been a challenging task for all information searching missions. The objective is to reduce the overall uncertainty or entropy of a particular region given a particular resource, usually time, constraint. Unlike usual path planning scenarios, the information objective to be minimised throughout the path is not static as the vehicle executes a path planning policy. Furthermore, this class of path planning problems usually have no natural goal location, as reaching a particular destination is not the aim, although one can be artificially imposed if required.
+		
+			In an unmanned aerial vehicle setting, \cite{Roman:BayesianOptimisation} proposes a Bayesian Optimisation (BO) techniques combined with Gaussian process models for environmental monitoring. In this layered Bayesian Optimisation approach, two Gaussian processes are used - one to model the phenomenon and the other to model the quality of selected paths. Through Bayesian optimisation, sampling over continuous paths are optimised which maximises the reward over the final mission trajectory. The path planning process is done using Markov Decision Processes (MDP) with a reinforcement learning approach. Rapidly Exploring Random Graphs (RRGs) is combined with BO to search for informative paths. In this way, a continuous path can be planned. This was was further extended for online path planning with Partially Observable Markov Decision Processes (POMDPs) using a Sequential Bayesian Optimisation (SBO) approach \citep{Roman:SequentialBayesianOptimisation}.
+			
+			In an autonomous underwater vehicle context, \cite{ParametricPOMDP} investigates a policy for continuous state space planning using POMDP. This method was compared to previous work with value-based and gradient-based solution methods which seek to transcribe the continuous problem into a discrete problem. One of the most important limitations discussed in this work is that analytical and accurate solutions exist almost only for linear systems with quadratic cost, or \textit{linear quadratic systems}. Otherwise, the other option with non-value based methods require heuristics that can be difficult to justify for its appropriateness to the problem. Nevertheless, through parametrising the problem, parametric POMDPs can provide an accurate solution to the path planning problem under certain assumption such as linear quadratic dynamics.
+		
+		\subsection{Acquisition Functions}
+		\label{Background:RelatedWork:AcquisitoinFunctions}
+		
+			One of the main challenges of informative path planning include selecting the appropriate acquisition function suitable for the type of exploration task at hand. \textit{Acquisition functions}, or \textit{acquisition criterion}, measures the desirability of observing a particular location. In the informative path planning scenario, the acquisition function evaluates the amount of total information or uncertainty contained by a given candidate path. In this context, the way in which \textit{total information} is quantified determines the acquisition function. The more information the path contains, the more desirable it is for the AUV to follow and take observations on that path. 
 	
-		\subsection{Static Active Sampling}
-		\label{Background:ActiveSampling:Static}
+			The effectiveness of an acquisition function that measures mutual information throughout a particular given path has been thoroughly investigated in the literature \citep{AsherBender, Rigby:ROB20372, Krause:2008:NSP:1390681.1390689, Kapoor}. \textit{Mutual information} refers to a measure of information that takes into account the overlapping information within the region or path in consideration. In most spatial sampling contexts, it is unlikely that two given locations within a region or path are completely unrelated or uncorrelated. Observations in one location provides partial information regarding other locations, which is the primary reason that an accurate benthic habitat map can be obtained without visiting all locations within the region exhaustively. Without considering mutual information, an agent such as an AUV may be prompted to observe locations that contain similar information, thus achieving inefficient mapping.
+			
+			Several types of acquisition functions have been proposed in the benthic habitat mapping context. \cite{AsherBender} uses an acquisition criterion given by \eqref{Equation:AsherBenderAcquisitionCriterion} where $\pi^{m}_{i}$ is the probability of the habitat label being a member of class $m \in \{1, \dots, c\}$ at query location $i \in \{1, \dots, n^{\star}\}$. Here $c$ is the number of classes and $n^{\star}$ is the number of query points.
+			
+			\begin{equation}
+				H = - \frac{1}{n^{\star}} \sum_{i = 1}^{n^{\star}} \sum_{m = 1}^{c} \pi^{m}_{i} \log(\pi^{m}_{i})
+			\label{Equation:AsherBenderAcquisitionCriterion}
+			\end{equation}
+			
+			For a given query point $i$, $- \sum_{m = 1}^{c} \pi^{m}_{i} \log(\pi^{m}_{i})$ is exactly the prediction information entropy (PIE) at location $i$, which captures the local model uncertainty and thus potential information. As a result, the acquisition criterion given in \eqref{Equation:AsherBenderAcquisitionCriterion} is the mean of the marginalised PIE across query points, which does not capture mutual information through considering the joint distributions of the class labels across multiple query points $i \in \{1, \dots, n^{\star}\}$. This acquisition criterion will be referred to as MPIE for mean of marginalised prediction information entropy. In this approach, the quality of the habitat models are assessed by utility functions that evaluate the confidence of the GP classifier prediction, which is the difference of the MPIE before and after an observation is made \eqref{Equation:AsherBenderMutualInformationCriterion} \citep{Rigby:ROB20372}. This utility is used in conjunction with a GP classifier under probabilistic least squares approximation to optimise selected survey paths through considering the differential entropy across the entire region of interest (ROI). Below, $X, \bvec{y}$ are the observed feature locations and habitat labels, $X^{\star}$ to be the unobserved query locations, and $X_{p}, \bvec{y}_{p}$ are the observations made after traversing the proposed path.
 		
-		\subsection{Dynamic Active Sampling}
-		\label{Background:ActiveSampling:Dynamic}
-		
-	\section{Informative Path Planning}
-	\label{Background:InformativePathPlanning}
-	
-		Path planning under dynamic uncertainty has been a challenging task for all information searching missions. This class of path planning problems have the special property that there is no goal location, and no stationary node, edge, or field cost to be cumulatively minimised. The objective is to reduce the overall uncertainty or entropy of a particular region given indefinite time. The complication is introduced with the non-linear dynamics of the uncertainty or entropy field of the region each time a planned path is executed, which also makes the solution extremely frequency dependent.
-		
-		Prior work and attempts at the active path planning problem include Marchant and Ramos (2014), where Bayesian Optimisation (BO) techniques combined with Gaussian process models are employed in an environmental monitoring setting \citep{BayesianOptimisation}. In this layered Bayesian Optimisation approach, two Gaussian processes are used - one to model the phenomenon and the other to model the quality of selected paths. Through Bayesian optimisation, sampling over continuous paths are optimised which maximises the reward over the final mission trajectory. The path planning process is done using Markov Decision Processes (MDP) with a Reinforcement Learning approach. Rapidly Exploring Random Graphs (RRGs) is combined with BO to search for informative paths. In this way, a continuous path can be planned through BO \citep{BayesianOptimisation}.
-		
-		This was was further extended by Marchant et. al. (2014) where Sequential Bayesian Optimisation (SBO) is used as online POMDPs for path planning \citep{SequentialBayesianOptimisation}.
-		
-		Other prior work includes Brooks et. al. (2006) where the POMDP approach is investigated for continuous state space planning \citep{ParametricPOMDP}. This method was compared to previous work with value-based and gradient-based solution methods which seek to transcribe the continuous problem into a discrete problem \footnote{{\color{BurntOrange} The author has practiced with transcribing the continuous problem into a discrete problem in a shortest path setting in}}. One of the most important limitations discussed in this work is that analytical and accurate solutions exist almost only for linear systems with quadratic cost (Linear Quadratic Systems). Otherwise, the other option with non-value based methods require heuristics that can be difficult to justify for its appropriateness to the problem. Nevertheless, through parametrising the problem, parametric POMDPs can provide an accurate solution to the path planning problem under certain assumption such as linear quadratic dynamics \citep{ParametricPOMDP}.
-		
-		In conclusion, POMDP methods are currently one of the most reliable and accurate method for continuous path planning in an information gathering setting. While the technique enforces limitations on the problem dynamics, with sufficient modeling it is deemed possible to perform path planning to an acceptable level. This thesis will thus investigate POMDP methods for active path planning in the ocean exploration setting.
-		
-		\subsection{Myopic and Non-myopic Planning}
-		\label{Background:InformativePathPlanning:MyopicNonmyopicPlanning}
-		
-		\subsection{Advantages of Gaussian Process Models}
-		\label{Background:InformativePathPlanning:GaussianProcessAdvantage}
-		
-		
+			\begin{equation}
+				I = H[X^{\star} | X, \bvec{y}] - H[X^{\star} | X \cup X_{p}, \bvec{y} \cup \bvec{y}_{p}]
+			\label{Equation:AsherBenderMutualInformationCriterion}
+			\end{equation}
+			
+			\cite{Krause:2008:NSP:1390681.1390689} instead focuses on sensor placement methodologies to optimse mutual information gained. This aims to reduce predictive variance at all query points. The chosen acquisition function is the difference between the MIE at all \textit{final} unobserved locations $X^{\star} \backslash X_{p}$ before and after the observations are taken \eqref{Equation:KrauseAcquisitionCriterion}.
+			
+			\begin{equation}
+				I = H[X^{\star} \backslash X_{p} | X, \bvec{y}] - H[X^{\star} \backslash X_{p} | X \cup X_{p}, \bvec{y} \cup \bvec{y}_{p}]
+			\label{Equation:KrauseAcquisitionCriterion}
+			\end{equation}
+			
+			Under the GP classification model, however, this results in an integral that can only be estimated through sampling techniques which are computationally expensive. As such, computationally tractable methods usually employ experimental design philosophies in minimising the predictive variance \citep{AsherBender}.
+			
+			\cite{Kapoor} demonstrates the use of posterior mean and covariance of the GP classifier latent function. While this approach takes full advantage of the analytical forms available for a Gaussian latent process, it does not consider the mutual behaviour of the unobserved locations with the proposed path.
+			
+			On the other hand, \cite{Roman:SequentialBayesianOptimisation} approaches the problem from a continuous path-planning perspective for UAVs in which two Gaussian processes are used - one to model the phenomenon and another to assess the quality of proposed paths. However, this layered Sequential Bayesian Optimisation approach is primarily devised for a regression setting which becomes intractable when performed in the classification domain.
+			
+			Much of the intractability discussed in such literature can trace its reason down to the fact that benthic habitat mapping is a classification problem instead of a regression problem. While Gaussian process regression provide analytical forms for inference, due to a non-Gaussian likelihood response, Gaussian process classification is no longer analytically tractable. Instead, several approximations must be made, which is discussed in section \ref{Background:GaussianProcesses:Classification}.
+			
+			This thesis addresses the tractability status of the problem through proposing an alternative acquisition criterion, hereby named linearised model differential entropy (LMDE), that captures mutual information. In the current literature, acquisition criterion either do not directly capture mutual information, such as \eqref{Equation:AsherBenderAcquisitionCriterion}, or take too long to compute due to required estimations from sampling, such as \eqref{Equation:KrauseAcquisitionCriterion}. This work shows that LMDE as an acquisition function captures an appropriate form of mutual information. Furthermore, LDME outperforms other acquisitions in both ractability and mapping accuracy.		

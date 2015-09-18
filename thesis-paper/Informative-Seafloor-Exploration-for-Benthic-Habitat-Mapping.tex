@@ -14,7 +14,7 @@
 
 %%%%%% Start: Kelvin's Packages %%%%%% 
 %\usepackage{apacite}
-\usepackage{amsmath,amssymb,amsthm,mathrsfs}
+\usepackage{mathtools, amsmath,amssymb,amsthm,mathrsfs}
 \usepackage{placeins}
 \usepackage{wrapfig}
 \usepackage[noabbrev]{cleveref}
@@ -245,26 +245,37 @@ Date:\\
 }
 
 %%% ----------------------------------------------------------------
-%\clearpage  % Start a new page
-%\lhead{\emph{Physical Constants}}  % Set the left side page header to "Physical Constants"
-%\listofconstants{lrcl}  % Include a list of Physical Constants (a four column table)
-%{
-%%	% Constant Name & Symbol & = & Constant Value (with units) \\
-%%	Speed of Light & $c$ & $=$ & $2.997\ 924\ 58\times10^{8}\ \mbox{ms}^{-\mbox{s}}$ (exact)\\
-%
-%}
-%
+\clearpage  % Start a new page
+\lhead{\emph{Notations}}  % Set the left side page header to "Physical Constants"
+\listofnotations{llrcl}  % Include a list of Physical Constants (a four column table)
+{
+	% Constant Name & Symbol & = & Constant Value (with units) \\
+	Index Sets & $I_{n}$ & $:=$ & $\{1, 2, \dots, n\}$ & where $n \in \mathbb{N}$ \\
+	Sequences & $\{a_{i}\}_{i \in I_{n}}$ & $:=$ & $\{a_{1}, a_{2}, \dots, a_{n}\}$ & \\
+	Vector Shorthand & $\{a_{i}\}_{i \in I_{n}}$ & $\equiv$ & $[a_{1}, a_{2}, \dots, a_{n}]^{T} \in \mathbb{C}^{n}$ & if $a_{i} \in \mathbb{C} \quad \forall i \in I_{n}$ \\
+	Matrix Shorthand & $\{\bvec{a}_{i}\}_{i \in I_{n}}$ & $\equiv$ & $[\bvec{a}_{1}, \bvec{a}_{2}, \dots, \bvec{a}_{n}]^{T} \in \mathbb{C}^{n \times p}$ & if $\bvec{a}_{i} \in \mathbb{C}^{p} \quad \forall i \in I_{n}$ \\
+	% $\{x_{i}\}_{i \in I}$ & = & $\begin{bmatrix} x_{1} & x_{2} & \dots \end{bmatrix}$
+
+}
+
 %%% ----------------------------------------------------------------
-%\clearpage  %Start a new page
-%\lhead{\emph{Symbols}}  % Set the left side page header to "Symbols"
-%\listofnomenclature{lll}  % Include a list of Symbols (a three column table)
-%{
-%%	% symbol & name & unit \\
-%%	$a$ & distance & m \\
-%%	$P$ & power & W (Js$^{-1}$) \\
-%%	& & \\ % Gap to separate the Roman symbols from the Greek
-%%	$\omega$ & angular frequency & rads$^{-1}$ \\
-%}
+\clearpage  %Start a new page
+\lhead{\emph{Symbols}}  % Set the left side page header to "Symbols"
+\listofnomenclature{ll}  % Include a list of Symbols (a three column table)
+{
+	% symbol & name \\
+	$P$ & Training Positions \\
+	$X$ & Training Features \\
+	$\bvec{y}$ & Training Target Outputs \textit{or} Training Target Labels \\
+	& \\ % Gap to separate the Roman symbols from the Greek
+	$\mathcal{P}$ & Spatial Space \\
+	$\mathcal{X}$ & Feature Space \\
+	$\mathcal{Y}$ & Target Space \textit{or} Label/Map Space \\
+	& \\ % Gap to separate the Roman symbols from the Greek
+	$\mathscr{P}$ & Spatial Space $\sigma$-algebra \\
+	$\mathscr{X}$ & Feature Space $\sigma$-algebra \\
+	$\mathscr{Y}$ & Target Space $\sigma$-algebra \textit{or} Label/Map Space $\sigma$-algebra \\
+}
 %%% ----------------------------------------------------------------
 %% End of the pre-able, contents and lists of things
 %% Begin the Dedication page

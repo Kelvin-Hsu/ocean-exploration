@@ -337,6 +337,17 @@
 \begin{longtable}[c]{#1}#2\end{longtable}\par
     \cleardoublepage
 }
+\newcommand\listnotations{Notations}
+\usepackage{longtable}
+\newcommand\listofnotations[2]{
+\btypeout{\listnotations}
+\addtotoc{\listnotations}
+    \chapter*{\listnotations
+      \@mkboth{
+          \MakeUppercase\listnotations}{\MakeUppercase\listnotations}}
+\begin{longtable}[c]{#1}#2\end{longtable}\par
+    \cleardoublepage
+}
 \newcommand\listnomenclature{Symbols}
 \usepackage{longtable}
 \newcommand\listofnomenclature[2]{
