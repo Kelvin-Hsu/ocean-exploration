@@ -209,22 +209,31 @@
 		
 		In most GP classification schemes, the latent function also has a particular interpretation - it quantifies the how strongly a particular point belongs to a given class. As a binary classification example, if the classifier is to distinguish between ``apples'' and ``oranges'', the latent function would represent the ``appleness'' of each point, with high ``appleness'' corresponding to observations likely to be ``apples'' and low ``appleness'' corresponding to observations likely to be ``oranges''. Note that only one latent function is needed in the binary case and there is no need for a latent function for ``orangeness''. Intuitively, the latent function translates to a probability through being monotonically ``squashed'' into the unit range $[0, 1]$.
 		
-		The outset of this section begins by introducing the basic theory behind binary classification. After a summarising the basics of response functions in section \ref{BenthicHabitatMapping:Classification:ResponseFunction}, the technique of Laplace approximation and probabilistic least squares approximations are then presented respectively in sections \ref{BenthicHabitatMapping:Classification:LaplaceApproximation} and \ref{BenthicHabitatMapping:Classification:ProbabilisticLeastSquaresApproximation}. These approximations are then compared in performance in section \ref{BenthicHabitatMapping:Classification:ApproximationPerformance}. This then allows the development of multiclass classification methods, which are detailed in section \ref{BenthicHabitatMapping:Classification:MulticlassClassification}. Finally, to ensure inference consistency, two novel probability fusion techniques are presented in section \ref{BenthicHabitatMapping:Classification:ProbabilityFusion} as an alternative to simple normalisation.
+		The outset of this section, section \ref{BenthicHabitatMapping:Classification:BinaryClassification}, begins by introducing the basic theory behind binary classification. After a summarising the basics of response functions in section \ref{BenthicHabitatMapping:Classification:ResponseFunction}, the technique of Laplace approximation and probabilistic least squares approximations are then presented respectively in sections \ref{BenthicHabitatMapping:Classification:LaplaceApproximation} and \ref{BenthicHabitatMapping:Classification:ProbabilisticLeastSquaresApproximation}. These approximations are then compared in performance in section \ref{BenthicHabitatMapping:Classification:ApproximationPerformance}. This then allows the development of multiclass classification methods, which are detailed in section \ref{BenthicHabitatMapping:Classification:MulticlassClassification}. Finally, to ensure inference consistency, two novel probability fusion techniques are presented in section \ref{BenthicHabitatMapping:Classification:ProbabilityFusion} as an alternative to simple normalisation.
 		
+		\subsection{Binary Classification}
+		\label{BenthicHabitatMapping:Classification:BinaryClassification}
+			
+			The goal of binary classifiers is to distinguish between two class labels as accurate as possible. In general, all classification algorithms begins by analysing the binary classification case before extending the theory to a multiclass scenario. This is usually because binary classification are much easier to formulate, as most regression techniques can be translated to a binary classifier almost painlessly.
+			
+			The basic concept involved is to associate positive outputs from the regressor with one of the two labels, leaving the negative outputs associated with the other label. Note that this usually means that the regression output is constructed to be centred around zero, and that there exists symmetry between positive and negative outputs such that the technique remains the same had the labels been switched. The way the association is formulated is what defines the type of classification technique that is employed.
+			
+			Naturally, to protect the symmetry involved as well as to simplify the formulation, it is customary to choose 1 and -1 as the target class labels $y$, so that $y \in \{-1, 1\}$. The continuous output from a regressor is simply the latent function $f(\bvec{x}) \in \mathbb{R}$. In this way, $y = 1$ are associated with $f > 0$, while $y = -1$ are associated with $f < 0$. Note that this inference process still follows the basic structure presented in Figure \ref{Figure:GaussianProcessGraphicalModel}. The specific way the target labels $y$ are associated with the latent $f$ is usually summarised by a \textit{likelihood response} $p(y | f)$. As such, the first step towards Gaussian process classification is to choose an appropriate \textit{response function}.
+			
 		\subsection{Response Functions}
 		\label{BenthicHabitatMapping:Classification:ResponseFunction}
 		
 			Before discussing the various types of GP classifiers, it is important to understand the role of \textit{response functions} in Bayesian classifiers, which serves to perform the ``squashing'' described previously.
-			
-			The response function, sometimes also called a sigmoid function, is used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to "squeeze" the latent functions into a range where probabilistic interpretation is possible.
-			
+
 			\begin{figure}[!htbp]
 				\centering
 					\includegraphics[width=0.6\textwidth]{Figures/responses.eps}
 				\caption{Common likelihood responses}
 				\label{Figure:LikelihoodResponses}
 			\end{figure}
-			
+					
+			The response function, sometimes also called a sigmoid function, is used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to "squeeze" the latent functions into a range where probabilistic interpretation is possible.
+				
 			The most widely used response functions are the logistic response \eqref{Equation:LogisticResponse} and probit \footnote{The probit function is also simply the standard normal cumulative distribution. The term \textit{probit} is used to make explicit its interpretation as a response likelihood function.} response \eqref{Equation:ProbitResponse} (figure \ref{Figure:LikelihoodResponses}). After a specific response function is chosen, the likelihood is given by \eqref{Equation:LikelihoodResponse}, thus achieving the squashing effect. Note that the likelihood $p(\bvec{y} | \bvec{f}, \vec{\uptheta}) = p(\bvec{y} | \bvec{f})$ is independent of the hyperparameters $\vec{\uptheta}$ by construction. Furthermore, each target $y_{i}$ depends only on the corresponding latent $f_{i}$ given all the latents $\bvec{f}$. \begin{equation}
 				\lambda(z) = \frac{1}{1 + \exp(-z)}
 			\label{Equation:LogisticResponse}
@@ -237,6 +246,8 @@
 			\end{equation}				
 			\FloatBarrier
 			
+			Talk about $\pi$ and the gradients!
+			
 		\subsection{Laplace Approximation}
 		\label{BenthicHabitatMapping:Classification:LaplaceApproximation}
 		
@@ -248,10 +259,11 @@
 		
 			Compare probability outputs, classification outputs, entropy outputs, etc
 		
-		\subsection{Methods for Multiclass Classification}
+		\subsection{Multiclass Classification}
 		\label{BenthicHabitatMapping:Classification:MulticlassClassification}
 		
 			\subsubsection{One Versus All Classification}
+			\label{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}
 			
 				While a consistent framework for the GP Multi-class classification using Laplace approximation exist, a simpler and perhaps a more computationally efficient approach is to employ the One v.s. All (OVA) and All v.s. All (AVA) philosophy. The following discussion assumes that there are $c > 2$ classes of labels for which classification is to occur. 
 					
@@ -260,17 +272,22 @@
 				The AVA approach operates similarly. It insteads introduces $\frac{c (c - 1)}{2}$ \textit{independent} classification problems, each classifying between a pair of labels. The same exact philosophy follows in that a final consistent framework is needed for fusing the prediction probabilities into one coherent prediction probability. It is often more difficult for probability fusion in the AVA setting as compared to the OVA setting
 				
 			\subsubsection{All Versus All Classification}
+			\label{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}
 			
 			\subsubsection{Properties \& Performance}
-	
+			\label{BenthicHabitatMapping:Classification:MulticlassClassification:Performance}
+			
 		\subsection{Probability Fusion Techniques}
 		\label{BenthicHabitatMapping:Classification:ProbabilityFusion}
 		
 			\subsubsection{Simple Normalisation}
+			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:SimpleNormalisation}
 				
 			\subsubsection{Mode Keeping}
+			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:ModeKeeping}
 				
 			\subsubsection{Exclusion}
+			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:Exclusion}
 			
 	\section{Mapping Scott Reef Benthic Habitats}
 	\label{BenthicHabitatMapping:ScottReef}
