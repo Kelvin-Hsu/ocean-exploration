@@ -192,36 +192,38 @@
 			\FloatBarrier
 				
 	\section{Gaussian Process Classification}
-	\label{BenthicHabitatMapping:GaussianProcesses:Classification}
+	\label{BenthicHabitatMapping:Classification}
 	
-		Gaussian process classification is of vital importance to the benthic habitat modeling process. It is used to infer the habitat type, and most importantly quantify the information reward one can gain by exploring a given area.
+		After extracting the bathymetric features across the seafloor terrain, the next step in benthic habitat mapping is to develop a classification algorithm for habitat class inference. Gaussian process classification is of vital importance to the benthic habitat modeling process. It is used to infer the habitat type, and most importantly quantify the information reward one can gain by exploring a given area. As concluded in section \ref{Background:RelatedWork:AcquisitoinFunctions}, there has been many prior attempts in using Gaussian process classifiers for benthic habitat mapping. However, while Gaussian process classifiers are strong in inference and predictive ability, its use is complicated by its lack of analytical tractability. Approximate solutions are therefore required. Furthermore, it is non-trivial to formulate a Gaussian process based multiclass classifier, as well as ensuring a consistent predictive probability distribution from the resulting multiclass classifier. This section address those concerns and outlines the basic formulation of Gaussian process classifiers.
 		
-		Unlike the regression case, because the output labels are no longer continuous, the likelihood $p(\bvec{y} | \bvec{f}, \vec{\uptheta})$ is no longer Gaussian distributed \eqref{Equation:ClassificationLogMarginalLikelihoodBayes}. Note that there is no noise parameter $\sigma$ involved, so that the hyperparameters are $\vec{\uptheta}$.
+		Unlike the regression case described in section \ref{Background:GaussianProcesses:Regression}, the analytical intractability is caused by a non-Gaussian likelihood response $p(\bvec{y} | \bvec{f}, \vec{\uptheta})$, since the output labels are no longer continuous \eqref{Equation:ClassificationLogMarginalLikelihoodBayes}. Note that there is no noise parameter $\sigma$ involved, so that the hyperparameters are $\vec{\uptheta}$ in accordance to the notations introduced in section \ref{Background:GaussianProcesses:Regression}.
 
 		\begin{equation}
 			\overbrace{p(\bvec{f} | \bvec{y}, \vec{\uptheta})}^{\mathclap{\substack{\text{Non-Gaussian} \\ \text{as a result}}}} = \frac{\overbrace{p(\bvec{y} | \bvec{f}, \vec{\uptheta})}^{\text{Non-Gaussian}} \; \overbrace{p(\bvec{f} | \vec{\uptheta})}^{\text{Gaussian}}}{\underbrace{p(\bvec{y} | \vec{\uptheta})}_{\mathclap{\substack{= \int\limits_{\mathbb{R}^{n}} p(\bvec{y} | \bvec{f}, \vec{\uptheta})) p(\bvec{f} | \vec{\uptheta})) d\bvec{f} \\ \Rightarrow \; \text{Non-Gaussian due to above}}}}}
 		\label{Equation:ClassificationLogMarginalLikelihoodBayes}
 		\end{equation}
 
-		The above Bayes relation \eqref{Equation:ClassificationLogMarginalLikelihoodBayes} demonstrates that the posterior probability is in general non-Gaussian distributed. In this way, approximations are necessary. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \citep{GaussianProcessForMachineLearning}. In this thesis, Laplace approximation is chosen as a reasonable balance between accuracy and implementation difficulty. A short investigation of probabilistic least squares will also be provided.
+		The above Bayes relation \eqref{Equation:ClassificationLogMarginalLikelihoodBayes} demonstrates that the posterior probability is in general not Gaussian. In this way, approximations are necessary. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \citep{GaussianProcessForMachineLearning}. As expectation propagation and variational inference is extremely computationally heavy and thus hinder tractability performances, Laplace approximation is chosen as a reasonable balance between accuracy and implementation difficulty. A short investigation of probabilistic least squares will also be provided.
 		
 		The general concept behind the approximation is that the posterior $p(\bvec{f} | \bvec{y}, \vec{\uptheta})$ is approximated by another (multivariate) Gaussian distribution $q(\bvec{f} | \bvec{y}, \vec{\uptheta})$ such that the latent function is still distributed as a GP for the inference process presented in Figure \ref{Figure:GaussianProcessGraphicalModel} to remain analytically tractable.
 		
 		In most GP classification schemes, the latent function also has a particular interpretation - it quantifies the how strongly a particular point belongs to a given class. As a binary classification example, if the classifier is to distinguish between ``apples'' and ``oranges'', the latent function would represent the ``appleness'' of each point, with high ``appleness'' corresponding to observations likely to be ``apples'' and low ``appleness'' corresponding to observations likely to be ``oranges''. Note that only one latent function is needed in the binary case and there is no need for a latent function for ``orangeness''. Intuitively, the latent function translates to a probability through being monotonically ``squashed'' into the unit range $[0, 1]$.
 		
+		The outset of this section begins by introducing the basic theory behind binary classification. After a summarising the basics of response functions in section \ref{BenthicHabitatMapping:Classification:ResponseFunction}, the technique of Laplace approximation and probabilistic least squares approximations are then presented respectively in sections \ref{BenthicHabitatMapping:Classification:LaplaceApproximation} and \ref{BenthicHabitatMapping:Classification:ProbabilisticLeastSquaresApproximation}. These approximations are then compared in performance in section \ref{BenthicHabitatMapping:Classification:ApproximationPerformance}. This then allows the development of multiclass classification methods, which are detailed in section \ref{BenthicHabitatMapping:Classification:MulticlassClassification}. Finally, to ensure inference consistency, two novel probability fusion techniques are presented in section \ref{BenthicHabitatMapping:Classification:ProbabilityFusion} as an alternative to simple normalisation.
+		
 		\subsection{Response Functions}
-		\label{BenthicHabitatMapping:GaussianProcesses:Classification:ResponseFunction}
+		\label{BenthicHabitatMapping:Classification:ResponseFunction}
 		
 			Before discussing the various types of GP classifiers, it is important to understand the role of \textit{response functions} in Bayesian classifiers, which serves to perform the ``squashing'' described previously.
 			
-			The response function, sometimes also called a sigmoid function, are used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to "squeeze" the latent functions into a range where probabilistic interpretation is possible.
+			The response function, sometimes also called a sigmoid function, is used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to "squeeze" the latent functions into a range where probabilistic interpretation is possible.
 			
-			\begin{wrapfigure}{r}{0.5\textwidth}
+			\begin{figure}[!htbp]
 				\centering
-					\includegraphics[width=0.5\textwidth]{Figures/responses.eps}
+					\includegraphics[width=0.6\textwidth]{Figures/responses.eps}
 				\caption{Common likelihood responses}
 				\label{Figure:LikelihoodResponses}
-			\end{wrapfigure}
+			\end{figure}
 			
 			The most widely used response functions are the logistic response \eqref{Equation:LogisticResponse} and probit \footnote{The probit function is also simply the standard normal cumulative distribution. The term \textit{probit} is used to make explicit its interpretation as a response likelihood function.} response \eqref{Equation:ProbitResponse} (figure \ref{Figure:LikelihoodResponses}). After a specific response function is chosen, the likelihood is given by \eqref{Equation:LikelihoodResponse}, thus achieving the squashing effect. Note that the likelihood $p(\bvec{y} | \bvec{f}, \vec{\uptheta}) = p(\bvec{y} | \bvec{f})$ is independent of the hyperparameters $\vec{\uptheta}$ by construction. Furthermore, each target $y_{i}$ depends only on the corresponding latent $f_{i}$ given all the latents $\bvec{f}$. \begin{equation}
 				\lambda(z) = \frac{1}{1 + \exp(-z)}
@@ -234,23 +236,21 @@
 			\label{Equation:LikelihoodResponse}
 			\end{equation}				
 			\FloatBarrier
-				
-%	\section{Approximation methods for GP Classification}
-%	
-%		After extracting the bathymetric features across the seafloor terrain, the next step in benthic habitat mapping is to develop a classification algorithm for habitat class inference. As concluded in section \ref{Background:RelatedWork:AcquisitoinFunctions}, there has been many prior attempts in benthic habitat mapping for handling the lack of analytical tractability involved in Gaussian process classifiers. The analytical intractability comes from the fact that the likelihood response is no longer Gaussian distributed, as explained in section \ref{Background:GaussianProcesses:Classification}. 
-%		
-%		Gaussian process classification 
+			
 		\subsection{Laplace Approximation}
+		\label{BenthicHabitatMapping:Classification:LaplaceApproximation}
 		
 		\subsection{Probabilistic Least Squares Approximation}
+		\label{BenthicHabitatMapping:Classification:ProbabilisticLeastSquaresApproximation}
 		
-		\subsection{Properties \& Performance}
+		\subsection{Approximation Properties \& Performance}
+		\label{BenthicHabitatMapping:Classification:ApproximationPerformance}
 		
-			% Laplace Approximation and Probabilistic Least Squares
 			Compare probability outputs, classification outputs, entropy outputs, etc
 		
 		\subsection{Methods for Multiclass Classification}
-	
+		\label{BenthicHabitatMapping:Classification:MulticlassClassification}
+		
 			\subsubsection{One Versus All Classification}
 			
 				While a consistent framework for the GP Multi-class classification using Laplace approximation exist, a simpler and perhaps a more computationally efficient approach is to employ the One v.s. All (OVA) and All v.s. All (AVA) philosophy. The following discussion assumes that there are $c > 2$ classes of labels for which classification is to occur. 
@@ -263,7 +263,8 @@
 			
 			\subsubsection{Properties \& Performance}
 	
-		\subsection{Probability Fusion Methods}
+		\subsection{Probability Fusion Techniques}
+		\label{BenthicHabitatMapping:Classification:ProbabilityFusion}
 		
 			\subsubsection{Simple Normalisation}
 				
@@ -273,8 +274,7 @@
 			
 	\section{Mapping Scott Reef Benthic Habitats}
 	\label{BenthicHabitatMapping:ScottReef}
-	
-		
+
 		The Scott Reef data set is provided by \cite{IMOS}. The benthic labels are clustered in an unsupervised manner from benthic imagery using Gaussian latent Dirichlet allocation (LDA) \cite{Steinberg2015128}, producing 22 unique benthic class labels, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting. 
 	
 		\subsection{Simulation Setup}
