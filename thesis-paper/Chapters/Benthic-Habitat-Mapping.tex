@@ -3,18 +3,7 @@
 \label{BenthicHabitatMapping}
 	
 	 With the general theory and framework of Gaussian process inference provided in section \ref{Background:GaussianProcesses}, this chapter aims to extend such theory to the benthic habitat mapping context. In particular, specific classifier inference techniques are developed and built upon the existing Gaussian process classifier framework. This chapter focuses strictly on the inference techniques necessary for building a map of benthic habitats across a given region. The following chapter would then continue to build on such inference models for the purpose of informative seafloor exploration. 
-	 
-	 The outset of this chapter, section \ref{BenthicHabitatMapping:GaussianProcessClassifiers}, begins by motivating the use of Gaussian process classifiers for benthic habitat mapping. Most importantly, the inference information flow provided in figure \ref{Figure:InferenceFlow} serves as a visual roadmap of the inference stages to be explored in this thesis, and will thus be reference frequently.
-	 
-	 The benthic modeling process begins with extracting bathymetric features from given seafloor locations. Section \ref{BenthicHabitatMapping:BathymetricFeatures} discusses the process of bathymetric feature extraction which includes the modeling choices and assumptions involved. 
-	 
-	 (GP CHAPTERS DESCRIPTION)
-	 
-	 Finally, section \ref{BenthicHabitatMapping:ScottReef} demonstrates the techniques developed in this chapter through mapping the benthic habitats of the Scott Reef seafloor. 
-				
-	\section{GP Classifiers for Benthic Habitat Mapping}
-	\label{BenthicHabitatMapping:GaussianProcessClassifiers}
-		
+	
 		This thesis employs Gaussian process classifiers as the primary inference model for benthic habitat mapping. Gaussian processes are non-parametric, Bayesian models which is able to model a variety of phenomenon. They are known to allow the data to `speak for itself' and provide a principled inference framework for drawing conclusion regarding the gathered data \citep{GaussianProcessForMachineLearning}. 
 		
 		Figure \ref{Figure:InferenceFlow} visualises the information flow involved in a Gaussian process classifier, and describes the necessary inference stages involved for both habitat mapping and information inference, the latter of which allows informative exploration and is the focus of the next chapter.
@@ -30,7 +19,13 @@
 		
 		As the figure suggests, the mapping process is a supervised learning problem for which the habitat labels $\bvec{y}^{\star}$ at the query locations $P^{\star}$ is to be inferred from the query features $X^{\star}$ by learning a relationship between the habitat labels $\bvec{y}$ and the training features $X$ at the training locations $P$. Only the {\color{Gray} gray} and {\color{ForestGreen} green} coloured arrows in Figure \ref{Figure:InferenceFlow} are necessary for mapping to be achieved.
 		
-		As the discussion continues in the following two chapters, each part of the diagram will be expanded and addressed.
+		As the discussion continues in the following two chapters, each part of the diagram will be expanded and addressed. The inference information flow provided in figure \ref{Figure:InferenceFlow} serves as a visual roadmap of the inference stages to be explored in this thesis, and will thus be reference frequently
+		
+	 The benthic modeling process begins with extracting bathymetric features from given seafloor locations. Section \ref{BenthicHabitatMapping:BathymetricFeatures} discusses the process of bathymetric feature extraction which includes the modeling choices and assumptions involved, which covers {\color{BurntOrange} SPECIFY PARTS OF THE DIAGRAM BY COLOURED BUBBLES}. 
+	 
+	 (GP CHAPTERS DESCRIPTION)
+	 
+	 Finally, section \ref{BenthicHabitatMapping:ScottReef} demonstrates the techniques developed in this chapter through mapping the benthic habitats of the Scott Reef seafloor. 
 		
 	\section{Bathymetric Features}
 	\label{BenthicHabitatMapping:BathymetricFeatures}
@@ -196,8 +191,55 @@
 							
 			\FloatBarrier
 				
-	\section{Approximation methods for GP Classification}
+	\section{Gaussian Process Classification}
+	\label{BenthicHabitatMapping:GaussianProcesses:Classification}
 	
+		Gaussian process classification is of vital importance to the benthic habitat modeling process. It is used to infer the habitat type, and most importantly quantify the information reward one can gain by exploring a given area.
+		
+		Unlike the regression case, because the output labels are no longer continuous, the likelihood $p(\bvec{y} | \bvec{f}, \vec{\uptheta})$ is no longer Gaussian distributed \eqref{Equation:ClassificationLogMarginalLikelihoodBayes}. Note that there is no noise parameter $\sigma$ involved, so that the hyperparameters are $\vec{\uptheta}$.
+
+		\begin{equation}
+			\overbrace{p(\bvec{f} | \bvec{y}, \vec{\uptheta})}^{\mathclap{\substack{\text{Non-Gaussian} \\ \text{as a result}}}} = \frac{\overbrace{p(\bvec{y} | \bvec{f}, \vec{\uptheta})}^{\text{Non-Gaussian}} \; \overbrace{p(\bvec{f} | \vec{\uptheta})}^{\text{Gaussian}}}{\underbrace{p(\bvec{y} | \vec{\uptheta})}_{\mathclap{\substack{= \int\limits_{\mathbb{R}^{n}} p(\bvec{y} | \bvec{f}, \vec{\uptheta})) p(\bvec{f} | \vec{\uptheta})) d\bvec{f} \\ \Rightarrow \; \text{Non-Gaussian due to above}}}}}
+		\label{Equation:ClassificationLogMarginalLikelihoodBayes}
+		\end{equation}
+
+		The above Bayes relation \eqref{Equation:ClassificationLogMarginalLikelihoodBayes} demonstrates that the posterior probability is in general non-Gaussian distributed. In this way, approximations are necessary. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \citep{GaussianProcessForMachineLearning}. In this thesis, Laplace approximation is chosen as a reasonable balance between accuracy and implementation difficulty. A short investigation of probabilistic least squares will also be provided.
+		
+		The general concept behind the approximation is that the posterior $p(\bvec{f} | \bvec{y}, \vec{\uptheta})$ is approximated by another (multivariate) Gaussian distribution $q(\bvec{f} | \bvec{y}, \vec{\uptheta})$ such that the latent function is still distributed as a GP for the inference process presented in Figure \ref{Figure:GaussianProcessGraphicalModel} to remain analytically tractable.
+		
+		In most GP classification schemes, the latent function also has a particular interpretation - it quantifies the how strongly a particular point belongs to a given class. As a binary classification example, if the classifier is to distinguish between ``apples'' and ``oranges'', the latent function would represent the ``appleness'' of each point, with high ``appleness'' corresponding to observations likely to be ``apples'' and low ``appleness'' corresponding to observations likely to be ``oranges''. Note that only one latent function is needed in the binary case and there is no need for a latent function for ``orangeness''. Intuitively, the latent function translates to a probability through being monotonically ``squashed'' into the unit range $[0, 1]$.
+		
+		\subsection{Response Functions}
+		\label{BenthicHabitatMapping:GaussianProcesses:Classification:ResponseFunction}
+		
+			Before discussing the various types of GP classifiers, it is important to understand the role of \textit{response functions} in Bayesian classifiers, which serves to perform the ``squashing'' described previously.
+			
+			The response function, sometimes also called a sigmoid function, are used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to "squeeze" the latent functions into a range where probabilistic interpretation is possible.
+			
+			\begin{wrapfigure}{r}{0.5\textwidth}
+				\centering
+					\includegraphics[width=0.5\textwidth]{Figures/responses.eps}
+				\caption{Common likelihood responses}
+				\label{Figure:LikelihoodResponses}
+			\end{wrapfigure}
+			
+			The most widely used response functions are the logistic response \eqref{Equation:LogisticResponse} and probit \footnote{The probit function is also simply the standard normal cumulative distribution. The term \textit{probit} is used to make explicit its interpretation as a response likelihood function.} response \eqref{Equation:ProbitResponse} (figure \ref{Figure:LikelihoodResponses}). After a specific response function is chosen, the likelihood is given by \eqref{Equation:LikelihoodResponse}, thus achieving the squashing effect. Note that the likelihood $p(\bvec{y} | \bvec{f}, \vec{\uptheta}) = p(\bvec{y} | \bvec{f})$ is independent of the hyperparameters $\vec{\uptheta}$ by construction. Furthermore, each target $y_{i}$ depends only on the corresponding latent $f_{i}$ given all the latents $\bvec{f}$. \begin{equation}
+				\lambda(z) = \frac{1}{1 + \exp(-z)}
+			\label{Equation:LogisticResponse}
+			\end{equation} \begin{equation}
+				\lambda(z) = \Phi(z) := \int\limits_{-\infty}^{z} \phi(x) dx =  \int\limits_{-\infty}^{z} \frac{1}{\sqrt{2 \pi}} \exp\Big(- \frac{1}{2} x^{2}\Big) dx
+			\label{Equation:ProbitResponse}
+			\end{equation} \begin{equation}
+				p(y_{i} | f_{i}) = \lambda(y_{i} f_{i}) \implies p(\bvec{y} | \bvec{f}) = \prod_{i = 1}^{n} p(y_{i} | f_{i}) = \prod_{i = 1}^{n} \lambda(y_{i} f_{i})
+			\label{Equation:LikelihoodResponse}
+			\end{equation}				
+			\FloatBarrier
+				
+%	\section{Approximation methods for GP Classification}
+%	
+%		After extracting the bathymetric features across the seafloor terrain, the next step in benthic habitat mapping is to develop a classification algorithm for habitat class inference. As concluded in section \ref{Background:RelatedWork:AcquisitoinFunctions}, there has been many prior attempts in benthic habitat mapping for handling the lack of analytical tractability involved in Gaussian process classifiers. The analytical intractability comes from the fact that the likelihood response is no longer Gaussian distributed, as explained in section \ref{Background:GaussianProcesses:Classification}. 
+%		
+%		Gaussian process classification 
 		\subsection{Laplace Approximation}
 		
 		\subsection{Probabilistic Least Squares Approximation}
@@ -207,27 +249,27 @@
 			% Laplace Approximation and Probabilistic Least Squares
 			Compare probability outputs, classification outputs, entropy outputs, etc
 		
-	\section{Methods for Multiclass Classification}
+		\subsection{Methods for Multiclass Classification}
 	
-		\subsection{One Versus All Classification}
+			\subsubsection{One Versus All Classification}
+			
+				While a consistent framework for the GP Multi-class classification using Laplace approximation exist, a simpler and perhaps a more computationally efficient approach is to employ the One v.s. All (OVA) and All v.s. All (AVA) philosophy. The following discussion assumes that there are $c > 2$ classes of labels for which classification is to occur. 
+					
+				The OVA approach performs classification by introducing $c$ \textit{independent} classification problems, each trying to classify a label against all others. Each of these problems are thus a binary classification problem for which solution methods are known. Once the predictive probabilities from all learned GP classifiers are obtained, a consistent framework is used for fusing the separate prediction probabilities into a coherent prediction probability. This is necessary as the binary classifiers are independently learned and performs prediction independently, and may not necessarily provide coherent results. In fact, simply stacking the prediction probabilities together yields a "probability" distribution that does not sum up to 1.
+					
+				The AVA approach operates similarly. It insteads introduces $\frac{c (c - 1)}{2}$ \textit{independent} classification problems, each classifying between a pair of labels. The same exact philosophy follows in that a final consistent framework is needed for fusing the prediction probabilities into one coherent prediction probability. It is often more difficult for probability fusion in the AVA setting as compared to the OVA setting
+				
+			\subsubsection{All Versus All Classification}
+			
+			\subsubsection{Properties \& Performance}
+	
+		\subsection{Probability Fusion Methods}
 		
-			While a consistent framework for the GP Multi-class classification using Laplace approximation exist, a simpler and perhaps a more computationally efficient approach is to employ the One v.s. All (OVA) and All v.s. All (AVA) philosophy. The following discussion assumes that there are $c > 2$ classes of labels for which classification is to occur. 
+			\subsubsection{Simple Normalisation}
 				
-			The OVA approach performs classification by introducing $c$ \textit{independent} classification problems, each trying to classify a label against all others. Each of these problems are thus a binary classification problem for which solution methods are known. Once the predictive probabilities from all learned GP classifiers are obtained, a consistent framework is used for fusing the separate prediction probabilities into a coherent prediction probability. This is necessary as the binary classifiers are independently learned and performs prediction independently, and may not necessarily provide coherent results. In fact, simply stacking the prediction probabilities together yields a "probability" distribution that does not sum up to 1.
+			\subsubsection{Mode Keeping}
 				
-			The AVA approach operates similarly. It insteads introduces $\frac{c (c - 1)}{2}$ \textit{independent} classification problems, each classifying between a pair of labels. The same exact philosophy follows in that a final consistent framework is needed for fusing the prediction probabilities into one coherent prediction probability. It is often more difficult for probability fusion in the AVA setting as compared to the OVA setting
-				
-		\subsection{All Versus All Classification}
-			
-		\subsection{Properties \& Performance}
-	
-	\section{Probability Fusion Methods}
-	
-		\subsection{Simple Normalisation}
-			
-		\subsection{Mode Keeping}
-			
-		\subsection{Exclusion}
+			\subsubsection{Exclusion}
 			
 	\section{Mapping Scott Reef Benthic Habitats}
 	\label{BenthicHabitatMapping:ScottReef}

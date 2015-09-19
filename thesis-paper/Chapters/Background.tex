@@ -4,7 +4,9 @@
 
 	The benthic habitat mapping technique and informative exploration policies devised in this thesis rely heavily on the inference framework of Gaussian processes. 
 	
-	In the outset of this chapter, section \ref{Background:GaussianProcesses} motivates the advantages of GPs by discussing the general theory and framework of Gaussian process inference that are necessary for understanding the work in this thesis. The discussion begins with an introduction to Bayesian modeling in section \ref{Background:GaussianProcesses:BayesianModeling}, where Gaussian processes are a non-parametric subclass thereof that provide high flexibility for Bayesian inference. The definition of Gaussian processes (definition \ref{Definition:GaussianProcess} and \ref{Definition:GaussianRandomField}) then reveals the significance of kernel covariance functions, whose theory are then summarised in \ref{Background:GaussianProcesses:KernelFunctions}. The structure of Gaussian processes is then conveniently and readily applicable to standard regression problems, as demonstrated in section \ref{Background:GaussianProcesses:Regression}, which also serves to motivate the way Gaussian processes are used for inference in general, which is further illustrated in \ref{Background:GaussianProcesses:Regression:GeneralGaussianProcessInferece}. The inference and learning stage involved in regression, formulated in sections \ref{Background:GaussianProcesses:Regression:Inference} and \ref{Background:GaussianProcesses:Regression:HyperparameterLearning} respectively, further outlines the specific way such an inference process works. The concepts involved here will then be reflected again in the techniques developed in this thesis for classification, whose basic structure and difficulties are explained in section \ref{Background:GaussianProcesses:Classification}. Finally, the concept of entropy in differential and information forms are outlined in section \ref{Background:GaussianProcesses:Entropy}, which forms the grounding for much of the acquisition techniques investigated and developed in this thesis.
+	In the outset of this chapter, section \ref{Background:GaussianProcesses} motivates the advantages of Gaussian processes by discussing the general theory and framework of Gaussian process inference that are necessary for understanding the work in this thesis. The discussion begins with an introduction to Bayesian modeling in section \ref{Background:GaussianProcesses:BayesianModeling}, where Gaussian processes are a non-parametric subclass thereof that provide high flexibility for Bayesian inference. The definition of Gaussian processes (definition \ref{Definition:GaussianProcess} and \ref{Definition:GaussianRandomField}) then reveals the significance of kernel covariance functions, whose theory are then summarised in \ref{Background:GaussianProcesses:KernelFunctions}. The structure of Gaussian processes is then conveniently and readily applicable to standard regression problems, as demonstrated in section \ref{Background:GaussianProcesses:Regression}, which also serves to motivate the way Gaussian processes are used for inference in general, which is further illustrated in \ref{Background:GaussianProcesses:Regression:GeneralGaussianProcessInferece}. The inference and learning stage involved in regression, formulated in sections \ref{Background:GaussianProcesses:Regression:Inference} and \ref{Background:GaussianProcesses:Regression:HyperparameterLearning} respectively, further outlines the specific way such an inference process works. Finally, the concept of entropy in differential and information forms are outlined in section \ref{Background:GaussianProcesses:Entropy}, which forms the grounding for much of the acquisition techniques investigated and developed in this thesis.
+	
+	% The concepts involved here will then be reflected again in the techniques developed in this thesis for classification, whose basic structure and difficulties are explained in section \ref{Background:GaussianProcesses:Classification}.
 	
 	Section \ref{Background:RelatedWork} then discusses the ways related work has approached the informative path planning problem using Gaussian processes. With a few examples of informative path planning techniques from section \ref{Background:RelatedWork:InformativePathPlanning}, the importance of acquisition functions are stressed in section \ref{Background:RelatedWork:InformativePathPlanning} with reference to prior work.
 	
@@ -361,52 +363,6 @@
 				The last term in \eqref{Equation:RegressionLogMarginalLikelihood} is a constant, so it can be ignored during the optimisation stage and included back in once optimisation completes.
 				
 				In practice, hyperparameter learning can be sped up by employing the fact that $\frac{1}{2} \log|K + \sigma^{2} I| = \frac{1}{2} \log|B| = \sum_{i} L_{ii} = \mathrm{trace}(L)$ for the first term in \eqref{Equation:RegressionLogMarginalLikelihood}, where $L$ is the Cholesky decomposition of $B$. Furthermore, the Cholesky decomposition $L$ leads to better numerical stability when inverting the matrix $B$ since $B = LL^{T}$ so that $B \backslash \bvec{y} = L^{T} \backslash (L \backslash \bvec{y})$ for the first term in \eqref{Equation:RegressionLogMarginalLikelihood}.
-				
-		\subsection{Classification}
-		\label{Background:GaussianProcesses:Classification}
-		
-			Gaussian process classification is of vital importance to the benthic habitat modeling process. It is used to infer the habitat type, and most importantly quantify the information reward one can gain by exploring a given area.
-			
-			Unlike the regression case, because the output labels are no longer continuous, the likelihood $p(\bvec{y} | \bvec{f}, \vec{\uptheta})$ is no longer Gaussian distributed \eqref{Equation:ClassificationLogMarginalLikelihoodBayes}. Note that there is no noise parameter $\sigma$ involved, so that the hyperparameters are $\vec{\uptheta}$.
-
-			\begin{equation}
-				\overbrace{p(\bvec{f} | \bvec{y}, \vec{\uptheta})}^{\mathclap{\substack{\text{Non-Gaussian} \\ \text{as a result}}}} = \frac{\overbrace{p(\bvec{y} | \bvec{f}, \vec{\uptheta})}^{\text{Non-Gaussian}} \; \overbrace{p(\bvec{f} | \vec{\uptheta})}^{\text{Gaussian}}}{\underbrace{p(\bvec{y} | \vec{\uptheta})}_{\mathclap{\substack{= \int\limits_{\mathbb{R}^{n}} p(\bvec{y} | \bvec{f}, \vec{\uptheta})) p(\bvec{f} | \vec{\uptheta})) d\bvec{f} \\ \Rightarrow \; \text{Non-Gaussian due to above}}}}}
-			\label{Equation:ClassificationLogMarginalLikelihoodBayes}
-			\end{equation}
-
-			The above Bayes relation \eqref{Equation:ClassificationLogMarginalLikelihoodBayes} demonstrates that the posterior probability is in general non-Gaussian distributed. In this way, approximations are necessary. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \citep{GaussianProcessForMachineLearning}. In this thesis, Laplace approximation is chosen as a reasonable balance between accuracy and implementation difficulty. A short investigation of probabilistic least squares will also be provided.
-			
-			The general concept behind the approximation is that the posterior $p(\bvec{f} | \bvec{y}, \vec{\uptheta})$ is approximated by another (multi-)Gaussian distribution $q(\bvec{f} | \bvec{y}, \vec{\uptheta})$ such that the latent function is still distributed as a GP for the inference process presented in Figure \ref{Figure:GaussianProcessGraphicalModel} to remain analytically tractable.
-			
-			In most GP classification schemes, the latent function also has a particular interpretation - it quantifies the how strongly a particular point belongs to a given class. As a binary classification example, if the classifier is to distinguish between ``apples'' and ``oranges'', the latent function would represent the ``appleness'' of each point, with high ``appleness'' corresponding to observations likely to be ``apples'' and low ``appleness'' corresponding to observations likely to be ``oranges''. Note that only one latent function is needed in the binary case and there is no need for a latent function for ``orangeness''. Intuitively, the latent function translates to a probability through being monotonically ``squashed'' into the unit range $[0, 1]$.
-			
-			\subsubsection{Response Functions}
-			\label{Background:GaussianProcesses:Classification:ResponseFunction}
-			
-				Before discussing the various types of GP classifiers, it is important to understand the role of \textit{response functions} in Bayesian classifiers, which serves to perform the ``squashing'' described previously.
-				
-				The response function, sometimes also called a sigmoid function, are used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to "squeeze" the latent functions into a range where probabilistic interpretation is possible.
-				
-				\begin{figure}[!htbp]
-					\centering
-						\includegraphics[width=0.6\textwidth]{Figures/responses.eps}
-					\caption{Common likelihood responses}
-					\label{Figure:LikelihoodResponses}
-				\end{figure}
-				
-				The most widely used response functions are the logistic function \eqref{Equation:LogisticResponse} and probit \footnote{The probit function is also simply the standard normal cumulative distribution. The term \textit{probit} is used to make explicit its interpretation as a response likelihood function.} response \eqref{Equation:ProbitResponse} (figure \ref{Figure:LikelihoodResponses}).
-				
-				\begin{equation}
-					\lambda(z) = \frac{1}{1 + \exp(-z)}
-				\label{Equation:LogisticResponse}
-				\end{equation}
-				
-				\begin{equation}
-					\lambda(z) = \Phi(z) := \int\limits_{-\infty}^{z} \phi(x) dx =  \int\limits_{-\infty}^{z} \frac{1}{\sqrt{2 \pi}} \exp\Big(- \frac{1}{2} x^{2}\Big) dx
-				\label{Equation:ProbitResponse}
-				\end{equation}
-				
-				\FloatBarrier
 		
 		\subsection{Entropy}
 		\label{Background:GaussianProcesses:Entropy}
