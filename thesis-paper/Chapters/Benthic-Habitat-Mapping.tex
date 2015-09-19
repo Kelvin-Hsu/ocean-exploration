@@ -2,7 +2,7 @@
 \lhead{Benthic Habitat Mapping}
 \label{BenthicHabitatMapping}
 	
-	 With the general theory and framework of Gaussian process regression and classification provided in section \ref{Background:GaussianProcesses}, this chapter aims to extend such theory to the benthic habitat mapping context. In particular, specific classifier inference techniques are developed and built upon the existing Gaussian process classifier framework. This chapter focuses strictly on the inference techniques necessary for building a map of benthic habitats across a given region. The following chapter would then continue to build on such inference models for the purpose of informative seafloor exploration. 
+	 With the general theory and framework of Gaussian process inference provided in section \ref{Background:GaussianProcesses}, this chapter aims to extend such theory to the benthic habitat mapping context. In particular, specific classifier inference techniques are developed and built upon the existing Gaussian process classifier framework. This chapter focuses strictly on the inference techniques necessary for building a map of benthic habitats across a given region. The following chapter would then continue to build on such inference models for the purpose of informative seafloor exploration. 
 	 
 	 The outset of this chapter, section \ref{BenthicHabitatMapping:GaussianProcessClassifiers}, begins by motivating the use of Gaussian process classifiers for benthic habitat mapping. Most importantly, the inference information flow provided in figure \ref{Figure:InferenceFlow} serves as a visual roadmap of the inference stages to be explored in this thesis, and will thus be reference frequently.
 	 
@@ -15,17 +15,19 @@
 	\section{GP Classifiers for Benthic Habitat Mapping}
 	\label{BenthicHabitatMapping:GaussianProcessClassifiers}
 		
-		This thesis employs Gaussian process classifiers as the primary inference model for benthic habitat mapping. Figure \ref{Figure:InferenceFlow} visualises the information flow involved in a Gaussian process classifier, and describes the necessary inference stages involved for both habitat mapping and information inference, the latter of which allows informative exploration and is the focus of the next chapter.
+		This thesis employs Gaussian process classifiers as the primary inference model for benthic habitat mapping. Gaussian processes are non-parametric, Bayesian models which is able to model a variety of phenomenon. They are known to allow the data to `speak for itself' and provide a principled inference framework for drawing conclusion regarding the gathered data \citep{GaussianProcessForMachineLearning}. 
 		
-		This chapter will focus on the learning and inference stages represented by all the {\color{Gray} gray} and {\color{ForestGreen} green} coloured arrows, while the next chapter will focus on the inference stages represented by all the {\color{OrangeRed} red}, {\color{YellowOrange} gold}, and {\color{Cerulean} blue} coloured arrows.
-		
+		Figure \ref{Figure:InferenceFlow} visualises the information flow involved in a Gaussian process classifier, and describes the necessary inference stages involved for both habitat mapping and information inference, the latter of which allows informative exploration and is the focus of the next chapter.
+
 		\begin{figure}[!htbp]
 		\centering
 			\includegraphics[width = 0.8\linewidth]{Figures/inferenceflow.eps}
 		\caption{Inference Information Flow}
 		\label{Figure:InferenceFlow}
 		\end{figure}	
-
+				
+		This chapter will focus on the learning and inference stages represented by all the {\color{Gray} gray} and {\color{ForestGreen} green} coloured arrows, while the next chapter will focus on the inference stages represented by all the {\color{OrangeRed} red}, {\color{YellowOrange} gold}, and {\color{Cerulean} blue} coloured arrows.
+		
 		As the figure suggests, the mapping process is a supervised learning problem for which the habitat labels $\bvec{y}^{\star}$ at the query locations $P^{\star}$ is to be inferred from the query features $X^{\star}$ by learning a relationship between the habitat labels $\bvec{y}$ and the training features $X$ at the training locations $P$. Only the {\color{Gray} gray} and {\color{ForestGreen} green} coloured arrows in Figure \ref{Figure:InferenceFlow} are necessary for mapping to be achieved.
 		
 		As the discussion continues in the following two chapters, each part of the diagram will be expanded and addressed.

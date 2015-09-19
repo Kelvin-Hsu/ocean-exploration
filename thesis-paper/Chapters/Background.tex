@@ -2,9 +2,12 @@
 \lhead{Background}
 \label{Background}
 
-	{\color{BurntOrange} Add Background Summary and Introduction}
-		
-	\newpage
+	The benthic habitat mapping technique and informative exploration policies devised in this thesis rely heavily on the inference framework of Gaussian processes. 
+	
+	In the outset of this chapter, section \ref{Background:GaussianProcesses} motivates the advantages of GPs by discussing the general theory and framework of Gaussian process inference that are necessary for understanding the work in this thesis. The discussion begins with an introduction to Bayesian modeling in section \ref{Background:GaussianProcesses:BayesianModeling}, where Gaussian processes are a non-parametric subclass thereof that provide high flexibility for Bayesian inference. The definition of Gaussian processes (definition \ref{Definition:GaussianProcess} and \ref{Definition:GaussianRandomField}) then reveals the significance of kernel covariance functions, whose theory are then summarised in \ref{Background:GaussianProcesses:KernelFunctions}. The structure of Gaussian processes is then conveniently and readily applicable to standard regression problems, as demonstrated in section \ref{Background:GaussianProcesses:Regression}, which also serves to motivate the way Gaussian processes are used for inference in general, which is further illustrated in \ref{Background:GaussianProcesses:Regression:GeneralGaussianProcessInferece}. The inference and learning stage involved in regression, formulated in sections \ref{Background:GaussianProcesses:Regression:Inference} and \ref{Background:GaussianProcesses:Regression:HyperparameterLearning} respectively, further outlines the specific way such an inference process works. The concepts involved here will then be reflected again in the techniques developed in this thesis for classification, whose basic structure and difficulties are explained in section \ref{Background:GaussianProcesses:Classification}. Finally, the concept of entropy in differential and information forms are outlined in section \ref{Background:GaussianProcesses:Entropy}, which forms the grounding for much of the acquisition techniques investigated and developed in this thesis.
+	
+	Section \ref{Background:RelatedWork} then discusses the ways related work has approached the informative path planning problem using Gaussian processes. With a few examples of informative path planning techniques from section \ref{Background:RelatedWork:InformativePathPlanning}, the importance of acquisition functions are stressed in section \ref{Background:RelatedWork:InformativePathPlanning} with reference to prior work.
+	
 	\section{Gaussian Processes}
 	\label{Background:GaussianProcesses}
 	
@@ -27,21 +30,15 @@
 		
 			The Gaussian process formulation follows the Bayesian modeling philosophy. An important distinction Bayesian modeling makes from the classical approach is the idea of estimating a distribution instead of a point value. While this is often more computationally expensive, it provides a very robust and accurate framework for prediction and inference. More importantly, it provides capabilities that classical approaches do not possess - the ability to quantify prediction uncertainties and, most importantly, potential information. 
 			
-			Suppose $H$ represents the event that a particular inference model $\mathcal{H}$ is representative of the true underlying phenomenon to be inferred. Further suppose $D$ represents the event that a particular set of observations $\mathcal{D}$ have been collected. The basic Bayesian modeling process begins with a \textit{prior} distribution $p(H)$, the probability of $\mathcal{H}$ being representative before $\mathcal{D}$ was observed, and updates this to a \textit{posterior} distribution $p(H | D)$, the updated probability of $\mathcal{H}$ being representative after observing $\mathcal{D}$. In this way, $\mathcal{H}$ can be interpreted as the agent's belief of the phenomenon. In the benthic habitat mapping context, the agent is the AUV, and the phenomenon is the type of benthic habitats distributed about the region of interest.
+			Suppose $H$ represents the event that a particular inference model $\mathcal{H}$ is representative of the true underlying phenomenon to be inferred. Further suppose $D$ represents the event that a particular set of observations $\mathcal{D}$ have been collected. The basic Bayesian modeling process begins with a \textit{prior} distribution $p(H)$, the probability of $\mathcal{H}$ being representative before $\mathcal{D}$ was observed, and updates this to a \textit{posterior} distribution $p(H | D)$, the updated probability of $\mathcal{H}$ being representative after observing $\mathcal{D}$. In this way, $\mathcal{H}$ can be interpreted as the agent's belief of the phenomenon. In benthic habitat mapping, the agent is the AUV, and the phenomenon is the type of benthic habitats distributed about the region of interest.
 			
-			In general, this belief update is achieved through Bayes theorem \eqref{Equation:Bayes}. The \textit{likelihood} distribution $p(D | H)$ is the probability of observing the dataset $\mathcal{D}$ given that $\mathcal{H}$ is representative of the true underlying phenomenon. The \textit{evidence} distribution $p(D)$ is the probability of observing the dataset. However, in practice it is often difficult to compute the evidence without a model. Hence, expanding over all possible inference models $\mathcal{H}$, the evidence can also be found by marginalising the joint distribution $p(D \cap H) = p(D | H) p(H)$ of observing $\mathcal{D}$ and $\mathcal{H}$ being representative \eqref{Equation:MarginalLikelihood}. In this way, the evidence is also referred to as the \textit{marginal likelihood}.
-			
-			\begin{equation}
+			In general, this belief update is achieved through Bayes theorem \eqref{Equation:Bayes}. The \textit{likelihood} distribution $p(D | H)$ is the probability of observing the dataset $\mathcal{D}$ given that $\mathcal{H}$ is representative of the true underlying phenomenon. The \textit{evidence} distribution $p(D)$ is the probability of observing the dataset. However, in practice it is often difficult to compute the evidence without a model. Hence, expanding over all possible inference models $\mathcal{H}$, the evidence can also be found by marginalising the joint distribution $p(D \cap H) = p(D | H) p(H)$ of observing $\mathcal{D}$ and $\mathcal{H}$ being representative \eqref{Equation:MarginalLikelihood}. In this way, the evidence is also referred to as the \textit{marginal likelihood}. \begin{equation}
 				p(H | D) = \frac{p(D | H) p(H)}{p(D)} \qquad \Longleftrightarrow \qquad \mathrm{posterior} = \frac{\mathrm{likelihood} \times \mathrm{prior}}{\mathrm{evidence}}
 			\label{Equation:Bayes}
-			\end{equation}
-			
-			\begin{equation}
+			\end{equation} \begin{equation}
 				p(D) = \sum_{H} p(D | H) p(H)
 			\label{Equation:MarginalLikelihood}
-			\end{equation}			
-			
-			This procedure is illustrated in \cref{Figure:BayesianModeling} for a Gaussian process with one dimensional input feature and output target. The mean prediction is shown as the black solid curve. Ten sample functions from the GP are drawn from the prior and posterior, represented by the coloured dashed curve. The shaded region represents the 2-$\sigma$ bounds of the prediction at each input feature value $x$. The prior distribution is updated to a posterior distribution after two points are observed. This example further serves to illustrate the concept of distributions over functions, which behaves as an infinite dimensional generalisation of a multivariate probability distribution. It is helpful to conceptualise functions as an infinite string of points, where functions can be interpreted as infinite dimensional vectors, such that drawing from an infinite dimensional distribution is equivalent to drawing from processes that operate on function space. Instead of drawing finite dimensional random vectors from distributions, a random function is drawn from a \textit{stochastic process} \footnote{When the input variable is temporal, a stochastic process can be more appropriately interpreted as having indefinite dimensional distributions.}.
+			\end{equation} This procedure is illustrated in \cref{Figure:BayesianModeling} for a Gaussian process with one dimensional input feature and output target. The mean prediction is shown as the black solid curve. Ten sample functions from the GP are drawn from the prior and posterior, represented by the coloured dashed curve. The shaded region represents the 2-$\sigma$ bounds of the prediction at each input feature value $x$. The prior distribution is updated to a posterior distribution after two points are observed. This example further serves to illustrate the concept of distributions over functions, which behaves as an infinite dimensional generalisation of a multivariate probability distribution. It is helpful to conceptualise functions as an infinite string of points, where functions can be interpreted as infinite dimensional vectors, such that drawing from an infinite dimensional distribution is equivalent to drawing from processes that operate on function space. Instead of drawing finite dimensional random vectors from distributions, a random function is drawn from a \textit{stochastic process} \footnote{When the input variable is temporal, a stochastic process can be more appropriately interpreted as having indefinite dimensional distributions.}.
 			
 			\begin{figure}[!htbp]
 				\centering
@@ -150,7 +147,7 @@
 				
 				In practice, it is often possible to pre-process the data or transform the feature space so that an axis aligned kernel can be applied. The assumption imposed is that the principle axis directions are aligned with the feature space axis. In this case, the GP model is defined by $p + 1$ hyperparameters, where $p$ is the number of features. Without the axis-aligned structure, the number of hyperparameters is $\frac{p(p + 1)}{2} + 1$.
 				
-				The above formulation suggests to define $a^{2} := (\bvec{x} - \bvec{x}')^{T} \Sigma^{-1} (\bvec{x} - \bvec{x}')$. This can be interpreted as the squared distance between $\bvec{x}$ and $\bvec{x}'$ under the warp defined by $\Sigma$. In particular, when the feature space is isotropic such that $\Sigma = l^{2} I_{m \times m}$, then $a = \frac{r}{l}$ where $r := +\sqrt{r^{2}}$, $l := +\sqrt{l^{2}}$, and $r^{2} = (\bvec{x} - \bvec{x}')^{T} (\bvec{x} - \bvec{x}')$. In fact, most stationary kernels are functions solely of $a^{2}$, or with the definition $a := +\sqrt{a^{2}}$, they are simply scalar functions of scalar inputs $a = a (\bvec{x}, \bvec{x'})$. This form also makes evident that the covariances between two points decreases monotonically as the distance between them increases - a property most kernel functions exhibit. In fact, this structure characterises the \textit{radial basis function} class of kernels, and is the primary type of kernel relevant to this thesis.
+				The above formulation suggests to define $a^{2} := (\bvec{x} - \bvec{x}')^{T} \Sigma^{-1} (\bvec{x} - \bvec{x}')$. This can be interpreted as the squared distance between $\bvec{x}$ and $\bvec{x}'$ under the warp defined by $\Sigma$. In particular, when the feature space is isotropic such that $\Sigma = l^{2} I_{p \times p}$, then $a = \frac{r}{l}$ where $r := +\sqrt{r^{2}}$, $l := +\sqrt{l^{2}}$, and $r^{2} = (\bvec{x} - \bvec{x}')^{T} (\bvec{x} - \bvec{x}')$. In fact, most stationary kernels are functions solely of $a^{2}$, or with the definition $a := +\sqrt{a^{2}}$, they are simply scalar functions of scalar inputs $a = a (\bvec{x}, \bvec{x'})$. This form also makes evident that the covariances between two points decreases monotonically as the distance between them increases - a property most kernel functions exhibit. In fact, this structure characterises the \textit{radial basis function} class of kernels, and is the primary type of kernel relevant to this thesis.
 				
 				Continuing with this formulation, the \matern class of kernel functions are given by \eqref{Equation:MaternKernel}.
 				
@@ -183,7 +180,7 @@
 			\subsubsection{Non-Stationary Kernels}
 			\label{Background:GaussianProcesses:KernelFunctions:Nonstationary}
 			
-				Non-stationary kernels introduce flexibility for modeling phenomenons where the inherent length scales varies across feature locations. The limitations with stationary kernels is that the GP will always learn length scales that are as small as it needs to be for modeling the fastest varying phenomenon in the model. While the marginal likelihood inherently balances modeling accuracy and overfitting, when it comes to the choice between modeling a peak in data variation with a risk of overfitting the rest of the data or ignoring that peak, the optimiser will always prefer the former as marginal likelihood gain from successful modeling is higher than loss from overfitting. Because learning stage is done through optimising the marginal likelihood (see section \ref{Background:GaussianProcess:Regression:HyperparameterLearning}), this forces the length scale to be smaller than it needs at slower varying places.
+				Non-stationary kernels introduce flexibility for modeling phenomenons where the inherent length scales varies across feature locations. The limitations with stationary kernels is that the GP will always learn length scales that are as small as it needs to be for modeling the fastest varying phenomenon in the model. While the marginal likelihood inherently balances modeling accuracy and overfitting, when it comes to the choice between modeling a peak in data variation with a risk of overfitting the rest of the data or ignoring that peak, the optimiser will always prefer the former as marginal likelihood gain from successful modeling is higher than loss from overfitting. Because learning stage is done through optimising the marginal likelihood (see section \ref{Background:GaussianProcesses:Regression:HyperparameterLearning}), this forces the length scale to be smaller than it needs at slower varying places.
 
 				Figure \ref{Figure:GaussianProcessLengthScale} illustrates the non-stationary Gaussian process for a terrain modeling application, where flat regions have high length scales (slow varying) while rough regions have low length scales (fast varying). Note that this does not imply that it is only relevant for GP regression problems - the latent functions used in GP classification is itself a GP regression problem for which length scale interpretation is almost identical to that shown in \cref{Figure:GaussianProcessLengthScale} (see section \ref{Background:GaussianProcesses:Classification}).
 				
@@ -230,7 +227,7 @@
 			Before presenting the inference process for Gaussian process regression however, it is important to understand the way Gaussian processes are used in general for Bayesian inference, which applies to both regression and classification.
 			
 			\subsubsection{General Inference Process with Gaussian Processes}
-			\label{Background:GaussianProcess:Regression:GeneralGaussianProcessInferece}
+			\label{Background:GaussianProcesses:Regression:GeneralGaussianProcessInferece}
 			
 				The formulation for Gaussian processes from definitions \ref{Definition:GaussianProcess} and \ref{Definition:GaussianRandomField} provides an framework for inferring the behaviour of an unknown function $f(\bvec{x})$. In general, however, the output target does not have to be the functional outputs $f := f(\bvec{x})$. Instead, the output targets are some quantity $y$ which can be directly observed and recorded. The function $f$ serves as an intermediate step to infer $y$ from $\bvec{x}$, and in general cannot be directly observed. Therefore, the function $f$ is often called the \textit{latent function}.
 				
@@ -289,9 +286,9 @@
 				where $\mathscr{F}$ is the space of all latent functionals. Note that the form \eqref{Equation:Marginalisation} above is written in functional form to illustrate the relevant concepts. The marginalisation process above plays a vital process in the learning stage for Gaussian process inference discussed shortly.
 		
 			\subsubsection{Inference}
-			\label{Background:GaussianProcess:Regression:Inference}
+			\label{Background:GaussianProcesses:Regression:Inference}
 			
-				The above general inference process can now be formulated specifically for the regression case. The inference stage assumes that the hyperparameters $\vec{\uptheta}$ has been learned, which allows the distribution of $\bvec{f} | \vec{\uptheta}, \bvec{y}$ to be specified from the observations $\bvec{y}$. This allows inference through correlation for $\bvec{f}^{\star} | \bvec{f}, \vec{\uptheta}$ and finally $\bvec{y}^{\star} | \bvec{f}^{\star}, \vec{\uptheta}$ through a likelihood response (see figure \ref{Figure:GaussianProcessGraphicalModel}). An understanding of such an inference process will motivate the discussion of the hyperparameter learning stage in the following section (section \ref{Background:GaussianProcess:Regression:HyperparameterLearning}).
+				The above general inference process can now be formulated specifically for the regression case. The inference stage assumes that the hyperparameters $\vec{\uptheta}$ has been learned, which allows the distribution of $\bvec{f} | \vec{\uptheta}, \bvec{y}$ to be specified from the observations $\bvec{y}$. This allows inference through correlation for $\bvec{f}^{\star} | \bvec{f}, \vec{\uptheta}$ and finally $\bvec{y}^{\star} | \bvec{f}^{\star}, \vec{\uptheta}$ through a likelihood response (see figure \ref{Figure:GaussianProcessGraphicalModel}). An understanding of such an inference process will motivate the discussion of the hyperparameter learning stage in the following section (section \ref{Background:GaussianProcesses:Regression:HyperparameterLearning}).
 				
 				With a given kernel function $k = k_{\vec{\uptheta}}$ as the covariance function, by definition \ref{Definition:GaussianRandomField} we have that the training latents $\bvec{f}$ at training features $X$ and the query latents $\bvec{f^{\star}}$ at query features $X^{\star}$ are distributed as a multivariate Gaussian \eqref{Equation:InferenceJointDistribution}. \begin{equation}
 					\begin{bmatrix}
@@ -333,16 +330,19 @@
 				\end{equation}
 								
 			\subsubsection{Hyperparameter Learning}
-			\label{Background:GaussianProcess:Regression:HyperparameterLearning}
+			\label{Background:GaussianProcesses:Regression:HyperparameterLearning}
 			
-				One of the most important yet tricky aspects of GP modeling is the training stage. Since the model is determined entirely by the hyperparameters, the hyperparameters must be optimised in accordance to some fitness metric. The fitness metric employed to be maximised is the marginal likelihood, otherwise termed as evidence, of the observed data. This is usually non-trivial to compute and, in most cases, analytical forms do not exist. Fortunately, due to the Gaussian structure of the GP model, there exists an analytical form for the marginal likelihood. In practice, however, it is computationally faster to compute the log marginal likelihood \eqref{Equation:RegressionLogMarginalLikelihood}. Note that the hyperparameters includes the kernel sensitivity $\sigma_{f}$, the kernel length scales $\{l_{ij}\}_{i \in I_{p}, j \in I_{p}}$, and the noise level $\sigma$ if noise exists. That is, the hyperparameters to be optimised is $\vec{\uptheta}$ under noiseless regression and $\tilde{\vec{\uptheta}}$ under noisy regression.
-				
+				One of the most important yet tricky aspects of GP modeling is the training stage. Since the model is determined entirely by the hyperparameters, the hyperparameters must be optimised in accordance to some fitness metric. The fitness metric employed to be maximised is the marginal likelihood, otherwise termed as evidence, of the observed data. This is usually non-trivial to compute and, in most cases, analytical forms do not exist. Fortunately, due to the Gaussian structure of the GP model, there exists an analytical form for the marginal likelihood. In practice, however, it is computationally faster to compute the log marginal likelihood for optimisation \eqref{Equation:RegressionLogMarginalLikelihood}. Note that the hyperparameters includes the kernel sensitivity $\sigma_{f}$, the kernel length scales $\{l_{ij}\}_{i \in I_{p}, j \in I_{p}}$, and the noise level $\sigma$ if noise exists. That is, the hyperparameters to be optimised is $\vec{\uptheta}$ under noiseless regression and $\tilde{\vec{\uptheta}}$ under noisy regression.
+							
 				\begin{equation}
-					\log(p(\bvec{y} | \tilde{\vec{\uptheta}})) = - \frac{1}{2} \bvec{y}^{T} (K_{\vec{\uptheta}} + \sigma^{2} I)^{-1} \bvec{y} - \frac{1}{2} \log|K_{\vec{\uptheta}} + \sigma^{2} I| - \frac{n}{2} \log(2 \pi)
+					\begin{aligned}
+						\tilde{\vec{\uptheta}}_{\mathrm{opt}} &= \argmax_{\tilde{\vec{\uptheta}}} \log(p(\bvec{y} | \tilde{\vec{\uptheta}})) \\
+						\log(p(\bvec{y} | \tilde{\vec{\uptheta}})) = - \frac{1}{2} \bvec{y}^{T} (K_{\vec{\uptheta}} + &\sigma^{2} I)^{-1} \bvec{y} - \frac{1}{2} \log|K_{\vec{\uptheta}} + \sigma^{2} I| - \frac{n}{2} \log(2 \pi)
+					\end{aligned}
 				\label{Equation:RegressionLogMarginalLikelihood}
 				\end{equation}
 				
-				Note that the data kernel is a function of $\vec{\uptheta}$ only, which contains all hyperparameters except for $\sigma$. It is important to understand that the marginal likelihood here refers to the evidence of the following Bayes relation \eqref{Equation:RegressionLogMarginalLikelihoodBayes}.
+				Note that the data kernel $K_{\vec{\uptheta}}$ is a function of $\vec{\uptheta}$ only, which contains all hyperparameters except for $\sigma$. It is important to understand that the marginal likelihood here refers to the evidence $p(\bvec{y} | \tilde{\vec{\uptheta}})$ of the following Bayes relation \eqref{Equation:RegressionLogMarginalLikelihoodBayes}.
 				
 				\begin{equation}
 					p(\bvec{f} | \bvec{y}, \tilde{\vec{\uptheta}}) = \frac{p(\bvec{y} | \bvec{f}, \tilde{\vec{\uptheta}}) p(\bvec{f} | \tilde{\vec{\uptheta}})}{p(\bvec{y} | \tilde{\vec{\uptheta}})}
@@ -356,7 +356,7 @@
 				\label{Equation:GeneralMarginalLikelihood}
 				\end{equation}
 				
-				Again, in the degenerate case where $y = f$ everywhere, simply set $\sigma = 0$ in \eqref{Equation:RegressionLogMarginalLikelihood} so that the objective simply become the prior $p(\bvec{f} | \tilde{\vec{\uptheta}}) = p(\bvec{f} | \vec{\uptheta})$.
+				Again, in the degenerate case where $y = f$ everywhere so that $\sigma = 0$ in \eqref{Equation:RegressionLogMarginalLikelihood}, the objective simply becomes the prior $p(\bvec{f} | \tilde{\vec{\uptheta}}) = p(\bvec{f} | \vec{\uptheta})$.
 				
 				The last term in \eqref{Equation:RegressionLogMarginalLikelihood} is a constant, so it can be ignored during the optimisation stage and included back in once optimisation completes.
 				
@@ -370,7 +370,7 @@
 			Unlike the regression case, because the output labels are no longer continuous, the likelihood $p(\bvec{y} | \bvec{f}, \vec{\uptheta})$ is no longer Gaussian distributed \eqref{Equation:ClassificationLogMarginalLikelihoodBayes}. Note that there is no noise parameter $\sigma$ involved, so that the hyperparameters are $\vec{\uptheta}$.
 
 			\begin{equation}
-				\overbrace{p(\bvec{f} | \bvec{y}, \vec{\uptheta})}^{\mathclap{\substack{\text{Non-Gaussian} \\ \text{as a result}}}} = \frac{\overbrace{p(\bvec{y} | \bvec{f}, \vec{\uptheta})}^{\text{Non-Gaussian}} \; \overbrace{p(\bvec{f} | \vec{\uptheta})}^{\text{Gaussian}}}{\underbrace{p(\bvec{y} | \vec{\uptheta})}_{\mathclap{\substack{= \int\limits_{\mathbb{R}^{n}} p(\bvec{y} | \bvec{f}, \vec{\uptheta})) p(\bvec{f} | \vec{\uptheta})) d\bvec{f} \\ \Rightarrow \; \text{non-Gaussian due to above}}}}}
+				\overbrace{p(\bvec{f} | \bvec{y}, \vec{\uptheta})}^{\mathclap{\substack{\text{Non-Gaussian} \\ \text{as a result}}}} = \frac{\overbrace{p(\bvec{y} | \bvec{f}, \vec{\uptheta})}^{\text{Non-Gaussian}} \; \overbrace{p(\bvec{f} | \vec{\uptheta})}^{\text{Gaussian}}}{\underbrace{p(\bvec{y} | \vec{\uptheta})}_{\mathclap{\substack{= \int\limits_{\mathbb{R}^{n}} p(\bvec{y} | \bvec{f}, \vec{\uptheta})) p(\bvec{f} | \vec{\uptheta})) d\bvec{f} \\ \Rightarrow \; \text{Non-Gaussian due to above}}}}}
 			\label{Equation:ClassificationLogMarginalLikelihoodBayes}
 			\end{equation}
 
