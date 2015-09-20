@@ -384,7 +384,7 @@ def main():
     yq_lde_mean = yq_lde.mean()
     yq_mie_mean = yq_mie.mean()
     logging.info('Miss Ratio: {0:.2f}%'.format(100 * miss_ratio))
-    logging.info('Average Marginalised Linearised Differential Entropy: '\
+    logging.info('Average Marginalised Linearised Model Differential Entropy: '\
         '{0:.2f}'.format(yq_lde_mean))
     logging.info('Average Marginalised Information Entropy: '\
         '{0:.2f}'.format(yq_mie_mean))
@@ -396,7 +396,7 @@ def main():
         marker = 'x', c = yq_truth, s = 5, 
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
-    sea.vis.describe_plot(title = 'Synthetic Ground Truth', 
+    sea.vis.describe_plot(title = 'Synthetic Ground Truth Map', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True, 
@@ -411,7 +411,7 @@ def main():
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
     sea.vis.describe_plot(
-        title = 'Predictions [Miss Ratio: {0:.2f}\%]'.format(100 * miss_ratio), 
+        title = 'Prediction Map [Miss Ratio: {0:.2f}\%]'.format(100 * miss_ratio), 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True, 
@@ -450,7 +450,7 @@ def main():
         Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = yq_lde, s = 5, cmap = cm.coolwarm, 
         colorcenter = colorcenter_lde)
-    sea.vis.describe_plot(title = 'Linearised Differential Entropy', 
+    sea.vis.describe_plot(title = 'Linearised Model Differential Entropy', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Differential Entropy',
         vis_range = vis_range, aspect_equal = True, 
@@ -683,7 +683,7 @@ def main():
         yq_lde_mean = yq_lde.mean()
         yq_esd_mean = yq_esd.mean()
         logging.info('Miss Ratio: {0:.2f}%'.format(100 * miss_ratio))
-        logging.info('Average Marginalised Linearised Differential Entropy: '\
+        logging.info('Average Marginalised Linearised Model Differential Entropy: '\
             '{0:.2f}'.format(yq_lde_mean))
         logging.info('Average Marginalised Information Entropy: '\
             '{0:.2f}'.format(yq_mie_mean))
@@ -715,7 +715,7 @@ def main():
             Xq[:, 0], Xq[:, 1], 
             marker = 'x', c = yq_lde, s = 5, 
             cmap = cm.coolwarm, colorcenter = colorcenter_lde)
-        sea.vis.describe_plot(title = 'Linearised Differential Entropy', 
+        sea.vis.describe_plot(title = 'Linearised Model Differential Entropy', 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Differential Entropy',
             vis_range = vis_range, aspect_equal = True, 
@@ -831,7 +831,7 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
         sea.vis.describe_plot(
-            title = 'Predictions [Miss Ratio: {0:.2f}\%]'.format(
+            title = 'Prediction Map [Miss Ratio: {0:.2f}\%]'.format(
                 100 * miss_ratio), 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,

@@ -112,6 +112,7 @@ def sample(X, F, y, Xq, Fq,
     F_sample = F[i_train_sample]
     y_sample = y[i_train_sample]
 
+    logging.info('Total Number of Trainint Points: %d' % X.shape[0])
     logging.info('Sampled Number of Training Points: %d' % X_sample.shape[0])
 
     """Sample Query Data"""
@@ -123,6 +124,7 @@ def sample(X, F, y, Xq, Fq,
     Xq_sample = Xq[i_query_sample]
     Fq_sample = Fq[i_query_sample]
 
+    logging.info('Total Number of Query Points: %d' % Xq.shape[0])
     logging.info('Sampled Number of Query Points: %d' % Xq_sample.shape[0])
 
     """Pick Features"""

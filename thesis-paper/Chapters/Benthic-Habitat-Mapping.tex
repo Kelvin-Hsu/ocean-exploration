@@ -118,17 +118,17 @@
 		
 			\begin{figure}[!htbp]
 			\centering
-				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure1.eps}
-				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure2.eps}
-				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure3.eps}
-				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure4.eps}
-				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure5.eps}
-				\includegraphics[width = 0.32\linewidth]{Figures/scott_reef_modeling/Figure6.eps}
+				\includegraphics[width = 0.48\linewidth]{Figures/scott_reef_modeling/Figure1.eps}
+				\includegraphics[width = 0.48\linewidth]{Figures/scott_reef_modeling/Figure2.eps}
+				\includegraphics[width = 0.48\linewidth]{Figures/scott_reef_modeling/Figure3.eps}
+				\includegraphics[width = 0.48\linewidth]{Figures/scott_reef_modeling/Figure4.eps}
+				\includegraphics[width = 0.48\linewidth]{Figures/scott_reef_modeling/Figure5.eps}
+				\includegraphics[width = 0.48\linewidth]{Figures/scott_reef_modeling/Figure6.eps}
 			\caption{Scott Reef Bathymetric Features}
 			\label{Figure:ScottReefBathymetricFeatures}
 			\end{figure}
 			
-			In the Scott Reef case, the bathymetric observations span the entire region of interest densely. However, while bathymetric data are usually collected rather uniformly and densely, the label data are collected from past AUV missions whose trajectory are continuous paths across the ocean floor \citep{Squidle}. Often times, these paths are approximate line segments which cover a very limited portion of the region of interest. Due to slower AUV velocity as compared to surface ships which often employ SONAR or LIDAR techniques for bathymetry mapping, the label data are also spatially denser and concentrated on the mission trajectory, while being almost non-existent elsewhere, making it a multi-modal distributed dataset. 
+			Like the Scott Reef dataset, in most cases the bathymetric observations span the entire region of interest densely. However, while bathymetric data are usually collected rather uniformly and densely, the label data are collected from past AUV missions whose trajectory are continuous paths across the ocean floor \citep{Squidle}. Often times, these paths are approximate line segments which cover a very limited portion of the region of interest. Due to slower AUV velocity as compared to surface ships which often employ SONAR or LIDAR techniques for bathymetry mapping, the label data are also spatially denser and concentrated on the mission trajectory, while being almost non-existent elsewhere, making it a multi-modal distributed dataset. 
 			
 			Therefore, in order for the GP classifier to learn the relationship between the bathymetric features and habitat labels, the bathymetric data and label data must have a one-to-one correspondence. In other words, they must exist at the same locations. 
 			
@@ -191,6 +191,7 @@
 							
 			\FloatBarrier
 				
+	\newpage
 	\section{Gaussian Process Classification}
 	\label{BenthicHabitatMapping:Classification}
 	
@@ -262,6 +263,10 @@
 		\subsection{Multiclass Classification}
 		\label{BenthicHabitatMapping:Classification:MulticlassClassification}
 		
+		
+			Note that while the class labels are formulated to be in the range $y \in I_{n_{C}} = \{1, 2, \dots, n_{C}\}$ for convenience, this is not necessary. The formulation is equivalent as long as $n_{C}$ distinct numbers are used so that there is a one to one correspondence between the labels and $I_{n_{C}}$.
+			
+			
 			\subsubsection{One Versus All Classification}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}
 			
@@ -289,22 +294,49 @@
 			\subsubsection{Exclusion}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:Exclusion}
 			
+	\newpage
 	\section{Mapping Scott Reef Benthic Habitats}
 	\label{BenthicHabitatMapping:ScottReef}
 
-		The Scott Reef data set is provided by \cite{IMOS}. The benthic labels are clustered in an unsupervised manner from benthic imagery using Gaussian latent Dirichlet allocation (LDA) \cite{Steinberg2015128}, producing 22 unique benthic class labels, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting. 
-	
-		\subsection{Simulation Setup}
-		
-			As before, an OVA GP multiclass classifier under Laplace approximation, probit response, and squared exponential kernel is to model the benthic habitats using five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale) (figure \ref{Figure:ScottReefBathymetricFeatures}). As training labels are only available around past mission tracks (figure \ref{Figure:ScottReefBathymetricFeatures}), a synthetic ground truth is generated separately in order to assess the relative performance between path-planning techniques (figure \ref{Figure:ScottReefSyntheticGroundTruth}). Note that this ground truth is generated in accordance to the limited training labels available in the dataset and does not necessary represent the physical reality at Scott Reef. 
-	
-			\begin{figure}[t]
-			\fontsize{24}{12}\selectfont
+		With a coherent and tractable inference method with Gaussian process classifiers, it can now be applied to map the benthic habitats of a given region. This section presents the mapping results by applying the techniques formulated previously on the Scott Reef dataset provided by \cite{IMOS}.  
+
+		\begin{wrapfigure}{r}{0.4\linewidth}
 			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7.eps}
-			\caption{Scott Reef: Synthetic Ground Truth}
-			\label{Figure:ScottReefSyntheticGroundTruth}
+				\includegraphics[width=\linewidth]{Figures/label_images.png}
+			\caption{Gaussian LDA \\ clustered habitat imagery \\ \citep{Steinberg2015128}}
+			\label{Figure:LabelImages}
+		\end{wrapfigure}
+			
+		With the bathymetric depth recorded at both training locations $P$ and query locations $P^{\star}$, the corresponding bathymetric features $X$ and $X^{\star}$ can be extracted through the process detailed in section \ref{BenthicHabitatMapping:BathymetricFeatures}. Along with the benthic habitat labels $\bvec{y}$ observed at the training points, the effective dataset consists of the training data $(P, X, \bvec{y})$ and query data $(P^{\star}, X^{\star})$.
+
+		The habitat labels are clustered in an unsupervised manner from the collected benthic imagery using Gaussian latent Dirichlet allocation (LDA) \citep{Steinberg2015128}, producing 22 unique benthic class labels, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting (figure \ref{Figure:LabelImages}). Therefore, benthic habitat mapping over Scott Reef is a multiclass classification problem with $n_{C} = 17$ classes.
+		
+		As discussed in section \ref{BenthicHabitatMapping:BathymetricFeatures}, the benthic habitats are to be modelled upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale). The corresponding feature maps across the reef have been visualised in Figure \ref{Figure:ScottReefBathymetricFeatures}.
+			
+		For the Scott Reef dataset, an OVA Gaussian process classifier is employed due to its simpler structure and stronger inference capabilities under \textit{relatively} small training datasets. While the training dataset is large in size, it is \textit{relatively} small compared to the total region to be mapped. As before, the classifier is trained under Laplace approximation as a good balance between tractability and accuracy. The probit response is chosen as the likelihood response, and the kernel covariance employed is an axis aligned squared exponential kernel.
+			
+		\subsection{Problems and Solutions to Big Data}
+		\label{BenthicHabitatMapping:ScottReef:BigData}
+		
+			One of the problems of performing inference on big datasets is that it has high memory and time complexity requirements. In the current Scott Reef example, there are a total of $n = 34890$ training points and $n^{\star} = 17675180$ query points, even after removing all invalid entries. With regards to the training stage, since Gaussian processes are $O(n^{3})$ algorithms, the high number of training points will cause learning bottlenecks in the process.
+			
+			More importantly, however, is the memory requirements involved in the inference stage. As explained in sections \ref{Background:GaussianProcesses:Regression} and \ref{BenthicHabitatMapping:Classification}, the inference stage requires the computation of a data kernel $K \in \mathbb{R}^{n \times n}$, an inference kernel $K^{\star} \in \mathbb{R}^{n \times n^{\star}}$, and a query kernel $K^{\star \star} \in \mathbb{R}^{n^{\star} \times n^{\star}}$. Since $n^{\star}$ is orders of magnitude greater than $n$, the memory requirements are dominated by $K^{\star \star}$. Fortunately, in the mapping scenario, it is not necessary to know the covariances between all the query points. Merely the variances at each query point needs to be known such that only the diagonal elements of $K^{\star \star}$ is required, which is $n^{\star}$ in length. The details of this computational shortcut is detailed in appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}. However, the full inference kernel $K^{\star}$ is required in order to relate the training points to the query points, without which no inference can be performed. The inference kernel has $n \times n^{\star} = 616687030200 \approx 6 \times 10^{11}$ elements. Even if 32 bit floats instead of 64 bit floats are used, each element takes 32 bits = 4 bytes of memory, such that the total memory requirement for the inference kernel using the entire dataset would be $616687030200 \times 4$ bytes $\approx 2297$ GB, which is infeasible to store on a standard computer of 4 to 16 GB RAM.
+			
+			As such, it is imperative to perform analysis with a sample of the dataset. As this section also serves to demonstrate the situation before a path planning mission is initiated, small numbers of training points will be chosen to reflect the high uncertainty in the resulting map due to a lack of data. In the following sections, $n = 200$ training points and $n^{\star} = 100000$ query points are randomly selected from the dataset for map inference, which forms the effective training data $(P, X, \bvec{y})$ and query data $(P^{\star}, X^{\star})$.
+			
+		\subsection{Prediction and Entropy Maps}
+		\label{BenthicHabitatMapping:ScottReef:Maps}
+	
+			With merely 200 training points, the classifier is able to infer a map which achieves a 41.54\% misclassification rate, or 58.46\% prediction accuracy (figure \ref{Figure:ScottReefInitialPredictions}). This demonstrates the advantage of modeling the benthic environment upon a bathymetric feature space instead of spatial coordinates. The tracks cover less than 5\% of the region, yet more than half of the region can be accurately modeled with such scarce data. This model takes advantage of the fact that although habitats can be far away spatially, they can have similar bathymetric structures such that they are close in the bathymetric feature space.
+	
+			\begin{figure}[!htbp]
+			\centering
+				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.eps}
+			\caption{Scott Reef: Initial Prediction}
+			\label{Figure:ScottReefInitialPredictions}
 			\end{figure}
+			
+			While we can map the reef with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to the scarcity of data. In this initial scenario, under the prediction information entropy criterion the vehicle would simply try to map out all regions as much as possible - a very costly policy.
 			
 			\begin{figure}[bp]
 			\centering
@@ -312,34 +344,6 @@
 			\caption{Scott Reef: Prediction Information Entropy}
 			\label{Figure:ScottReefPredictionInformationEntropy}
 			\end{figure}
-					
-			To reduce computational requirements, 200 training points were sampled from those tracks for initial modeling, which achieves a 41.54\% misclassification rate, or 58.46\% prediction accuracy (figure \ref{Figure:ScottReefInitialPredictions}). This demonstrates the advantage of modeling the benthic environment upon a bathymetric feature space instead of spatial coordinates. The tracks cover less than 5\% of the region, yet more than half of the region can be accurately modeled with such scarce data. This model takes advantage of the fact that although habitats can be far away spatially, they can have similar bathymetric structures such that they are close in the bathymetric feature space.
-	
-			While we can map the reef with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:Results:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to the scarcity of data. In this initial scenario, under the prediction information entropy criterion the vehicle would simply try to map out all regions as much as possible - a very costly policy.
-			
-			\begin{figure}[t]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.eps}
-			\caption{Scott Reef: Initial Prediction}
-			\label{Figure:ScottReefInitialPredictions}
-			\end{figure}
 						
-			The linearised differential entropy, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths.
+
 			
-			\begin{figure}[bp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure11.eps}
-			\caption{Scott Reef: Linearised Differential Entropy}
-			\label{Figure:ScottReefLinearisedDifferentialEntropy}
-			\end{figure}
-			
-		\subsection{Problems and Solutions to Big Data Analysis}
-		
-		\subsection{Feature Extraction}
-		
-		\subsection{Case with 4 Labels}
-		
-			(With different amounts of sampled points)
-			
-		\subsection{Case with 17 Labels}
-		

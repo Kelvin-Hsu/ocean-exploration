@@ -72,14 +72,14 @@
 			Finally,  for $n_{C} = 2$ classes, the Monte Carlo predictive information entropy, as an instance of Shannon entropy \eqref{Equation:DiscreteEntropy}, can be computed from the estimated probabilities that represent the joint distribution \eqref{Equation:MCPIE}. As usual, only non-zero entries of $\tilde{\bvec{p}}$ need to be considered. 
 			
 			\begin{equation}
-				H_{\mathrm{MCPIE}} := H_{\mathrm{MCPIE}}[X^{\star} | X, \bvec{y}] := - \sum_{i \in I_{n_{U}}} \tilde{p}^{\star}_{i} \log(\tilde{p}^{\star}_{i})
+				H_{\mathrm{MCPIE}} \stackrel{\text{abbrev.}}{:=} H_{\mathrm{MCPIE}}[X^{\star} | X, \bvec{y}] := - \sum_{i \in I_{n_{U}}} \tilde{p}^{\star}_{i} \log(\tilde{p}^{\star}_{i})
 			\label{Equation:MCPIE}
 			\end{equation}		
 			
 		\subsection{Multiclass Classification}
 		\label{InformativeSeafloorExploration:MCJPIE:Multiclass}
 		
-			The derivation in the multiclass case is similar to the binary case. Specifically, since ${^{s}}\bvec{y}^{l} \in \{1, 2, \dots, c\}^{n_{s}}$ it suffices to replace the sampling step \eqref{Equation:MonteCarloSamplingBinaryClassifier} with \eqref{Equation:MonteCarloSamplingMulticlassClassifier}.
+			The derivation in the multiclass case is similar to the binary case. Specifically, since ${^{s}}\bvec{y}^{l} \in \{1, 2, \dots, n_{C}\}^{n_{s}}$ it suffices to replace the sampling step \eqref{Equation:MonteCarloSamplingBinaryClassifier} with \eqref{Equation:MonteCarloSamplingMulticlassClassifier}.
 			
 			The following sampling method assumes that the GP classifier has been trained under a OVA scheme (see section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}). Analogous to \eqref{Equation:PredictiveLatentBinaryGP}, for $c$ classes, there are $n_{C}$ latent functions $\{f^{1}(x), f^{2}(x), \dots, f^{n_{C}}(x)\}$ corresponding to each class \eqref{Equation:PredictiveLatentMulticlassGP}. \begin{equation}
 				f^{c}(\bvec{x}) \sim \mathcal{GP}(m^{c}(\bvec{x}), k^{c}(\bvec{x}, \bvec{x}')) \qquad \forall c \in I_{n_{C}}
@@ -137,7 +137,7 @@
 			\end{align*}
 			
 			Finally, the linearised model differential entropy $H_{\mathrm{LMDE}}$ at the query points $X^{\star}$ is defined to be the differential entropy corresponding to the random vector $\vec{\upsigma}_{L}(\bvec{f}^{\star})$. Since $\vec{\upsigma}_{L}(\bvec{f}^{\star})$ is multivariate Gaussian distributed, $H_{\mathrm{LMDE}}$ exhibits a closed form \eqref{Equation:BinaryLinearisedEntropy}. \begin{equation}
-				H^{\mathrm{binary}}_{\mathrm{LMDE}} := H^{\mathrm{binary}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Big((2 \pi e)^{n^{\star}} \det(\Sigma^{\star}_{L})\Big)
+				H^{\mathrm{binary}}_{\mathrm{LMDE}} \stackrel{\text{abbrev.}}{:=} H^{\mathrm{binary}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Big((2 \pi e)^{n^{\star}} \det(\Sigma^{\star}_{L})\Big)
 			\label{Equation:BinaryLinearisedEntropy}
 			\end{equation}			
 						
@@ -209,7 +209,7 @@
 			Finally, the linearised entropy of the OVA multiclass Gaussian process classifier is defined as follows \eqref{Equation:MulticlassLinearisedEntropy}.
 			
 			\begin{equation}
-				H^{\mathrm{multiclass}}_{\mathrm{LMDE}} := H^{\mathrm{multiclass}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Bigg((2 \pi e)^{n^{\star}} \det\bigg(\sum_{c = 1}^{n_{C}} \Sigma^{c}_{L}\bigg)\Bigg)
+				H^{\mathrm{multiclass}}_{\mathrm{LMDE}} \stackrel{\text{abbrev.}}{:=} H^{\mathrm{multiclass}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Bigg((2 \pi e)^{n^{\star}} \det\bigg(\sum_{c = 1}^{n_{C}} \Sigma^{c}_{L}\bigg)\Bigg)
 			\label{Equation:MulticlassLinearisedEntropy}
 			\end{equation}			
 		
@@ -391,8 +391,30 @@
 		
 		\subsection{Practical Considerations}
 		
-		\subsection{Entropy and Prediction Maps}
+			As training labels are only available around past mission tracks (figure \ref{Figure:ScottReefBathymetricFeatures}), a synthetic ground truth is generated separately in order to assess the relative performance between path-planning techniques (figure \ref{Figure:ScottReefSyntheticGroundTruth}). Note that this ground truth is generated in accordance to the limited training labels available in the dataset and does not necessary represent the physical reality at Scott Reef. 
+	
+			\begin{figure}[t]
+			\fontsize{24}{12}\selectfont
+			\centering
+				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7.eps}
+			\caption{Scott Reef: Synthetic Ground Truth}
+			\label{Figure:ScottReefSyntheticGroundTruth}
+			\end{figure}
+			
+			
+			MENTION AGAIN THAT the point of the acquisition functions above is that it doesn't need to incorporate the field JOINT entropy, which would need $K^{\star \star}$!!
+			
+		\subsection{Seafloor Exploration Simulation}
 		
+			The linearised differential entropy, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths.
+			
+			\begin{figure}[bp]
+			\centering
+				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure11.eps}
+			\caption{Scott Reef: Linearised Model Differential Entropy}
+			\label{Figure:ScottReefLinearisedDifferentialEntropy}
+			\end{figure}
+			
 		\subsection{Performance Assessment}
 	
 	

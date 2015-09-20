@@ -27,7 +27,7 @@ def main():
 
     main_directory = "../../../Results/scott-reef/"
     directory = main_directory + "loc1_new_20150827_072158__method_LDE_start_377500_8440000_hsteps30_horizon5000/"
-    trials = np.arange(100, 201, 25)
+    trials = np.arange(25, 201, 25)
     logging.info(trials)
 
     save_directory = directory + 'PostProcess/'
@@ -137,8 +137,8 @@ def save_maps(  X, F, y, Xq, Fq,
 
     y_names = [y_names_all[i] for i in y_unique.astype(int)]
 
-    """ Linearised Entropy Map """
-    logging.info('Saving Linearised Differential Entropy Map')
+    """ Linearised Model Differential Entropy Map """
+    logging.info('Saving Linearised Model Differential Entropy Map')
 
     # Prepare Figure 1
     plt.figure(fig1.number)
@@ -147,7 +147,7 @@ def save_maps(  X, F, y, Xq, Fq,
         Xq[:, 0], Xq[:, 1], 
         marker = 'x', c = yq_lde, s = 5, 
         cmap = cm.coolwarm, colorcenter = colorcenter_lde)
-    sea.vis.describe_plot(title = 'Linearised Differential Entropy', 
+    sea.vis.describe_plot(title = 'Linearised Model Differential Entropy', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Differential Entropy',
         vis_range = vis_range, aspect_equal = True, 
@@ -265,7 +265,7 @@ def save_maps(  X, F, y, Xq, Fq,
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
     sea.vis.describe_plot(
-        title = 'Predictions [Miss Ratio: {0:.2f}{1}]'.format(
+        title = 'Prediction Map [Miss Ratio: {0:.2f}{1}]'.format(
             100 * miss_ratio, '%'), 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
