@@ -125,6 +125,8 @@ def main():
     }
 
     plt.rc_context(rcparams)
+    map_kwargs = {'alpha': 0.5, 'edgecolors': 'none', 's': 15}
+    # map_kwargs = {'marker': 'x', 's': 5}
 
     """Initialise Result Logging"""
     if SAVE_RESULTS:
@@ -273,14 +275,12 @@ def main():
         fig = plt.figure(figsize = (19.2, 10.8))
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
-            marker = 'x', c = Fq[:, k], s = 5, 
-            cmap = mycmap, colorcenter = 'mean')
+            c = Fq[:, k], colorcenter = 'mean', cmap = mycmap, **map_kwargs)
         sea.vis.describe_plot(clabel = '%s (Raw)' % feature_names[k], 
             fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
-            marker = 'x', c = Fqw[:, k], s = 5,
-            cmap = mycmap, colorcenter = 'mean')
+            c = Fqw[:, k], colorcenter = 'mean', cmap = mycmap, **map_kwargs)
         sea.vis.describe_plot(
             title = 'Feature: %s' % feature_names[k], 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
@@ -383,6 +383,7 @@ def main():
     miss_ratio = sea.model.miss_ratio(yq_pred, yq_truth)
     yq_lde_mean = yq_lde.mean()
     yq_mie_mean = yq_mie.mean()
+    yq_pred_hist, _ = np.histogram(yq_pred, bins = np.arange(23), density  = True)
     logging.info('Miss Ratio: {0:.2f}%'.format(100 * miss_ratio))
     logging.info('Average Marginalised Linearised Model Differential Entropy: '\
         '{0:.2f}'.format(yq_lde_mean))
@@ -393,9 +394,8 @@ def main():
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = yq_truth, s = 5, 
-        vmin = y_unique[0], vmax = y_unique[-1], 
-        cmap = mycmap)
+        c = yq_truth, vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap,
+        **map_kwargs)
     sea.vis.describe_plot(title = 'Synthetic Ground Truth Map', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
@@ -407,9 +407,8 @@ def main():
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = yq_pred, s = 5, 
-        vmin = y_unique[0], vmax = y_unique[-1], 
-        cmap = mycmap)
+        c = yq_pred, vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap,
+        **map_kwargs)
     sea.vis.describe_plot(
         title = 'Prediction Map [Miss Ratio: {0:.2f}\%]'.format(100 * miss_ratio), 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
@@ -422,8 +421,8 @@ def main():
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = yq_mie, s = 5, cmap = cm.coolwarm, 
-        colorcenter = 'none')
+        c = yq_mie, cmap = cm.coolwarm, colorcenter = 'none', 
+        **map_kwargs)
     sea.vis.describe_plot(title = 'Prediction Information Entropy', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Information Entropy',
@@ -435,8 +434,8 @@ def main():
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = np.log(yq_mie), s = 5, cmap = cm.coolwarm, 
-        colorcenter = 'none')
+        c = np.log(yq_mie), cmap = cm.coolwarm, colorcenter = 'none', 
+        **map_kwargs)
     sea.vis.describe_plot(title = 'Log Prediction Information Entropy', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Information Entropy',
@@ -448,8 +447,8 @@ def main():
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = yq_lde, s = 5, cmap = cm.coolwarm, 
-        colorcenter = colorcenter_lde)
+        c = yq_lde, cmap = cm.coolwarm, colorcenter = colorcenter_lde, 
+        **map_kwargs)
     sea.vis.describe_plot(title = 'Linearised Model Differential Entropy', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Differential Entropy',
@@ -461,8 +460,8 @@ def main():
     fig = plt.figure(figsize = (19.2, 10.8))
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = yq_esd, s = 5, cmap = cm.coolwarm, 
-        colorcenter = colorcenter_analysis)
+        c = yq_esd, cmap = cm.coolwarm, colorcenter = colorcenter_analysis, 
+        **map_kwargs)
     sea.vis.describe_plot(title = 'Equivalent Standard Deviation', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Standard Deviation',
@@ -471,6 +470,9 @@ def main():
         axis_scale = 1e3)
     fig.tight_layout()
     
+    # fig = plt.figure(figsize = (8.0, 6.0))
+    # plt.bar()
+
     """Save Results"""
 
     if SAVE_RESULTS:
@@ -485,6 +487,7 @@ def main():
                 yq_pred = yq_pred, yq_mie = yq_mie, yq_lde = yq_lde,
                 white_params = white_params)
     if MODEL_ONLY:
+        plt.show()
         return
 
     """Informative Seafloor Exploration: Setup"""
@@ -713,8 +716,8 @@ def main():
         plt.clf()
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
-            marker = 'x', c = yq_lde, s = 5, 
-            cmap = cm.coolwarm, colorcenter = colorcenter_lde)
+            c = yq_lde, cmap = cm.coolwarm, colorcenter = colorcenter_lde,
+            **map_kwargs)
         sea.vis.describe_plot(title = 'Linearised Model Differential Entropy', 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Differential Entropy',
@@ -770,8 +773,8 @@ def main():
         plt.clf()
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
-            marker = 'x', c = yq_mie, s = 5, 
-            cmap = cm.coolwarm, colorcenter = colorcenter_analysis)
+            c = yq_mie, cmap = cm.coolwarm, colorcenter = colorcenter_analysis,
+            **map_kwargs)
         sea.vis.describe_plot(title = 'Prediction Information Entropy', 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Information Entropy',
@@ -827,9 +830,8 @@ def main():
         plt.clf()
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
-            marker = 'x', c = yq_pred, s = 5, 
-            vmin = y_unique[0], vmax = y_unique[-1], 
-            cmap = mycmap)
+            c = yq_pred, vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap,
+            **map_kwargs)
         sea.vis.describe_plot(
             title = 'Prediction Map [Miss Ratio: {0:.2f}\%]'.format(
                 100 * miss_ratio), 

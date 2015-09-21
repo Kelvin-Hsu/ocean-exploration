@@ -4,22 +4,22 @@
 	
 	 With the general theory and framework of Gaussian process inference provided in section \ref{Background:GaussianProcesses}, this chapter aims to extend such theory to the benthic habitat mapping context. In particular, specific classifier inference techniques are developed and built upon the existing Gaussian process classifier framework. This chapter focuses strictly on the inference techniques necessary for building a map of benthic habitats across a given region. The following chapter would then continue to build on such inference models for the purpose of informative seafloor exploration. 
 	
-		This thesis employs Gaussian process classifiers as the primary inference model for benthic habitat mapping. Gaussian processes are non-parametric, Bayesian models which is able to model a variety of phenomenon. They are known to allow the data to `speak for itself' and provide a principled inference framework for drawing conclusion regarding the gathered data \citep{GaussianProcessForMachineLearning}. 
-		
-		Figure \ref{Figure:InferenceFlow} visualises the information flow involved in a Gaussian process classifier, and describes the necessary inference stages involved for both habitat mapping and information inference, the latter of which allows informative exploration and is the focus of the next chapter.
+	This thesis employs Gaussian process classifiers as the primary inference model for benthic habitat mapping. Gaussian processes are non-parametric, Bayesian models which is able to model a variety of phenomenon. They are known to allow the data to `speak for itself' and provide a principled inference framework for drawing conclusion regarding the gathered data \citep{GaussianProcessForMachineLearning}. 
+	
+	Figure \ref{Figure:InferenceFlow} visualises the information flow involved in a Gaussian process classifier, and describes the necessary inference stages involved for both habitat mapping and information inference, the latter of which allows informative exploration and is the focus of the next chapter.
 
-		\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width = 0.8\linewidth]{Figures/inferenceflow.eps}
-		\caption{Inference Information Flow}
-		\label{Figure:InferenceFlow}
-		\end{figure}	
-				
-		This chapter will focus on the learning and inference stages represented by all the {\color{Gray} gray} and {\color{ForestGreen} green} coloured arrows, while the next chapter will focus on the inference stages represented by all the {\color{OrangeRed} red}, {\color{YellowOrange} gold}, and {\color{Cerulean} blue} coloured arrows.
-		
-		As the figure suggests, the mapping process is a supervised learning problem for which the habitat labels $\bvec{y}^{\star}$ at the query locations $P^{\star}$ is to be inferred from the query features $X^{\star}$ by learning a relationship between the habitat labels $\bvec{y}$ and the training features $X$ at the training locations $P$. Only the {\color{Gray} gray} and {\color{ForestGreen} green} coloured arrows in Figure \ref{Figure:InferenceFlow} are necessary for mapping to be achieved.
-		
-		As the discussion continues in the following two chapters, each part of the diagram will be expanded and addressed. The inference information flow provided in figure \ref{Figure:InferenceFlow} serves as a visual roadmap of the inference stages to be explored in this thesis, and will thus be reference frequently
+	\begin{figure}[!htbp]
+	\centering
+		\includegraphics[width = 0.8\linewidth]{Figures/inferenceflow.eps}
+	\caption{Inference Information Flow}
+	\label{Figure:InferenceFlow}
+	\end{figure}	
+			
+	This chapter will focus on the learning and inference stages represented by all the {\color{Gray} gray} and {\color{ForestGreen} green} coloured arrows, while the next chapter will focus on the inference stages represented by all the {\color{OrangeRed} red}, {\color{YellowOrange} gold}, and {\color{Cerulean} blue} coloured arrows.
+	
+	As the figure suggests, the mapping process is a supervised learning problem for which the habitat labels $\bvec{y}^{\star}$ at the query locations $P^{\star}$ is to be inferred from the query features $X^{\star}$ by learning a relationship between the habitat labels $\bvec{y}$ and the training features $X$ at the training locations $P$. Only the {\color{Gray} gray} and {\color{ForestGreen} green} coloured arrows in Figure \ref{Figure:InferenceFlow} are necessary for mapping to be achieved.
+	
+	As the discussion continues in the following two chapters, each part of the diagram will be expanded and addressed. The inference information flow provided in figure \ref{Figure:InferenceFlow} serves as a visual roadmap of the inference stages to be explored in this thesis, and will thus be reference frequently.
 		
 	 The benthic modeling process begins with extracting bathymetric features from given seafloor locations. Section \ref{BenthicHabitatMapping:BathymetricFeatures} discusses the process of bathymetric feature extraction which includes the modeling choices and assumptions involved, which covers {\color{BurntOrange} SPECIFY PARTS OF THE DIAGRAM BY COLOURED BUBBLES}. 
 	 
@@ -324,9 +324,9 @@
 			
 			As such, it is imperative to perform analysis with a sample of the dataset. As this section also serves to demonstrate the situation before a path planning mission is initiated, small numbers of training points will be chosen to reflect the high uncertainty in the resulting map due to a lack of data. In the following sections, $n = 200$ training points and $n^{\star} = 100000$ query points are randomly selected from the dataset for map inference, which forms the effective training data $(P, X, \bvec{y})$ and query data $(P^{\star}, X^{\star})$.
 			
-		\subsection{Prediction and Entropy Maps}
+		\subsection{Prediction Map}
 		\label{BenthicHabitatMapping:ScottReef:Maps}
-	
+
 			As training labels are only available around past mission tracks (figure \ref{Figure:ScottReefBathymetricFeatures}), a synthetic ground truth is generated separately in order to assess the mapping performance (figure \ref{Figure:ScottReefSyntheticGroundTruth}). This ground truth is generated separately with 800 training points available in the dataset, which is a reasonable size on a computer with 8 GB RAM as the inference kernel would take $800 \times 100000 \times 17 \times 4$ bytes $\approx 5$ GB of storage. Since the ground truth is generated with only 800 training points, it does not necessary represent the physical reality at Scott Reef. 
 	
 			\begin{figure}[!htbp]
@@ -343,15 +343,6 @@
 				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure8.eps}
 			\caption{Scott Reef: Initial Prediction}
 			\label{Figure:ScottReefInitialPredictions}
-			\end{figure}
-			
-			
-			
-			\begin{figure}[bp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9.eps}
-			\caption{Scott Reef: Prediction Information Entropy}
-			\label{Figure:ScottReefPredictionInformationEntropy}
 			\end{figure}
 						
 	\section{Summary}

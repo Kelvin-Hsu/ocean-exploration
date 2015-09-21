@@ -137,6 +137,9 @@ def save_maps(  X, F, y, Xq, Fq,
 
     y_names = [y_names_all[i] for i in y_unique.astype(int)]
 
+    map_kwargs = {'alpha': 0.5, 'edgecolors': 'none', 's': 15}
+    # map_kwargs = {'marker': 'x', 's': 5}
+
     """ Linearised Model Differential Entropy Map """
     logging.info('Saving Linearised Model Differential Entropy Map')
 
@@ -145,8 +148,8 @@ def save_maps(  X, F, y, Xq, Fq,
     plt.clf()
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = yq_lde, s = 5, 
-        cmap = cm.coolwarm, colorcenter = colorcenter_lde)
+        c = yq_lde, cmap = cm.coolwarm, colorcenter = colorcenter_lde, 
+        **map_kwargs)
     sea.vis.describe_plot(title = 'Linearised Model Differential Entropy', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Differential Entropy',
@@ -203,8 +206,8 @@ def save_maps(  X, F, y, Xq, Fq,
     plt.clf()
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = yq_mie, s = 5, 
-        cmap = cm.coolwarm, colorcenter = colorcenter_analysis)
+        c = yq_mie, cmap = cm.coolwarm, colorcenter = colorcenter_analysis, 
+        **map_kwargs)
     sea.vis.describe_plot(title = 'Prediction Information Entropy', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Information Entropy',
@@ -261,9 +264,8 @@ def save_maps(  X, F, y, Xq, Fq,
     plt.clf()
     sea.vis.scatter(
         Xq[:, 0], Xq[:, 1], 
-        marker = 'x', c = yq_pred, s = 5, 
-        vmin = y_unique[0], vmax = y_unique[-1], 
-        cmap = mycmap)
+        c = yq_pred, vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap, 
+        **map_kwargs)
     sea.vis.describe_plot(
         title = 'Prediction Map [Miss Ratio: {0:.2f}{1}]'.format(
             100 * miss_ratio, '%'), 

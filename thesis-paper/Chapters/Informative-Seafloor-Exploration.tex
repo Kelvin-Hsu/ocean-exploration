@@ -387,17 +387,32 @@
 	\section{Informative Exploration over Scott Reef Seafloor}
 	\label{InformativeSeafloorExploration:ScottReef}
 	
-		With the acquisition criteria and receding horizon formulation developed previously, this section demonstrates informative exploration over the Scott Reef seafloor for benthic habitat mapping. Specifically, the performance of LMDE acquisition is compared against other acquisition criteria, with the most important comparison being that with MCPIE acquisition. The results are also evaluated against myopic approaches to demonstrate the advantage of a receding horizon formulation in general. Under a misclassification performance criterion, empirical results show that LMDE acquisition achieves stable and desirable results, and experimentally outperform competing methods.
+		With the acquisition criteria and receding horizon formulation developed previously, this section demonstrates informative exploration over the Scott Reef seafloor for benthic habitat mapping. Specifically, the performance of LMDE acquisition is compared against other acquisition criteria, with the most important comparison being that with MCPIE acquisition. The results are also evaluated against myopic approaches to demonstrate the advantage of a receding horizon formulation in general. Under a mapping performance criterion, empirical results show that LMDE acquisition achieves stable and desirable results, and experimentally outperform competing methods.
 		
-		\subsection{Practical Considerations}
+		\subsection{Practical Considerations and Big Data}
+		\label{InformativeSeafloorExploration:ScottReef:BigData}
 		
-
+			Similar to the problems faced in benthic habitat mapping as discussed in section \ref{BenthicHabitatMapping:ScottReef:BigData}, big data also poses significant problems for informative path planning.
 			
 			
 			MENTION AGAIN THAT the point of the acquisition functions above is that it doesn't need to incorporate the field JOINT entropy, which would need $K^{\star \star}$!!
 			
 		\subsection{Seafloor Exploration Simulation and Performance Assessment}
 		
+			\begin{figure}[bp]
+			\centering
+				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure9.eps}
+			\caption{Scott Reef: Prediction Information Entropy}
+			\label{Figure:ScottReefPredictionInformationEntropy}
+			\end{figure}
+	
+			\begin{figure}[bp]
+			\centering
+				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling_600/Figure9.eps}
+			\caption{Scott Reef: Prediction Information Entropy 600}
+			\label{Figure:ScottReefPredictionInformationEntropy600}
+			\end{figure}
+					
 			While the reef can be mapped with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to the scarcity of data. In this initial scenario, under the prediction information entropy criterion the vehicle would simply try to map out all regions as much as possible - a very costly policy.
 
 			The linearised differential entropy, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths.
@@ -409,4 +424,11 @@
 			\label{Figure:ScottReefLinearisedDifferentialEntropy}
 			\end{figure}
 
+			\begin{figure}[bp]
+			\centering
+				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling_600/Figure11.eps}
+			\caption{Scott Reef: Linearised Model Differential Entropy 600}
+			\label{Figure:ScottReefLinearisedDifferentialEntropy600}
+			\end{figure}
+			
 	\section{Summary}
