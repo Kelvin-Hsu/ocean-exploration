@@ -125,8 +125,8 @@ def main():
     }
 
     plt.rc_context(rcparams)
-    map_kwargs = {'alpha': 0.5, 'edgecolors': 'none', 's': 15}
-    # map_kwargs = {'marker': 'x', 's': 5}
+    # map_kwargs = {'alpha': 0.5, 'edgecolors': 'none', 's': 15}
+    map_kwargs = {'marker': 'x', 's': 5}
 
     """Initialise Result Logging"""
     if SAVE_RESULTS:

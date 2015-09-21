@@ -137,8 +137,8 @@ def save_maps(  X, F, y, Xq, Fq,
 
     y_names = [y_names_all[i] for i in y_unique.astype(int)]
 
-    map_kwargs = {'alpha': 0.5, 'edgecolors': 'none', 's': 15}
-    # map_kwargs = {'marker': 'x', 's': 5}
+    # map_kwargs = {'alpha': 0.5, 'edgecolors': 'none', 's': 15}
+    map_kwargs = {'marker': 'x', 's': 5}
 
     """ Linearised Model Differential Entropy Map """
     logging.info('Saving Linearised Model Differential Entropy Map')
