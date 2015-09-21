@@ -14,7 +14,7 @@
 
 %%%%%% Start: Kelvin's Packages %%%%%% 
 %\usepackage{apacite}
-\usepackage{mathtools, amsmath,amssymb,amsthm,mathrsfs}
+\usepackage{mathtools, amsmath, amssymb, amsthm, mathrsfs}
 \usepackage{placeins}
 \usepackage{wrapfig}
 \usepackage[noabbrev]{cleveref}
@@ -44,18 +44,6 @@
 \newtheoremstyle{indented}{3pt}{3pt}{\addtolength{\leftskip}{2.5em}}{}{\bfseries}{.}{.5em}{}
 \theoremstyle{indented}
 
-\newcommand{\includefigure}[4]
-{
-	\begin{figure}[!htbp]
-		\centering
-			\includegraphics[width=#4\textwidth]{Figures/#1.#2}
-		\caption{#3}
-		\label{Figure:#1}
-	\end{figure}
-	
-	\FloatBarrier
-}
-
 \newcommand{\matern}{Mat\'{e}rn }
 \newcommand{\maternmath}{Mat\acute{e}rn }
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
@@ -69,7 +57,7 @@
 \frontmatter      % Begin Roman style (i, ii, iii, iv...) page numbering
 \title  {\includegraphics[width=0.25\textwidth]{Figures/University-of-Sydney.png} \\ Informative Seafloor Exploration {\Large{for}} Benthic Habitat Mapping}
 \authors  {\texorpdfstring
-            {\href{yhsu9975@uni.sydney.edu.au}{Kelvin Y.S. Hsu}}
+            {\href{mailto:yhsu9975@uni.sydney.edu.au}{Kelvin Y.S. Hsu}}
             {Kelvin YS Hsu}
             }
 \addresses  {\groupname\\\deptname\\\univname}  % Do not change this here, instead these must be set in the "Thesis.cls" file, please look through it instead
@@ -128,10 +116,11 @@ Date:\\
 \null\vfill
 % Now comes the "Funny Quote", written in italics
 \begin{CJK*}{UTF8}{bsmi}
-\textit{``{\CJKfamily{bkai}三人行, 必有我師焉}''}
-
+\textit{``{\CJKfamily{bkai}三人行, 必有我師焉}''} \\
+\textit{``Amongst a group of three people, there is always one person I can learn from.''}
 \begin{flushright}
-	{\CJKfamily{bkai}孔子}
+	{\CJKfamily{bkai}孔子} \\
+	Confucius
 \end{flushright}
 \end{CJK*}
 

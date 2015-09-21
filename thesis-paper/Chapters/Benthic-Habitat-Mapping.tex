@@ -320,14 +320,23 @@
 		
 			One of the problems of performing inference on big datasets is that it has high memory and time complexity requirements. In the current Scott Reef example, there are a total of $n = 34890$ training points and $n^{\star} = 17675180$ query points, even after removing all invalid entries. With regards to the training stage, since Gaussian processes are $O(n^{3})$ algorithms, the high number of training points will cause learning bottlenecks in the process.
 			
-			More importantly, however, is the memory requirements involved in the inference stage. As explained in sections \ref{Background:GaussianProcesses:Regression} and \ref{BenthicHabitatMapping:Classification}, the inference stage requires the computation of a data kernel $K \in \mathbb{R}^{n \times n}$, an inference kernel $K^{\star} \in \mathbb{R}^{n \times n^{\star}}$, and a query kernel $K^{\star \star} \in \mathbb{R}^{n^{\star} \times n^{\star}}$. Since $n^{\star}$ is orders of magnitude greater than $n$, the memory requirements are dominated by $K^{\star \star}$. Fortunately, in the mapping scenario, it is not necessary to know the covariances between all the query points. Merely the variances at each query point needs to be known such that only the diagonal elements of $K^{\star \star}$ is required, which is $n^{\star}$ in length. The details of this computational shortcut is detailed in appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}. However, the full inference kernel $K^{\star}$ is required in order to relate the training points to the query points, without which no inference can be performed. The inference kernel has $n \times n^{\star} = 616687030200 \approx 6 \times 10^{11}$ elements. Even if 32 bit floats instead of 64 bit floats are used, each element takes 32 bits = 4 bytes of memory, such that the total memory requirement for the inference kernel using the entire dataset would be $616687030200 \times 4$ bytes $\approx 2297$ GB, which is infeasible to store on a standard computer of 4 to 16 GB RAM.
+			More importantly, however, is the memory requirements involved in the inference stage. As explained in sections \ref{Background:GaussianProcesses:Regression} and \ref{BenthicHabitatMapping:Classification}, the inference stage requires the computation of a data kernel $K \in \mathbb{R}^{n \times n}$, an inference kernel $K^{\star} \in \mathbb{R}^{n \times n^{\star}}$, and a query kernel $K^{\star \star} \in \mathbb{R}^{n^{\star} \times n^{\star}}$. Since $n^{\star}$ is orders of magnitude greater than $n$, the memory requirements are dominated by $K^{\star \star}$. Fortunately, in the mapping scenario, it is not necessary to know the covariances between all the query points. Merely the variances at each query point needs to be known such that only the diagonal elements of $K^{\star \star}$ is required, which is $n^{\star}$ in length. The details of this computational shortcut is detailed in appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}. However, the full inference kernel $K^{\star}$ is required in order to relate the training points to the query points, without which no inference can be performed. The inference kernel has $n \times n^{\star} = 616687030200 \approx 6 \times 10^{11}$ elements. Even if 32 bit floats instead of 64 bit floats are used, each element takes 32 bits = 4 bytes of memory, such that the total memory requirement for the inference kernel using the entire dataset would be $616687030200 \times 4$ bytes $\approx 2297$ GB \textit{for each binary classifier}. With an OVA classifier for 17 labels, this means more than 39 TB of storage is needed, which is infeasible to store on a standard computer of 4 to 16 GB RAM.
 			
 			As such, it is imperative to perform analysis with a sample of the dataset. As this section also serves to demonstrate the situation before a path planning mission is initiated, small numbers of training points will be chosen to reflect the high uncertainty in the resulting map due to a lack of data. In the following sections, $n = 200$ training points and $n^{\star} = 100000$ query points are randomly selected from the dataset for map inference, which forms the effective training data $(P, X, \bvec{y})$ and query data $(P^{\star}, X^{\star})$.
 			
 		\subsection{Prediction and Entropy Maps}
 		\label{BenthicHabitatMapping:ScottReef:Maps}
 	
-			With merely 200 training points, the classifier is able to infer a map which achieves a 41.54\% misclassification rate, or 58.46\% prediction accuracy (figure \ref{Figure:ScottReefInitialPredictions}). This demonstrates the advantage of modeling the benthic environment upon a bathymetric feature space instead of spatial coordinates. The tracks cover less than 5\% of the region, yet more than half of the region can be accurately modeled with such scarce data. This model takes advantage of the fact that although habitats can be far away spatially, they can have similar bathymetric structures such that they are close in the bathymetric feature space.
+			As training labels are only available around past mission tracks (figure \ref{Figure:ScottReefBathymetricFeatures}), a synthetic ground truth is generated separately in order to assess the mapping performance (figure \ref{Figure:ScottReefSyntheticGroundTruth}). This ground truth is generated separately with 800 training points available in the dataset, which is a reasonable size on a computer with 8 GB RAM as the inference kernel would take $800 \times 100000 \times 17 \times 4$ bytes $\approx 5$ GB of storage. Since the ground truth is generated with only 800 training points, it does not necessary represent the physical reality at Scott Reef. 
+	
+			\begin{figure}[!htbp]
+			\centering
+				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7.eps}
+			\caption{Scott Reef: Synthetic Ground Truth}
+			\label{Figure:ScottReefSyntheticGroundTruth}
+			\end{figure}
+			
+			With merely 200 training points, the classifier is able to infer a map which achieves a 41.54\% misclassification rate, or 58.46\% prediction accuracy, over 100000 query points (figure \ref{Figure:ScottReefInitialPredictions}). This demonstrates the advantage of modeling the benthic environment upon a bathymetric feature space instead of spatial coordinates. The training tracks covers $\frac{200}{100000} = 0.2\%$ of the query region, yet almost 60\% of the region can be accurately modeled with such scarce data. This model takes advantage of the fact that although habitats can be far away spatially, they can have similar bathymetric structures such that they are close in the bathymetric feature space.
 	
 			\begin{figure}[!htbp]
 			\centering
@@ -336,7 +345,7 @@
 			\label{Figure:ScottReefInitialPredictions}
 			\end{figure}
 			
-			While we can map the reef with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to the scarcity of data. In this initial scenario, under the prediction information entropy criterion the vehicle would simply try to map out all regions as much as possible - a very costly policy.
+			
 			
 			\begin{figure}[bp]
 			\centering
@@ -345,5 +354,6 @@
 			\label{Figure:ScottReefPredictionInformationEntropy}
 			\end{figure}
 						
-
+	\section{Summary}
+	
 			

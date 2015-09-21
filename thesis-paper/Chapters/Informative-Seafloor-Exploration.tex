@@ -391,21 +391,15 @@
 		
 		\subsection{Practical Considerations}
 		
-			As training labels are only available around past mission tracks (figure \ref{Figure:ScottReefBathymetricFeatures}), a synthetic ground truth is generated separately in order to assess the relative performance between path-planning techniques (figure \ref{Figure:ScottReefSyntheticGroundTruth}). Note that this ground truth is generated in accordance to the limited training labels available in the dataset and does not necessary represent the physical reality at Scott Reef. 
-	
-			\begin{figure}[t]
-			\fontsize{24}{12}\selectfont
-			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_modeling/Figure7.eps}
-			\caption{Scott Reef: Synthetic Ground Truth}
-			\label{Figure:ScottReefSyntheticGroundTruth}
-			\end{figure}
+
 			
 			
 			MENTION AGAIN THAT the point of the acquisition functions above is that it doesn't need to incorporate the field JOINT entropy, which would need $K^{\star \star}$!!
 			
-		\subsection{Seafloor Exploration Simulation}
+		\subsection{Seafloor Exploration Simulation and Performance Assessment}
 		
+			While the reef can be mapped with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to the scarcity of data. In this initial scenario, under the prediction information entropy criterion the vehicle would simply try to map out all regions as much as possible - a very costly policy.
+
 			The linearised differential entropy, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths.
 			
 			\begin{figure}[bp]
@@ -414,8 +408,5 @@
 			\caption{Scott Reef: Linearised Model Differential Entropy}
 			\label{Figure:ScottReefLinearisedDifferentialEntropy}
 			\end{figure}
-			
-		\subsection{Performance Assessment}
-	
-	
-	
+
+	\section{Summary}
