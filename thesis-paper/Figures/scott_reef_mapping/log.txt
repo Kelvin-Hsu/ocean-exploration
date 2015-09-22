@@ -1,0 +1,148 @@
+09-21 18:52 root         INFO     ['scott_reef_analysis.py', '-skiptrain', '-model-only']
+09-21 18:52 root         INFO     {'START_POINT1': 375000.0, 'N_TRIALS': 200, 'N_QUERY': 100000, 'METHOD': 'LMDE', 'M_STEP': 1, 'T_SEED': 250, 'N_DRAWS': 500, 'NOTRAIN': True, 'Q_SEED': 500, 'GREEDY': False, 'HORIZON': 5000.0, 'H_STEPS': 30, 'CHAOS': False, 'START_POINT2': 8440000.0, 'N_TRAIN': 200, 'LONG_SCALE_ONLY': False, 'MODEL_ONLY': True}
+09-21 18:52 root         INFO     {'approxmethod': 'laplace', 'fusemethod': 'EXCLUSION', 'batchlearn': False, 'responsename': 'probit', 'batchstart': True, 'train': False, 'walltime': 3600.0, 'multimethod': 'OVA'}
+09-21 18:52 root         INFO     loading training locations...
+09-21 18:52 root         INFO     loading training labels...
+09-21 18:52 root         INFO     loading training features...
+09-21 18:52 root         INFO     loading query locations...
+09-21 18:52 root         INFO     loading query features...
+09-21 18:52 root         INFO     Data Loading Done.
+09-21 18:52 root         INFO     Total Number of Trainint Points: 34890
+09-21 18:52 root         INFO     Sampled Number of Training Points: 200
+09-21 18:52 root         INFO     Total Number of Query Points: 17675180
+09-21 18:52 root         INFO     Sampled Number of Query Points: 100000
+09-21 18:52 root         INFO     There are 17 unique labels
+09-21 18:52 root         INFO     Habitat Labels: ['Barron Sand 1', 'Low Density Coral 1', 'Sand Biota 1', 'Low Density Coral 2', 'Dense Coral 1', 'Dense Coral 2', 'Dense Coral 3', 'Sand Biota 2', 'Low Density Coral 3', 'Low Density Coral 4', 'Patch 1', 'Patch 2', 'Patch 3', 'Barron Sand 2', 'Sand Biota 3', 'Barron Sand 3', 'Sand Biota 4']
+09-21 18:52 root         INFO     Applying whitening on training and query features...
+09-21 18:52 root         INFO     Whitening Parameters:
+09-21 18:52 root         INFO     (array([  4.33717594e+01,   1.00167593e+00,   5.89303799e-02,
+         1.00599450e+00,   3.48231764e-02]), array([  6.17322981e+00,   4.25118258e-03,   6.97604622e-02,
+         1.02338993e-02,   3.27469911e-02]))
+09-21 18:52 root         INFO     Plotted feature map for: Bathymetry (Depth)
+09-21 18:52 root         INFO     Plotted feature map for: Aspect (Short Scale)
+09-21 18:52 root         INFO     Plotted feature map for: Rugosity (Short Scale)
+09-21 18:52 root         INFO     Plotted feature map for: Aspect (Long Scale)
+09-21 18:52 root         INFO     Plotted feature map for: Rugosity (Long Scale)
+09-21 18:52 root         INFO     ===Begin Classifier Training===
+09-21 18:52 root         INFO     Number of training points: 200
+09-21 18:52 root         INFO     Using Batch Start Configuration
+09-21 18:52 root         INFO     Learning...
+09-21 18:52 root         DEBUG    		Task Label: 0 | Hyperparameters: [158.04660629989138, 1.2683731889725351, 66.11501021538916, 49.46762075811026, 2.1003587537731203, 148.19413243571267] | Log-Marginal-Likelihood: -24.584
+09-21 18:52 root         INFO     Initiating learning for task label 0 with hyperparameters [158.04660629989138, 1.2683731889725351, 66.11501021538916, 49.46762075811026, 2.1003587537731203, 148.19413243571267] and log-marginal-likelihood: -24.584
+09-21 18:52 root         DEBUG    		Task Label: 0 | Hyperparameters: [158.04660629989138, 1.2683731889725351, 66.11501021538916, 49.46762075811026, 2.1003587537731203, 148.19413243571267] | Log-Marginal-Likelihood: -24.584
+09-21 18:52 root         INFO     Learning for task label 0 completed in 0.0048 seconds with hyperparameters [158.04660629989138, 1.2683731889725351, 66.11501021538916, 49.46762075811026, 2.1003587537731203, 148.19413243571267] and log-marginal-likelihood: -24.584
+09-21 18:52 root         DEBUG    		Task Label: 1 | Hyperparameters: [65.99850302933172, 0.9618232546679601, 76.53750664952908, 8.70728744307958, 2.7122005803599105, 31.811834175256053] | Log-Marginal-Likelihood: -48.775
+09-21 18:52 root         INFO     Initiating learning for task label 1 with hyperparameters [65.99850302933172, 0.9618232546679601, 76.53750664952908, 8.70728744307958, 2.7122005803599105, 31.811834175256053] and log-marginal-likelihood: -48.775
+09-21 18:52 root         DEBUG    		Task Label: 1 | Hyperparameters: [65.99850302933172, 0.9618232546679601, 76.53750664952908, 8.70728744307958, 2.7122005803599105, 31.811834175256053] | Log-Marginal-Likelihood: -48.775
+09-21 18:52 root         INFO     Learning for task label 1 completed in 0.0047 seconds with hyperparameters [65.99850302933172, 0.9618232546679601, 76.53750664952908, 8.70728744307958, 2.7122005803599105, 31.811834175256053] and log-marginal-likelihood: -48.775
+09-21 18:52 root         DEBUG    		Task Label: 2 | Hyperparameters: [7.205930920416606, 248.7197289746248, 640.0023932581747, 168.88943619928102, 90.69307683699677, 262.04071654280534] | Log-Marginal-Likelihood: -8.853
+09-21 18:52 root         INFO     Initiating learning for task label 2 with hyperparameters [7.205930920416606, 248.7197289746248, 640.0023932581747, 168.88943619928102, 90.69307683699677, 262.04071654280534] and log-marginal-likelihood: -8.853
+09-21 18:52 root         DEBUG    		Task Label: 2 | Hyperparameters: [7.205930920416606, 248.7197289746248, 640.0023932581747, 168.88943619928102, 90.69307683699677, 262.04071654280534] | Log-Marginal-Likelihood: -8.853
+09-21 18:52 root         INFO     Learning for task label 2 completed in 0.0030 seconds with hyperparameters [7.205930920416606, 248.7197289746248, 640.0023932581747, 168.88943619928102, 90.69307683699677, 262.04071654280534] and log-marginal-likelihood: -8.853
+09-21 18:52 root         DEBUG    		Task Label: 3 | Hyperparameters: [6.022335870562756, 5.798385460576963, 7.151322371121573, 98.23586353078586, 108.97929055450719, 3.404952208176815] | Log-Marginal-Likelihood: -63.087
+09-21 18:52 root         INFO     Initiating learning for task label 3 with hyperparameters [6.022335870562756, 5.798385460576963, 7.151322371121573, 98.23586353078586, 108.97929055450719, 3.404952208176815] and log-marginal-likelihood: -63.087
+09-21 18:52 root         DEBUG    		Task Label: 3 | Hyperparameters: [6.022335870562756, 5.798385460576963, 7.151322371121573, 98.23586353078586, 108.97929055450719, 3.404952208176815] | Log-Marginal-Likelihood: -63.087
+09-21 18:52 root         INFO     Learning for task label 3 completed in 0.0049 seconds with hyperparameters [6.022335870562756, 5.798385460576963, 7.151322371121573, 98.23586353078586, 108.97929055450719, 3.404952208176815] and log-marginal-likelihood: -63.087
+09-21 18:52 root         DEBUG    		Task Label: 4 | Hyperparameters: [2.866102863142544, 202.7182212560695, 71.42795852053169, 67.84105662241247, 396.4966008975731, 8.792831619041786] | Log-Marginal-Likelihood: -29.583
+09-21 18:52 root         INFO     Initiating learning for task label 4 with hyperparameters [2.866102863142544, 202.7182212560695, 71.42795852053169, 67.84105662241247, 396.4966008975731, 8.792831619041786] and log-marginal-likelihood: -29.583
+09-21 18:52 root         DEBUG    		Task Label: 4 | Hyperparameters: [2.866102863142544, 202.7182212560695, 71.42795852053169, 67.84105662241247, 396.4966008975731, 8.792831619041786] | Log-Marginal-Likelihood: -29.583
+09-21 18:52 root         INFO     Learning for task label 4 completed in 0.0033 seconds with hyperparameters [2.866102863142544, 202.7182212560695, 71.42795852053169, 67.84105662241247, 396.4966008975731, 8.792831619041786] and log-marginal-likelihood: -29.583
+09-21 18:52 root         DEBUG    		Task Label: 5 | Hyperparameters: [4.227436630251994, 2.678724841595762, 155.52642217518203, 12.902809348832989, 78.59573198653926, 91.40856448598055] | Log-Marginal-Likelihood: -51.163
+09-21 18:52 root         INFO     Initiating learning for task label 5 with hyperparameters [4.227436630251994, 2.678724841595762, 155.52642217518203, 12.902809348832989, 78.59573198653926, 91.40856448598055] and log-marginal-likelihood: -51.163
+09-21 18:52 root         DEBUG    		Task Label: 5 | Hyperparameters: [4.227436630251994, 2.678724841595762, 155.52642217518203, 12.902809348832989, 78.59573198653926, 91.40856448598055] | Log-Marginal-Likelihood: -51.163
+09-21 18:52 root         INFO     Learning for task label 5 completed in 0.0050 seconds with hyperparameters [4.227436630251994, 2.678724841595762, 155.52642217518203, 12.902809348832989, 78.59573198653926, 91.40856448598055] and log-marginal-likelihood: -51.163
+09-21 18:52 root         DEBUG    		Task Label: 6 | Hyperparameters: [1.9655515448696013, 1.0078459070165113, 47.264505099891736, 90.09662801221552, 39.449679781547545, 12.422258217851045] | Log-Marginal-Likelihood: -84.240
+09-21 18:52 root         INFO     Initiating learning for task label 6 with hyperparameters [1.9655515448696013, 1.0078459070165113, 47.264505099891736, 90.09662801221552, 39.449679781547545, 12.422258217851045] and log-marginal-likelihood: -84.240
+09-21 18:52 root         DEBUG    		Task Label: 6 | Hyperparameters: [1.9655515448696013, 1.0078459070165113, 47.264505099891736, 90.09662801221552, 39.449679781547545, 12.422258217851045] | Log-Marginal-Likelihood: -84.240
+09-21 18:52 root         INFO     Learning for task label 6 completed in 0.0040 seconds with hyperparameters [1.9655515448696013, 1.0078459070165113, 47.264505099891736, 90.09662801221552, 39.449679781547545, 12.422258217851045] and log-marginal-likelihood: -84.240
+09-21 18:52 root         DEBUG    		Task Label: 7 | Hyperparameters: [3.1222954891045123, 2.42076464455234, 238.89962477023275, 110.82548792960249, 96.53521482464706, 13.310640119621617] | Log-Marginal-Likelihood: -48.486
+09-21 18:52 root         INFO     Initiating learning for task label 7 with hyperparameters [3.1222954891045123, 2.42076464455234, 238.89962477023275, 110.82548792960249, 96.53521482464706, 13.310640119621617] and log-marginal-likelihood: -48.486
+09-21 18:52 root         DEBUG    		Task Label: 7 | Hyperparameters: [3.1222954891045123, 2.42076464455234, 238.89962477023275, 110.82548792960249, 96.53521482464706, 13.310640119621617] | Log-Marginal-Likelihood: -48.486
+09-21 18:52 root         INFO     Learning for task label 7 completed in 0.0042 seconds with hyperparameters [3.1222954891045123, 2.42076464455234, 238.89962477023275, 110.82548792960249, 96.53521482464706, 13.310640119621617] and log-marginal-likelihood: -48.486
+09-21 18:52 root         DEBUG    		Task Label: 8 | Hyperparameters: [4.918440760567138, 2.258242803791301, 220.5347539837725, 98.36673003039502, 51.082771850913375, 29.11755699767917] | Log-Marginal-Likelihood: -84.874
+09-21 18:52 root         INFO     Initiating learning for task label 8 with hyperparameters [4.918440760567138, 2.258242803791301, 220.5347539837725, 98.36673003039502, 51.082771850913375, 29.11755699767917] and log-marginal-likelihood: -84.874
+09-21 18:52 root         DEBUG    		Task Label: 8 | Hyperparameters: [4.918440760567138, 2.258242803791301, 220.5347539837725, 98.36673003039502, 51.082771850913375, 29.11755699767917] | Log-Marginal-Likelihood: -84.874
+09-21 18:52 root         INFO     Learning for task label 8 completed in 0.0033 seconds with hyperparameters [4.918440760567138, 2.258242803791301, 220.5347539837725, 98.36673003039502, 51.082771850913375, 29.11755699767917] and log-marginal-likelihood: -84.874
+09-21 18:52 root         DEBUG    		Task Label: 9 | Hyperparameters: [46.14030960554474, 3.4122114646182515, 66.78095740333987, 56.61808786434542, 3.4707008796589727, 8.585462768641012] | Log-Marginal-Likelihood: -49.283
+09-21 18:52 root         INFO     Initiating learning for task label 9 with hyperparameters [46.14030960554474, 3.4122114646182515, 66.78095740333987, 56.61808786434542, 3.4707008796589727, 8.585462768641012] and log-marginal-likelihood: -49.283
+09-21 18:52 root         DEBUG    		Task Label: 9 | Hyperparameters: [46.14030960554474, 3.4122114646182515, 66.78095740333987, 56.61808786434542, 3.4707008796589727, 8.585462768641012] | Log-Marginal-Likelihood: -49.283
+09-21 18:52 root         INFO     Learning for task label 9 completed in 0.0030 seconds with hyperparameters [46.14030960554474, 3.4122114646182515, 66.78095740333987, 56.61808786434542, 3.4707008796589727, 8.585462768641012] and log-marginal-likelihood: -49.283
+09-21 18:52 root         DEBUG    		Task Label: 10 | Hyperparameters: [4.365472319671022, 4.80591799970261, 190.44003623250873, 122.8813398402322, 95.87999477208787, 3.376503323295785] | Log-Marginal-Likelihood: -28.404
+09-21 18:52 root         INFO     Initiating learning for task label 10 with hyperparameters [4.365472319671022, 4.80591799970261, 190.44003623250873, 122.8813398402322, 95.87999477208787, 3.376503323295785] and log-marginal-likelihood: -28.404
+09-21 18:52 root         DEBUG    		Task Label: 10 | Hyperparameters: [4.365472319671022, 4.80591799970261, 190.44003623250873, 122.8813398402322, 95.87999477208787, 3.376503323295785] | Log-Marginal-Likelihood: -28.404
+09-21 18:52 root         INFO     Learning for task label 10 completed in 0.0041 seconds with hyperparameters [4.365472319671022, 4.80591799970261, 190.44003623250873, 122.8813398402322, 95.87999477208787, 3.376503323295785] and log-marginal-likelihood: -28.404
+09-21 18:52 root         DEBUG    		Task Label: 11 | Hyperparameters: [4.478821709819367, 10.934823441369865, 123.33728936692876, 382.04572230065276, 227.51098327130356, 79.97707146641358] | Log-Marginal-Likelihood: -29.547
+09-21 18:52 root         INFO     Initiating learning for task label 11 with hyperparameters [4.478821709819367, 10.934823441369865, 123.33728936692876, 382.04572230065276, 227.51098327130356, 79.97707146641358] and log-marginal-likelihood: -29.547
+09-21 18:52 root         DEBUG    		Task Label: 11 | Hyperparameters: [4.478821709819367, 10.934823441369865, 123.33728936692876, 382.04572230065276, 227.51098327130356, 79.97707146641358] | Log-Marginal-Likelihood: -29.547
+09-21 18:52 root         INFO     Learning for task label 11 completed in 0.0041 seconds with hyperparameters [4.478821709819367, 10.934823441369865, 123.33728936692876, 382.04572230065276, 227.51098327130356, 79.97707146641358] and log-marginal-likelihood: -29.547
+09-21 18:52 root         DEBUG    		Task Label: 12 | Hyperparameters: [4.229495755411128, 1.3726514772357896, 208.19938841666934, 174.7937853783985, 10.037269529873239, 127.83511529606474] | Log-Marginal-Likelihood: -37.993
+09-21 18:52 root         INFO     Initiating learning for task label 12 with hyperparameters [4.229495755411128, 1.3726514772357896, 208.19938841666934, 174.7937853783985, 10.037269529873239, 127.83511529606474] and log-marginal-likelihood: -37.993
+09-21 18:52 root         DEBUG    		Task Label: 12 | Hyperparameters: [4.229495755411128, 1.3726514772357896, 208.19938841666934, 174.7937853783985, 10.037269529873239, 127.83511529606474] | Log-Marginal-Likelihood: -37.993
+09-21 18:52 root         INFO     Learning for task label 12 completed in 0.0069 seconds with hyperparameters [4.229495755411128, 1.3726514772357896, 208.19938841666934, 174.7937853783985, 10.037269529873239, 127.83511529606474] and log-marginal-likelihood: -37.993
+09-21 18:52 root         DEBUG    		Task Label: 13 | Hyperparameters: [27.075374606311115, 1.814069988416549, 7.746924771650294, 170.97327917010006, 40.03747584707497, 56.04399367773727] | Log-Marginal-Likelihood: -29.009
+09-21 18:52 root         INFO     Initiating learning for task label 13 with hyperparameters [27.075374606311115, 1.814069988416549, 7.746924771650294, 170.97327917010006, 40.03747584707497, 56.04399367773727] and log-marginal-likelihood: -29.009
+09-21 18:52 root         DEBUG    		Task Label: 13 | Hyperparameters: [27.075374606311115, 1.814069988416549, 7.746924771650294, 170.97327917010006, 40.03747584707497, 56.04399367773727] | Log-Marginal-Likelihood: -29.009
+09-21 18:52 root         INFO     Learning for task label 13 completed in 0.0029 seconds with hyperparameters [27.075374606311115, 1.814069988416549, 7.746924771650294, 170.97327917010006, 40.03747584707497, 56.04399367773727] and log-marginal-likelihood: -29.009
+09-21 18:52 root         DEBUG    		Task Label: 14 | Hyperparameters: [83.40075164278166, 1.6747947434483126, 17.596540717504126, 112.41698370483411, 4.613716716884663, 42.07827593662456] | Log-Marginal-Likelihood: -26.506
+09-21 18:52 root         INFO     Initiating learning for task label 14 with hyperparameters [83.40075164278166, 1.6747947434483126, 17.596540717504126, 112.41698370483411, 4.613716716884663, 42.07827593662456] and log-marginal-likelihood: -26.506
+09-21 18:52 root         DEBUG    		Task Label: 14 | Hyperparameters: [83.40075164278166, 1.6747947434483126, 17.596540717504126, 112.41698370483411, 4.613716716884663, 42.07827593662456] | Log-Marginal-Likelihood: -26.506
+09-21 18:52 root         INFO     Learning for task label 14 completed in 0.0080 seconds with hyperparameters [83.40075164278166, 1.6747947434483126, 17.596540717504126, 112.41698370483411, 4.613716716884663, 42.07827593662456] and log-marginal-likelihood: -26.506
+09-21 18:52 root         DEBUG    		Task Label: 15 | Hyperparameters: [3.0901973040826474, 12.319455336644344, 70.71924513420116, 140.9221718578234, 224.77657336458043, 4.57995836705937] | Log-Marginal-Likelihood: -18.015
+09-21 18:52 root         INFO     Initiating learning for task label 15 with hyperparameters [3.0901973040826474, 12.319455336644344, 70.71924513420116, 140.9221718578234, 224.77657336458043, 4.57995836705937] and log-marginal-likelihood: -18.015
+09-21 18:52 root         DEBUG    		Task Label: 15 | Hyperparameters: [3.0901973040826474, 12.319455336644344, 70.71924513420116, 140.9221718578234, 224.77657336458043, 4.57995836705937] | Log-Marginal-Likelihood: -18.015
+09-21 18:52 root         INFO     Learning for task label 15 completed in 0.0059 seconds with hyperparameters [3.0901973040826474, 12.319455336644344, 70.71924513420116, 140.9221718578234, 224.77657336458043, 4.57995836705937] and log-marginal-likelihood: -18.015
+09-21 18:52 root         DEBUG    		Task Label: 16 | Hyperparameters: [7.031041561840236, 211.04475504456954, 202.37890056818438, 261.95210773212585, 156.9408210695192, 511.27885698486267] | Log-Marginal-Likelihood: -8.851
+09-21 18:52 root         INFO     Initiating learning for task label 16 with hyperparameters [7.031041561840236, 211.04475504456954, 202.37890056818438, 261.95210773212585, 156.9408210695192, 511.27885698486267] and log-marginal-likelihood: -8.851
+09-21 18:52 root         DEBUG    		Task Label: 16 | Hyperparameters: [7.031041561840236, 211.04475504456954, 202.37890056818438, 261.95210773212585, 156.9408210695192, 511.27885698486267] | Log-Marginal-Likelihood: -8.851
+09-21 18:52 root         INFO     Learning for task label 16 completed in 0.0063 seconds with hyperparameters [7.031041561840236, 211.04475504456954, 202.37890056818438, 261.95210773212585, 156.9408210695192, 511.27885698486267] and log-marginal-likelihood: -8.851
+09-21 18:52 root         INFO     Learning Time: 0.463919
+09-21 18:52 root         INFO     
+Final Kernel (Labels 3 v.s. all): 158.047*gaussian{[1.268, 66.115, 49.468, 2.100, 148.194, ]}  	 | 	 Log Marginal Likelihood: -24.58394933 
+Final Kernel (Labels 4 v.s. all): 65.999*gaussian{[0.962, 76.538, 8.707, 2.712, 31.812, ]}  	 | 	 Log Marginal Likelihood: -48.77516500 
+Final Kernel (Labels 5 v.s. all): 7.206*gaussian{[248.720, 640.002, 168.889, 90.693, 262.041, ]}  	 | 	 Log Marginal Likelihood: -8.85332789 
+Final Kernel (Labels 6 v.s. all): 6.022*gaussian{[5.798, 7.151, 98.236, 108.979, 3.405, ]}  	 | 	 Log Marginal Likelihood: -63.08739695 
+Final Kernel (Labels 7 v.s. all): 2.866*gaussian{[202.718, 71.428, 67.841, 396.497, 8.793, ]}  	 | 	 Log Marginal Likelihood: -29.58295334 
+Final Kernel (Labels 8 v.s. all): 4.227*gaussian{[2.679, 155.526, 12.903, 78.596, 91.409, ]}  	 | 	 Log Marginal Likelihood: -51.16284536 
+Final Kernel (Labels 9 v.s. all): 1.966*gaussian{[1.008, 47.265, 90.097, 39.450, 12.422, ]}  	 | 	 Log Marginal Likelihood: -84.23960155 
+Final Kernel (Labels 10 v.s. all): 3.122*gaussian{[2.421, 238.900, 110.825, 96.535, 13.311, ]}  	 | 	 Log Marginal Likelihood: -48.48558004 
+Final Kernel (Labels 11 v.s. all): 4.918*gaussian{[2.258, 220.535, 98.367, 51.083, 29.118, ]}  	 | 	 Log Marginal Likelihood: -84.87365166 
+Final Kernel (Labels 12 v.s. all): 46.140*gaussian{[3.412, 66.781, 56.618, 3.471, 8.585, ]}  	 | 	 Log Marginal Likelihood: -49.28335230 
+Final Kernel (Labels 13 v.s. all): 4.365*gaussian{[4.806, 190.440, 122.881, 95.880, 3.377, ]}  	 | 	 Log Marginal Likelihood: -28.40410758 
+Final Kernel (Labels 14 v.s. all): 4.479*gaussian{[10.935, 123.337, 382.046, 227.511, 79.977, ]}  	 | 	 Log Marginal Likelihood: -29.54726365 
+Final Kernel (Labels 15 v.s. all): 4.229*gaussian{[1.373, 208.199, 174.794, 10.037, 127.835, ]}  	 | 	 Log Marginal Likelihood: -37.99327969 
+Final Kernel (Labels 16 v.s. all): 27.075*gaussian{[1.814, 7.747, 170.973, 40.037, 56.044, ]}  	 | 	 Log Marginal Likelihood: -29.00918140 
+Final Kernel (Labels 17 v.s. all): 83.401*gaussian{[1.675, 17.597, 112.417, 4.614, 42.078, ]}  	 | 	 Log Marginal Likelihood: -26.50635252 
+Final Kernel (Labels 19 v.s. all): 3.090*gaussian{[12.319, 70.719, 140.922, 224.777, 4.580, ]}  	 | 	 Log Marginal Likelihood: -18.01533799 
+Final Kernel (Labels 22 v.s. all): 7.031*gaussian{[211.045, 202.379, 261.952, 156.941, 511.279, ]}  	 | 	 Log Marginal Likelihood: -8.85075293 
+
+09-21 18:52 root         INFO     Matrix of learned hyperparameters
+09-21 18:52 root         INFO     
+[	 [158.04660629989138, 1.2683731889725351, 66.11501021538916, 49.46762075811026, 2.1003587537731203, 148.19413243571267], \
+ 	 [65.99850302933172, 0.9618232546679601, 76.53750664952908, 8.70728744307958, 2.7122005803599105, 31.811834175256053], \
+ 	 [7.205930920416606, 248.7197289746248, 640.0023932581747, 168.88943619928102, 90.69307683699677, 262.04071654280534], \
+ 	 [6.022335870562756, 5.798385460576963, 7.151322371121573, 98.23586353078586, 108.97929055450719, 3.404952208176815], \
+ 	 [2.866102863142544, 202.7182212560695, 71.42795852053169, 67.84105662241247, 396.4966008975731, 8.792831619041786], \
+ 	 [4.227436630251994, 2.678724841595762, 155.52642217518203, 12.902809348832989, 78.59573198653926, 91.40856448598055], \
+ 	 [1.9655515448696013, 1.0078459070165113, 47.264505099891736, 90.09662801221552, 39.449679781547545, 12.422258217851045], \
+ 	 [3.1222954891045123, 2.42076464455234, 238.89962477023275, 110.82548792960249, 96.53521482464706, 13.310640119621617], \
+ 	 [4.918440760567138, 2.258242803791301, 220.5347539837725, 98.36673003039502, 51.082771850913375, 29.11755699767917], \
+ 	 [46.14030960554474, 3.4122114646182515, 66.78095740333987, 56.61808786434542, 3.4707008796589727, 8.585462768641012], \
+ 	 [4.365472319671022, 4.80591799970261, 190.44003623250873, 122.8813398402322, 95.87999477208787, 3.376503323295785], \
+ 	 [4.478821709819367, 10.934823441369865, 123.33728936692876, 382.04572230065276, 227.51098327130356, 79.97707146641358], \
+ 	 [4.229495755411128, 1.3726514772357896, 208.19938841666934, 174.7937853783985, 10.037269529873239, 127.83511529606474], \
+ 	 [27.075374606311115, 1.814069988416549, 7.746924771650294, 170.97327917010006, 40.03747584707497, 56.04399367773727], \
+ 	 [83.40075164278166, 1.6747947434483126, 17.596540717504126, 112.41698370483411, 4.613716716884663, 42.07827593662456], \
+ 	 [3.0901973040826474, 12.319455336644344, 70.71924513420116, 140.9221718578234, 224.77657336458043, 4.57995836705937], \
+ 	 [7.031041561840236, 211.04475504456954, 202.37890056818438, 261.95210773212585, 156.9408210695192, 511.27885698486267] ]
+
+09-21 18:52 root         INFO     Caching Predictor...
+09-21 18:52 root         INFO     Computing Expectance...
+09-21 18:52 root         INFO     Computing Variance...
+09-21 18:52 root         INFO     Computing Prediction Probabilities...
+09-21 18:52 root         INFO     Computing Prediction...
+09-21 18:52 root         INFO     Computing Prediction Information Entropy...
+09-21 18:52 root         INFO     Computing Linearised Model Differential Entropy...
+09-21 18:52 root         INFO     Miss Ratio: 41.54%
+09-21 18:52 root         INFO     Average Marginalised Linearised Model Differential Entropy: -1.03
+09-21 18:52 root         INFO     Average Marginalised Information Entropy: 2.14
+09-21 18:56 root         INFO     Figures Saved.

@@ -146,6 +146,7 @@ def load_ground_truth(filename, assert_query_seed = None):
     truthmodel = np.load(filename)
 
     if assert_query_seed is not None:
+        logging.debug('Truth Model Query Seed: %d' % truthmodel['q_seed'])
         assert truthmodel['q_seed'] == assert_query_seed
 
     return truthmodel['yq_pred']

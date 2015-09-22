@@ -61,16 +61,16 @@ def main():
         directory60 = main_directory + 'loc_20150819_095126__t200_q100000_ts250_qs500_method_FIXED_start377500.08440000.0_hsteps30_horizon5000.0/'
         directory61 = main_directory + 'loc_20150819_095211__t200_q100000_ts250_qs500_method_FIXED_start380000.08440000.0_hsteps30_horizon5000.0/'
 
-        data00 = obtain_data(directory00, {'index': 0, 'label': 'Location 1 with LDE', 'steps': 200})
-        data01 = obtain_data(directory01, {'index': 0, 'label': 'Location 2 with LDE', 'steps': 200, 'linestyle': 'dashed'})
+        data00 = obtain_data(directory00, {'index': 0, 'label': 'Location 1 with LMDE', 'steps': 200})
+        data01 = obtain_data(directory01, {'index': 0, 'label': 'Location 2 with LMDE', 'steps': 200, 'linestyle': 'dashed'})
         data10 = obtain_data(directory10, {'index': 1, 'label': 'Location 1 with GREEDY', 'steps': 200})
         data11 = obtain_data(directory11, {'index': 1, 'label': 'Location 2 with GREEDY', 'steps': 200, 'linestyle': 'dashed'})
         data20 = obtain_data(directory20, {'index': 2, 'label': 'Location 1 with RANDOM', 'steps': 200})
         data21 = obtain_data(directory21, {'index': 2, 'label': 'Location 2 with RANDOM', 'steps': 200, 'linestyle': 'dashed'})
-        data30 = obtain_data(directory30, {'index': 3, 'label': 'Location 1 with MCJIE', 'steps': 200})
-        data31 = obtain_data(directory31, {'index': 3, 'label': 'Location 2 with MCJIE', 'steps': 200, 'linestyle': 'dashed'})
-        data40 = obtain_data(directory40, {'index': 4, 'label': 'Location 1 with MIE', 'steps': 200})
-        data41 = obtain_data(directory41, {'index': 4, 'label': 'Location 2 with MIE', 'steps': 200, 'linestyle': 'dashed'})
+        data30 = obtain_data(directory30, {'index': 3, 'label': 'Location 1 with MCPIE', 'steps': 200})
+        data31 = obtain_data(directory31, {'index': 3, 'label': 'Location 2 with MCPIE', 'steps': 200, 'linestyle': 'dashed'})
+        data40 = obtain_data(directory40, {'index': 4, 'label': 'Location 1 with AMPIE', 'steps': 200})
+        data41 = obtain_data(directory41, {'index': 4, 'label': 'Location 2 with AMPIE', 'steps': 200, 'linestyle': 'dashed'})
         data50 = obtain_data(directory50, {'index': 5, 'label': 'Location 1 with SPIRAL', 'steps': 200})
         data51 = obtain_data(directory51, {'index': 5, 'label': 'Location 2 with SPIRAL', 'steps': 200, 'linestyle': 'dashed'})
         data60 = obtain_data(directory60, {'index': 6, 'label': 'Location 1 with LINES', 'steps': 200})
