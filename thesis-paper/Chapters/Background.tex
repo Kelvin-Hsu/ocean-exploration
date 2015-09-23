@@ -40,15 +40,23 @@
 			\end{equation} \begin{equation}
 				p(D) = \sum_{H} p(D | H) p(H)
 			\label{Equation:MarginalLikelihood}
-			\end{equation} This procedure is illustrated in \cref{Figure:BayesianModeling} for a Gaussian process with one dimensional input feature and output target. The mean prediction is shown as the black solid curve. Ten sample functions from the GP are drawn from the prior and posterior, represented by the coloured dashed curve. The shaded region represents the 2-$\sigma$ bounds of the prediction at each input feature value $x$. The prior distribution is updated to a posterior distribution after two points are observed. This example further serves to illustrate the concept of distributions over functions, which behaves as an infinite dimensional generalisation of a multivariate probability distribution. It is helpful to conceptualise functions as an infinite string of points, where functions can be interpreted as infinite dimensional vectors, such that drawing from an infinite dimensional distribution is equivalent to drawing from processes that operate on function space. Instead of drawing finite dimensional random vectors from distributions, a random function is drawn from a \textit{stochastic process} \footnote{When the input variable is temporal, a stochastic process can be more appropriately interpreted as having indefinite dimensional distributions.}.
+			\end{equation} This procedure is illustrated in \cref{Figure:BayesianModeling} for a Gaussian process with one dimensional input feature and output target. The mean prediction is shown as the black solid curve. Ten sample functions from the GP are drawn from the prior (figure \ref{Figure:BayesianModeling:Prior}) and posterior (figure \ref{Figure:BayesianModeling:Posterior}), represented by the coloured dashed curve. The shaded region represents the 2-$\sigma$ bounds of the prediction at each input feature value $x$. The prior distribution is updated to a posterior distribution after two points are observed. This example further serves to illustrate the concept of distributions over functions, which behaves as an infinite dimensional generalisation of a multivariate probability distribution. It is helpful to conceptualise functions as an infinite string of points, where functions can be interpreted as infinite dimensional vectors, such that drawing from an infinite dimensional distribution is equivalent to drawing from processes that operate on function space. Instead of drawing finite dimensional random vectors from distributions, a random function is drawn from a \textit{stochastic process} \footnote{When the input variable is temporal, a stochastic process can be more appropriately interpreted as having indefinite dimensional distributions.}.
 			
 			\begin{figure}[!htbp]
-				\centering
-					\includegraphics[width=0.48\textwidth]{Figures/bayesian_modeling/prior_draws.eps}
-					\includegraphics[width=0.48\textwidth]{Figures/bayesian_modeling/posterior_draws2.eps}
-				\caption{Illustration of Gaussian Process Bayesian Modeling}
-				\label{Figure:BayesianModeling}
+			\centering
+			  \subfigure[Prior distribution of functions]{\label{Figure:BayesianModeling:Prior}	\includegraphics[width=0.48\linewidth]{Figures/bayesian_modeling/prior_draws.eps}}
+			  \subfigure[Posterior distribution of functions]{\label{Figure:BayesianModeling:Posterior}	\includegraphics[width=0.48\linewidth]{Figures/bayesian_modeling/posterior_draws2.eps}}
+			\caption{Illustration of Gaussian Process Bayesian Modeling}
+			\label{Figure:BayesianModeling}
 			\end{figure}
+			
+%			\begin{figure}[!htbp]
+%				\centering
+%					\includegraphics[width=0.48\textwidth]{Figures/bayesian_modeling/prior_draws.eps}
+%					\includegraphics[width=0.48\textwidth]{Figures/bayesian_modeling/posterior_draws2.eps}
+%				\caption{Illustration of Gaussian Process Bayesian Modeling}
+%				\label{Figure:BayesianModeling}
+%			\end{figure}
 			
 			From this illustration, there are a few qualities one can notice. Firstly, the prior distribution is simply the zero function. The prior is meant to represent the system's current belief before the next observations are to be made. In this case, the prior situation involves no observations at all. Ideally, this means that the prior distribution should contain no predictive information. However, it is of philosophical note that all informative \footnote{It is certainly possible to perform inference without any assumptions. It will simply be uninformative in prediction or result.} inferences must begin with some assumptions regarding the structure of the phenomenon to be inferenced. In the illustration above, the function is assumed to be distributed as a process with zero mean. This assumption has excluded processes without means, such as the Cauchy process, as well as assumed a rather arbitrary mean function. However, this assumption is often valid as one can always pre-process the output data set through subtracting off their empirical mean so that the output is approximately distributed about zero. The representation of the standard deviation and hence variance as confidence bounds centred at the mean function also means that multi-model processes are excluded. For a Gaussian process, which is indeed uni-modal and have finite moments for all moments of finite degree, this illustration is common and useful for visualising the Bayesian modeling process. It is customary to visualise the 2-$\sigma$ bound for a Gaussian process. So, for this example, the prior distribution has a uniform standard deviation of one everywhere.
 			

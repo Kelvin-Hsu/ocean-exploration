@@ -30,6 +30,11 @@
 \usepackage{stfloats}
 \usepackage{dsfont}
 \usepackage{wrapfig}
+\usepackage{subfigure}
+%\usepackage{caption}
+%\usepackage{subcaption}
+%\usepackage{subfigure}
+%\usepackage{subfig}
 
 %%% FLOW CHARTS
 \usepackage{tikz}
@@ -48,10 +53,41 @@
 \newcommand{\maternmath}{Mat\acute{e}rn }
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand{\incite}[1]{\citeauthor{#1} [\citeyear{#1}]}
-\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+\newcommand{\numberthis}{\addtocounter{equation}{1}\tag{\theequation}}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
 %%%%%% End: Kelvin's Macro's %%%%%% 
+
+
+\newdimen\testtemp
+\newcommand{\ru}[1]{%
+  \testtemp #1%
+  \advance\testtemp .5pt%
+  \divide\testtemp 2%
+  \hbox to \testtemp{\leaders\hbox to 1mm{%
+    \vrule height1mm depth0pt width.25pt\hfil}\hfil}%
+  \hbox to 0pt{\hss\vrule height3mm depth0pt width.25pt\hss}%
+  \hbox to \testtemp{\leaders\hbox to 1mm{%
+    \hfil\vrule height1mm depth0pt width.25pt}\hfil}}
+
+\def\textfraction{.1}
+\fboxsep=-\fboxrule
+\newcommand{\figbox}[1]{%
+  \fbox{%
+    \vbox to 1in{%
+      \vfil
+      \hbox to 2in{%
+        \parbox{2in}{%
+          \centering
+          #1}}%
+      \vfil
+      \vbox to 0pt{%
+        \vss
+        \hbox to 2in{%
+          \hfil
+          \ru{1.1in}%
+          \hfil}}}}}
+          
 %% ----------------------------------------------------------------
 \begin{document}
 \frontmatter      % Begin Roman style (i, ii, iii, iv...) page numbering

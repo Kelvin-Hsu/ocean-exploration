@@ -53,6 +53,8 @@ def main():
     M_STEP = sea.io.parse('-mstep', 1)
     N_DRAWS = sea.io.parse('-ndraws', 500)
 
+    ONE_COLORBAR = sea.io.parse('-one-colorbar', False)
+
     FONTSIZE = 50
     FONTNAME = 'Sans Serif'
     TICKSIZE = 24
@@ -225,7 +227,7 @@ def main():
             t_seed = T_SEED, q_seed = Q_SEED, features = i_features)
 
     yq_truth = sea.io.load_ground_truth(filename_truth, 
-        assert_query_seed = None)
+        assert_query_seed = Q_SEED)
 
     y_unique = np.unique(y)
     assert y_unique.shape[0] == 17
@@ -253,40 +255,48 @@ def main():
         marker = 'x', c = y, 
         vmin = y_unique[0], vmax = y_unique[-1], 
         cmap = mycmap)
-    sea.vis.describe_plot(title = 'Training Labels', 
+    sea.vis.describe_plot(title = '(a) Training Labels', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True, 
         fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
-    plt.scatter(
-        X[:, 0], X[:, 1], 
-        marker = 'x', c = y, 
-        vmin = y_unique[0], vmax = y_unique[-1], 
-        cmap = mycmap)
-    sea.vis.describe_plot(title = 'Training Labels', 
-        xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
-        clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_unique,
-        vis_range = vis_range, aspect_equal = True, 
-        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
+    if not ONE_COLORBAR:
+        plt.scatter(
+            X[:, 0], X[:, 1], 
+            marker = 'x', c = y, 
+            vmin = y_unique[0], vmax = y_unique[-1], 
+            cmap = mycmap)
+        sea.vis.describe_plot(title = '(a) Training Labels', 
+            xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
+            clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_unique,
+            vis_range = vis_range, aspect_equal = True, 
+            fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
     fig.tight_layout()
 
     """Visualise Features at Sampled Query Locations"""
+    letters = ['b', 'c', 'd', 'e', 'f']
+    feature_labels = ['Depth ($\mathrm{m}$)', 'Aspect ($\mathrm{m}$/$\mathrm{m}$)', 'Rugosity ($\mathrm{m}^{2}/\mathrm{m}^{2}$)', 'Aspect ($\mathrm{m}$/$\mathrm{m}$)', 'Rugosity ($\mathrm{m}^{2}/\mathrm{m}^{2}$)']
     for k in range(k_features):
         fig = plt.figure(figsize = (19.2, 10.8))
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
             c = Fq[:, k], colorcenter = 'mean', cmap = mycmap, **map_kwargs)
-        sea.vis.describe_plot(clabel = '%s (Raw)' % feature_names[k], 
-            fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
-        sea.vis.scatter(
-            Xq[:, 0], Xq[:, 1], 
-            c = Fqw[:, k], colorcenter = 'mean', cmap = mycmap, **map_kwargs)
         sea.vis.describe_plot(
-            title = 'Feature: %s' % feature_names[k], 
+            title = '(%s) Feature: %s' % (letters[k], feature_names[k]), 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
-            clabel = '%s (Whitened)' % feature_names[k],
+            clabel = feature_labels[k],
             vis_range = vis_range, aspect_equal = True, 
             fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
+        if not ONE_COLORBAR:
+            sea.vis.scatter(
+                Xq[:, 0], Xq[:, 1], 
+                c = Fqw[:, k], colorcenter = 'mean', cmap = mycmap, **map_kwargs)
+            sea.vis.describe_plot(
+                title = '(%s) Feature: %s' % (letters[k], feature_names[k]),
+                xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
+                clabel = 'Whitened %s' % feature_labels[k],
+                vis_range = vis_range, aspect_equal = True, 
+                fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
         fig.tight_layout()
         logging.info('Plotted feature map for: %s' % feature_names[k])
 
