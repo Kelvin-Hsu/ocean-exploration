@@ -273,15 +273,17 @@ Date:\\
 %%% ----------------------------------------------------------------
 \clearpage  % Start a new page
 \lhead{\emph{Notations}}  % Set the left side page header to "Physical Constants"
-\listofnotations{llrcl}  % Include a list of Physical Constants (a four column table)
+\listofnotations{llcll}  % Include a list of Physical Constants (a four column table)
 {
 	% Constant Name & Symbol & = & Constant Value (with units) \\
 	Index Sets & $I_{n}$ & $:=$ & $\{1, 2, \dots, n\}$ & where $n \in \mathbb{N}$ \\
 	Sequences & $\{a_{i}\}_{i \in I_{n}}$ & $:=$ & $\{a_{1}, a_{2}, \dots, a_{n}\}$ & \\
-	Vector Shorthand & $\{a_{i}\}_{i \in I_{n}}$ & $\equiv$ & $[a_{1}, a_{2}, \dots, a_{n}]^{T} \in \mathbb{C}^{n}$ & if $a_{i} \in \mathbb{C} \quad \forall i \in I_{n}$ \\
-	Matrix Shorthand & $\{\bvec{a}_{i}\}_{i \in I_{n}}$ & $\equiv$ & $[\bvec{a}_{1}, \bvec{a}_{2}, \dots, \bvec{a}_{n}]^{T} \in \mathbb{C}^{n \times p}$ & if $\bvec{a}_{i} \in \mathbb{C}^{p} \quad \forall i \in I_{n}$ \\
-	% $\{x_{i}\}_{i \in I}$ & = & $\begin{bmatrix} x_{1} & x_{2} & \dots \end{bmatrix}$
-
+	Vector Shorthand & $\bvec{a} := \{a_{i}\}_{i \in I_{n}}$ & $\equiv$ & $[a_{1}, a_{2}, \dots, a_{n}]^{T} \in \mathbb{C}^{n}$ & if $a_{i} \in \mathbb{C} \quad \forall i \in I_{n}$ \\
+	Matrix Shorthand & $A := \{\bvec{a}_{i}\}_{i \in I_{n}}$ & $\equiv$ & $[\bvec{a}_{1}, \bvec{a}_{2}, \dots, \bvec{a}_{n}]^{T} \in \mathbb{C}^{n \times p}$ & if $\bvec{a}_{i} \in \mathbb{C}^{p} \quad \forall i \in I_{n}$ \\
+	Matrix as Sets & $\bvec{a} \in A$ & $\equiv$ & $\exists \; i \in I_{n}$ s.t. $\bvec{a_{i}} = \bvec{a}$ & where $A := \{\bvec{a}_{i}\}_{i \in I_{n}}$ \\
+	Matrix Union & $A_{1} \cup A_{2}$ & $\equiv$ & $\big\{ \bvec{a} \big| \{\bvec{a} \in A_{1}\} \cup \{\bvec{a} \in A_{2}\} \big\}$ & \\
+	Matrix Intersection & $A_{1} \cap A_{2}$ & $\equiv$ & $\big\{ \bvec{a} \big| \{\bvec{a} \in A_{1}\} \cap \{\bvec{a} \in A_{2}\} \big\}$ & \\
+	Matrix Exclusion & $A_{1} \backslash A_{2}$ & $\equiv$ & $\big\{ \bvec{a} \big| \{\bvec{a} \in A_{1}\} \cup \{\bvec{a} \notin A_{2}\} \big\}$ & \\
 }
 
 %%% ----------------------------------------------------------------

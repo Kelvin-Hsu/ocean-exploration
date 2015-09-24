@@ -206,12 +206,10 @@
 						
 			where $(g^{c}_{i})^{m}$ denotes the $m^{\text{th}}$ element of $\bvec{g}^{c}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of classes $c$ and $m$, $c \neq m$, are conditionally independent given training observations.
 			
-			Finally, the linearised entropy of the OVA multiclass Gaussian process classifier is defined as follows \eqref{Equation:MulticlassLinearisedEntropy}.
-			
-			\begin{equation}
+			Finally, the linearised entropy of the OVA multiclass Gaussian process classifier is defined as follows \eqref{Equation:MulticlassLinearisedEntropy}. \begin{equation}
 				H^{\mathrm{multiclass}}_{\mathrm{LMDE}} \stackrel{\text{abbrev.}}{:=} H^{\mathrm{multiclass}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Bigg((2 \pi e)^{n^{\star}} \det\bigg(\sum_{c = 1}^{n_{C}} \Sigma^{c}_{L}\bigg)\Bigg)
 			\label{Equation:MulticlassLinearisedEntropy}
-			\end{equation}			
+			\end{equation}
 		
 	\section{Comparison of Mutual Entropy Measures}
 	\label{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures}
@@ -238,12 +236,12 @@
 				\label{Figure:mcpie_lmde_comparison_multiclass}
 			\end{figure}
 			
-			Since only the marginalised entropies are visualised, there exists analytical forms for prediction information entropy by computing the Shannon entropy over the expected prediction probabilities at each query point. For a multiclass case under the OVA formulation, the probabilities are fused using the \textit{exclusion} method (see section  \ref{Background:GaussianProcesses:Classification:OVA}). Subplots (2, 1) and (2, 2) of Figures \ref{Figure:mcpie_lmde_comparison_binary} and \ref{Figure:mcpie_lmde_comparison_multiclass} show the analytically computed PIE and Monte Carlo estimated PIE (MCPIE) respectively. Both cases show that with 2500 samples, the estimation is fairly accurate.
+			Since only the marginalised entropies are visualised, there exists analytical forms for prediction information entropy by computing the Shannon entropy over the expected prediction probabilities at each query point. For a multiclass case under the OVA formulation, the probabilities are fused using the \textit{exclusion} method (see section  \ref{BenthicHabitatMapping:Classification:ProbabilityFusion:Exclusion}). Subplots (2, 1) and (2, 2) of Figures \ref{Figure:mcpie_lmde_comparison_binary} and \ref{Figure:mcpie_lmde_comparison_multiclass} show the analytically computed PIE and Monte Carlo estimated PIE (MCPIE) respectively. Both cases show that with 2500 samples, the estimation is fairly accurate.
 			
 			\begin{figure}[!htbp]
 				\centering
 					\includegraphics[width = \linewidth]{Figures/mcpie_lmde_comparison_binary/mcpie_accuracy.eps}
-				\caption{Accuracy improvement of MCPIE for a binary classification case}
+				\caption{Accuracy improvement of MCPIE for a binary case}
 				\label{Figure:mcpie_accuracy_binary}
 			\end{figure}
 				
@@ -252,14 +250,14 @@
 			\begin{figure}[!htbp]
 				\centering
 					\includegraphics[width = \linewidth]{Figures/mcpie_lmde_comparison_multiclass/mcpie_accuracy.eps}
-				\caption{Accuracy improvement of MCPIE for a multiclass classification case}
+				\caption{Accuracy improvement of MCPIE for a multiclass case}
 				\label{Figure:mcpie_accuracy_multiclass}
 			\end{figure}
 			
 		\subsection{Interpretation of Model Differential Entropy}
 		\label{InformativeSeafloorExploration:LMDE:Interpretation}
 		
-			It is worthwhile to remember that linearised model differential entropy is not an approximation to the usual prediction information entropy - the former is a differential entropy on a multivariate Gaussian distribution and the latter is an information entropy on the distribution of discrete class predictions combinations, which is a multivariate multinomial distribution. They have different interpretations and both can have advantageous properties under different scenarios. It is proposed that using linearised model differential entropy as an alternative acquisition function for informative path planning can be more beneficial under specific exploration purposes.
+			It is worthwhile to remember that model differential entropy and its linearisation is not an approximation to the usual prediction information entropy - the former is a differential entropy on a multivariate Gaussian distribution and the latter is an information entropy on the distribution of discrete class predictions combinations, which is a multivariate multinomial distribution. They have different interpretations and both can have advantageous properties under different scenarios. It is proposed that using linearised model differential entropy as an alternative acquisition function for informative path planning can be more beneficial under specific exploration purposes.
 			
 			Specifically, while the prediction information entropy (PIE) represents the confidence in the model, the model differential entropy (MDE) represents the the separability of classes in the feature space. In fact, MDE quantifies the ambiguity of the predictive probabilities. In particular, it is possible for GP multiclass classifiers to conclude low predictive variance even under uncertain predictive probabilities. In this case, the MDE would be high while the PIE would be low at such locations, indicating that the model is confident about its inability to separate classes \citep{AsherBender}. Similar to the bias-variance trade-off, such a situation indicate high bias, and is distinct from a model that is unconfident about its ability to separate classes, which would correspond to high variance. In fact, as the entropy of the prediction probabilities, model differential entropy is so named as it measures the uncertainty in the model itself. While an uncertainty in the model propagates into uncertainty in the prediction, it also propagates into bias in the prediction as an inaccurate model is unlikely to predict the correct class labels on average. This demonstrates that PIE and MDE are two complementary measures of entropy that can assist each other in identifying both places of high bias and high variance.
 			
@@ -384,7 +382,7 @@
 		
 
 	
-	\section{Informative Exploration over Scott Reef Seafloor}
+	\section{Informative Exploration over Scott Reef}
 	\label{InformativeSeafloorExploration:ScottReef}
 	
 		With the acquisition criteria and receding horizon formulation developed previously, this section demonstrates informative exploration over the Scott Reef seafloor for benthic habitat mapping. Specifically, the performance of LMDE acquisition is compared against other acquisition criteria, with the most important comparison being that with MCPIE acquisition. The results are also evaluated against myopic approaches to demonstrate the advantage of a receding horizon formulation in general. Under a mapping performance criterion, empirical results show that LMDE acquisition achieves stable and desirable results, and experimentally outperform competing methods.
@@ -394,10 +392,14 @@
 		
 			Similar to the problems faced in benthic habitat mapping as discussed in section \ref{BenthicHabitatMapping:ScottReef:BigData}, big data also poses significant problems for informative path planning.
 			
+			As many of the acquisition functions discussed in section \ref{Background:RelatedWork:AcquisitionFunctions} is based on the average marginalised prediction information entropy (AMPIE) \eqref{Equation:AMPIE}, which does not consider mutual information, the entropy computation can be improved in temporal and spatial complexity through only computing the latent GP variance (see appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}). As such, acquisition criterions such as \eqref{Equation:AsherBenderAcquisitionCriterion}, 
+			
+			However, if mutual information is required, 
+			
 			
 			MENTION AGAIN THAT the point of the acquisition functions above is that it doesn't need to incorporate the field JOINT entropy, which would need $K^{\star \star}$!!
 			
-		\subsection{Seafloor Exploration Simulation and Performance Assessment}
+		\subsection{Exploration Simulation and Performance Assessment}
 		
 			\begin{figure}[bp]
 			\centering
