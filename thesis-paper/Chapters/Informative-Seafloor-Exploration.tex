@@ -416,66 +416,71 @@
 			\caption{Scott Reef: Prediction Information Entropy}
 			\label{Figure:ScottReefPredictionInformationEntropy}
 			\end{figure}
-
-			\begin{figure}[bp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_mapping_400/Figure9.eps}
-			\caption{Scott Reef: Prediction Information Entropy 400}
-			\label{Figure:ScottReefPredictionInformationEntropy400}
-			\end{figure}
-				
-			\begin{figure}[bp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_mapping_600/Figure9.eps}
-			\caption{Scott Reef: Prediction Information Entropy 600}
-			\label{Figure:ScottReefPredictionInformationEntropy600}
-			\end{figure}
 					
 			While the reef can be mapped with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to the scarcity of data. In this initial scenario, under the prediction information entropy criterion the vehicle would simply try to map out all regions as much as possible - a very costly policy.
 
-			The linearised differential entropy, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths.
+			The linearised differential entropy, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths.
 			
 			\begin{figure}[!htbp]
 			\centering
 				\includegraphics[width = \linewidth]{Figures/scott_reef_mapping/Figure11.eps}
 			\caption{Scott Reef: Linearised Model Differential Entropy}
-			\label{Figure:ScottReefLinearisedDifferentialEntropy}
-			\end{figure}
-
-			\begin{figure}[!htbp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_mapping_400/Figure11.eps}
-			\caption{Scott Reef: Linearised Model Differential Entropy 400}
-			\label{Figure:ScottReefLinearisedDifferentialEntropy400}
-			\end{figure}
-			
-			\begin{figure}[!htbp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_mapping_600/Figure11.eps}
-			\caption{Scott Reef: Linearised Model Differential Entropy 600}
-			\label{Figure:ScottReefLinearisedDifferentialEntropy600}
+			\label{Figure:ScottReefLinearisedModelDifferentialEntropy}
 			\end{figure}
 		
+			\begin{figure}[!htbp]
+			\centering
+			  \subfigure[LMDE Acquisition]{\label{Figure:OptimalPathLMDE} 
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/mie_propose1.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/mie_propose100.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/mie_propose200.eps}}
+			  \subfigure[MCPIE Acquisition]{\label{Figure:OptimalPathMCPIE}	
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/mie_propose1.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/mie_propose100.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/mie_propose200.eps}}
+			\caption{Scott Reef: Exploration paths}
+			\label{Figure:OptimalPaths}
+			\end{figure}
+		
+			\begin{figure}[!htbp]
+			\centering
+			  \subfigure[LMDE Acquisition]{\label{Figure:FinalPredictionMapLMDE} \includegraphics[width = 0.48\linewidth]{Figures/informative_seafloor_exploration/lmde/pred200.eps}}
+			  \subfigure[MCPIE Acquisition]{\label{Figure:FinalPredictionMapMCPIE}	\includegraphics[width = 0.48\linewidth]{Figures/informative_seafloor_exploration/mcpie/pred200.eps}}
+			\caption{Scott Reef: Final Prediction Map}
+			\label{Figure:FinalPredictionMap}
+			\end{figure}
+		
+			\begin{table*}[t]
+				{\scriptsize
+				\begin{center}
+					\begin{tabular}{ |c||c|c|c|c|c|c|c| }
+					\hline
+					Method & LMDE & MCPIE & AMPIE & GREEDY & RANDOM & FIXED - LINES & FIXED - SPIRAL \\
+					\hline
+					Location 1 & 16.44 & 22.99 & 32.11 & 43.86 & 34.87 & 20.40 & 33.74 \\
+					Location 2 & 20.38 & 27.01 & 40.11 & 37.63 & 35.68 & 25.05 & 43.16 \\
+					\hline
+					\end{tabular}
+				\end{center}
+				}
+		  	\caption{Comparison of final misclassification rate (\%) between informative exploration methods}
+		  	\label{Table:Results:CompareMethods}			
+		  	\end{table*}	
+	  	
 			\begin{figure}[!htbp]
 			\centering
 				\includegraphics[width = \linewidth]{Figures/compare_methods.eps}
 			\caption{Comparison of Informative Path Planning Methods}
 			\label{Figure:CompareMethods}
 			\end{figure}
-
-			\begin{figure}[!htbp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/compare_locations.eps}
-			\caption{Comparison of Initial Starting Positions}
-			\label{Figure:CompareLocations}
-			\end{figure}
 				
 			\begin{figure}[!htbp]
 			\centering
-				\includegraphics[width = \linewidth]{Figures/compare_horizons.eps}
-			\caption{Comparison of Receding Horizon Lengths}
-			\label{Figure:CompareHorizons}
+%			  \subfigure[Informative Path Planning Methods]{\label{Figure:CompareMethods}	\includegraphics[width=0.8\linewidth]{Figures/compare_methods.eps}}
+			  \subfigure[Initial Starting Positions]{\label{Figure:CompareLocations}	\includegraphics[width=0.48\linewidth]{Figures/compare_locations.eps}}
+			  \subfigure[Receding Horizon Lengths]{\label{Figure:CompareHorizons}	\includegraphics[width=0.48\linewidth]{Figures/compare_horizons.eps}}
+			\caption{Variance across initial starting point and receding horizon lengths}
+			\label{Figure:VarianceSimulation}
 			\end{figure}
-				
-								
+					
 	\section{Summary}

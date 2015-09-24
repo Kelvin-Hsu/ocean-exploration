@@ -179,11 +179,11 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
     ax1.set_ylabel('Misses (\%)', fontsize = fontsize)
     ax1.set_xticklabels( () )
 
-    ax2.set_title('Average Marginalised Linearised Differential Entropy', fontsize = fontsize)
+    ax2.set_title('Average Marginalised Linearised Model Differential Entropy', fontsize = fontsize)
     ax2.set_ylabel('Entropy (nats)', fontsize = fontsize)
     ax2.set_xticklabels( () )
 
-    ax3.set_title('Average Marginalised Information Entropy', fontsize = fontsize)
+    ax3.set_title('Average Marginalised Prediction Information Entropy', fontsize = fontsize)
     ax3.set_ylabel('Entropy (nats)', fontsize = fontsize)
     ax3.get_xaxis().get_major_formatter().set_useOffset(False)
     ax3.set_xlabel('Distance Traveled (km)', fontsize = fontsize)
