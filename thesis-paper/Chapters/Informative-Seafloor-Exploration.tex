@@ -392,13 +392,22 @@
 		
 			Similar to the problems faced in benthic habitat mapping as discussed in section \ref{BenthicHabitatMapping:ScottReef:BigData}, big data also poses significant problems for informative path planning.
 			
-			As many of the acquisition functions discussed in section \ref{Background:RelatedWork:AcquisitionFunctions} is based on the average marginalised prediction information entropy (AMPIE) \eqref{Equation:AMPIE}, which does not consider mutual information, the entropy computation can be improved in temporal and spatial complexity through only computing the latent GP variance (see appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}). As such, acquisition criterions such as \eqref{Equation:AsherBenderAcquisitionCriterion}, 
+			As many of the acquisition functions discussed in section \ref{Background:RelatedWork:AcquisitionFunctions} is based on the average marginalised prediction information entropy (AMPIE) \eqref{Equation:AMPIE}, which does not consider mutual information, the entropy computation can be improved in temporal and spatial complexity through only computing the latent GP variance $\{\mathbb{V}[f^{\star}_{i}]\}_{i \in I_{n^{\star}}}$ shown in Figure \ref{Figure:InferenceFlow} (see appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}). As such, acquisition criterions such as \eqref{Equation:AsherBenderAcquisitionCriterion} and \eqref{Equation:KrauseAcquisitionCriterion} are able to consider the non-mutual entropy of the entire region of interest $X_{s}$. The memory requirement in this case is dominated by the inference kernel $K^{\star}$ as only the diagonal elements $K^{\star \star}$ are required. 
 			
-			However, if mutual information is required, 
+			However, if mutual information is required, then the entire latent covariance matrix $\mathbb{V}[\bvec{f}^{\star}]$ is required. The memory requirement is then dominated by the full query kernel $K^{\star \star}$ on top of the inference kernel $K^{\star}$. It would then be impractical to compute those covariance matrices for the entire region of interest $X_{s}$. That is, it would be impractical to compute the differential acquisition \eqref{Equation:DifferentialAcquisition} for either $H = H_{\mathrm{MCPIE}}$ or $H = H_{\mathrm{LMDE}}$.
 			
+			\begin{equation}
+				I[X_{p} | X, \bvec{y}, X_{s}] = H[X_{s} | X, \bvec{y}] - H[X_{s} | X \cup X_{p}, \bvec{y} \cup \mathbb{E}[\bvec{y}_{p}]]
+			\label{Equation:DifferentialAcquisition}
+			\end{equation}
 			
-			MENTION AGAIN THAT the point of the acquisition functions above is that it doesn't need to incorporate the field JOINT entropy, which would need $K^{\star \star}$!!
-			
+			Instead, the advantage of LMDE acquisition is that the acquisition criterion can be in the form of \eqref{Equation:PathAcquisition}. In other words, this searches for the path with maximal entropy. In the following section, this acquisition criterion form will be used for LMDE, MCPIE, and AMPIE acquisition.
+
+			\begin{equation}
+				I[X_{p} | X, \bvec{y}, X_{s}] = H[X_{p} | X, \bvec{y}]
+			\label{Equation:PathAcquisition}
+			\end{equation}
+						
 		\subsection{Exploration Simulation and Performance Assessment}
 		
 			\begin{figure}[bp]
