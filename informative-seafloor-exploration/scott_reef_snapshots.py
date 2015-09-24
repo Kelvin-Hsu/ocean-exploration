@@ -26,7 +26,7 @@ def main():
     logging.basicConfig(level = logging.DEBUG)
 
     main_directory = "../../../Results/scott-reef/"
-    directory = main_directory + "loc1_new_20150827_072158__method_LDE_start_377500_8440000_hsteps30_horizon5000/"
+    directory = main_directory + "loc1_new_20150827_072830__method_MCJE_start_377500_8440000_hsteps30_horizon5000/"
     trials = np.arange(25, 201, 25)
     logging.info(trials)
 

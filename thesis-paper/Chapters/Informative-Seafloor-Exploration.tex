@@ -409,21 +409,21 @@
 			\end{equation}
 						
 		\subsection{Exploration Simulation and Performance Assessment}
-		
-			\begin{figure}[bp]
+					
+			This section presents the simulation results of various exploration policies for an AUV over Scott Reef \citep{IMOS}. At the start of each simulation, all cases start from the scenario with 200 training points as shown in Figure \ref{Figure:ScottReefInitialPredictions} from section \ref{BenthicHabitatMapping:ScottReef:Maps}. While the reef can be mapped with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to the scarcity of data. In this initial scenario, under AMPIE acquisition the vehicle would simply try to map out all regions as much as possible - a very costly policy. 
+
+			\begin{figure}[!htbp]
 			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_mapping/Figure9.eps}
+				\includegraphics[width = 0.8\linewidth]{Figures/scott_reef_mapping/Figure9.eps}
 			\caption{Scott Reef: Prediction Information Entropy}
 			\label{Figure:ScottReefPredictionInformationEntropy}
 			\end{figure}
-					
-			While the reef can be mapped with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to the scarcity of data. In this initial scenario, under the prediction information entropy criterion the vehicle would simply try to map out all regions as much as possible - a very costly policy.
-
-			The linearised differential entropy, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths.
+			
+			LMDE acquisition, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths. While Figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}) only visualises the marginalised entropies, the fact that it is able to emphasize regions with marginalised entropies show that it is better equipped to also discern informative paths in the joint entropy case, leading to LMDE acquisition.
 			
 			\begin{figure}[!htbp]
 			\centering
-				\includegraphics[width = \linewidth]{Figures/scott_reef_mapping/Figure11.eps}
+				\includegraphics[width = 0.8\linewidth]{Figures/scott_reef_mapping/Figure11.eps}
 			\caption{Scott Reef: Linearised Model Differential Entropy}
 			\label{Figure:ScottReefLinearisedModelDifferentialEntropy}
 			\end{figure}
@@ -450,12 +450,12 @@
 			\label{Figure:FinalPredictionMap}
 			\end{figure}
 		
-			\begin{table*}[t]
-				{\scriptsize
+			\begin{table}[t]
+				{\footnotesize
 				\begin{center}
-					\begin{tabular}{ |c||c|c|c|c|c|c|c| }
+					\begin{tabular}{ l c c c c c c c }
 					\hline
-					Method & LMDE & MCPIE & AMPIE & GREEDY & RANDOM & FIXED - LINES & FIXED - SPIRAL \\
+					Method & LMDE & MCPIE & AMPIE & GREEDY & RANDOM & LINES & SPIRAL \\
 					\hline
 					Location 1 & 16.44 & 22.99 & 32.11 & 43.86 & 34.87 & 20.40 & 33.74 \\
 					Location 2 & 20.38 & 27.01 & 40.11 & 37.63 & 35.68 & 25.05 & 43.16 \\
@@ -463,20 +463,19 @@
 					\end{tabular}
 				\end{center}
 				}
-		  	\caption{Comparison of final misclassification rate (\%) between informative exploration methods}
+		  	\caption{Final misclassification rate (\%)}
 		  	\label{Table:Results:CompareMethods}			
-		  	\end{table*}	
+		  	\end{table}	
 	  	
 			\begin{figure}[!htbp]
 			\centering
-				\includegraphics[width = \linewidth]{Figures/compare_methods.eps}
+				\includegraphics[width = 0.6\linewidth]{Figures/compare_methods.eps}
 			\caption{Comparison of Informative Path Planning Methods}
 			\label{Figure:CompareMethods}
 			\end{figure}
 				
 			\begin{figure}[!htbp]
 			\centering
-%			  \subfigure[Informative Path Planning Methods]{\label{Figure:CompareMethods}	\includegraphics[width=0.8\linewidth]{Figures/compare_methods.eps}}
 			  \subfigure[Initial Starting Positions]{\label{Figure:CompareLocations}	\includegraphics[width=0.48\linewidth]{Figures/compare_locations.eps}}
 			  \subfigure[Receding Horizon Lengths]{\label{Figure:CompareHorizons}	\includegraphics[width=0.48\linewidth]{Figures/compare_horizons.eps}}
 			\caption{Variance across initial starting point and receding horizon lengths}
