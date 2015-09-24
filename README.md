@@ -4,4 +4,4 @@
 
 ***Description***:
 
-A receding horizon approach to informative path planning using the linearised differential entropy of Gaussian process classifiers
+A receding horizon approach to informative path planning using the linearised model differential entropy of Gaussian process classifiers
