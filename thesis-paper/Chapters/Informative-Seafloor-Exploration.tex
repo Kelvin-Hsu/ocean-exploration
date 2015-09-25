@@ -217,6 +217,7 @@
 		Both Monte Carlo prediction information entropy and linearised model differential entropy are suitable measures of mutual entropy that can be used as an acquisition criterion for informative path planning. This section provides a simple comparison between the two entropy measures with example datasets, which would further assist in the interpretation of model differential entropy. The main takeaway is that MCPIE and LMDE are complementary measures of entropy which together captures uncertainty in prediction and uncertainty in the model respectively.
 	
 		\subsection{Estimation Accuracy under Monte Carlo Sampling}
+		\label{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures:EstimationAccuracy}
 		
 			It is helpful to visualise the practical numbers of samples required for reasonable estimation accuracy for MCPIE. Figure \ref{Figure:mcpie_lmde_comparison_binary} shows a simple case for a binary classification scenario, while Figure \ref{Figure:mcpie_lmde_comparison_multiclass} shows a case for a multiclass classification scenario with 4 classes. 
 			
@@ -255,7 +256,7 @@
 			\end{figure}
 			
 		\subsection{Interpretation of Model Differential Entropy}
-		\label{InformativeSeafloorExploration:LMDE:Interpretation}
+		\label{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures:InterpretationMDE}
 		
 			It is worthwhile to remember that model differential entropy and its linearisation is not an approximation to the usual prediction information entropy - the former is a differential entropy on a multivariate Gaussian distribution and the latter is an information entropy on the distribution of discrete class predictions combinations, which is a multivariate multinomial distribution. They have different interpretations and both can have advantageous properties under different scenarios. It is proposed that using linearised model differential entropy as an alternative acquisition function for informative path planning can be more beneficial under specific exploration purposes.
 			
@@ -264,6 +265,7 @@
 			In this way, using MDE as the acquisition function means that the vehicle would prioritise on both getting the both the model and predictions as correct as possible, instead of only focusing on predictions as in the PIE case.
 			
 		\subsection{Advantage of Model Differential Entropy}
+		\label{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures:AdvantagesMDE}
 		
 			Here the examples from Figures \ref{Figure:mcpie_lmde_comparison_binary} and \ref{Figure:mcpie_lmde_comparison_multiclass} are discussed further in detail.
 			
@@ -419,7 +421,7 @@
 			\label{Figure:ScottReefPredictionInformationEntropy}
 			\end{figure}
 			
-			LMDE acquisition, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}). Comparing this with the bathymetric features (figure \ref{Figure:ScottReefBathymetricFeatures}), we can deduce that the vehicle would focus on places with the highest and lowest depths. While Figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}) only visualises the marginalised entropies, the fact that it is able to emphasize regions with marginalised entropies show that it is better equipped to also discern informative paths in the joint entropy case, leading to LMDE acquisition.
+			LMDE acquisition, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}). Comparing Figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy} with the bathymetric features in Figure \ref{Figure:ScottReefBathymetricFeatures}, the marginalised LMDE is highest at places with the highest and lowest depths (figure \ref{Figure:ScottReefBathymetricFeatures:2}). While Figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}) only visualises the marginalised entropies, the fact that it is able to emphasize regions with marginalised entropies show that it is better equipped to also discern informative paths in the joint entropy case, leading to LMDE acquisition.
 			
 			\begin{figure}[!htbp]
 			\centering
@@ -428,13 +430,33 @@
 			\label{Figure:ScottReefLinearisedModelDifferentialEntropy}
 			\end{figure}
 		
+			The horizon structure selected for the Scott Reef scenario is 5 km in extent with 30 control points. Each control step is therefore $\frac{5 \mathrm{km}}{30}$ = 167 meters in length.  A comparison in performance over a distance of 33.3 km between several acquisition criterion is shown in Figure \ref{Figure:CompareMethods}. Each method is tested with a horizon length of 5 km starting at two distinct initial locations - (377.5, 8440.0) km and (380.0, 8440.0) km in Eastings-Northings frame. These locations will hereafter be referenced as ``location 1'' and ``location 2'' respectively. The acquisition criterion to be compared are linearised model differential entropy (LMDE), Monte Carlo prediction information entropy (MCPIE), one step ahead prediction information entropy (GREEDY), random walk (RANDOM), average of marginalised prediction information entropy (AMPIE), predetermined spiral path (SPIRAL), and predetermined line segmented paths (LINES). Of these, only LMDE and MCPIE acquisitions consider mutual information.
+		
+			\begin{table}[t]
+				{\footnotesize
+				\begin{center}
+					\begin{tabular}{ l c c c c c c c }
+					\hline
+					Policy & LMDE & MCPIE & AMPIE & GREEDY & RANDOM & LINES & SPIRAL \\
+					\hline
+					Mutual & Yes & Yes & No & No & No & No & No \\
+					Non-Myopic & Yes & Yes & Yes & No & No & Yes & Yes \\
+					Informative & Yes & Yes & Yes & Yes & No & No & No \\
+					\hline
+					\end{tabular}
+				\end{center}
+				}
+		  	\caption{Method Properties and Types}
+		  	\label{Table:MethodProperties}			
+		  	\end{table}	
+		  	
 			\begin{figure}[!htbp]
 			\centering
-			  \subfigure[LMDE Acquisition]{\label{Figure:OptimalPathLMDE} 
+			  \subfigure[LMDE Acquisition]{\label{Figure:OptimalPaths:LMDE} 
 			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/mie_propose1.eps}
 			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/mie_propose100.eps}
 			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/mie_propose200.eps}}
-			  \subfigure[MCPIE Acquisition]{\label{Figure:OptimalPathMCPIE}	
+			  \subfigure[MCPIE Acquisition]{\label{Figure:OptimalPaths:MCPIE}	
 			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/mie_propose1.eps}
 			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/mie_propose100.eps}
 			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/mie_propose200.eps}}
@@ -442,6 +464,36 @@
 			\label{Figure:OptimalPaths}
 			\end{figure}
 		
+%			\begin{figure}[!htbp]
+%			\centering
+%			  \subfigure[LMDE Acquisition]{\label{Figure:OptimalPathLMDE2} 
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/lde_propose1.eps}
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/lde_propose100.eps}
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/lde_propose200.eps}}
+%			  \subfigure[MCPIE Acquisition]{\label{Figure:OptimalPathMCPIE2}	
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/lde_propose1.eps}
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/lde_propose100.eps}
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/lde_propose200.eps}}
+%			\caption{Scott Reef: Exploration paths}
+%			\label{Figure:OptimalPaths2}
+%			\end{figure}
+%			
+%			\begin{figure}[!htbp]
+%			\centering
+%			  \subfigure[LMDE Acquisition]{\label{Figure:OptimalPathLMDE3} 
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/pred_propose1.eps}
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/pred_propose100.eps}
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/pred_propose200.eps}}
+%			  \subfigure[MCPIE Acquisition]{\label{Figure:OptimalPathMCPIE3}	
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/pred_propose1.eps}
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/pred_propose100.eps}
+%			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/pred_propose200.eps}}
+%			\caption{Scott Reef: Exploration paths}
+%			\label{Figure:OptimalPaths3}
+%			\end{figure}
+			
+			There are several measures of performance criterion that can be used to measure performance. As the aim is to reduce misclassification rate, the percentage of misclassification across the map is compared between each method. Each method begins with the same scenario, for which the initial misclassification rate with 200 training points is 41.54\% (figure \ref{Figure:ScottReefInitialPredictions}). Table \ref{Table:CompareMethods} shows that, under this performance criterion, LMDE acquisition outperforms other exploration policies, with a final misclassification rate of 16.44\% and 20.38\% for location 1 and 2 respectively at the end of the journey. Methods LINES (20.40\% and 25.05\%) and MCPIE (22.29\% and 27.01\%) follow in performance. The predetermined line segmented paths (LINES) are chosen using after-the-fact knowledge, and serve as an intuitive anchor for comparison. The MCPIE acquisition approach uses 1000 sample draws from the GP classifier to estimate the joint distribution for 30 control points, and experiences little improvement under misclassification criterion with more samples, as explained in section \ref{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures:EstimationAccuracy}. Notice that because LMDE acquisition prioritises on decision boundaries, it achieves a lower misclassification rate through appropriately reducing both bias and variance at decision boundaries.
+			
 			\begin{figure}[!htbp]
 			\centering
 			  \subfigure[LMDE Acquisition]{\label{Figure:FinalPredictionMapLMDE} \includegraphics[width = 0.48\linewidth]{Figures/informative_seafloor_exploration/lmde/pred200.eps}}
@@ -450,12 +502,14 @@
 			\label{Figure:FinalPredictionMap}
 			\end{figure}
 		
+			Figures \ref{Figure:OptimalPaths} show snapshots of the resulting path under LMDE and MCPIE acquisition respectively. Since in the end it is the prediction accuracy, instead of the model accuracy, that determines mapping and classification accuracy, the paths are layered onto the prediction information entropy (PIE) map for this visualisation. The snapshots are taken at 0.17 km, 16.67 km, and 33.33 km into the journey. Figure \ref{Figure:FinalPredictionMap} shows the final predictions after 33.33 km under LDE acquisition. The circle represents the horizon extent for which the vehicle considers in at each time step, with the vehicle at the center. The path with empty circles represent the path it has taken, and the path with filled hexagons extending from the current location represent the immediate proposed path from the receding horizon optimisation.
+					
 			\begin{table}[t]
 				{\footnotesize
 				\begin{center}
 					\begin{tabular}{ l c c c c c c c }
 					\hline
-					Method & LMDE & MCPIE & AMPIE & GREEDY & RANDOM & LINES & SPIRAL \\
+					Policy & LMDE & MCPIE & AMPIE & GREEDY & RANDOM & LINES & SPIRAL \\
 					\hline
 					Location 1 & 16.44 & 22.99 & 32.11 & 43.86 & 34.87 & 20.40 & 33.74 \\
 					Location 2 & 20.38 & 27.01 & 40.11 & 37.63 & 35.68 & 25.05 & 43.16 \\
@@ -464,22 +518,32 @@
 				\end{center}
 				}
 		  	\caption{Final misclassification rate (\%)}
-		  	\label{Table:Results:CompareMethods}			
+		  	\label{Table:CompareMethods}			
 		  	\end{table}	
 	  	
+			As expected, the paths from the two methods are similar, with LMDE acquisition achieving a misclassification ratio of approximately 4\% less. This difference is visible through the lower amount of prediction information entropy around the inner regions of the reef under LMDE acquisition compared to MCPIE acquisition, demonstrating better prediction accuracy. Interestingly, although MCPIE acquisition is the joint form of prediction information entropy, it is LMDE acquisition that achieves lower overall prediction information entropy. As discussed in section \ref{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures:EstimationAccuracy}, while MCPIE acquisition focuses on prediction variance, LMDE acquisition focuses on model variance which translate to both prediction variance and bias. Hence, in a non-myopic setting, LMDE acquisition achieves better performance in the long run.
+			
+			From the initial training set shown in Figure \ref{Figure:ScottReefBathymetricFeatures:1}, it is understood that observations are lacking around the edges of the reef. Moreover, Figures \ref{Figure:ScottReefBathymetricFeatures:2} to \ref{Figure:ScottReefBathymetricFeatures:6} reveals that the bathymetric signatures are quite different around the edges. For instance, the bathymetric depth is much lower, and the aspects are much higher. Therefore, it is expected that the AUV should focus on the edges of the reef.
+			
+			Under LMDE acquisition, as seen in Figure \ref{Figure:OptimalPaths:LMDE}, the AUV starts from the reef center, travels to the reef edge, returns from the reef edge to observe another inner region, and finally continues to map the reef edge. On the other hand, in Figure \ref{Figure:OptimalPaths:MCPIE}, the AUV simply travels to the reef edge and continues to observe the edges under MCPIE acquisition. As such, both methods focuses on the edges of the reef. However, LMDE acquisition did not neglect other regions while focusing on the reef edge, as it understands that too many observations at similar bathymetric signatures will introduce bias in the model.
+		
 			\begin{figure}[!htbp]
 			\centering
 				\includegraphics[width = 0.6\linewidth]{Figures/compare_methods.eps}
-			\caption{Comparison of Informative Path Planning Methods}
+			\caption{Comparison of informative path planning policies}
 			\label{Figure:CompareMethods}
 			\end{figure}
 				
+			Unlike other methods, both the LMDE and MCPIE method take into consideration the mutual information of the proposed path, so that both methods outperform myopic or non-informative methods (figure \ref{Figure:CompareMethods} and table \ref{Table:MethodProperties}). This result demonstrates that under a receding horizon formulation, using LMDE acquisition achieves lower misclassification rate on average than other acquisition functions - most importantly MCPIE acquisition. Furthermore, a receding horizon method achieves lower misclassification rate than myopic approaches under the same acquisition function.
+
 			\begin{figure}[!htbp]
 			\centering
 			  \subfigure[Initial Starting Positions]{\label{Figure:CompareLocations}	\includegraphics[width=0.48\linewidth]{Figures/compare_locations.eps}}
 			  \subfigure[Receding Horizon Lengths]{\label{Figure:CompareHorizons}	\includegraphics[width=0.48\linewidth]{Figures/compare_horizons.eps}}
 			\caption{Variance across initial starting point and receding horizon lengths}
 			\label{Figure:VarianceSimulation}
-			\end{figure}
+			\end{figure}	
+				
+			Figure \ref{Figure:VarianceSimulation} demonstrates the stability and consistency of the LMDE acquisition approach under varying horizon lengths and starting locations for the case of Scott Reef. 
 					
 	\section{Summary}
