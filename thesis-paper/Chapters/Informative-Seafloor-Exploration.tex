@@ -113,7 +113,7 @@
 		
 			For binary classification, linearisation is performed on the likelihood response.
 					
-			The beginning of this derivation is the same as section \ref{InformativeSeafloorExploration:MCJPIE:Binary} up to \eqref{Equation:PredictiveResponse}. At this stage, instead of proceeding with Monte Carlo sampling, it is proposed to use the joint distribution of the predictive probabilities $\vec{\uppi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\vec{\uppi^{\star}}]$ such that structural information from the latent GP is compromised, it is aimed to utilise also the covariance $\mathbb{V}[\vec{\uppi^{\star}}]$, which contains information regarding both the latent GP and the response likelihood.
+			The beginning of this derivation is the same as section \ref{InformativeSeafloorExploration:MCJPIE:Binary} up to \eqref{Equation:PredictiveResponse}. At this stage, instead of proceeding with Monte Carlo sampling, it is proposed to use the joint distribution of the predictive probabilities $\vec{\uppi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\vec{\uppi^{\star}}]$ and variance $\{\mathbb{V}[\pi^{\star}_{i}]\}_{i \in I_{n^{\star}}}$ such that structural information from the latent GP is compromised, it is aimed to utilise also the covariance $\mathbb{V}[\vec{\uppi^{\star}}]$, which contains information regarding both the latent GP and the response likelihood.
 		
 			\begin{figure}[!htbp]
 				\centering
@@ -345,45 +345,164 @@
 		% Informative path planning is a highly dynamical process in which the observations the vehicle decides to take can significantly impact the belief space of the vehicle and hence alter its action. As a result, Gaussian processes are often used for modeling the environment for which path planning is to be performed. The tractability of Gaussian processes regression allows sophisticated methods for informative path planning, such as  performing sequential Bayesian optimisation to achieve informative path planning over continuous domains \cite{Roman:SequentialBayesianOptimisation}. One desired property we would like to achieve with an informative path-planning problem is that the search is non-myopic. When the objective is to collect data on a particular spatial phenomenon, Gaussian process regression can be used as the model under which strong theoretical performance guarantees can be made \cite{Meliou:2007:NIP:1619645.1619742}. However, in the case where the objective is to collect data in the form of discrete labels, a Gaussian process classifier is used instead for modeling the phenomenon. As discussed earlier, the joint entropy from a Gaussian process classifier is not available in closed form. Instead, another measure of joint entropy was developed in the previous section which demonstrated desired properties for informative exploration. To take advantage of the tractability of linearised differential entropy over finite collections of query points, we discretise the spatial domain and select paths composed of finitely many query points. The acquisition criterion is then set to be the linearised differential entropy of the query points that compose the path.
 		
 		\subsection{Formulation and Structure}
-	
-			The receding horizon approach requires the selection of a horizon length and the number of control points (path query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce paths that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. For an informative path-planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path.
+		\label{InformativeSeafloorExploration:RecedingHorizonFormulation:Structure}
+		
+			The receding horizon approach requires the selection of a horizon length and the number of control points (path query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce paths that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. This is because, for an informative path-planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path.
 	
 			\begin{figure}[!htbp]
 				\begin{center}
 				\smartdiagramset{planet font = \small, satellite font = \scriptsize, planet color = orange!60, planet size = 2cm, satellite size = 2 cm, distance planet-satellite = 3.5cm}
 				\smartdiagram[connected constellation diagram]
-				{Receding Horizon Path Planning, Learn GP model from collected data, Compute finite optimal path, Move to first control point, Record observation}
+				{Receding Horizon Path Planning, 1. Learn GP model from collected data, 2. Compute finite optimal path, 3. Move to first control point, 4. Record observation}
 				\end{center}
 			\caption{Basic Receding Horizon Structure}
 			\label{Figure:RecedingHorizonMethodOutline}
 			\end{figure}
 					
-			Figure \ref{Figure:RecedingHorizonMethodOutline} describes the basic flow of the receding horizon approach approach, shown in anti-clockwise order beginning from the top. This procedure resembles the technique of model predictive control (MPC) in control theory. That is, it computes an optimal policy of finite horizon in each time step, and only executes the first action from the policy. The acquisition function to be maximised in each step is flexible. In each time step, a new path of the chosen horizon length is proposed, which is discretised into a finite set of control points. The vehicle only executes the policy towards the first control point while recording observations. It then relearns the GP classifier model with new observations, and repeats the process.
+			Figure \ref{Figure:RecedingHorizonMethodOutline} describes the basic flow of the receding horizon approach approach, shown in anti-clockwise order beginning from the top. This procedure resembles the technique of model predictive control (MPC) in control theory. That is, it computes an optimal policy of finite horizon in each time step, and only executes the first action from the policy. In each time step, a new path of the chosen horizon length is proposed by maximising the chosen acquisition criterion, which is discretised into a finite set of control points. The vehicle only executes the policy towards the first control point while recording observations. It then relearns the GP classifier model with new observations, and repeats the process.
 	
-			In summary, the receding horizon structure requires the selection of three elements - the horizon length, the number of control points, and an acquisition function. Equivalently, given the horizon length, choosing the number of control points is the same as choosing the step spacing between each control point.
-				
-		\subsection{Implementation}
-
-			While the basic structure presented above is straightforward, there are several formulation choices that would make the implementation simpler, as well as improve the time complexity of the algorithm. This section presents three such topics - path generation, turn angle limits, and feature space transformations.
+			In summary, the receding horizon structure requires the selection of three elements - the horizon length, the number of control points, and an acquisition function. Equivalently, given the horizon length, choosing the number of control points is the same as choosing the step spacing between each control point. 
 			
-			Path Generation \& Natural Coordinates
+			Finally, note that the way the receding horizon approach is formulated is very flexible and is not limited to path planning in a two dimensional domain. The formulation stays the same for path planning in three dimensional space and also works for exploration tasks within regions other than the seafloor.
 			
-			Turn Angle Limits for Smooth Paths
-			
-			Feature Space Transformations
+			The following two sections will expand on the first two steps shown in Figure \ref{Figure:RecedingHorizonMethodOutline}.
 	
 		\subsection{Model Update}
+		\label{InformativeSeafloorExploration:RecedingHorizonFormulation:ModelUpdate}
 				
+			Once new data is collected at the end of the previous iteration, the GP classifier model needs to be updated by re-learning or re-training. That is, the training stage shaded in blue in Figure \ref{Figure:InferenceFlow} is performed again with an updated training set (P, \bvec{y}) or equivalently (X, \bvec{y}) after feature extraction.
+			
+			Because GP training is an $O(n^{3})$ algorithm, it is desirable to speed this process up as training needs to happen at each path planning iteration. Fortunately, there are may ways for which this can be done.
+			
+			Firstly, as it is expected that adding one new observation will not change the GP model drastically, it is expected that the new optimal hyperparameters will most likely stay within a neighbourhood of the previous optimal hyperparameters before the observation. In this way, the training stage is initialised with the previous optimal hyperparameters before the observation such that the initial solution is reasonably close to the final solution after training. This significantly reduces the number of iterations involved in the training stage.
+			
+			Moreover, there are computational shortcuts one can take in updating the Cholesky matrix involved in the training stage, as detailed in Appendix \ref{Appendix:ComputationalAspects:TimeComplexity:CholeskyUpdateDowndate}.
+			
 		\subsection{Optimisation Process and Bottlenecks}
-		
-			The bottleneck of the receding horizon approach is the optimisation process for the acquisition criterion. While the model update usually involves relearning the model for a large number of observations (usually at least a few hundred data points up to the thousands), since the model is relearning from a previous model, a new observation would not usually drastically change the optimal hyperparameters of the GP. As such, the initial hyperparameters which defines the initial model before an observation is usually within reasonable range of the optimal hyperparameters after an observation such that the relearning stage would not take too many iterations in its corresponding optimiser. On the other hand, entropy measures, including both non-mutual and mutual entropies, are usually highly non-convex functions of the query control points such that the optimisation will take a significant amount of iterations even under low numbers of control points (typically under a hundred).
-			
-			As such, it is important for the acquisition function itself to have favourable complexity properties. As discussed before, LMDE acquisition avoids Monte Carlo sampling techniques that is required in the MCPIE acquisition, thus taking significantly less time to compute.
-			
-			Feasibility and Practicality of LMDE emphasized here
-		
-
+		\label{InformativeSeafloorExploration:RecedingHorizonFormulation:OptimisationProcess}
 	
+			Although the number of training points (e.g. 200 to 800) is usually bigger than the number of query control points (e.g. 30) in the receding horizon formulation, training only needs to happen once per path planning iteration. On the other hand, as the path acquisition criterion needs to be optimised through some optimiser, the inference stage for entropy computation will need to undergo an optimisation procedure in each path planning iteration. This means that each path planning iteration consists of multiple optimisation iterations. In this way, the bottleneck of the receding horizon path planning approach is the optimisation process for entropy computation.
+				
+			The optimisation process involves maximising the acquisition criterion over all possible paths $X_{p}$. Entropy measures, including both non-mutual and mutual entropies, are usually highly non-convex functions of the query control points such that the optimisation will take a significant amount of iterations even under low numbers of control points.
+			
+			As such, it is important for the acquisition function itself to have favourable complexity properties. As discussed before, LMDE acquisition avoids Monte Carlo sampling techniques that is required in the MCPIE acquisition, thus taking significantly less time to compute. This is one of the main advantages of LMDE acquisition other than its ability to capture both bias and variance - LMDE is much faster to compute than MCPIE as it avoids any sampling stage due to its formulation. As shown before in Figures \ref{Figure:mcpie_lmde_comparison_binary} and \ref{Figure:mcpie_lmde_comparison_multiclass}, LMDE also emphasizes decision boundaries more than PIE in general, so that the optimisation process is more likely to converge in less iterations due to a sharper peak of optimums.
+			
+			However, it is also worthwhile to understand that it is more practical to employ local optimisers for the optimisation process. Global optimisation procedures will often find the global optima which is not significantly better than the local optimums in the entropy maximisation case, since there usually exists several entropy rich paths that are, in practice, all very valid and similar in informativeness. This is also the reason that receding horizon approach is always suboptimal yet stable in performance - the approach will always find paths that are highly informative, but there often exists other paths that are slightly better.
+						
+		\subsection{Implementation}
+
+			While the basic structure presented above is straightforward, there are several formulation choices that would make the implementation simpler, as well as improve the time complexity of the algorithm. This section focuses on the way the optimisation process can be formulated to improve tractability, as it is the main bottleneck of the approach.
+			
+%			This section presents three such topics - path generation, turn angle limits, and feature space transformations.
+%			
+%			Path Generation \& Natural Coordinates
+%			
+%			Turn Angle Limits for Smooth Paths
+%			
+%			Feature Space Transformations
+	
+			Let $n_{p}$ be the number of control points in the path. The basic optimisation process is to find an optimal path $P_{p} \in \mathbb{R}^{n_{p} \times 2}$, a collection of $n_{p}$ coordinates in $\mathbb{R}^{2}$, that optimises the acquisition criterion $I[X_{p} | X, \bvec{y}, X_{s}]$, where $X_{p}$ is feature extracted from $P_{p}$ with the whitening parameters corresponding to the extraction $P \mapsto X$ from the training set.
+			
+			There are constraints to the path coordinates $P_{p}$. For example, to simplify the optimisation process, adjacent path coordinates are equidistant from each other. Let this distance be denoted by $r$. This constraint can be readily incorporated into the optimisation process if we use angle coordinates instead of Cartesian coordinates in the optimisation process.
+			
+			Notice that in each optimisation iteration, the starting point is fixed. Denote this starting point as $\bvec{p}_{0} \in \mathbb{R}^{2}$. Further denote each point of the path coordinates $P_{p}$ by $\bvec{p}_{j}$ for $j \in I_{n_{p}}$ such that $P_{p} = \{\bvec{p}_{j}\}_{j \in I_{n_{p}}}$. Then, given $r$ and $\bvec{p}_{0}$, any point $\bvec{p}_{j}$ along the path $P_{p}$ can be specified by the direction $\phi_{j} \in [0, 2 \pi)$ from the previous point $\bvec{p}_{j - 1}$ by \eqref{Equation:AbsoluteAngleCoordinates}.
+				
+			\begin{equation}			
+				\bvec{p}_{j} = \bvec{p}_{j - 1} + [r \cos(\phi_{j}), r \sin(\phi_{j})]^{T}	\qquad \forall j \in I_{n_{p}}			
+			\label{Equation:AbsoluteAngleCoordinates}			
+			\end{equation}
+			
+			Specifically, let $\vec{\upphi} := \{\phi_{j}\}_{j \in I_{n_{p}}} \in [0, 2 \pi)^{n_{p}}$ be hereby named the \textit{absolute angle coordinates} of the path. In this way, the path features $X_{p}$ depends on the path coordinates $P_{p}$ through feature extraction and $P_{p}$ depends on the absolute angle coordinates $\vec{\upphi}$ through the above path generation technique \eqref{Equation:AbsoluteAngleCoordinates}. Let this relationship be summarised by the function composition $f_{e} \circ q_{p}$ where $f_{e}: \mathbb{R}^{n_{p} \times 2} \mapsto \mathbb{R}^{n_{p} \times 5}$ is the feature extraction process and $q_{p}: \mathbb{R}^{n_{p}} \mapsto \mathbb{R}^{n_{p} \times 2}$ is the path generation process.
+			
+			In this way, the optimisation constraints are can be incorporated into the objective formulation and the optimisation process becomes \eqref{Equation:OptimisationProcessAbsolute}.
+			
+			\begin{equation}
+				\max_{\vec{\upphi} \in [0, 2 \pi)^{n_{p}}} I[(f_{e} \circ q_{p})(\vec{\upphi}) | X, \bvec{y}, X_{s}]				
+			\label{Equation:OptimisationProcessAbsolute}
+			\end{equation}	
+			
+			Although the above implementation is enough to for the optimisation process to be completed, there are more practical constraints that can be imposed on the path generation process to reflect practical situations. One such constraint considered in this work is the path smoothness. In practice, AUVs have a limited turn rate and prefer to travel in path that are not overly curvy or bumpy. While most methods that involve discretisation does not readily incorporate path smoothness, the receding horizon formulation, along with the above path generation technique, allow natural constraints on path smoothness.
+			
+			Path smoothness, in the discrete setting, translates to bound limits to the \textit{relative} angles between each adjacent coordinate. As such, \textit{relative angle coordinates}, also named \textit{natural angle coordinates}, are defined as $\vec{\uppsi} := \{\psi_{j}\}_{j \in I_{n_{p}}}$ where each element $\psi_{j}$ is given by \eqref{Equation:RelativeAngleCoordinates}, where $\phi_{0} := 0$ by definition. 
+			
+			\begin{equation}
+				\psi_{j} := \phi_{j} - \phi_{j - 1}	\qquad \forall j \in I_{n_{p}}
+			\label{Equation:RelativeAngleCoordinates}
+			\end{equation}
+			
+			That is, beginning with $\psi_{1} = \phi_{1}$, the absolute angle coordinates can be obtained by the cumulative sum of the relative angle coordinates \eqref{Equation:RelativeAngleCoordinatesInverse}.
+			
+			\begin{equation}
+				\phi_{j} := \sum_{k = 1}^{j} \psi_{k} \qquad \forall j \in I_{n_{p}}
+			\label{Equation:RelativeAngleCoordinatesInverse}
+			\end{equation}
+				
+			Let the above linear transformation be summarised as $T: \mathbb{R}^{n_{p}} \mapsto \mathbb{R}^{n_{p}}$ so that $\vec{\upphi} = T(\vec{\uppsi})$. Finally, bound limits can be placed onto the relative angle coordinates to impose smoothness constraints. Suppose $\psi_{\mathrm{max}} := \psi_{\mathrm{max}}(r)$ is the maximum angle the AUV can turn across a distance $r$, the bound limits imposed can be formulated as \eqref{Equation:TurnRateBoundLimits}.
+
+			\begin{equation}
+				\begin{aligned}
+					\psi_{1} & \in [0, 2 \pi) \\
+					\psi_{j} & \in [-\psi_{\mathrm{max}}, \psi_{\mathrm{max}}] \qquad j \in \{2, 3, \dots n_{p}\}
+				\end{aligned}
+			\label{Equation:TurnRateBoundLimits}
+			\end{equation}
+			
+			More concisely, if one define $\Psi_{n_{p}, \psi_{\mathrm{max}}} := [0, 2 \pi) \times [-\psi_{\mathrm{max}}, \psi_{\mathrm{max}}]^{n_{p} - 1}$ as the feasible region, then the above constraint can be summarised as a feasibility constraint $\vec{\uppsi} \in \Psi_{n_{p}}$ in a typical optimisation program. As such, the optimisation process can be written as \eqref{Equation:OptimisationProcess}.
+			
+			\begin{equation}
+				\max_{\vec{\uppsi} \in \Psi_{n_{p}, \psi_{\mathrm{max}}}} I[(f_{e} \circ q_{p} \circ T)(\vec{\uppsi}) | X, \bvec{y}, X_{s}]				
+			\label{Equation:OptimisationProcess}
+			\end{equation}
+		
+			As such, given the training data $(X, \bvec{y})$ and the query features $X_{s}$ representing the ROI, the acquisition criterion $I$ is a function of $\vec{\psi}$ only. The transformation process can be summarised in Figure \ref{Figure:AcquisitionCriterionTransformation}.
+			
+			% Define block styles
+			\tikzstyle{line} = [draw, -latex']
+			\tikzstyle{cloud1} = [draw, ellipse, fill = green!30!blue!30, node distance = 3cm, minimum height = 3em,  minimum width = 5em]
+			\tikzstyle{cloud2} = [draw, ellipse, fill = green!60!blue!50, node distance = 3cm, minimum height = 3em,  minimum width = 5em]
+			
+			\begin{figure}[!ht]
+			\centering\makebox[\textwidth]{
+				\begin{tikzpicture}[node distance = 4cm, auto, comment/.style ={rectangle, inner sep = 2pt, text width = 4cm, }]
+				
+				\node [cloud1] (relative-angle-coordinates) {$\vec{\uppsi}$};
+				\node [cloud1, right of = relative-angle-coordinates] (absolute-angle-coordinates) {$\vec{\upphi}$};
+				\node [cloud1, right of = absolute-angle-coordinates] (path-coordinates) {$P_{p}$};
+				\node [cloud1, right of = path-coordinates] (path-features) {$X_{p}$};
+				\node [cloud1, right of = path-features] (acquisition) {$I$};
+				
+				\draw [line] (relative-angle-coordinates) -- (absolute-angle-coordinates);
+				\draw [line] (absolute-angle-coordinates) -- (path-coordinates);
+				\draw [line] (path-coordinates) -- (path-features);
+				\draw [line] (path-features) -- (acquisition);
+				
+				\draw [decorate, decoration = {brace, amplitude = 10pt, raise = 3mm}]
+				(relative-angle-coordinates.85) -- (absolute-angle-coordinates.95) node [black, midway, yshift = 6mm]
+				{Cumulative Sum $T$};
+
+%				\draw [decorate, decoration = {brace, amplitude = 10pt, raise = 15mm, mirror}]
+%				(relative-angle-coordinates.85) -- (absolute-angle-coordinates.95) node [black, midway, yshift = -24mm]
+%				{Cumulative Sum};
+						
+				\draw [decorate, decoration = {brace, amplitude = 10pt, raise = 3mm}]
+				(absolute-angle-coordinates.85) -- (path-coordinates.95) node [black, midway, yshift = 10mm]
+				{Path Generation $q_{p}$};
+
+				\draw [decorate, decoration = {brace, amplitude = 10pt, raise = 3mm}]
+				(path-coordinates.85) -- (path-features.95) node [black, midway, yshift = 6mm]
+				{Feature Extraction $f_{e}$};
+	
+				\draw [decorate, decoration = {brace, amplitude = 10pt, raise = 3mm}]
+				(path-features.85) -- (acquisition.95) node [black, midway, yshift = 10mm]
+				{Acquisition Criterion $I$};
+													
+				\end{tikzpicture}
+				}		
+			\caption{Acquisition criterion as a function of natural angle coordinates}
+			\label{Figure:AcquisitionCriterionTransformation}
+			\end{figure}
+				
+			
 	\section{Informative Exploration over Scott Reef}
 	\label{InformativeSeafloorExploration:ScottReef}
 	
@@ -394,7 +513,7 @@
 		
 			Similar to the problems faced in benthic habitat mapping as discussed in section \ref{BenthicHabitatMapping:ScottReef:BigData}, big data also poses significant problems for informative path planning.
 			
-			As many of the acquisition functions discussed in section \ref{Background:RelatedWork:AcquisitionFunctions} is based on the average marginalised prediction information entropy (AMPIE) \eqref{Equation:AMPIE}, which does not consider mutual information, the entropy computation can be improved in temporal and spatial complexity through only computing the latent GP variance $\{\mathbb{V}[f^{\star}_{i}]\}_{i \in I_{n^{\star}}}$ shown in Figure \ref{Figure:InferenceFlow} (see appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}). As such, acquisition criterions such as \eqref{Equation:AsherBenderAcquisitionCriterion} and \eqref{Equation:KrauseAcquisitionCriterion} are able to consider the non-mutual entropy of the entire region of interest $X_{s}$. The memory requirement in this case is dominated by the inference kernel $K^{\star}$ as only the diagonal elements $K^{\star \star}$ are required. 
+			As many of the acquisition functions discussed in section \ref{Background:RelatedWork:AcquisitionFunctions} is based on the average marginalised prediction information entropy (AMPIE) \eqref{Equation:AMPIE}, which does not consider mutual information, the entropy computation can be improved in temporal and spatial complexity through only computing the latent GP variance $\{\mathbb{V}[f^{\star}_{i}]\}_{i \in I_{n^{\star}}}$ shown in Figure \ref{Figure:InferenceFlow} (see appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}). As such, acquisition criterions such as \eqref{Equation:AsherBenderAcquisitionCriterion} and \eqref{Equation:KrauseAcquisitionCriterion} are able to consider the non-mutual entropy of the entire region of interest $X_{s}$. The memory requirement in this case is dominated by the inference kernel $K^{\star}$ as only the diagonal elements of the query matrix $K^{\star \star}$ are required. 
 			
 			However, if mutual information is required, then the entire latent covariance matrix $\mathbb{V}[\bvec{f}^{\star}]$ is required. The memory requirement is then dominated by the full query kernel $K^{\star \star}$ on top of the inference kernel $K^{\star}$. It would then be impractical to compute those covariance matrices for the entire region of interest $X_{s}$. That is, it would be impractical to compute the differential acquisition \eqref{Equation:DifferentialAcquisition} for either $H = H_{\mathrm{MCPIE}}$ or $H = H_{\mathrm{LMDE}}$.
 			
@@ -403,7 +522,7 @@
 			\label{Equation:DifferentialAcquisition}
 			\end{equation}
 			
-			Instead, the advantage of LMDE acquisition is that the acquisition criterion can be in the form of \eqref{Equation:PathAcquisition}. In other words, this searches for the path with maximal entropy. In the following section, this acquisition criterion form will be used for LMDE, MCPIE, and AMPIE acquisition.
+			Instead, the advantage of LMDE acquisition is that the acquisition criterion can be in the form of \eqref{Equation:PathAcquisition}. In other words, this searches for the path with maximal entropy. In the following section, this acquisition criterion form will be used for LMDE, MCPIE, and AMPIE acquisition, where the entropy measure $H$ is replaced by $H_{\mathrm{LMDE}}$, $H_{\mathrm{MCPIE}}$, and $H_{\mathrm{AMPIE}}$ respectively. That is, the acquisition criterion is to maximise the chosen entropy measure of the candidate path.
 
 			\begin{equation}
 				I[X_{p} | X, \bvec{y}, X_{s}] = H[X_{p} | X, \bvec{y}]
@@ -421,7 +540,7 @@
 			\label{Figure:ScottReefPredictionInformationEntropy}
 			\end{figure}
 			
-			LMDE acquisition, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}). Comparing Figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy} with the bathymetric features in Figure \ref{Figure:ScottReefBathymetricFeatures}, the marginalised LMDE is highest at places with the highest and lowest depths (figure \ref{Figure:ScottReefBathymetricFeatures:2}). While Figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}) only visualises the marginalised entropies, the fact that it is able to emphasize regions with marginalised entropies show that it is better equipped to also discern informative paths in the joint entropy case, leading to LMDE acquisition.
+			LMDE acquisition, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}). Comparing Figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy} with the bathymetric features in Figure \ref{Figure:ScottReefBathymetricFeatures}, the marginalised LMDE is highest at places with the highest and lowest depths (figure \ref{Figure:ScottReefBathymetricFeatures:2}). While Figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy} only visualises the marginalised entropies, the fact that it is able to emphasize regions with marginalised entropies show that it is better equipped to also discern informative paths in the joint entropy case, leading to LMDE acquisition.
 			
 			\begin{figure}[!htbp]
 			\centering

@@ -165,7 +165,7 @@
 		
 			The feature extraction process assumes that the bathymetric depth data is available in grid form. That is, one can represent the available depth data $Z = \{z_{k}\}_{k \in {1, 2, ..., N}}$ as $Z = \{z_{ij}\}_{i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}}}$ where varying $i$ and $j$ corresponds to varying data points in axis 1 and 2 respectively. Axis 1 and 2 is required to form an orthonormal frame. While axis 1 and 2 is usually aligned with the eastings-northings frame, it is generally not required for the feature extraction process.
 			
-			Without loss of generality, let $x$ and $y$ denote quantities corresponding to the orthogonal axes. We have that at $(x_{i}, y_{j})$ $(i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}})$ the depth is measured as $z_{ij}$. The partial derivatives of various degrees of accuracy and scale can then be estimated through central differencing, as shown in \cref{Table:AspectExtraction}. The table shows the case for extracting aspect in the $x$-direction. Correspondingly, replacing the operations from $i$ to $j$ the aspect in the $y$-direction can also be similarly extracted.
+			Without loss of generality, let $x$ and $y$ denote quantities corresponding to the orthogonal axes. We have that at $(x_{i}, y_{j})$ $(i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}})$ the depth is measured as $z_{ij}$. The partial derivatives of various degrees of accuracy and scale can then be estimated through central differencing. Table \ref{Table:AspectExtraction}  shows the case for extracting aspect in the $x$-direction. Correspondingly, replacing the operations from $i$ to $j$ the aspect in the $y$-direction can also be similarly extracted.
 			
 			\bgroup
 			\def\arraystretch{2}%  1 is the default, change whatever you need
@@ -261,24 +261,28 @@
 			
 			Talk about $\pi$ and the gradients!
 			
+		\newpage
 		\subsection{Laplace Approximation}
 		\label{BenthicHabitatMapping:Classification:LaplaceApproximation}
 		
+		\newpage
 		\subsection{Probabilistic Least Squares Approximation}
 		\label{BenthicHabitatMapping:Classification:ProbabilisticLeastSquaresApproximation}
 		
+		\newpage
 		\subsection{Approximation Properties \& Performance}
 		\label{BenthicHabitatMapping:Classification:ApproximationPerformance}
 		
 			Compare probability outputs, classification outputs, entropy outputs, etc
 		
+		\newpage
 		\subsection{Multiclass Classification}
 		\label{BenthicHabitatMapping:Classification:MulticlassClassification}
 		
 		
 			Note that while the class labels are formulated to be in the range $y \in I_{n_{C}} = \{1, 2, \dots, n_{C}\}$ for convenience, this is not necessary. The formulation is equivalent as long as $n_{C}$ distinct numbers are used so that there is a one to one correspondence between the labels and $I_{n_{C}}$.
 			
-			
+			\newpage
 			\subsubsection{One Versus All Classification}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}
 			
@@ -288,21 +292,26 @@
 					
 				The AVA approach operates similarly. It insteads introduces $\frac{c (c - 1)}{2}$ \textit{independent} classification problems, each classifying between a pair of labels. The same exact philosophy follows in that a final consistent framework is needed for fusing the prediction probabilities into one coherent prediction probability. It is often more difficult for probability fusion in the AVA setting as compared to the OVA setting
 				
+			\newpage
 			\subsubsection{All Versus All Classification}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}
 			
+			\newpage
 			\subsubsection{Properties \& Performance}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:Performance}
 			
+		\newpage
 		\subsection{Probability Fusion Techniques}
 		\label{BenthicHabitatMapping:Classification:ProbabilityFusion}
 		
 			\subsubsection{Simple Normalisation}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:SimpleNormalisation}
 				
+			\newpage
 			\subsubsection{Mode Keeping}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:ModeKeeping}
 				
+			\newpage
 			\subsubsection{Exclusion}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:Exclusion}
 			
