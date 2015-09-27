@@ -245,9 +245,9 @@
 				\label{Figure:LikelihoodResponses}
 			\end{figure}
 					
-			The response function, sometimes also called a sigmoid function, is used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to "squeeze" the latent functions into a range where probabilistic interpretation is possible.
+			The response function, often also called a sigmoid function, is used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\lambda: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to ``squeeze'' the latent functions into a range where probabilistic interpretation is possible.
 				
-			The most widely used response functions are the logistic response \eqref{Equation:LogisticResponse} and probit \footnote{The probit function is also simply the standard normal cumulative distribution. The term \textit{probit} is used to make explicit its interpretation as a response likelihood function.} response \eqref{Equation:ProbitResponse} (figure \ref{Figure:LikelihoodResponses}). After a specific response function is chosen, the likelihood is given by \eqref{Equation:LikelihoodResponse}, thus achieving the squashing effect. Note that the likelihood $p(\bvec{y} | \bvec{f}, \vec{\uptheta}) = p(\bvec{y} | \bvec{f})$ is independent of the hyperparameters $\vec{\uptheta}$ by construction. Furthermore, each target $y_{i}$ depends only on the corresponding latent $f_{i}$ given all the latents $\bvec{f}$. \begin{equation}
+			The most widely used response functions are the logistic response \eqref{Equation:LogisticResponse} and probit \footnote{The probit function is also simply the standard normal cumulative distribution. The term \textit{probit} is used to make explicit its interpretation as a response likelihood function.} response \eqref{Equation:ProbitResponse} (figure \ref{Figure:LikelihoodResponses}). After a specific response function is chosen, the likelihood is given by \eqref{Equation:LikelihoodResponse}, thus achieving the squashing effect. Note that the likelihood $p(\bvec{y} | \bvec{f}, \vec{\uptheta}) = p(\bvec{y} | \bvec{f})$ is independent of the hyperparameters $\vec{\uptheta}$ by construction. Furthermore, each target $y_{i}$ depends only on the corresponding latent $f_{i}$ given all the latents $\bvec{f}$, such that with multiple latent values $\bvec{f}$ and corresponding target observations $\bvec{y}$ the likelihood is simply the product of the likelihoods considered separately. \begin{equation}
 				\lambda(z) = \frac{1}{1 + \exp(-z)}
 			\label{Equation:LogisticResponse}
 			\end{equation} \begin{equation}
@@ -259,7 +259,7 @@
 			\end{equation}				
 			\FloatBarrier
 			
-			Talk about $\pi$ and the gradients!
+			In a binary scenario, since $y_{i} \in \{-1, 1\}$, it is customary to define $\pi_{i} := p(y_{i} = 1 | f_{i})$ as the probability of observing label $y_{i} = 1$ given the latent value $f_{i}$. Note that $\pi_{i}$ is still a random variable since $f_{i}$ is a latent random variable. In this way, the probability of observing label $y_{i} = -1$ given the latent value $f_{i}$ is simply $1 - \pi_{i}$. As such, at the query locations $X^{\star}$, the random vector $\vec{\uppi}^{\star} := \{\pi^{\star}_{i}\}_{i \in I_{n^{\star}}}$ defines the distribution at the query locations completely.
 			
 		\newpage
 		\subsection{Laplace Approximation}
