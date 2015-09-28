@@ -261,10 +261,10 @@
 			
 			By \eqref{Equation:LikelihoodResponse}, this means that $\pi^{\star}_{i} = \sigma(f^{\star}_{i})$, which provides a simple relationship between the latent function and the predictive probability, and achieves the ``squashing'' effect mentioned previously. The vector form of this relationship can be written as $\vec{\uppi}^{\star} = \vec{\upsigma}(\bvec{f}^{\star}) := \{\sigma(f^{\star}_{i})\}_{i \in I_{n^{\star}}}$. Again, if $\bvec{f}^{\star}$ is random, then so is $\vec{\uppi}^{\star}$.
 			
-			In order to perform prediction, the predictive probabilities $\vec{\uppi}^{\star}$ must be known. However, given the above likelihood response formulation, since $\vec{\uppi}^{\star}$ is random, further inference must be obtained by taking the \textit{expected prediction probabilities} $\bar{\vec{\uppi}}^{\star} := \mathbb{E}[\vec{\uppi}^{\star}] = \mathbb{E}[\vec{\upsigma}(\bvec{f}^{\star})]$ for inference \eqref{Equation:PriorExpectedPredictionProbabilities}. Of course, since $f$ is formulated as a GP, the distribution of $\bvec{f}$, $p(\bvec{f})$, is requires the optimally learned hyperparameters $\vec{\uptheta}$. This fact is notated explicitly in \eqref{Equation:PriorExpectedPredictionProbabilities}.
+			In order to perform prediction, the predictive probabilities $\vec{\uppi}^{\star}$ must be known. However, given the above likelihood response formulation, since $\vec{\uppi}^{\star}$ is random, further inference must be obtained by taking the \textit{expected prediction probabilities} $\bar{\vec{\uppi}}^{\star} := \mathbb{E}[\vec{\uppi}^{\star}] = \mathbb{E}[\vec{\upsigma}(\bvec{f}^{\star})]$ for inference \eqref{Equation:PriorExpectedPredictionProbabilities}. Of course, since $f$ is formulated as a GP, the distribution of $\bvec{f}^{\star}$, $p(\bvec{f}^{\star})$, is requires the optimally learned hyperparameters $\vec{\uptheta}$. This fact is notated explicitly in \eqref{Equation:PriorExpectedPredictionProbabilities}.
 			
 			\begin{equation}
-				\bar{\vec{\uppi}}^{\star} |_{\vec{\uptheta}} := \mathbb{E}_{\vec{\uptheta}}[\vec{\uppi}^{\star}] = \mathbb{E}_{\vec{\uptheta}}[\vec{\upsigma}(\bvec{f}^{\star})] = \int_{\mathbb{R}^{n^{\star}}} \vec{\upsigma}(\bvec{f}^{\star}) p(\bvec{f}^{\star} | \vec{\uptheta}) d \bvec{f}
+				\bar{\vec{\uppi}}^{\star} |_{\vec{\uptheta}} := \mathbb{E}_{\vec{\uptheta}}[\vec{\uppi}^{\star}] = \mathbb{E}_{\vec{\uptheta}}[\vec{\upsigma}(\bvec{f}^{\star})] = \int_{\mathbb{R}^{n^{\star}}} \vec{\upsigma}(\bvec{f}^{\star}) p(\bvec{f}^{\star} | \vec{\uptheta}) d \bvec{f}^{\star}
 			\label{Equation:PriorExpectedPredictionProbabilities}
 			\end{equation}	
 			
@@ -273,15 +273,28 @@
 			 With observations $\bvec{y}$, the expected predictive probabilities is computed by the conditionally expectation on $\bvec{y}$ using the posterior distribution $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ \eqref{Equation:PosteriorExpectedPredictionProbabilities}.
 	
 			\begin{equation}
-				\bar{\vec{\uppi}}^{\star} |_{\bvec{y}, \vec{\uptheta}} := \mathbb{E}_{\vec{\uptheta}}[\vec{\uppi}^{\star} | \bvec{y}] = \mathbb{E}_{\vec{\uptheta}}[\vec{\upsigma}(\bvec{f}^{\star}) | \bvec{y}] = \int_{\mathbb{R}^{n^{\star}}} \vec{\upsigma}(\bvec{f}^{\star}) p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta}) d \bvec{f}
+				\bar{\vec{\uppi}}^{\star} |_{\bvec{y}, \vec{\uptheta}} := \mathbb{E}_{\vec{\uptheta}}[\vec{\uppi}^{\star} | \bvec{y}] = \mathbb{E}_{\vec{\uptheta}}[\vec{\upsigma}(\bvec{f}^{\star}) | \bvec{y}] = \int_{\mathbb{R}^{n^{\star}}} \vec{\upsigma}(\bvec{f}^{\star}) p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta}) d \bvec{f}^{\star}
 			\label{Equation:PosteriorExpectedPredictionProbabilities}
 			\end{equation}	
-					 
+			
+			Before introducing the approximation techniques, it is worthwhile to first observe the properties of the integral \eqref{Equation:PosteriorExpectedPredictionProbabilities}. Firstly, the integral can also be written in scalar form for each query point $i \in I_{n^{\star}}$ separately \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar}.
+
+			\begin{equation}
+				 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \mathbb{E}_{\vec{\uptheta}}[\pi^{\star}_{i} | \bvec{y}] = \mathbb{E}_{\vec{\uptheta}}[\sigma(f^{\star}_{i}) | \bvec{y}] = \int_{\mathbb{R}} \sigma(f^{\star}_{i}) p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta}) d f^{\star}_{i}
+			\label{Equation:PosteriorExpectedPredictionProbabilitiesScalar}
+			\end{equation}		
+						
+			For a general likelihood response $\sigma(z)$, the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} must be computed numerically through a techniques such as \textit{quadratures}. However, if $p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})$ is a Gaussian density, and a probit response is chosen for the likelihood \eqref{Equation:ProbitResponse}, then there exists an analytical solution to the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} and hence \eqref{Equation:PosteriorExpectedPredictionProbabilities} through vectorising, as given by \eqref{Equation:ProbitAnalyticalIntegral} \citep{GaussianProcessForMachineLearning}. This means that under an appropriate approximation technique, the probit response allows \textit{analytically tractable inference} to be performed. As such, there is significant computational advantage of choosing the probit response. Choosing the probit response also exhibits further advantages for linearisation discussed later in section \ref{InformativeSeafloorExploration:LMDE}.
+			
+			\begin{equation}
+				 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \int_{\mathbb{R}} \overbrace{\Phi(f^{\star}_{i})}^{\mathclap{\substack{\text{Probit} \\ \text{Response}}}} \overbrace{p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})}^{\text{If Gaussian}} d f^{\star}_{i} \stackrel{\mathclap{\substack{\text{Analytical} \\ \text{Solution} \\ \quad }}}{=} \Phi\Bigg(\frac{\mathbb{E}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}{\sqrt{1 + \mathbb{V}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}}\Bigg)
+			\label{Equation:ProbitAnalyticalIntegral}
+			\end{equation}
+			
 		\subsection{Laplace Approximation}
 		\label{BenthicHabitatMapping:Classification:LaplaceApproximation}
 		
-			Regardless 
-			Mention that a probit response avoids using quadrature! Which is why it was chosen!
+			After choosing a response function $\sigma(z)$, the expected predictive probabilities can be computed from the posterior distribution $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ using \eqref{Equation:PosteriorExpectedPredictionProbabilities}. The heart of all GP classifier approximation techniques then lies in approximating the posterior $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ as a multivariate Gaussian density.
 			
 		\subsection{Probabilistic Least Squares Approximation}
 		\label{BenthicHabitatMapping:Classification:ProbabilisticLeastSquaresApproximation}
