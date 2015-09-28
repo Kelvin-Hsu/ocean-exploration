@@ -206,7 +206,7 @@
 	\section{Gaussian Process Classification}
 	\label{BenthicHabitatMapping:Classification}
 	
-		After extracting the bathymetric features across the seafloor terrain, the next step in benthic habitat mapping is to develop a classification algorithm for habitat class inference. Gaussian process classification is of vital importance to the benthic habitat modeling process. It is used to infer the habitat type, and most importantly quantify the information reward one can gain by exploring a given area. As concluded in section \ref{Background:RelatedWork:AcquisitoinFunctions}, there has been many prior attempts in using Gaussian process classifiers for benthic habitat mapping. However, while Gaussian process classifiers are strong in inference and predictive ability, its use is complicated by its lack of analytical tractability. Approximate solutions are therefore required. Furthermore, it is non-trivial to formulate a Gaussian process based multiclass classifier, as well as ensuring a consistent predictive probability distribution from the resulting multiclass classifier. This section address those concerns and outlines the basic formulation of Gaussian process classifiers.
+		After extracting the bathymetric features across the seafloor terrain, the next step in benthic habitat mapping is to develop a classification algorithm for habitat class inference. Gaussian process classification is of vital importance to the benthic habitat modeling process. It is used to infer the habitat type, and most importantly quantify the information reward one can gain by exploring a given area. As concluded in section \ref{Background:RelatedWork:AcquisitionFunctions}, there has been many prior attempts in using Gaussian process classifiers for benthic habitat mapping. However, while Gaussian process classifiers are strong in inference and predictive ability, its use is complicated by its lack of analytical tractability. Approximate solutions are therefore required. Furthermore, it is non-trivial to formulate a Gaussian process based multiclass classifier, as well as ensuring a consistent predictive probability distribution from the resulting multiclass classifier. This section address those concerns and outlines the basic formulation of Gaussian process classifiers.
 		
 		Unlike the regression case described in section \ref{Background:GaussianProcesses:Regression}, the analytical intractability is caused by a non-Gaussian likelihood response $p(\bvec{y} | \bvec{f}, \vec{\uptheta})$, since the output labels are no longer continuous \eqref{Equation:ClassificationLogMarginalLikelihoodBayes}. Note that there is no noise parameter $\sigma$ involved, so that the hyperparameters are $\vec{\uptheta}$ in accordance to the notations introduced in section \ref{Background:GaussianProcesses:Regression}.
 
@@ -399,6 +399,7 @@
 		\subsection{Probability Fusion Techniques}
 		\label{BenthicHabitatMapping:Classification:ProbabilityFusion}
 		
+			
 			\subsubsection{Simple Normalisation}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:SimpleNormalisation}
 				
@@ -408,7 +409,7 @@
 			\subsubsection{Exclusion}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:Exclusion}
 			
-		\subsection{Properties \& Performance}
+		\subsection{Fusion Properties \& Performance}
 		\label{BenthicHabitatMapping:Classification:Performance}
 			
 	\section{Mapping Scott Reef Benthic Habitats}
