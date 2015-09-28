@@ -323,7 +323,7 @@
 			\subsubsection{One Versus All Classification}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}
 						
-				The OVA approach performs classification by introducing $n_{C}$ \textit{independent} classification problems, each classifying a particular label against all others. Each of these problems are thus a binary classification problem for which solution methods are as demonstrated previously.
+				The OVA approach performs classification by introducing $n_{C}$ \textit{independent} classification problems, each classifying a particular label against all other labels. Each binary classifier is identified with a class label $c$, where it attempts to distinguish targets with labels $c$ against targets with any other label $c' \in I_{n^{C}} \backslash c$. Each of these problems are thus a binary classification problem for which solution methods are as demonstrated previously.
 				
 				The approach begins by translating the training observations from a multiclass target vector $\bvec{y} \in \{1, 2, \dots, n_{C}\}^{n}$ into $n_{C}$ binary target vectors $\bvec{y}^{c} \in \{-1, 1\}^{n}$ for $c \in \{1, 2, \dots, n_{C}\}$ \eqref{Equation:TargetTranslationOVA}.
 				
@@ -334,10 +334,12 @@
 				
 				That is, $\bvec{y}^{c}$ is a vector of the same length as $\bvec{y}$, with its components equal to $1$ where the corresponding components of $\bvec{y}$ is equal to $c$. All other components are equal to $-1$. Here, $\mathds{1}_{A}$ is the standard notation for the indicator function, which is $1$ when $A$ is true and $0$ otherwise.
 				
-				As such, the $c^{\text{th}}$ binary classifier is trained with the training data $(X, \bvec{y}^{c})$, and is trained independently from the other binary classifiers. Each binary classifier thus has its own set of optimal hyperparameters $\vec{\uptheta}^{c}$, and performs inference and prediction separately. This outputs a single axis list of expected predictive probabilities \eqref{Equation:ProbabilityListOVA}. Note that the query star $^{\star}$ is moved to the left to avoid cluttered notation.
+				As such, the binary classifier between class $c$ and all other labels is trained with the training data $(X, \bvec{y}^{c})$, and is trained independently from the other binary classifiers. Each binary classifier thus has its own set of optimal hyperparameters $\vec{\uptheta}^{c}$, and performs inference and prediction separately. This outputs a single axis list of expected predictive probabilities \eqref{Equation:ProbabilityListOVA} at all query points $X^{\star}$. Note that the query star $^{\star}$ is moved to the left to avoid cluttered notation.
 				
 				\begin{equation}
-					\{ {^{\star}}\bar{\vec{\uppi}}^{1} |_{\bvec{y}^{1}, \vec{\uptheta}^{1}}, {^{\star}}\bar{\vec{\uppi}}^{2} |_{\bvec{y}^{2}, \vec{\uptheta}^{2}}, \dots, {^{\star}}\bar{\vec{\uppi}}^{n_{C}} |_{\bvec{y}^{n_{C}}, \vec{\uptheta}^{n_{C}}} \}
+					\begin{Bmatrix*}
+						{^{\star}}\bar{\vec{\uppi}}^{1} |_{\bvec{y}^{1}, \vec{\uptheta}^{1}} & {^{\star}}\bar{\vec{\uppi}}^{2} |_{\bvec{y}^{2}, \vec{\uptheta}^{2}} & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C}} |_{\bvec{y}^{n_{C}}, \vec{\uptheta}^{n_{C}}}
+					\end{Bmatrix*} 
 				\label{Equation:ProbabilityListOVA}
 				\end{equation}
 				
@@ -351,7 +353,7 @@
 			\subsubsection{All Versus All Classification}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}
 			
-				The AVA approach operates in a similar fashion to the OVA approach. It instead introduces ${n_{C} \choose 2} = \frac{n_{C} (n_{C} - 1)}{2}$ \textit{independent} classification problems, each performing classification between a pair of labels.
+				The AVA approach operates in a similar fashion to the OVA approach. It instead introduces ${n_{C} \choose 2} = \frac{n_{C} (n_{C} - 1)}{2}$ \textit{independent} classification problems, each performing classification between a pair of labels. This time, each binary classifier is identified with two class labels $c$ and $c'$, where it attempts to distinguish between targets with labels $c$ against targets with labels $c'$ \textit{only}, and makes no attempt to consider observations with target labels that are not $c$ or $c'$. 
 				
 				Similar to the OVA case, the training observations are also to be translated from a multiclass target vector $\bvec{y} \in \{1, 2, \dots, n_{C}\}^{n}$ into $\frac{n_{C} (n_{C} - 1)}{2}$ binary target vectors $\bvec{y}^{c, c'} \in \{-1, 1\}^{n^{c, c'}}$ for $c \in \{1, 2, \dots, n_{C}\}$ and $c' \in \{c + 1, c + 2, \dots, n_{C}\}$ \eqref{Equation:TargetTranslationAVA}.
 								
@@ -365,12 +367,34 @@
 				\label{Equation:TargetTranslationAVA}
 				\end{equation}				
 				
-				Notice that this time the target vector $\bvec{y}^{c, c'}$ does not share the same length as $\bvec{y}$, but instead have a smaller length. That is, $n^{c, c'} < n$ for all $c \in \{1, 2, \dots, n_{C}\}$ and $c' \in \{c + 1, c + 2, \dots, n_{C}\}$.
+				Notice that, contrary to the OVA case, the new target vector $\bvec{y}^{c, c'}$ does not share the same length as $\bvec{y}$, but instead have a smaller length. That is, $n^{c, c'} < n$ for all $c \in \{1, 2, \dots, n_{C}\}$ and $c' \in \{c + 1, c + 2, \dots, n_{C}\}$.
 				
+				With this, the binary classifier corresponding to $c$ and $c'$ is trained with the training data $(X^{c, c'}, \bvec{y}^{c, c'})$, again in an independent fashion. This again results in a set of optimal hypermeters $\vec{\uptheta}^{c, c'}$ for each of the binary classifiers. This outputs a double axis list of expected predictive probabilities \eqref{Equation:ProbabilityListAVA} at all query points $X^{\star}$.
 				
+				\begin{equation}
+					\begin{Bmatrix*}
+						N/A & {^{\star}}\bar{\vec{\uppi}}^{1, 2} |_{\bvec{y}^{1, 2}, \vec{\uptheta}^{1, 2}} & {^{\star}}\bar{\vec{\uppi}}^{1, 3} |_{\bvec{y}^{1, 3}, \vec{\uptheta}^{1, 3}} & {^{\star}}\bar{\vec{\uppi}}^{1, 4} |_{\bvec{y}^{1, 4}, \vec{\uptheta}^{1, 4}} & \dots & {^{\star}}\bar{\vec{\uppi}}^{1, n_{C}} |_{\bvec{y}^{1, n_{C}}, \vec{\uptheta}^{1, n_{C}}} \\
+						N/A & N/A & {^{\star}}\bar{\vec{\uppi}}^{2, 3} |_{\bvec{y}^{2, 3}, \vec{\uptheta}^{2, 3}} & {^{\star}}\bar{\vec{\uppi}}^{2, 4} |_{\bvec{y}^{2, 4}, \vec{\uptheta}^{2, 4}} & \dots & {^{\star}}\bar{\vec{\uppi}}^{2, n_{C}} |_{\bvec{y}^{2, n_{C}}, \vec{\uptheta}^{2, n_{C}}} \\
+						\vdots & \vdots & \vdots & \vdots & \ddots & \vdots \\
+						N/A & N/A & N/A & N/A & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C} - 1, n_{C}} |_{\bvec{y}^{n_{C} - 1, n_{C}}, \vec{\uptheta}^{n_{C} - 1, n_{C}}} \\
+						N/A & N/A & N/A & N/A & \dots & N/A
+					\end{Bmatrix*} 
+				\label{Equation:ProbabilityListAVA}
+				\end{equation}				
+							
+				Notice that only the upper triangular components, excluding the diagonal components, are computed in this double axis list. The AVA approach is formulated this way in order to avoid repeated computations. Notice that to obtain the corresponding lower triangular elements, the expected predictive probabilities required are simply ${^{\star}}\bar{\vec{\uppi}}^{c', c} |_{\bvec{y}^{c', c}, \vec{\uptheta}^{c', c}} = \bvec{1}_{n^{\star}} - {^{\star}}\bar{\vec{\uppi}}^{c, c'} |_{\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}}$ by symmetry, where $\bvec{1}_{n^{\star}} := \{1\}_{i \in I_{n^{\star}}}$. The diagonal elements extends naturally to $\bvec{1}_{n^{\star}}$, since it represent the probabilities of the targets having label $c$ in a binary classifier between label $c$ and itself, which is trivially $1$. Thus, the double axis list can be filled correspondingly \eqref{Equation:ProbabilityListAVAfull}.
 				
+				\begin{equation}
+					\begin{Bmatrix*}
+						\bvec{1}_{n^{\star}} & {^{\star}}\bar{\vec{\uppi}}^{1, 2} |_{\bvec{y}^{1, 2}, \vec{\uptheta}^{1, 2}} & {^{\star}}\bar{\vec{\uppi}}^{1, 3} |_{\bvec{y}^{1, 3}, \vec{\uptheta}^{1, 3}} & \dots & {^{\star}}\bar{\vec{\uppi}}^{1, n_{C}} |_{\bvec{y}^{1, n_{C}}, \vec{\uptheta}^{1, n_{C}}} \\
+						{^{\star}}\bar{\vec{\uppi}}^{2, 1} |_{\bvec{y}^{2, 1}, \vec{\uptheta}^{2, 1}} & \bvec{1}_{n^{\star}} & {^{\star}}\bar{\vec{\uppi}}^{2, 3} |_{\bvec{y}^{2, 3}, \vec{\uptheta}^{2, 3}} & \dots & {^{\star}}\bar{\vec{\uppi}}^{2, n_{C}} |_{\bvec{y}^{2, n_{C}}, \vec{\uptheta}^{2, n_{C}}} \\
+						\vdots & \vdots & \vdots & \ddots & \vdots \\
+						{^{\star}}\bar{\vec{\uppi}}^{n_{C}, 1} |_{\bvec{y}^{n_{C}, 1}, \vec{\uptheta}^{n_{C}, 1}} & {^{\star}}\bar{\vec{\uppi}}^{n_{C}, 2} |_{\bvec{y}^{n_{C}, 2}, \vec{\uptheta}^{n_{C}, 2}} & {^{\star}}\bar{\vec{\uppi}}^{n_{C}, 3} |_{\bvec{y}^{n_{C}, 3}, \vec{\uptheta}^{n_{C}, 3}} & \dots & \bvec{1}_{n^{\star}}
+					\end{Bmatrix*} 
+				\label{Equation:ProbabilityListAVAfull}
+				\end{equation}	
 				
-				The same exact philosophy follows in that a final consistent framework is needed for fusing the prediction probabilities into one coherent prediction probability. It is often more difficult for probability fusion in the AVA setting as compared to the OVA setting
+				The same exact philosophy follows in that a final consistent framework is needed for fusing the prediction probabilities into one coherent prediction probability. Notice that here instead there are multiple predictive probabilities corresponding to each class, where the predictive probabilities for class $c$ is determined by \textit{row} $c$ of the double axis list. Recall that ${^{\star}}\bar{\vec{\uppi}}^{c, c'} |_{\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}}$ is the expected predictive probability of observing class $c$ \textit{against} class $c'$. As such, the probability fusion requires an extra fusion step in the AVA case.
 			
 		\subsection{Probability Fusion Techniques}
 		\label{BenthicHabitatMapping:Classification:ProbabilityFusion}
