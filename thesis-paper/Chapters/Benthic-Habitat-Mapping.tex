@@ -280,14 +280,14 @@
 			Before introducing the approximation techniques, it is worthwhile to first observe the properties of the integral \eqref{Equation:PosteriorExpectedPredictionProbabilities}. Firstly, the integral can also be written in scalar form for each query point $i \in I_{n^{\star}}$ separately \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar}.
 
 			\begin{equation}
-				 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \mathbb{E}_{\vec{\uptheta}}[\pi^{\star}_{i} | \bvec{y}] = \mathbb{E}_{\vec{\uptheta}}[\sigma(f^{\star}_{i}) | \bvec{y}] = \int_{\mathbb{R}} \sigma(f^{\star}_{i}) p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta}) d f^{\star}_{i}
+				 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \mathbb{E}_{\vec{\uptheta}}[\pi^{\star}_{i} | \bvec{y}] = \mathbb{E}_{\vec{\uptheta}}[\sigma(f^{\star}_{i}) | \bvec{y}] = \int_{\mathbb{R}} \sigma(f^{\star}_{i}) p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta}) d f^{\star}_{i} \qquad \forall i \in I_{n^{\star}}
 			\label{Equation:PosteriorExpectedPredictionProbabilitiesScalar}
 			\end{equation}		
 						
 			For a general likelihood response $\sigma(z)$, the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} must be computed numerically through a techniques such as \textit{quadratures}. However, if $p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})$ is a Gaussian density, and a probit response is chosen for the likelihood \eqref{Equation:ProbitResponse}, then there exists an analytical solution to the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} and hence \eqref{Equation:PosteriorExpectedPredictionProbabilities} through vectorising, as given by \eqref{Equation:ProbitAnalyticalIntegral} \citep{GaussianProcessForMachineLearning}. This means that under an appropriate approximation technique, the probit response allows \textit{analytically tractable inference} to be performed. As such, there is significant computational advantage of choosing the probit response. Choosing the probit response also exhibits further advantages for linearisation discussed later in section \ref{InformativeSeafloorExploration:LMDE}.
 			
 			\begin{equation}
-				 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \int_{\mathbb{R}} \overbrace{\Phi(f^{\star}_{i})}^{\mathclap{\substack{\text{Probit} \\ \text{Response}}}} \overbrace{p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})}^{\text{If Gaussian}} d f^{\star}_{i} \stackrel{\mathclap{\substack{\text{Analytical} \\ \text{Solution} \\ \quad }}}{=} \Phi\Bigg(\frac{\mathbb{E}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}{\sqrt{1 + \mathbb{V}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}}\Bigg)
+				 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \int_{\mathbb{R}} \overbrace{\Phi(f^{\star}_{i})}^{\mathclap{\substack{\text{Probit} \\ \text{Response}}}} \overbrace{p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})}^{\text{If Gaussian}} d f^{\star}_{i} \stackrel{\mathclap{\substack{\text{Analytical} \\ \text{Solution} \\ \quad }}}{=} \Phi\Bigg(\frac{\mathbb{E}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}{\sqrt{1 + \mathbb{V}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}}\Bigg) \qquad \forall i \in I_{n^{\star}}
 			\label{Equation:ProbitAnalyticalIntegral}
 			\end{equation}
 			
@@ -296,36 +296,81 @@
 		
 			After choosing a response function $\sigma(z)$, the expected predictive probabilities can be computed from the posterior distribution $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ using \eqref{Equation:PosteriorExpectedPredictionProbabilities}. The heart of all GP classifier approximation techniques then lies in approximating the posterior $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ as a multivariate Gaussian density.
 			
+			Unfinished
+			
 		\subsection{Probabilistic Least Squares Approximation}
 		\label{BenthicHabitatMapping:Classification:ProbabilisticLeastSquaresApproximation}
 		
 			The main difference is just the training stage!
 			
+			Unfinished
 		\subsection{Approximation Properties \& Performance}
 		\label{BenthicHabitatMapping:Classification:ApproximationPerformance}
 		
 			Compare probability outputs, classification outputs, entropy outputs, etc
 		
+			Unfinished
+			
 		\subsection{Multiclass Classification}
 		\label{BenthicHabitatMapping:Classification:MulticlassClassification}
 		
-		
-			Note that while the class labels are formulated to be in the range $y \in I_{n_{C}} = \{1, 2, \dots, n_{C}\}$ for convenience, this is not necessary. The formulation is equivalent as long as $n_{C}$ distinct numbers are used so that there is a one to one correspondence between the labels and $I_{n_{C}}$.
+			Contrary to binary classification, multiclass classification investigates the case where there are more than two labels for target outputs to be classified into so that $n_{C} > 2$. In this case, the class labels are formulated to be in the range $y \in I_{n_{C}} = \{1, 2, \dots, n_{C}\}$ for convenience. However, not that this is not strictly necessary. Any set of labels $\mathcal{Y}$ is equivalent as long as $\Vert \mathcal{Y} \Vert = n_{C}$ such that $n_{C}$ distinct numbers are used. In other words, there must exist a one-to-one correspondence between the set of label $\mathcal{Y}$ and $I_{n_{C}}$.
 			
+			The previous sections established two of many approximation techniques for binary classification. While there exists a multiclass version for classification under Laplace approximation, the method requires multiple inversion stages \textit{per iteration} in the training and inference stage, and most importantly a Monte Carlo estimation stage in the inference stage. This introduces many inners loops in both the training and inference stage. As matrix inversions are $O(n^{3})$ algorithms, it is not desirable to repeat them multiple times in \textit{each iteration}, which would make the training stage significantly slower. Furthermore, the inference stage is bottlenecked by the Monte Carlo estimation loops, which introduces an accuracy-complexity trade-off that is not desirable in a big data problem such as informative seafloor exploration. Moreover, the multiclass formulation is specific to only Laplace approximation, which limits its application.
+			
+			As such, this thesis investigates other general methods for multiclass classification. The methods investigated are \textit{One versus All} (OVA) and \textit{All versus All} (AVA) classification.
+	
 			\subsubsection{One Versus All Classification}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}
-			
-				While a consistent framework for the GP Multi-class classification using Laplace approximation exist, a simpler and perhaps a more computationally efficient approach is to employ the One v.s. All (OVA) and All v.s. All (AVA) philosophy. The following discussion assumes that there are $c > 2$ classes of labels for which classification is to occur. 
-					
-				The OVA approach performs classification by introducing $c$ \textit{independent} classification problems, each trying to classify a label against all others. Each of these problems are thus a binary classification problem for which solution methods are known. Once the predictive probabilities from all learned GP classifiers are obtained, a consistent framework is used for fusing the separate prediction probabilities into a coherent prediction probability. This is necessary as the binary classifiers are independently learned and performs prediction independently, and may not necessarily provide coherent results. In fact, simply stacking the prediction probabilities together yields a "probability" distribution that does not sum up to 1.
-					
-				The AVA approach operates similarly. It insteads introduces $\frac{c (c - 1)}{2}$ \textit{independent} classification problems, each classifying between a pair of labels. The same exact philosophy follows in that a final consistent framework is needed for fusing the prediction probabilities into one coherent prediction probability. It is often more difficult for probability fusion in the AVA setting as compared to the OVA setting
+						
+				The OVA approach performs classification by introducing $n_{C}$ \textit{independent} classification problems, each classifying a particular label against all others. Each of these problems are thus a binary classification problem for which solution methods are as demonstrated previously.
+				
+				The approach begins by translating the training observations from a multiclass target vector $\bvec{y} \in \{1, 2, \dots, n_{C}\}^{n}$ into $n_{C}$ binary target vectors $\bvec{y}^{c} \in \{-1, 1\}^{n}$ for $c \in \{1, 2, \dots, n_{C}\}$ \eqref{Equation:TargetTranslationOVA}.
+				
+				\begin{equation}
+					\bvec{y}^{c} = \{\mathds{1}_{\{y_{i} = c\}} - \mathds{1}_{\{y_{i} \neq c\}}\}_{i \in I_{n}}
+				\label{Equation:TargetTranslationOVA}
+				\end{equation}				
+				
+				That is, $\bvec{y}^{c}$ is a vector of the same length as $\bvec{y}$, with its components equal to $1$ where the corresponding components of $\bvec{y}$ is equal to $c$. All other components are equal to $-1$. Here, $\mathds{1}_{A}$ is the standard notation for the indicator function, which is $1$ when $A$ is true and $0$ otherwise.
+				
+				As such, the $c^{\text{th}}$ binary classifier is trained with the training data $(X, \bvec{y}^{c})$, and is trained independently from the other binary classifiers. Each binary classifier thus has its own set of optimal hyperparameters $\vec{\uptheta}^{c}$, and performs inference and prediction separately. This outputs a single axis list of expected predictive probabilities \eqref{Equation:ProbabilityListOVA}. Note that the query star $^{\star}$ is moved to the left to avoid cluttered notation.
+				
+				\begin{equation}
+					\{ {^{\star}}\bar{\vec{\uppi}}^{1} |_{\bvec{y}^{1}, \vec{\uptheta}^{1}}, {^{\star}}\bar{\vec{\uppi}}^{2} |_{\bvec{y}^{2}, \vec{\uptheta}^{2}}, \dots, {^{\star}}\bar{\vec{\uppi}}^{n_{C}} |_{\bvec{y}^{n_{C}}, \vec{\uptheta}^{n_{C}}} \}
+				\label{Equation:ProbabilityListOVA}
+				\end{equation}
+				
+				Once the predictive probabilities from each binary GP classifiers are obtained, a consistent framework is required for fusing the separate prediction probabilities into a coherent prediction probability. This is necessary as the binary classifiers are independently learned and performs prediction independently, and thus may not necessarily provide coherent results. In fact, simply stacking the prediction probabilities together yields a ``probability'' distribution that does not sum up to 1 \eqref{Equation:ProbabilityInconsistencyOVA}. This is the focus of section \ref{BenthicHabitatMapping:Classification:ProbabilityFusion}.
+
+				\begin{equation}
+					\sum_{c}^{n_{C}} {^{\star}}\bar{\pi}^{c}_{i} |_{\bvec{y}^{c}, \vec{\uptheta}^{c}} \stackrel{\mathclap{\substack{\text{in} \\ \text{general} \\ \quad }}}{\neq} 1 \qquad \forall i \in I_{n^{\star}}
+				\label{Equation:ProbabilityInconsistencyOVA}
+				\end{equation}
 				
 			\subsubsection{All Versus All Classification}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}
 			
-			\subsubsection{Properties \& Performance}
-			\label{BenthicHabitatMapping:Classification:MulticlassClassification:Performance}
+				The AVA approach operates in a similar fashion to the OVA approach. It instead introduces ${n_{C} \choose 2} = \frac{n_{C} (n_{C} - 1)}{2}$ \textit{independent} classification problems, each performing classification between a pair of labels.
+				
+				Similar to the OVA case, the training observations are also to be translated from a multiclass target vector $\bvec{y} \in \{1, 2, \dots, n_{C}\}^{n}$ into $\frac{n_{C} (n_{C} - 1)}{2}$ binary target vectors $\bvec{y}^{c, c'} \in \{-1, 1\}^{n^{c, c'}}$ for $c \in \{1, 2, \dots, n_{C}\}$ and $c' \in \{c + 1, c + 2, \dots, n_{C}\}$ \eqref{Equation:TargetTranslationAVA}.
+								
+				\begin{equation}
+					\begin{aligned}
+						X^{c, c'} =& \{\bvec{x}_{i}\}_{i \in I^{c, c'}} \\
+						\bvec{y}^{c, c'} =& \{\mathds{1}_{\{y_{i} = c\}} - \mathds{1}_{\{y_{i} = c'\}}\}_{i \in I^{c, c'}} \\
+						I^{c, c'} :=& \{i \; | \; \{y_{i} = c\} \cup \{y_{i} = c'\} \} \\
+						n^{c, c'} :=& \Vert I^{c, c'} \Vert
+					\end{aligned}
+				\label{Equation:TargetTranslationAVA}
+				\end{equation}				
+				
+				Notice that this time the target vector $\bvec{y}^{c, c'}$ does not share the same length as $\bvec{y}$, but instead have a smaller length. That is, $n^{c, c'} < n$ for all $c \in \{1, 2, \dots, n_{C}\}$ and $c' \in \{c + 1, c + 2, \dots, n_{C}\}$.
+				
+				
+				
+				
+				The same exact philosophy follows in that a final consistent framework is needed for fusing the prediction probabilities into one coherent prediction probability. It is often more difficult for probability fusion in the AVA setting as compared to the OVA setting
 			
 		\subsection{Probability Fusion Techniques}
 		\label{BenthicHabitatMapping:Classification:ProbabilityFusion}
@@ -338,6 +383,9 @@
 				
 			\subsubsection{Exclusion}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:Exclusion}
+			
+		\subsection{Properties \& Performance}
+		\label{BenthicHabitatMapping:Classification:Performance}
 			
 	\section{Mapping Scott Reef Benthic Habitats}
 	\label{BenthicHabitatMapping:ScottReef}
