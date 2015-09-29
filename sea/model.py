@@ -24,3 +24,31 @@ def predictions(learned_classifier, Fqw, fusemethod = 'EXCLUSION'):
 
 def miss_ratio(yq_pred, yq_truth):
     return (yq_pred - yq_truth).nonzero()[0].shape[0] / yq_truth.shape[0]
+
+def kerneldef1(h, k):
+    """Define the kernel used in the classifier"""
+    return  h(1e-4, 1e5, 10) * k('gaussian', h(1e-4, 1e4, 0.1))
+
+def kerneldef2(h, k):
+    """Define the kernel used in the classifier"""
+    return  h(1e-4, 1e5, 10) * k('gaussian', 
+            [h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1)])
+
+def kerneldef3(h, k):
+    """Define the kernel used in the classifier"""
+    return  h(1e-4, 1e5, 10)*k('gaussian', 
+            [h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1)])
+
+def kerneldef4(h, k):
+    """Define the kernel used in the classifier"""
+    return  h(1e-4, 1e5, 10)*k('gaussian', 
+            [h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1), 
+            h(1e-4, 1e4, 0.1)])
+
+def kerneldef5(h, k):
+    """Define the kernel used in the classifier"""
+    return  h(1e-4, 1e5, 10)*k('gaussian', 
+            [h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1), 
+            h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1)])
+
+
