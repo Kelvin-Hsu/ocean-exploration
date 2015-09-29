@@ -320,7 +320,7 @@
 			
 			As such, this thesis investigates other general methods for multiclass classification. The methods investigated are \textit{One versus All} (OVA) and \textit{All versus All} (AVA) classification.
 	
-			\subsubsection{One Versus All Classification}
+			\subsubsection{One Versus All Classifier}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}
 						
 				The OVA approach performs classification by introducing $n_{C}$ \textit{independent} classification problems, each classifying a particular label against all other labels. Each binary classifier is identified with a class label $c$, where it attempts to distinguish targets with labels $c$ against targets with any other label $c' \in I_{n^{C}} \backslash c$. Each of these problems are thus a binary classification problem for which solution methods are as demonstrated previously.
@@ -343,14 +343,14 @@
 				\label{Equation:ProbabilityListOVA}
 				\end{equation}
 				
-				Once the predictive probabilities from each binary GP classifiers are obtained, a consistent framework is required for fusing the separate prediction probabilities into a coherent prediction probability. This is necessary as the binary classifiers are independently learned and performs prediction independently, and thus may not necessarily provide coherent results. In fact, simply stacking the prediction probabilities together yields a ``probability'' distribution that does not sum up to 1 \eqref{Equation:ProbabilityInconsistencyOVA}. This is the focus of section \ref{BenthicHabitatMapping:Classification:ProbabilityFusion}.
+				Once the predictive probabilities from each binary GP classifiers are obtained, a consistent framework is required for fusing the separate predictive probabilities into a coherent prediction probability. This is necessary as the binary classifiers are independently learned and performs prediction independently, and thus may not necessarily provide coherent results. In fact, simply stacking the predictive probabilities together yields a ``probability'' distribution that does not sum up to 1 \eqref{Equation:ProbabilityInconsistencyOVA}. This is the focus of section \ref{BenthicHabitatMapping:Classification:ProbabilityFusion}.
 
 				\begin{equation}
 					\sum_{c}^{n_{C}} {^{\star}}\bar{\pi}^{c}_{i} |_{\bvec{y}^{c}, \vec{\uptheta}^{c}} \stackrel{\mathclap{\substack{\text{in} \\ \text{general} \\ \quad }}}{\neq} 1 \qquad \forall i \in I_{n^{\star}}
 				\label{Equation:ProbabilityInconsistencyOVA}
 				\end{equation}
 				
-			\subsubsection{All Versus All Classification}
+			\subsubsection{All Versus All Classifier and Probability Pre-Fusion}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}
 			
 				The AVA approach operates in a similar fashion to the OVA approach. It instead introduces ${n_{C} \choose 2} = \frac{n_{C} (n_{C} - 1)}{2}$ \textit{independent} classification problems, each performing classification between a pair of labels. This time, each binary classifier is identified with two class labels $c$ and $c'$, where it attempts to distinguish between targets with labels $c$ against targets with labels $c'$ \textit{only}, and makes no attempt to consider observations with target labels that are not $c$ or $c'$. 
@@ -369,7 +369,7 @@
 				
 				Notice that, contrary to the OVA case, the new target vector $\bvec{y}^{c, c'}$ does not share the same length as $\bvec{y}$, but instead have a smaller length. That is, $n^{c, c'} < n$ for all $c \in \{1, 2, \dots, n_{C}\}$ and $c' \in \{c + 1, c + 2, \dots, n_{C}\}$.
 				
-				With this, the binary classifier corresponding to $c$ and $c'$ is trained with the training data $(X^{c, c'}, \bvec{y}^{c, c'})$, again in an independent fashion. This again results in a set of optimal hypermeters $\vec{\uptheta}^{c, c'}$ for each of the binary classifiers. This outputs a double axis list of expected predictive probabilities \eqref{Equation:ProbabilityListAVA} at all query points $X^{\star}$.
+				With this, the binary classifier corresponding to $c$ and $c'$ is trained with the training data $(X^{c, c'}, \bvec{y}^{c, c'})$, again in an independent fashion. This again results in a set of optimal hypermeters $\vec{\uptheta}^{c, c'}$ for each of the binary classifiers. This outputs a double axis list of expected predictive probabilities \eqref{Equation:UnfilledProbabilityListAVA} at all query points $X^{\star}$.
 				
 				\begin{equation}
 					\begin{Bmatrix*}
@@ -379,10 +379,10 @@
 						N/A & N/A & N/A & N/A & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C} - 1, n_{C}} |_{\bvec{y}^{n_{C} - 1, n_{C}}, \vec{\uptheta}^{n_{C} - 1, n_{C}}} \\
 						N/A & N/A & N/A & N/A & \dots & N/A
 					\end{Bmatrix*} 
-				\label{Equation:ProbabilityListAVA}
+				\label{Equation:UnfilledProbabilityListAVA}
 				\end{equation}				
 							
-				Notice that only the upper triangular components, excluding the diagonal components, are computed in this double axis list. The AVA approach is formulated this way in order to avoid repeated computations. Notice that to obtain the corresponding lower triangular elements, the expected predictive probabilities required are simply ${^{\star}}\bar{\vec{\uppi}}^{c', c} |_{\bvec{y}^{c', c}, \vec{\uptheta}^{c', c}} = \bvec{1}_{n^{\star}} - {^{\star}}\bar{\vec{\uppi}}^{c, c'} |_{\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}}$ by symmetry, where $\bvec{1}_{n^{\star}} := \{1\}_{i \in I_{n^{\star}}}$. The diagonal elements extends naturally to $\bvec{1}_{n^{\star}}$, since it represent the probabilities of the targets having label $c$ in a binary classifier between label $c$ and itself, which is trivially $1$. Thus, the double axis list can be filled correspondingly \eqref{Equation:ProbabilityListAVAfull}.
+				Notice that only the upper triangular components, excluding the diagonal components, are computed in this double axis list. The AVA approach is formulated this way in order to avoid repeated computations. Notice that to obtain the corresponding lower triangular elements, the expected predictive probabilities required are simply ${^{\star}}\bar{\vec{\uppi}}^{c', c} |_{\bvec{y}^{c', c}, \vec{\uptheta}^{c', c}} = \bvec{1}_{n^{\star}} - {^{\star}}\bar{\vec{\uppi}}^{c, c'} |_{\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}}$ by symmetry, where $\bvec{1}_{n^{\star}} := \{1\}_{i \in I_{n^{\star}}}$. The diagonal elements extends naturally to $\bvec{1}_{n^{\star}}$, since it represent the probabilities of the targets having label $c$ in a binary classifier between label $c$ and itself, which is trivially $1$. Thus, the double axis list can be filled correspondingly \eqref{Equation:ProbabilityListAVA}.
 				
 				\begin{equation}
 					\begin{Bmatrix*}
@@ -391,15 +391,53 @@
 						\vdots & \vdots & \vdots & \ddots & \vdots \\
 						{^{\star}}\bar{\vec{\uppi}}^{n_{C}, 1} |_{\bvec{y}^{n_{C}, 1}, \vec{\uptheta}^{n_{C}, 1}} & {^{\star}}\bar{\vec{\uppi}}^{n_{C}, 2} |_{\bvec{y}^{n_{C}, 2}, \vec{\uptheta}^{n_{C}, 2}} & {^{\star}}\bar{\vec{\uppi}}^{n_{C}, 3} |_{\bvec{y}^{n_{C}, 3}, \vec{\uptheta}^{n_{C}, 3}} & \dots & \bvec{1}_{n^{\star}}
 					\end{Bmatrix*} 
-				\label{Equation:ProbabilityListAVAfull}
+				\label{Equation:ProbabilityListAVA}
 				\end{equation}	
 				
-				Similar to the OVA case, a consistent framework is again needed for fusing the prediction probabilities into one coherent prediction probability. Notice that here instead there are multiple predictive probabilities corresponding to each class, where the predictive probabilities for class $c$ is determined by \textit{row} $c$ of the double axis list. Recall that ${^{\star}}\bar{\vec{\uppi}}^{c, c'} |_{\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}}$ is the expected predictive probability of observing class $c$ \textit{against} class $c'$. As such, the probability fusion requires an extra fusion step in the AVA case.
+				Similar to the OVA case, a consistent framework is again needed for fusing the prediction probabilities into one coherent prediction probability. Notice that here instead there are multiple predictive probabilities corresponding to each class. As such, the probability fusion requires an extra fusion step in the AVA case. 
 			
+				The approach proposed for this pre-fusion problem is to fuse the predictive probabilities from AVA inference \eqref{Equation:ProbabilityListAVA} into the same form as those from OVA inference \eqref{Equation:ProbabilityListOVA}. Recall that ${^{\star}}\bar{\vec{\uppi}}^{c, c'} |_{\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}}$ is the expected predictive probability of observing class $c$ \textit{against} class $c'$. Therefore, the fused predictive probabilities for class $c$ in OVA form is determined by \textit{row} $c$ of the double axis list \eqref{Equation:ProbabilityListAVA}. That is, the fused predictive probabilities in OVA form \eqref{Equation:AVA2OVA} is fused from the $c^{\mathrm{th}}$-row of \eqref{Equation:ProbabilityListAVA}. In the following derivation, the conditionals on $\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}$ is dropped to avoid cluttered notation.
+				
+				\begin{equation}
+					\begin{aligned}
+						{^{\star}}\bar{\vec{\uppi}}^{c} |_{\{ \bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'} \}_{c' \in I_{n_{C}}}} &\stackrel{\text{abbrev.}}{:=} {^{\star}}\bar{\vec{\uppi}}^{c} := \mathbb{F}\Big(\{{^{\star}}\bar{\vec{\uppi}}^{c, c'}\}_{c' \in I_{n_{C}}}\Big) \qquad \text{where} \\
+						{^{\star}}\bar{\vec{\uppi}}^{c, c} &\stackrel{\text{abbrev.}}{:=} \bvec{1}_{n^{\star}} \qquad \qquad \qquad \qquad \quad \qquad \forall c \in I_{n_{C}}
+					\end{aligned}
+				\label{Equation:AVA2OVA}
+				\end{equation}
+				
+				Two such fusion functions $\mathbb{F}$ are devised in this thesis - expectation fusion \eqref{Equation:MeanFusionAVA2OVA} and consistency fusion \eqref{Equation:ProdFusionAVA2OVA}. Note that the operations are always element by element wise, as the operations are to be identical across all query points.
+				
+				The expectation-fused predictive probability treats the predictive probabilities ${^{\star}}\bar{\vec{\uppi}}^{c, c'}$ as an observation drawn for ${^{\star}}\bar{\vec{\uppi}}^{c}$. As such, it is defined as the empirical expectation, or mean, across the row of predictive probabilities $\{{^{\star}}\bar{\vec{\uppi}}^{c, c'}\}_{c' \in I_{n_{C}}}$. 
+				
+				\begin{equation}
+					\mathbb{F}\Big(\{{^{\star}}\bar{\vec{\uppi}}^{c, c'}\}_{c' \in I_{n_{C}}}\Big) = \frac{1}{n_{C}}\sum_{c' = 1}^{n_{C}} {^{\star}}\bar{\vec{\uppi}}^{c, c'}
+				\label{Equation:MeanFusionAVA2OVA}
+				\end{equation}
+				
+				However, a more theoretic approach leads to the consistency-fused predictive probability. As its name implies, consistency-fused predictive probability computes the probability that all binary classifiers performs inference \textit{consistently} for that class $c$. That is, the probability that the binary classifiers between $(c, c')$ across $c'$ all predicting the class label to be $c$. As the binary classifiers are trained \textit{independently} by construction, this probability is simply the product of ${^{\star}}\bar{\vec{\uppi}}^{c, c'}$ across $c'$.
+				
+				\begin{equation}
+					\mathbb{F}\Big(\{{^{\star}}\bar{\vec{\uppi}}^{c, c'}\}_{c' \in I_{n_{C}}}\Big) = \prod_{c' = 1}^{n_{C}} {^{\star}}\bar{\vec{\uppi}}^{c, c'}
+				\label{Equation:ProdFusionAVA2OVA}
+				\end{equation}
+				
+				Note that the pre-fusion stage does not ensure that the probabilities sum up to 1 across classes - it merely extracts a single expected predictive probability ${^{\star}}\bar{\vec{\uppi}}^{c}$ for each class $c$, which is in the same analytical form as the OVA case. The following section then deals with the probability fusion techniques for consistent inference.
+				
 		\subsection{Probability Fusion Techniques}
 		\label{BenthicHabitatMapping:Classification:ProbabilityFusion}
-		
 			
+			The OVA and AVA multiclass classification framework formulated in section \ref{BenthicHabitatMapping:Classification:MulticlassClassification} outputs expected predictive probabilities that are not always consistent in that they do not represent proper probability distributions that sum up to 1. This section focuses on developing probability fusion techniques for constructing a consistent inference framework from such predictive probabilities.
+			
+			The following derivations assumes that the AVA predictive probabilities have been transformed into the same analytical form as the OVA case, as outlined at the end of section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}. That is, the probabilities to be fused come in a single axis list \eqref{Equation:ProbabilityList}, which is either the direct output of an OVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}), or the pre-fused probabilities of an AVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}). For the AVA case, different probability fusion techniques will utilise different pre-fusion functions (either \eqref{Equation:MeanFusionAVA2OVA} or \eqref{Equation:ProdFusionAVA2OVA}), and will be specified explicitly during the discussion. For notational simplicity, the conditioned training labels and hyperparameters will not be explicitly notated.
+			
+			\begin{equation}
+				\begin{Bmatrix*}
+					{^{\star}}\bar{\vec{\uppi}}^{1} & {^{\star}}\bar{\vec{\uppi}}^{2} & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C}}
+				\end{Bmatrix*} 
+			\label{Equation:ProbabilityList}
+			\end{equation}
+				
 			\subsubsection{Simple Normalisation}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:SimpleNormalisation}
 				
