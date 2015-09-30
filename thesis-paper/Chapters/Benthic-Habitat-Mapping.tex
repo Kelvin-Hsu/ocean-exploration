@@ -441,6 +441,15 @@
 			\subsubsection{Simple Normalisation}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:SimpleNormalisation}
 				
+				The most natural probability fusion method to be considered is to simply normalise the probabilities such that they sum to up 1. That is, for each query point, the probabilities corresponding to each class is scaled \textit{uniformly} to a proper probability distribution \eqref{Equation:SimpleNormalisation}.
+				
+				\begin{equation}
+					{^{\star}}\tilde{\pi}^{c}_{i} := \frac{1}{\sum_{m = 1}^{n_{C}} {^{\star}}\bar{\pi}^{m}_{i}} {^{\star}}\bar{\pi}^{c}_{i} \qquad \forall i \in I_{n_{C}}
+				\label{Equation:SimpleNormalisation}
+				\end{equation}				
+				
+				This is a straightforward approach would would yield a proper probability distribution. However, this does not result in the best output.
+				
 			\subsubsection{Mode Keeping}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:ModeKeeping}
 				
@@ -450,6 +459,8 @@
 		\subsection{Fusion Properties \& Performance}
 		\label{BenthicHabitatMapping:Classification:Performance}
 			
+				MENTION THAT OVA AND AVA ALLOW PARALLELISATION
+				
 	\section{Mapping Scott Reef Benthic Habitats}
 	\label{BenthicHabitatMapping:ScottReef}
 

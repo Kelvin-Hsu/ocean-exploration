@@ -224,7 +224,8 @@ def main():
         sea.io.sample(*sea.io.load(directory_data, 
             filename_training_data, filename_query_points), 
             n_train = n_train, n_query = n_query,
-            t_seed = T_SEED, q_seed = Q_SEED, features = i_features)
+            t_seed = T_SEED, q_seed = Q_SEED, 
+            features = i_features, unique_labels = True)
 
     yq_truth = sea.io.load_ground_truth(filename_truth, 
         assert_query_seed = Q_SEED)
@@ -276,7 +277,7 @@ def main():
     """Visualise Features at Sampled Query Locations"""
     letters = ['b', 'c', 'd', 'e', 'f']
     feature_labels = ['Depth', 'Aspect', 'Rugosity', 'Aspect', 'Rugosity']
-    feature_units = ['$\mathrm{m}$', '$\mathrm{m}$/$\mathrm{m}$', '\mathrm{m}^{2}/\mathrm{m}^{2}', '$\mathrm{m}$/$\mathrm{m}$', '\mathrm{m}^{2}/\mathrm{m}^{2}']
+    feature_units = ['$\mathrm{m}$', '$\mathrm{m}$/$\mathrm{m}$', '$\mathrm{m}^{2}$/$\mathrm{m}^{2}$', '$\mathrm{m}$/$\mathrm{m}$', '$\mathrm{m}^{2}$/$\mathrm{m}^{2}$']
     for k in range(k_features):
         fig = plt.figure(figsize = (19.2, 10.8))
         sea.vis.scatter(
@@ -938,57 +939,56 @@ def main():
         plt.savefig('%shistory%d.png' 
             % (full_directory, i_trials + 1))
         logging.info('Plotted and Saved Iteration')
-
+    
         # Move on to the next step
         i_trials += 1
-    
-        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
-            np.savez('%shistory%d.npz' % (full_directory, i_trials), 
-                learned_classifier = learned_classifier,
-                miss_ratio_array = miss_ratio_array,
-                yq_lde_mean_array = yq_lde_mean_array,
-                yq_mie_mean_array = yq_mie_mean_array,
-                entropy_opt_array = entropy_opt_array,
-                yq_esd_mean_array = yq_esd_mean_array,
-                t_seed = T_SEED, q_seed = Q_SEED,
-                n_train = n_train, n_query = n_query,
-                i_train = i_train, i_query = i_query,
-                yq_lde = yq_lde,
-                yq_mie = yq_mie,
-                yq_pred = yq_pred,
-                white_params = white_params,
-                X_now = X_now,
-                Fw_now = Fw_now,
-                y_now = y_now,
-                xq1_path = xq1_path,
-                xq2_path = xq2_path,
-                fqw_path = fqw_path,
-                yq_path = yq_path,
-                xq1_nows = xq1_nows,
-                xq2_nows = xq2_nows,
-                yq_nows = yq_nows,
-                vis_range = vis_range,
-                colorcenter_analysis = colorcenter_analysis,
-                colorcenter_lde = colorcenter_lde,
-                y_unique = y_unique,
-                mycmap = mycmap,
-                i_trials = i_trials,
-                theta_stack_opt = theta_stack_opt,
-                theta_stack_init = theta_stack_init,
-                xq_path = xq_path,
-                xq_now = xq_now,
-                yq_now = yq_now,
-                i_observe = i_observe,
-                horizon = horizon,
-                h_steps = h_steps,
-                r = r,
-                y_names = y_names,
-                FONTSIZE = FONTSIZE,
-                FONTNAME = FONTNAME,
-                TICKSIZE = TICKSIZE,
-                SAVE_TRIALS = SAVE_TRIALS)
 
-            logging.info('White Params: {0}'.format(white_params))
+        np.savez('%shistory%d.npz' % (full_directory, i_trials), 
+            learned_classifier = learned_classifier,
+            miss_ratio_array = miss_ratio_array,
+            yq_lde_mean_array = yq_lde_mean_array,
+            yq_mie_mean_array = yq_mie_mean_array,
+            entropy_opt_array = entropy_opt_array,
+            yq_esd_mean_array = yq_esd_mean_array,
+            t_seed = T_SEED, q_seed = Q_SEED,
+            n_train = n_train, n_query = n_query,
+            i_train = i_train, i_query = i_query,
+            yq_lde = yq_lde,
+            yq_mie = yq_mie,
+            yq_pred = yq_pred,
+            white_params = white_params,
+            X_now = X_now,
+            Fw_now = Fw_now,
+            y_now = y_now,
+            xq1_path = xq1_path,
+            xq2_path = xq2_path,
+            fqw_path = fqw_path,
+            yq_path = yq_path,
+            xq1_nows = xq1_nows,
+            xq2_nows = xq2_nows,
+            yq_nows = yq_nows,
+            vis_range = vis_range,
+            colorcenter_analysis = colorcenter_analysis,
+            colorcenter_lde = colorcenter_lde,
+            y_unique = y_unique,
+            mycmap = mycmap,
+            i_trials = i_trials,
+            theta_stack_opt = theta_stack_opt,
+            theta_stack_init = theta_stack_init,
+            xq_path = xq_path,
+            xq_now = xq_now,
+            yq_now = yq_now,
+            i_observe = i_observe,
+            horizon = horizon,
+            h_steps = h_steps,
+            r = r,
+            y_names = y_names,
+            FONTSIZE = FONTSIZE,
+            FONTNAME = FONTNAME,
+            TICKSIZE = TICKSIZE,
+            SAVE_TRIALS = SAVE_TRIALS)
+
+        logging.info('White Params: {0}'.format(white_params))
 
     np.savez('%shistory.npz' % full_directory, 
                 learned_classifier = learned_classifier,

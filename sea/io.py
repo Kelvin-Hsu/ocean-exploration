@@ -98,15 +98,27 @@ def load(directory_data, filename_training_data, filename_query_points):
 
 def sample(X, F, y, Xq, Fq, 
     n_train = 200, n_query = 10000, t_seed = None, q_seed = None, 
-    features = None):
+    features = None, unique_labels = False):
     """Sample Training Data"""
     assert n_train < 2000
     assert n_query < 250000
 
-    if t_seed:
-        np.random.seed(t_seed)
-    i_train_sample = np.random.choice(np.arange(X.shape[0]), 
-                            size = n_train, replace = False)
+    if unique_labels:
+        y_unique, i_train_sample = np.unique(y, return_index = True)
+        n_unique = y_unique.shape[0]
+
+        if n_train > n_unique:
+            if t_seed:
+                np.random.seed(t_seed)
+            i_train_sample = np.append(i_train_sample, 
+                np.random.choice(np.arange(X.shape[0]), 
+                size = n_train - n_unique, replace = False))
+
+    else:
+        if t_seed:
+            np.random.seed(t_seed)
+        i_train_sample = np.random.choice(np.arange(X.shape[0]), 
+                                size = n_train, replace = False)
 
     X_sample = X[i_train_sample]
     F_sample = F[i_train_sample]
