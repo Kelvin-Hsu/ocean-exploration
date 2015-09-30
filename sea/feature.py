@@ -35,6 +35,8 @@ def white_compose(Xq_ref, Fq_ref, white_fn):
     feature_fn.Xq_ref = Xq_ref
     feature_fn.Fq_ref = Fq_ref
     feature_fn.white_fn = white_fn
+    feature_fn.whiten = white_fn
+    feature_fn.extract = lambda Xq: black_extract(Xq, Xq_ref, Fq_ref)
     feature_fn.closest_locations = lambda Xq: closest_locations(Xq, Xq_ref)
     return feature_fn
 
@@ -52,7 +54,7 @@ def compose(*args):
     else:
         return white_compose(*args)
 
-def black_fn(X, params = None):
+def whiteless(X, params = None):
 
     if params is None:
         return X, 0

@@ -12,14 +12,15 @@ def optimal_path(theta_stack_init, r, x, memory, feature_fn, white_params,
     objective = 'LMDE', turn_limit = np.deg2rad(30), bound = 100,
     theta_stack_low = None, theta_stack_high = None,
     walltime = None, xtol_rel = 0, ftol_rel = 0, ctol = 1e-6, 
-    globalopt = False, n_draws = 5000):
+    globalopt = False, n_draws = 5000, depth_penalty = True):
 
     # Select the approach objective
     if objective in ['LMDE', 'LE', 'LDE']:
 
         def objective(theta_stack, grad):
             return lmde_acquisition(theta_stack, r, x, 
-                memory, feature_fn, white_params)
+                memory, feature_fn, white_params, 
+                depth_penalty = depth_penalty)
 
     elif objective in ['MCPIE', 'MCJE', 'MCJIE']:
 
@@ -28,13 +29,15 @@ def optimal_path(theta_stack_init, r, x, memory, feature_fn, white_params,
 
         def objective(theta_stack, grad):
             return mcpie_acquisition(theta_stack, r, x, 
-                memory, feature_fn, white_params, n_draws = n_draws, S = S)
+                memory, feature_fn, white_params, 
+                n_draws = n_draws, S = S, depth_penalty = depth_penalty)
 
-    elif objective in ['PIE', 'IE', 'SIE', 'MIE', 'SMIE']:
+    elif objective in ['AMPIE', 'PIE', 'IE', 'SIE', 'MIE', 'SMIE']:
 
         def objective(theta_stack, grad):
-            return pie_acquisition(theta_stack, r, x, 
-                memory, feature_fn, white_params)
+            return ampie_acquisition(theta_stack, r, x, 
+                memory, feature_fn, white_params, 
+                depth_penalty = depth_penalty)
 
     # Define the path constraint
     def constraint(result, theta_stack, grad):
@@ -171,12 +174,25 @@ def path_bounds_model(theta_stack, r, x, Xq_ref, bound):
     logging.debug('Contraint Violation: {0}'.format(c))
     return c
 
-def lmde_acquisition(theta_stack, r, x, memory, feature_fn, white_params):
+def lmde_acquisition(theta_stack, r, x, memory, feature_fn, white_params, 
+    depth_penalty = False):
 
-    Xq = forward_path_model(theta_stack, r, x)
-    Fqw = feature_fn(Xq, white_params)
+    if depth_penalty:
 
-    logging.info('Computing linearised entropy...')
+        Xq = forward_path_model(theta_stack, r, x)
+        Fq = feature_fn.extract(Xq)
+        Fqw = feature_fn.whiten(Fq, white_params)
+        depth = Fq[:, 0]
+        shallow_count = np.sum(depth < 24)
+        entropy_penalty = 10*shallow_count
+
+    else:
+
+        Xq = forward_path_model(theta_stack, r, x)
+        Fqw = feature_fn(Xq, white_params)    
+        entropy_penalty = 0
+
+    logging.info('Computing linearised model differential entropy...')
     start_time = time.clock()
 
     predictors = gp.classifier.query(memory, Fqw)
@@ -184,19 +200,31 @@ def lmde_acquisition(theta_stack, r, x, memory, feature_fn, white_params):
     yq_cov = gp.classifier.covariance(memory, predictors)
     entropy = gp.classifier.linearised_model_differential_entropy(yq_exp, yq_cov, memory)
 
-    logging.debug('Linearised entropy computational time: %.8f' % 
+    logging.debug('Linearised model differential entropy computational time: %.8f' % 
         (time.clock() - start_time))
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
         np.rad2deg(theta_stack), entropy))
-    return entropy
+    return entropy - entropy_penalty
 
 def mcpie_acquisition(theta_stack, r, x, memory, feature_fn, white_params,
-    n_draws = 1000, S = None):
+    n_draws = 1000, S = None, depth_penalty = False):
 
-    Xq = forward_path_model(theta_stack, r, x)
-    Fqw = feature_fn(Xq, white_params)
+    if depth_penalty:
 
-    logging.info('Computing monte carlo joint entropy...')
+        Xq = forward_path_model(theta_stack, r, x)
+        Fq = feature_fn.extract(Xq)
+        Fqw = feature_fn.whiten(Fq, white_params)
+        depth = Fq[:, 0]
+        shallow_count = np.sum(depth < 24)
+        entropy_penalty = 0.5*shallow_count
+        
+    else:
+
+        Xq = forward_path_model(theta_stack, r, x)
+        Fqw = feature_fn(Xq, white_params)    
+        entropy_penalty = 0
+
+    logging.info('Computing Monte Carlo prediction information entropy...')
     start_time = time.clock()
 
     predictors = gp.classifier.query(memory, Fqw)
@@ -205,28 +233,41 @@ def mcpie_acquisition(theta_stack, r, x, memory, feature_fn, white_params,
     entropy = gp.classifier.monte_carlo_prediction_information_entropy(yq_exp, yq_cov, memory, 
         n_draws = n_draws, S = S)
 
-    logging.debug('Monte carlo joint entropy computational time: %.8f' % 
+    logging.debug('Monte Carlo prediction information entropy computational time: %.8f' % 
         (time.clock() - start_time))
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
         np.rad2deg(theta_stack), entropy))
-    return entropy
+    return entropy - entropy_penalty
 
-def pie_acquisition(theta_stack, r, x, memory, feature_fn, white_params):
+def ampie_acquisition(theta_stack, r, x, memory, feature_fn, white_params, 
+    depth_penalty = False):
 
-    Xq = forward_path_model(theta_stack, r, x)
-    Fqw = feature_fn(Xq, white_params)
+    if depth_penalty:
+
+        Xq = forward_path_model(theta_stack, r, x)
+        Fq = feature_fn.extract(Xq)
+        Fqw = feature_fn.whiten(Fq, white_params)
+        depth = Fq[:, 0]
+        shallow_count = np.sum(depth < 24)
+        entropy_penalty = 0.5*shallow_count
+        
+    else:
+
+        Xq = forward_path_model(theta_stack, r, x)
+        Fqw = feature_fn(Xq, white_params)    
+        entropy_penalty = 0
 
     logging.info('Computing marginalised information entropy...')
     start_time = time.clock()
 
     yq_prob = gp.classifier.predict(Fqw, memory, fusemethod = 'EXCLUSION')
-    entropy = gp.classifier.entropy(yq_prob).sum()
+    entropy = gp.classifier.entropy(yq_prob).mean()
 
     logging.debug('Marginalised information entropy computational time: %.8f' % 
         (time.clock() - start_time))
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
         np.rad2deg(theta_stack), entropy))
-    return entropy
+    return entropy - entropy_penalty
 
 def shift_path(theta_stack, k_step = 1, theta_bounds = None):
     """

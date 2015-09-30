@@ -41,6 +41,7 @@ def main():
     NOTRAIN = sea.io.parse('-skiptrain', False)
     MODEL_ONLY = sea.io.parse('-model-only', False)
     LONG_SCALE_ONLY = sea.io.parse('-long-scale', False)
+    BATCH_START = sea.io.parse('-batch-start', 'on')
 
     METHOD = sea.io.parse('-method', 'LMDE')
     GREEDY = sea.io.parse('-greedy', False)
@@ -68,7 +69,7 @@ def main():
     multimethod = 'OVA'
     fusemethod = 'EXCLUSION'
     responsename = 'probit'
-    batchstart = True
+    batchstart = True if (BATCH_START == 'on') else False
     batchlearn = False
     walltime = 3600.0
     train = not NOTRAIN
