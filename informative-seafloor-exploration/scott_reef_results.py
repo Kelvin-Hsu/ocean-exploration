@@ -77,6 +77,7 @@ def main():
         data61 = obtain_data(directory61, {'index': 6, 'label': 'Location 2 with LINES', 'steps': 200, 'linestyle': 'dashed'})
 
         plot_data(main_directory, data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, data60, data61, ncolors = 7, descript = 'methods', label_font_size = 18)
+        plot_data(main_directory, data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, data60, data61, ncolors = 7, descript = 'methods', label_font_size = 18)
         logging.info('Compared methods')
         rank_data(data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, data60, data61)
 
