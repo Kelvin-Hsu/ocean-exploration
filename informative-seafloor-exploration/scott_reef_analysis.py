@@ -629,7 +629,7 @@ def main():
     while i_trials < n_trials:
 
         if MISSION_LENGTH > 0:
-            if (i_trials > 0) and (i_trials % MISSION_LENGTH == 0):
+            if ((i_trials + 1) % MISSION_LENGTH == 0):
 
                 if METHOD in ['LMDE', 'MCPIE', 'AMPIE']:
                     acquisition_name = METHOD
@@ -771,6 +771,11 @@ def main():
 
         logging.info('Plotting...')
 
+        if ((i_trials + 1) % MISSION_LENGTH == 0) or ((i_trials + 2) % MISSION_LENGTH == 0) or (i_trials <= 10) or (((i_trials + 1) % SAVE_TRIALS) == 0):
+            SAVE_EPS = True
+        else:
+            SAVE_EPS = False
+
         """ Linearised Entropy Map """
 
         # Prepare Figure 1
@@ -815,7 +820,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%slde%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
+        if SAVE_EPS:
             plt.savefig('%slde%d.eps' 
                 % (full_directory, i_trials + 1))
 
@@ -830,7 +835,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%slde_propose%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
+        if SAVE_EPS:
             plt.savefig('%slde_propose%d.eps' 
                 % (full_directory, i_trials + 1))
 
@@ -871,7 +876,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%smie%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
+        if SAVE_EPS:
             plt.savefig('%smie%d.eps' 
                 % (full_directory, i_trials + 1))
 
@@ -893,7 +898,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%smie_propose%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
+        if SAVE_EPS:
             plt.savefig('%smie_propose%d.eps' 
                 % (full_directory, i_trials + 1))
 
@@ -943,7 +948,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%spred%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
+        if SAVE_EPS:
             plt.savefig('%spred%d.eps' 
                 % (full_directory, i_trials + 1))
 
@@ -959,7 +964,7 @@ def main():
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%spred_propose%d.png' 
             % (full_directory, i_trials + 1))
-        if (i_trials == 0) or (((i_trials + 1) % SAVE_TRIALS) == 0):
+        if SAVE_EPS:
             plt.savefig('%spred_propose%d.eps' 
                 % (full_directory, i_trials + 1))
 
