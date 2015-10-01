@@ -68,7 +68,7 @@ def main():
     N_TRAIN = 17
     NOTRAIN = True
     MISSION_LENGTH = 20
-    METHOD = 'LMDE'
+    METHOD = 'MCPIE'
     
 
     """Model Options"""
@@ -800,7 +800,13 @@ def main():
             facecolors = 'none', 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
-        sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
+        if MISSION_LENGTH == 0:
+            sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
+        else:
+            sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linestyle = '--', linewidth = 1)
+            xq1_nows_split = sea.vis.split_array(xq1_nows, MISSION_LENGTH)
+            xq2_nows_split = sea.vis.split_array(xq2_nows, MISSION_LENGTH)
+            [sea.vis.plot(xq1_nows_split[i], xq2_nows_split[i], c = 'k', linewidth = 2) for i in range(xq1_nows_split.shape[0])]
         sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
@@ -857,7 +863,13 @@ def main():
             facecolors = 'none', 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
-        sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
+        if MISSION_LENGTH == 0:
+            sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
+        else:
+            sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linestyle = '--', linewidth = 1)
+            xq1_nows_split = sea.vis.split_array(xq1_nows, MISSION_LENGTH)
+            xq2_nows_split = sea.vis.split_array(xq2_nows, MISSION_LENGTH)
+            [sea.vis.plot(xq1_nows_split[i], xq2_nows_split[i], c = 'k', linewidth = 2) for i in range(xq1_nows_split.shape[0])]
         sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
@@ -923,7 +935,6 @@ def main():
             xq1_nows_split = sea.vis.split_array(xq1_nows, MISSION_LENGTH)
             xq2_nows_split = sea.vis.split_array(xq2_nows, MISSION_LENGTH)
             [sea.vis.plot(xq1_nows_split[i], xq2_nows_split[i], c = 'k', linewidth = 2) for i in range(xq1_nows_split.shape[0])]
-
         sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
