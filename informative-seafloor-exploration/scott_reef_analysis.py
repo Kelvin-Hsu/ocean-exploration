@@ -637,7 +637,7 @@ def main():
     while i_trials < n_trials:
 
         if MISSION_LENGTH > 0:
-            if (i_trials + 1) % MISSION_LENGTH == 0:
+            if (i_trials > 0) and (i_trials % MISSION_LENGTH == 0):
 
                 if METHOD in ['LMDE', 'MCPIE', 'AMPIE']:
                     acquisition_name = METHOD
