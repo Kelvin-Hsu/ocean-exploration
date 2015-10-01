@@ -12,7 +12,7 @@ def optimal_path(theta_stack_init, r, x, memory, feature_fn, white_params,
     objective = 'LMDE', turn_limit = np.deg2rad(30), bound = 100,
     theta_stack_low = None, theta_stack_high = None,
     walltime = None, xtol_rel = 0, ftol_rel = 0, ctol = 1e-6, 
-    globalopt = False, n_draws = 5000, depth_penalty = True):
+    globalopt = False, n_draws = 5000, depth_penalty = False):
 
     # Select the approach objective
     if objective in ['LMDE', 'LE', 'LDE']:
@@ -174,23 +174,22 @@ def path_bounds_model(theta_stack, r, x, Xq_ref, bound):
     logging.debug('Contraint Violation: {0}'.format(c))
     return c
 
+def depth_entropy_penalty(Fq, depth_penalty = False):
+
+    if depth_penalty:
+        depth = Fq[:, 0]
+        shallow_count = np.sum(depth < 30)
+        return 0.5**shallow_count
+    else:
+        return 1
+
 def lmde_acquisition(theta_stack, r, x, memory, feature_fn, white_params, 
     depth_penalty = False):
 
-    if depth_penalty:
-
-        Xq = forward_path_model(theta_stack, r, x)
-        Fq = feature_fn.extract(Xq)
-        Fqw = feature_fn.whiten(Fq, white_params)
-        depth = Fq[:, 0]
-        shallow_count = np.sum(depth < 24)
-        entropy_penalty = 10*shallow_count
-
-    else:
-
-        Xq = forward_path_model(theta_stack, r, x)
-        Fqw = feature_fn(Xq, white_params)    
-        entropy_penalty = 0
+    Xq = forward_path_model(theta_stack, r, x)
+    Fq = feature_fn.extract(Xq)
+    Fqw = feature_fn.whiten(Fq, white_params)
+    entropy_penalty = depth_entropy_penalty(Fq, depth_penalty = depth_penalty)
 
     logging.info('Computing linearised model differential entropy...')
     start_time = time.clock()
@@ -204,25 +203,18 @@ def lmde_acquisition(theta_stack, r, x, memory, feature_fn, white_params,
         (time.clock() - start_time))
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
         np.rad2deg(theta_stack), entropy))
-    return entropy - entropy_penalty
+    if entropy_penalty == 1:
+        return entropy
+    else:
+        return np.log(np.exp(entropy) * entropy_penalty)
 
 def mcpie_acquisition(theta_stack, r, x, memory, feature_fn, white_params,
     n_draws = 1000, S = None, depth_penalty = False):
 
-    if depth_penalty:
-
-        Xq = forward_path_model(theta_stack, r, x)
-        Fq = feature_fn.extract(Xq)
-        Fqw = feature_fn.whiten(Fq, white_params)
-        depth = Fq[:, 0]
-        shallow_count = np.sum(depth < 24)
-        entropy_penalty = 0.5*shallow_count
-        
-    else:
-
-        Xq = forward_path_model(theta_stack, r, x)
-        Fqw = feature_fn(Xq, white_params)    
-        entropy_penalty = 0
+    Xq = forward_path_model(theta_stack, r, x)
+    Fq = feature_fn.extract(Xq)
+    Fqw = feature_fn.whiten(Fq, white_params)
+    entropy_penalty = depth_entropy_penalty(Fq, depth_penalty = depth_penalty)
 
     logging.info('Computing Monte Carlo prediction information entropy...')
     start_time = time.clock()
@@ -237,25 +229,15 @@ def mcpie_acquisition(theta_stack, r, x, memory, feature_fn, white_params,
         (time.clock() - start_time))
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
         np.rad2deg(theta_stack), entropy))
-    return entropy - entropy_penalty
+    return entropy * entropy_penalty
 
 def ampie_acquisition(theta_stack, r, x, memory, feature_fn, white_params, 
     depth_penalty = False):
 
-    if depth_penalty:
-
-        Xq = forward_path_model(theta_stack, r, x)
-        Fq = feature_fn.extract(Xq)
-        Fqw = feature_fn.whiten(Fq, white_params)
-        depth = Fq[:, 0]
-        shallow_count = np.sum(depth < 24)
-        entropy_penalty = 0.5*shallow_count
-        
-    else:
-
-        Xq = forward_path_model(theta_stack, r, x)
-        Fqw = feature_fn(Xq, white_params)    
-        entropy_penalty = 0
+    Xq = forward_path_model(theta_stack, r, x)
+    Fq = feature_fn.extract(Xq)
+    Fqw = feature_fn.whiten(Fq, white_params)
+    entropy_penalty = depth_entropy_penalty(Fq, depth_penalty = depth_penalty)
 
     logging.info('Computing marginalised information entropy...')
     start_time = time.clock()
@@ -267,7 +249,7 @@ def ampie_acquisition(theta_stack, r, x, memory, feature_fn, white_params,
         (time.clock() - start_time))
     logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
         np.rad2deg(theta_stack), entropy))
-    return entropy - entropy_penalty
+    return entropy * entropy_penalty
 
 def shift_path(theta_stack, k_step = 1, theta_bounds = None):
     """

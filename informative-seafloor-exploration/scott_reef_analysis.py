@@ -231,6 +231,11 @@ def main():
     yq_truth = sea.io.load_ground_truth(filename_truth, 
         assert_query_seed = Q_SEED)
 
+    i_depth_cut = Fq[:, 0] > 42.5
+    Xq_cut = Xq[i_depth_cut]
+    Fq_cut = Fq[i_depth_cut]
+    yq_truth_cut = yq_truth[i_depth_cut]
+
     y_unique = np.unique(y)
     assert y_unique.shape[0] == 17
     logging.info('There are %d unique labels' % y_unique.shape[0])
@@ -240,7 +245,7 @@ def main():
 
     """Whiten the feature space"""
     logging.info('Applying whitening on training and query features...')
-    feature_fn = sea.feature.compose(Xq, Fq, white_fn)
+    feature_fn = sea.feature.compose(Xq_cut, Fq_cut, white_fn)
     Fw, white_params = white_fn(F)
     Fqw = white_fn(Fq, params = white_params)
 
@@ -394,6 +399,7 @@ def main():
         fusemethod = fusemethod)
     yq_esd = gp.classifier.equivalent_standard_deviation(yq_lde)
     miss_ratio = sea.model.miss_ratio(yq_pred, yq_truth)
+    miss_ratio_cut = sea.model.miss_ratio(yq_pred[i_depth_cut], yq_truth_cut)
     yq_lde_mean = yq_lde.mean()
     yq_mie_mean = yq_mie.mean()
     yq_pred_hist, _ = np.histogram(yq_pred, bins = np.arange(23), density  = True)
@@ -574,6 +580,7 @@ def main():
     i_trials = 0
     n_trials = N_TRIALS
     miss_ratio_array = np.nan * np.ones(n_trials)
+    miss_ratio_cut_array = np.nan * np.ones(n_trials)
     yq_mie_mean_array = np.nan * np.ones(n_trials)
     yq_lde_mean_array = np.nan * np.ones(n_trials)
     entropy_opt_array = np.nan * np.ones(n_trials)
@@ -695,6 +702,7 @@ def main():
                 fusemethod = fusemethod)
         yq_esd = gp.classifier.equivalent_standard_deviation(yq_lde)
         miss_ratio = sea.model.miss_ratio(yq_pred, yq_truth)
+        miss_ratio_cut = sea.model.miss_ratio(yq_pred[i_depth_cut], yq_truth_cut)
         yq_mie_mean = yq_mie.mean()
         yq_lde_mean = yq_lde.mean()
         yq_esd_mean = yq_esd.mean()
@@ -707,6 +715,7 @@ def main():
 
         """ Save history """
         miss_ratio_array[i_trials] = miss_ratio
+        miss_ratio_cut_array[i_trials] = miss_ratio_cut
         yq_mie_mean_array[i_trials] = yq_mie_mean
         yq_lde_mean_array[i_trials] = yq_lde_mean
         yq_esd_mean_array[i_trials] = yq_esd_mean
@@ -846,8 +855,8 @@ def main():
             c = yq_pred, vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap,
             **map_kwargs)
         sea.vis.describe_plot(
-            title = 'Prediction Map [Miss Ratio: {0:.2f}\%]'.format(
-                100 * miss_ratio), 
+            title = 'Prediction Map [Miss Ratio [All | Essential]: [{0:.2f}\% | {0:.2f}\%]]'.format(
+                100 * miss_ratio, 100 * miss_ratio_cut), 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
             clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
             vis_range = vis_range, aspect_equal = True, 
@@ -903,27 +912,34 @@ def main():
         ticksize = 14
 
         steps_array = np.arange(i_trials + 1) + 1
-        ax = plt.subplot(4, 1, 1)
+        ax = plt.subplot(5, 1, 1)
         plt.plot(steps_array, 100 * miss_ratio_array[:(i_trials + 1)])
         plt.title('Percentage of Prediction Misses', fontsize = fontsize)
         plt.ylabel('Misses (\%)', fontsize = fontsize)
         ax.set_xticklabels( () )
 
-        ax = plt.subplot(4, 1, 2)
+        steps_array = np.arange(i_trials + 1) + 1
+        ax = plt.subplot(5, 1, 2)
+        plt.plot(steps_array, 100 * miss_ratio_cut_array[:(i_trials + 1)])
+        plt.title('Percentage of Essential Prediction Misses', fontsize = fontsize)
+        plt.ylabel('Misses (\%)', fontsize = fontsize)
+        ax.set_xticklabels( () )
+
+        ax = plt.subplot(5, 1, 3)
         plt.plot(steps_array, yq_lde_mean_array[:(i_trials + 1)])
         plt.title('Average Marginalised Differential Entropy', 
             fontsize = fontsize)
         plt.ylabel('Entropy (nats)', fontsize = fontsize)
         ax.set_xticklabels( () )
 
-        ax = plt.subplot(4, 1, 3)
+        ax = plt.subplot(5, 1, 4)
         plt.plot(steps_array, yq_mie_mean_array[:(i_trials + 1)])
         plt.title('Average Marginalised Information Entropy', 
             fontsize = fontsize)
         plt.ylabel('Entropy (nats)', fontsize = fontsize)
         ax.set_xticklabels( () )
 
-        ax = plt.subplot(4, 1, 4)
+        ax = plt.subplot(5, 1, 5)
         plt.gca().get_xaxis().get_major_formatter().set_useOffset(False)
         plt.plot(steps_array, entropy_opt_array[:(i_trials + 1)])
         plt.title('Entropy Metric of Proposed Path', fontsize = fontsize)
@@ -947,6 +963,7 @@ def main():
         np.savez('%shistory%d.npz' % (full_directory, i_trials), 
             learned_classifier = learned_classifier,
             miss_ratio_array = miss_ratio_array,
+            miss_ratio_cut_array = miss_ratio_cut_array,
             yq_lde_mean_array = yq_lde_mean_array,
             yq_mie_mean_array = yq_mie_mean_array,
             entropy_opt_array = entropy_opt_array,
@@ -994,6 +1011,7 @@ def main():
     np.savez('%shistory.npz' % full_directory, 
                 learned_classifier = learned_classifier,
                 miss_ratio_array = miss_ratio_array,
+                miss_ratio_cut_array = miss_ratio_cut_array,
                 yq_lde_mean_array = yq_lde_mean_array,
                 yq_mie_mean_array = yq_mie_mean_array,
                 entropy_opt_array = entropy_opt_array,
