@@ -54,7 +54,7 @@ def main():
     CHAOS = sea.io.parse('-chaos', False)
     M_STEP = sea.io.parse('-mstep', 1)
     N_DRAWS = sea.io.parse('-ndraws', 500)
-
+    DEPTH_PENALTY = sea.io.parse('-depth-penalty', False)
     SKIP_FEATURE_PLOT = sea.io.parse('-skip-feature-plot', False)
     TWO_COLORBAR = sea.io.parse('-two-colorbar', False)
 
@@ -633,11 +633,14 @@ def main():
 
                 if METHOD in ['LMDE', 'MCPIE', 'AMPIE']:
                     acquisition_name = METHOD
-                else:
-                    acquisition_name = 'AMPIE'
 
-                xq_now = sea.explore.compute_new_starting_location(start_indices, Xq, Fqw, 
-                    learned_classifier, acquisition = acquisition_name)
+                    xq_now = sea.explore.compute_new_starting_location(start_indices, Xq, Fqw, 
+                        learned_classifier, acquisition = acquisition_name)
+
+                else:
+                    
+                    xq_now = Xq[np.random.choice(start_indices, size = 1, replace = False)]
+
 
         if (METHOD == 'FIXED') or (METHOD == 'LMDE') or (METHOD == 'MCPIE'):
             theta_stack_init[0] += turns[i_trials]
@@ -672,7 +675,8 @@ def main():
                         ftol_rel = ftol_rel,
                         ctol = ctol,
                         globalopt = False,
-                        n_draws = N_DRAWS)
+                        n_draws = N_DRAWS,
+                        depth_penalty = DEPTH_PENALTY)
             logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
 
             m_step = M_STEP

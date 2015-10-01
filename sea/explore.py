@@ -178,8 +178,8 @@ def depth_entropy_penalty(Fq, depth_penalty = False):
 
     if depth_penalty:
         depth = Fq[:, 0]
-        shallow_count = np.sum(depth < 30)
-        return 0.5**shallow_count
+        penalty = np.clip(40 - depth, 0, np.inf).sum()/10 + 1
+        return 1/penalty
     else:
         return 1
 
@@ -324,6 +324,7 @@ def compute_new_starting_location(start_indices, Xq, Fqw, memory,
 
     Xq_cut = Xq[start_indices]
     Fqw_cut = Fqw[start_indices]
+
     def regional_score(xq):
 
         distances = cdist(xq, Xq)
