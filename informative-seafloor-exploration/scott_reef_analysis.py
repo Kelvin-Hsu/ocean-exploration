@@ -43,6 +43,7 @@ def main():
     LONG_SCALE_ONLY = sea.io.parse('-long-scale', False)
     BATCH_START = sea.io.parse('-batch-start', 'on')
 
+    MISSION_LENGTH = sea.io.parse('-mission-length', 0)
     METHOD = sea.io.parse('-method', 'LMDE')
     GREEDY = sea.io.parse('-greedy', False)
     N_TRIALS = sea.io.parse('-ntrials', 200)
@@ -54,14 +55,22 @@ def main():
     M_STEP = sea.io.parse('-mstep', 1)
     N_DRAWS = sea.io.parse('-ndraws', 500)
 
-    ONE_COLORBAR = sea.io.parse('-one-colorbar', False)
+    SKIP_FEATURE_PLOT = sea.io.parse('-skip-feature-plot', False)
+    TWO_COLORBAR = sea.io.parse('-two-colorbar', False)
 
     FONTSIZE = 50
     FONTNAME = 'Sans Serif'
     TICKSIZE = 24
     SAVE_TRIALS = 25
 
+
+    # ### FORCE
+    # N_TRAIN = 17
     # NOTRAIN = True
+    # MISSION_LENGTH = 0
+    # METHOD = 'RANDOM'
+    
+
     """Model Options"""
     SAVE_RESULTS = True
 
@@ -228,6 +237,9 @@ def main():
             t_seed = T_SEED, q_seed = Q_SEED, 
             features = i_features, unique_labels = True)
 
+    start_indices = np.random.choice(np.arange(Xq.shape[0]), 
+                            size = 2500, replace = False)
+
     yq_truth = sea.io.load_ground_truth(filename_truth, 
         assert_query_seed = Q_SEED)
 
@@ -250,19 +262,10 @@ def main():
     logging.info('Whitening Parameters:')
     logging.info(white_params)
 
-    """Visualise Sampled Training Locations"""
-    fig = plt.figure(figsize = (19.2, 10.8))
-    plt.scatter(
-        X[:, 0], X[:, 1], 
-        marker = 'x', c = y, 
-        vmin = y_unique[0], vmax = y_unique[-1], 
-        cmap = mycmap)
-    sea.vis.describe_plot(title = '(a) Training Labels', 
-        xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
-        clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
-        vis_range = vis_range, aspect_equal = True, 
-        fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
-    if not ONE_COLORBAR:
+    if not SKIP_FEATURE_PLOT:
+
+        """Visualise Sampled Training Locations"""
+        fig = plt.figure(figsize = (19.2, 10.8))
         plt.scatter(
             X[:, 0], X[:, 1], 
             marker = 'x', c = y, 
@@ -270,38 +273,49 @@ def main():
             cmap = mycmap)
         sea.vis.describe_plot(title = '(a) Training Labels', 
             xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
-            clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_unique,
+            clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
             vis_range = vis_range, aspect_equal = True, 
             fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
-    fig.tight_layout()
-
-    """Visualise Features at Sampled Query Locations"""
-    letters = ['b', 'c', 'd', 'e', 'f']
-    feature_labels = ['Depth', 'Aspect', 'Rugosity', 'Aspect', 'Rugosity']
-    feature_units = ['$\mathrm{m}$', '$\mathrm{m}$/$\mathrm{m}$', '$\mathrm{m}^{2}$/$\mathrm{m}^{2}$', '$\mathrm{m}$/$\mathrm{m}$', '$\mathrm{m}^{2}$/$\mathrm{m}^{2}$']
-    for k in range(k_features):
-        fig = plt.figure(figsize = (19.2, 10.8))
-        sea.vis.scatter(
-            Xq[:, 0], Xq[:, 1], 
-            c = Fq[:, k], colorcenter = 'mean', cmap = mycmap, **map_kwargs)
-        sea.vis.describe_plot(
-            title = '(%s) Feature: %s' % (letters[k], feature_names[k]), 
-            xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
-            clabel = '%s (%s)' % (feature_labels[k], feature_units[k]),
-            vis_range = vis_range, aspect_equal = True, 
-            fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
-        if not ONE_COLORBAR:
-            sea.vis.scatter(
-                Xq[:, 0], Xq[:, 1], 
-                c = Fqw[:, k], colorcenter = 'mean', cmap = mycmap, **map_kwargs)
-            sea.vis.describe_plot(
-                title = '(%s) Feature: %s' % (letters[k], feature_names[k]),
+        if TWO_COLORBAR:
+            plt.scatter(
+                X[:, 0], X[:, 1], 
+                marker = 'x', c = y, 
+                vmin = y_unique[0], vmax = y_unique[-1], 
+                cmap = mycmap)
+            sea.vis.describe_plot(title = '(a) Training Labels', 
                 xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
-                clabel = 'Whitened %s' % feature_labels[k],
+                clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_unique,
                 vis_range = vis_range, aspect_equal = True, 
                 fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
         fig.tight_layout()
-        logging.info('Plotted feature map for: %s' % feature_names[k])
+
+        """Visualise Features at Sampled Query Locations"""
+        letters = ['b', 'c', 'd', 'e', 'f']
+        feature_labels = ['Depth', 'Aspect', 'Rugosity', 'Aspect', 'Rugosity']
+        feature_units = ['$\mathrm{m}$', '$\mathrm{m}$/$\mathrm{m}$', '$\mathrm{m}^{2}$/$\mathrm{m}^{2}$', '$\mathrm{m}$/$\mathrm{m}$', '$\mathrm{m}^{2}$/$\mathrm{m}^{2}$']
+        for k in range(k_features):
+            fig = plt.figure(figsize = (19.2, 10.8))
+            sea.vis.scatter(
+                Xq[:, 0], Xq[:, 1], 
+                c = Fq[:, k], colorcenter = 'mean', cmap = mycmap, **map_kwargs)
+            sea.vis.describe_plot(
+                title = '(%s) Feature: %s' % (letters[k], feature_names[k]), 
+                xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
+                clabel = '%s (%s)' % (feature_labels[k], feature_units[k]),
+                vis_range = vis_range, aspect_equal = True, 
+                fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
+            if TWO_COLORBAR:
+                sea.vis.scatter(
+                    Xq[:, 0], Xq[:, 1], 
+                    c = Fqw[:, k], colorcenter = 'mean', cmap = mycmap, **map_kwargs)
+                sea.vis.describe_plot(
+                    title = '(%s) Feature: %s' % (letters[k], feature_names[k]),
+                    xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
+                    clabel = 'Whitened %s' % feature_labels[k],
+                    vis_range = vis_range, aspect_equal = True, 
+                    fontsize = FONTSIZE, fontname = FONTNAME, ticksize = TICKSIZE, axis_scale = 1e3)
+            fig.tight_layout()
+            logging.info('Plotted feature map for: %s' % feature_names[k])
 
     """Classifier Training"""
     logging.info('===Begin Classifier Training===')
@@ -335,6 +349,7 @@ def main():
                                          [2.4147686613391968, 4.77983081183657, 5.6427304713913555, 3.6184518253194233], \
                                          [5.0053135736819581, 7.5224457127374018, 10.501213860336557, 14.976120894135667] ]
         else:
+            # 200 training points
             initial_hyperparams = \
                                     [    [158.04660629989138, 1.2683731889725351, 66.115010215389162, 49.467620758110257, 2.1003587537731203, 148.19413243571267], \
                                          [65.998503029331715, 0.96182325466796015, 76.537506649529078, 8.7072874430795792, 2.7122005803599105, 31.811834175256053], \
@@ -354,6 +369,25 @@ def main():
                                          [3.0901973040826474, 12.319455336644344, 70.719245134201159, 140.9221718578234, 224.77657336458043, 4.57995836705937], \
                                          [7.0310415618402358, 211.04475504456954, 202.37890056818438, 261.95210773212585, 156.94082106951919, 511.27885698486267] ]
 
+            # 17 training points
+            initial_hyperparams = \
+                                    [    [195.98487106074634, 6.7545874303906324, 329.16664672945632, 31.504964572830737, 1.9724700463442919, 21.940669950105065], \
+                                         [95.829408268109617, 1.7949030403189434, 35.784549991952147, 1.8075392976819478, 10.31753783934046, 27.645539145569355], \
+                                         [2.4679367048563332, 275.24358705136979, 636.92711361596116, 168.68139572408469, 87.432840499884747, 258.97633592547965], \
+                                         [2.3420253385025367, 22.62310001101493, 20.298926088403892, 212.56013373337302, 209.02779685614902, 15.565081046326867], \
+                                         [2.9748867112646384, 200.28885691135244, 1.1710790148367796, 52.732688292649328, 350.37993600980144, 6.3245982727950123], \
+                                         [4.3591136780785931, 16.744013045345845, 111.84371029836002, 2.6271052576644083, 102.14193905175958, 143.95163894287077], \
+                                         [2.6009968687635978, 7.8504445946888541, 279.91377309872604, 571.13535376074287, 51.648328357923504, 57.43636247986246], \
+                                         [2.4669769583966881, 31.401111683458542, 1270.673818203853, 337.26773045092648, 368.74473748301619, 75.987016939102659], \
+                                         [3.192504460520428, 4.0107134770438648, 266.75067564837178, 100.4706686565055, 2.2156505927398489, 46.563261471015231], \
+                                         [2.7471255292767269, 5.9252925255696667, 66.230363001377597, 29.189047727296355, 4.7635337732844629, 9.4122327461445128], \
+                                         [3.7276325071593375, 14.779658802248324, 197.5161462630272, 262.24241780595895, 101.47737618311446, 2.008726905058027], \
+                                         [56.268937406820683, 2.4305349403533811, 199.24414072357104, 2050.7935600821183, 254.31421742040177, 419.97964986565347], \
+                                         [2.1187879592937864, 7.151426051051188, 673.33446347673043, 367.65295120249033, 18.135417989990003, 55.041101285874831], \
+                                         [94.324177544164343, 9.5192423889915716, 2.4718983405006063, 126.99001654949174, 28.768268229786504, 130.52935833526666], \
+                                         [2.1644252127344439, 3.7891115623661094, 25.035857452933165, 150.28115119268051, 6.1879295261351688, 63.966209357387271], \
+                                         [6.6898343574716925, 1.8055110508489738, 44.732688365789286, 12.947694755847623, 71.881458838567767, 7.7704768954169774], \
+                                         [2.4864586001908822, 214.54661462714421, 223.8076780527073, 248.81280629025022, 153.15645218324957, 515.19782558493819] ]
 
         batch_config = gp.batch_start(optimiser_config, initial_hyperparams)
         logging.info('Using Batch Start Configuration')
@@ -505,6 +539,16 @@ def main():
 
     """Informative Seafloor Exploration: Setup"""
     xq_now = np.array([[START_POINT1, START_POINT2]])
+
+    # if MISSION_LENGTH > 0:
+    #     if METHOD in ['LMDE', 'MCPIE', 'AMPIE']:
+    #         acquisition_name = METHOD
+    #     else:
+    #         acquisition_name = 'AMPIE'
+
+    #     xq_now = sea.explore.compute_new_starting_location(start_indices, Xq, Fqw, 
+    #                     learned_classifier, acquisition = acquisition_name)
+
     xq_now = feature_fn.closest_locations(xq_now)
     horizon = HORIZON
     h_steps = H_STEPS
@@ -544,8 +588,6 @@ def main():
     m_step = 1
 
     bound = 100
-
-    n_new_trial = 20
 
     assert k_step == 1
 
@@ -594,9 +636,16 @@ def main():
 
     while i_trials < n_trials:
 
-        if (i_trials + 1) % n_new_trial == 0:
-            i_new_location = np.argmax(yq_lde)
-            xq_now = Xq[[i_new_location]]
+        if MISSION_LENGTH > 0:
+            if (i_trials + 1) % MISSION_LENGTH == 0:
+
+                if METHOD in ['LMDE', 'MCPIE', 'AMPIE']:
+                    acquisition_name = METHOD
+                else:
+                    acquisition_name = 'AMPIE'
+
+                xq_now = sea.explore.compute_new_starting_location(start_indices, Xq, Fqw, 
+                    learned_classifier, acquisition = acquisition_name)
 
         if (METHOD == 'FIXED') or (METHOD == 'LMDE') or (METHOD == 'MCPIE'):
             theta_stack_init[0] += turns[i_trials]
@@ -867,7 +916,14 @@ def main():
             facecolors = 'none', 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
-        sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
+        if MISSION_LENGTH == 0:
+            sea.vis.plot(xq1_nows, xq2_nows, c = 'k', linewidth = 2)
+        else:
+            sea.vis.plot(xq1_nows, xq2_nows, c = 'k-', linewidth = 1)
+            xq1_nows_split = sea.vis.split_array(xq1_nows, MISSION_LENGTH)
+            xq2_nows_split = sea.vis.split_array(xq2_nows, MISSION_LENGTH)
+            [sea.vis.plot(xq1_nows_split[i], xq2_nows_split[i], c = 'k', linewidth = 2) for i in range(xq1_nows_split.shape[0])]
+
         sea.vis.scatter(xq_now[:, 0], xq_now[:, 1], c = yq_now, s = 120, 
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)

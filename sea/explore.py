@@ -305,5 +305,44 @@ def correct_lookahead_predictions(xq_abs_opt, learned_classifier, feature_fn, wh
 
     return k_step
 
+def average_marginalised_prediction_information_entropy(exp, covar, memory):
+    return gp.classifier.entropy(gp.classifier.predict_from_latent(exp, covar, memory)).mean()
 
+def get_acquisition_criterion(name):
 
+    if name == 'LMDE':
+        return gp.classifier.linearised_model_differential_entropy
+    elif name == 'MCPIE':
+        return gp.classifier.monte_carlo_prediction_information_entropy
+    elif name == 'AMPIE':
+        return average_marginalised_prediction_information_entropy
+
+def compute_new_starting_location(start_indices, Xq, Fqw, memory, 
+    kNN = 10, acquisition = 'LMDE'):
+
+    acquisition_fn = get_acquisition_criterion(acquisition)
+
+    Xq_cut = Xq[start_indices]
+    Fqw_cut = Fqw[start_indices]
+    def regional_score(xq):
+
+        distances = cdist(xq, Xq)
+        i_regions = np.argpartition(distances[0], -kNN)[-kNN:]
+
+        predictors = gp.classifier.query(memory, Fqw[i_regions])
+        exp = gp.classifier.expectance(memory, predictors)
+        cov = gp.classifier.covariance(memory, predictors)
+
+        score = acquisition_fn(exp, cov, memory)
+
+        logging.debug('Regional score for {0} is {1}'.format(xq, score))
+
+        return score
+
+    scores = np.array([regional_score(Xq[[i]]) for i in start_indices])
+
+    best_index = scores.argmax()
+
+    xq_opt = Xq[[best_index]]
+    logging.debug('Best location is {0} with score {1}'.format(xq_opt, scores[best_index]))
+    return xq_opt

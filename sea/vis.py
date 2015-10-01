@@ -91,3 +91,11 @@ def savefig(fig, filename):
         os.mkdir(directory)
 
     fig.savefig(filename)
+
+def split_array(arr, num):
+
+    n = arr.shape[0]
+    extra = n % num
+    arr_new = np.nan * np.ones(n - extra + num)
+    arr_new[:n] = arr
+    return np.reshape(arr_new, (arr_new.shape[0]/num, num))
