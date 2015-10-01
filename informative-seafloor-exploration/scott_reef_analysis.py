@@ -63,14 +63,6 @@ def main():
     TICKSIZE = 24
     SAVE_TRIALS = 25
 
-
-    ### FORCE
-    N_TRAIN = 17
-    NOTRAIN = True
-    MISSION_LENGTH = 20
-    METHOD = 'MCPIE'
-    
-
     """Model Options"""
     SAVE_RESULTS = True
 
