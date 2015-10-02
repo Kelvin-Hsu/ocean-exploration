@@ -35,7 +35,9 @@ def main():
     """Test Options"""
     FILENAME = 'scott_reef_analysis.py'
     T_SEED = sea.io.parse('-tseed', 250)
-    Q_SEED = sea.io.parse('-qseed', 500) 
+    Q_SEED = sea.io.parse('-qseed', 500)
+    UNIQUE = sea.io.parse('-unique', False)
+    U_SEED = sea.io.parse('-useed', 100)
     N_TRAIN = sea.io.parse('-ntrain', 200)
     N_QUERY = sea.io.parse('-nquery', 100000)
     NOTRAIN = sea.io.parse('-skiptrain', False)
@@ -227,7 +229,7 @@ def main():
             filename_training_data, filename_query_points), 
             n_train = n_train, n_query = n_query,
             t_seed = T_SEED, q_seed = Q_SEED, 
-            features = i_features, unique_labels = True)
+            features = i_features, unique_labels = UNIQUE, unique_seed = U_SEED)
 
     start_indices = np.random.choice(np.arange(Xq.shape[0]), 
                             size = 2500, replace = False)

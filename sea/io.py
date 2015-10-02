@@ -98,13 +98,20 @@ def load(directory_data, filename_training_data, filename_query_points):
 
 def sample(X, F, y, Xq, Fq, 
     n_train = 200, n_query = 10000, t_seed = None, q_seed = None, 
-    features = None, unique_labels = False):
+    features = None, unique_labels = False, unique_seed = None):
     """Sample Training Data"""
     assert n_train < 2000
     assert n_query < 250000
 
     if unique_labels:
-        y_unique, i_train_sample = np.unique(y, return_index = True)
+        if unique_seed:
+            np.random.seed(unique_seed)
+            i_perm = np.random.permutation(np.arange(y.shape[0]))
+            y_unique, i_train_sample_perm = np.unique(y[i_perm], 
+                return_index = True)
+            i_train_sample = i_perm[i_train_sample_perm]
+        else:
+            y_unique, i_train_sample = np.unique(y, return_index = True)
         n_unique = y_unique.shape[0]
 
         if n_train > n_unique:
