@@ -617,8 +617,9 @@ def main():
     entropy_opt_array = np.nan * np.ones(n_trials)
     yq_esd_mean_array = np.nan * np.ones(n_trials)
 
-    if (METHOD == 'FIXED') or (METHOD == 'LMDE') or (METHOD == 'MCPIE'):
-        turns = np.zeros(n_trials)
+    if METHOD == 'FIXED':
+        turns = np.random.normal(loc = 0, scale = np.deg2rad(30), size = n_trials)
+
         # turns[[49, 99, 149]] = np.deg2rad(-90.0)
 
         # turns = np.linspace(-np.deg2rad(10), np.deg2rad(0), num = n_trials)
@@ -642,7 +643,7 @@ def main():
                     xq_now = Xq[np.random.choice(start_indices, size = 1, replace = False)]
 
 
-        if (METHOD == 'FIXED') or (METHOD == 'LMDE') or (METHOD == 'MCPIE'):
+        if METHOD == 'FIXED':
             theta_stack_init[0] += turns[i_trials]
             theta_stack_init[0] = np.mod(theta_stack_init[0], 2 * np.pi)
 

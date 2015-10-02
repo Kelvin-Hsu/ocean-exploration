@@ -180,6 +180,7 @@ def depth_entropy_penalty(Fq, depth_penalty = False):
         depth = Fq[:, 0]
         penalty = np.clip(40 - depth, 0, np.inf).sum()/10 + 1
         return 1/penalty
+        logging.debug('Penalty: {0}'.format(penalty))
     else:
         return 1
 
