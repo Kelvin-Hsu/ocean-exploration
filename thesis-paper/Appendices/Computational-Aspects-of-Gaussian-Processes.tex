@@ -3,19 +3,76 @@
 \label{Appendix:ComputationalAspects}
 
 	\section{Numerical Stability}
+	\label{Appendix:ComputationalAspects:NumericalStability}
 	
 		\subsection{Cholesky Decomposition}
-		
-		\subsection{Solving Triangular Matrix Equations}
-		
+		\label{Appendix:ComputationalAspects:NumericalStability:Cholesky}
+
 		\subsection{Cholesky Jittering}
-	
+		\label{Appendix:ComputationalAspects:NumericalStability:CholeskyJittering}
+				
+		\subsection{Solving Triangular Matrix Equations}
+		\label{Appendix:ComputationalAspects:NumericalStability:SolvingTriangularMatrices}
+		
+		\subsection{Stable and Efficient Monte Carlo Sampling}
+		\label{Appendix:ComputationalAspects:NumericalStability:MonteCarlo}
+		
+			Section \ref{InformativeSeafloorExploration:MCPIE} formulates the Monte Carlo prediction information entropy (MCPIE), which involves a Monte Carlo sampling stage for entropy estimation. In order to enhance the computational tractability of the approach, this thesis also investigates the practical implementation methods which would allow efficient computation for MCPIE.
+			
+			By definition of a GP, drawing from a GP at a \textit{finite} number of query points $X^{\star}$ is equivalent to drawing \textit{jointly} from a multivariate Gaussian distribution, as represented by \eqref{Equation:BinaryPredictiveGaussianDistribution} and \eqref{Equation:MulticlassPredictiveGaussianDistribution}. In general the sampling stage can be summarised by \eqref{Equation:GeneralMultivariateGaussianDistribution} for some mean vector $\vec{\upmu} \in \mathbb{R}^{n^{\star}}$ and covariance vector $\Sigma \in \mathbb{R}^{n^{\star} \times n^{\star}}$. 
+			
+			\begin{equation}
+				{^{s}}\bvec{f}^{\star} \stackrel{\text{sample}}{\sim} \mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star}) \qquad \forall s \in I_{n_{S}}
+			\label{Equation:GeneralMultivariateGaussianDistribution}
+			\end{equation}
+			
+			Note that $\stackrel{\text{sample}}{\sim}$ denotes that ${^{s}}\bvec{f}$ is not a random vector anymore but a specific vector after sampling. Instead of drawing jointly from the distribution \eqref{Equation:GeneralMultivariateGaussianDistribution} directly, a more advantageous approach involves first drawing \textit{iid} samples from the standard univariate normal distribution. That is, the samples are to be drawn independently.
+			
+			\begin{equation}
+				\begin{aligned}
+					z_{i, s} &\stackrel{\text{sample}}{\sim} \mathcal{N}(0, 1) \qquad \forall i \in I_{n^{\star}}, \forall s \in I_{n_{S}} \\
+					\bvec{z}_{s} &:= \{z_{i, s}\}_{i \in I_{n^{\star}}} \in \mathbb{R}^{n^{\star}} \\
+					Z &:= \{z_{i, s}\}_{i \in I_{n^{\star}}, \; s \in I_{n_{S}}} \equiv \begin{bmatrix} \bvec{z}_{1} & \bvec{z}_{2} & \dots & \bvec{z}_{n_{S}} \end{bmatrix} \in \mathbb{R}^{n^{\star} \times n_{S}}
+				\end{aligned}
+			\label{Equation:iidGaussianSampling}
+			\end{equation}			
+			
+			Let $L^{\star}$ be the Cholesky Decomposition of $\Sigma^{\star}$, then $L^{\star} \bvec{z}_{s}$ incorporates the covariance structure \eqref{Equation:CovarianceInclusion}.
+			
+			\begin{equation}
+				\begin{aligned}
+					L^{\star} \bvec{z}_{s} \stackrel{\text{sample}}{\sim} \mathcal{N}(\bvec{0}, \Sigma^{\star}) \qquad \forall s \in I_{n_{S}}
+				\end{aligned}
+			\label{Equation:CovarianceInclusion}
+			\end{equation}
+			
+			To incorporate the expectance $\vec{\upmu}^{\star}$, simple add it to the transformed samples \eqref{Equation:ExpectanceInclusion}.
+			
+			\begin{equation}
+				\begin{aligned}
+					\vec{\upmu}^{\star} + L^{\star} \bvec{z}_{s} \stackrel{\text{sample}}{\sim} \mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star}) \qquad \forall s \in I_{n_{S}}
+				\end{aligned}
+			\label{Equation:ExpectanceInclusion}
+			\end{equation}
+			
+			Therefore, to sample from any given multivariate Gaussian distribution $\mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star})$, simply sample iid samples through \eqref{Equation:iidGaussianSampling} and transform the samples through \eqref{Equation:ExpectanceInclusion}, and set ${^{s}}\bvec{f}^{\star} := \vec{\upmu}^{\star} + L^{\star} \bvec{z}_{s} \quad \forall s \in I_{n_{S}}$. Generating iid samples from standard normal distributions is much faster, especially with sophisticated libraries which may have pseudo-random number generators specifically for values drawn from the standard normal distribution.
+			
+			Moreover, to vectorise the computation for further computational efficiency, multiple samples can be obtained at once through 
+			
+			\begin{equation}
+				\begin{aligned}
+					\begin{bmatrix} {^{1}}\bvec{f}^{\star} & {^{2}}\bvec{f}^{\star} & \dots & {^{n_{S}}}\bvec{f}^{\star} \end{bmatrix} &= \begin{bmatrix} \vec{\upmu}^{\star} + L^{\star} \bvec{z}_{1} & \vec{\upmu}^{\star} + L^{\star} \bvec{z}_{2} & \dots & \vec{\upmu}^{\star} + L^{\star} \bvec{z}_{n_{S}} \end{bmatrix} \\
+					&= \mathcal{U} + L^{\star} Z \qquad \text{where} \qquad \mathcal{U} := \{\vec{\upmu}^{\star}\}^{T}_{s \in I_{n_{S}}}
+				\end{aligned}
+			\label{Equation:VectorisedSampling}
+			\end{equation}			
+			
 	\section{Time Complexity}
 	\label{Appendix:ComputationalAspects:TimeComplexity}
 	
 		Reducing computational time
 		
-		\subsection{Numpy and Vectorisation}
+%		\subsection{Numpy and Vectorisation}
 		
 		\subsection{Cholesky Update and Downdate}
 		\label{Appendix:ComputationalAspects:TimeComplexity:CholeskyUpdateDowndate}
@@ -26,15 +83,8 @@
 		
 		\subsection{Parallelisation of GP prediction and relevant subtleties}
 		
-		\subsection{Fast vectorised GP drawing for regression and classification}
+%		\subsection{Fast vectorised GP drawing for regression and classification}
 		
-	\section{Spatial Complexity}
-	
-		 Reducing memory requirements
-		 
-		\subsection{Symmetry of AVA multiclass classifier}
-		
-		\subsection{Creating predictor objects to modularise prediction}
 		
 	\section{Time \& Spatial Complexity}
 	\label{Appendix:ComputationalAspects:TimeSpaceComplexity}
@@ -44,5 +94,7 @@
 		
 		\subsection{Taking advantage of diagonal log-likelihood Hessians}
 		\label{Appendix:ComputationalAspects:TimeSpaceComplexity:DiagonalHessians}
+		
+		\subsection{Creating predictor objects to modularise prediction}
 		
 		

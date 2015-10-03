@@ -6,7 +6,7 @@
 	
 	In order to devise an informative path planning policy, it is important to select an appropriate acquisition criterion which measures the desirability of traversing a particular candidate path. Section \ref{Background:RelatedWork} provided an outline of related investigations on various acquisition functions for informative path planning in the benthic habitat mapping context, which motivated the need for a measure of mutual information. Such a measure would allow inference based on the \textit{essential} information contained in any given sub-region of interest. The mutual information criterion can then be employed as the acquisition function for informative path planning, in order to evaluate and thus compare the desirability of visiting candidate regions and locations.
 	
-	Nevertheless, as Gaussian process classifiers lack analytical forms for the \textit{predictive} joint distribution of target labels, any mutual information measure derived from the predictive joint distribution must rely on numerical estimation techniques. As such, estimating joint prediction information entropy requires a Monte Carlo sampling based approach. Section \ref{InformativeSeafloorExploration:MCJPIE} describes such a mutual information criterion, hereby named Monte Carlo Predictive Information Entropy (MCPIE).
+	Nevertheless, as Gaussian process classifiers lack analytical forms for the \textit{predictive} joint distribution of target labels, any mutual information measure derived from the predictive joint distribution must rely on numerical estimation techniques. As such, estimating joint prediction information entropy requires a Monte Carlo sampling based approach. Section \ref{InformativeSeafloorExploration:MCPIE} describes such a mutual information criterion, hereby named Monte Carlo Predictive Information Entropy (MCPIE).
 	
 	However, a Monte Carlo approach suffers some several drawbacks, such as computational complexity and limited estimation accuracy. Instead, this thesis proposes a new and alternative mutual information measure, Linearised Model Differential Entropy (LMDE), that is more computationally tractable than MCPIE. Instead of focusing on the \textit{predictive} joint distribution, LMDE focuses on utilising the \textit{latent} joint distribution, where inference remains analytically tractable. Section \ref{InformativeSeafloorExploration:LMDE} defines and derives LMDE as an appropriate form of mutual information. Specifically, it regularises between reducing mutual bias and mutual uncertainty through taking advantage of both the latent mean and covariance structure, as well as the non-Gaussian likelihood response. Tractability of the approach is further improved through a linearisation approximation on such an acquisition criterion.
 	
@@ -17,14 +17,14 @@
 	Finally, section \ref{InformativeSeafloorExploration:ScottReef} assesses the performance of various approaches to informative seafloor exploration for benthic habitat mapping. Multiple acquisition criterions are tested under both the receding horizon approach and a myopic greedy approach, which verifies the benefits of linearised model differential entropy under the receding horizon formulation. Under a mapping accuracy criterion, simulations over the Scott Reef dataset demonstrates that LMDE acquisition outperform other criterions, including MCPIE acquisition.
 		
 	\section{Monte Carlo Predictive Information Entropy}
-	\label{InformativeSeafloorExploration:MCJPIE}
+	\label{InformativeSeafloorExploration:MCPIE}
 	
 		This section introduces the Monte Carlo predictive information entropy (MCPIE) of Gaussian process classifiers. Monte Carlo sampling methods provide a way to estimate the joint predictive entropy through considering the joint distributions of the latent function at the query points.
 	
 		Monte Carlo sampling, as its name suggests, involve using sampled draws from a particular distribution to estimate a certain quantity that can be characterised by the distribution. In MCPIE case, the distribution to be sampled from is the latent GP process of the GP classifier, whose moments are analytically tractable, and the quantity to be estimated is the \textit{joint} predictive information entropy of the query points. A brief description of the method is provided for both binary and multiclass classification.
 		
 		\subsection{Binary Classification}
-		\label{InformativeSeafloorExploration:MCJPIE:Binary}
+		\label{InformativeSeafloorExploration:MCPIE:Binary}
 		
 			Suppose a Gaussian process classifier has been trained under Laplace approximation with respect to a training set $\mathcal{D} = \{X, \bvec{y}\} = \{[ \bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]^{T}\}$ with $n$ training points. It is known that the latent function $f(\bvec{x})$ is distributed as a GP with a particular predictive mean $m(\bvec{x})$ and covariance $k(\bvec{x}, \bvec{x}')$ once conditioned on the training data \eqref{Equation:PredictiveLatentBinaryGP}. Note that again this section will omit explicitly notating the training data and query data that was conditioned upon. \begin{equation}
 				f(\bvec{x}) \sim \mathcal{GP}(m(\bvec{x}), k(\bvec{x}, \bvec{x}'))
@@ -77,11 +77,13 @@
 			\end{equation}		
 			
 		\subsection{Multiclass Classification}
-		\label{InformativeSeafloorExploration:MCJPIE:Multiclass}
+		\label{InformativeSeafloorExploration:MCPIE:Multiclass}
 		
 			The derivation in the multiclass case is similar to the binary case. Specifically, since ${^{s}}\bvec{y}^{\star} \in \{1, 2, \dots, n_{C}\}^{n_{s}}$ it suffices to replace the sampling step \eqref{Equation:MonteCarloSamplingBinaryClassifier} with \eqref{Equation:MonteCarloSamplingMulticlassClassifier}.
 			
-			The following sampling method assumes that the GP classifier has been trained under a OVA scheme (see section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}). Analogous to \eqref{Equation:PredictiveLatentBinaryGP}, for $c$ classes, there are $n_{C}$ latent functions $\{f^{1}(x), f^{2}(x), \dots, f^{n_{C}}(x)\}$ corresponding to each class \eqref{Equation:PredictiveLatentMulticlassGP}. \begin{equation}
+			The technique is first developed for an OVA multiclass classifier (see section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}), and then a AVA multiclass classifier (see section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}). 
+			
+			Analogous to \eqref{Equation:PredictiveLatentBinaryGP}, for $c$ classes, there are $n_{C}$ latent functions $\{f^{1}(x), f^{2}(x), \dots, f^{n_{C}}(x)\}$ corresponding to each class \eqref{Equation:PredictiveLatentMulticlassGP}. \begin{equation}
 				f^{c}(\bvec{x}) \sim \mathcal{GP}(m^{c}(\bvec{x}), k^{c}(\bvec{x}, \bvec{x}')) \qquad \forall c \in I_{n_{C}}
 			\label{Equation:PredictiveLatentMulticlassGP}
 			\end{equation}
@@ -103,6 +105,8 @@
 			
 			That is, for each sample $s \in I_{n_{S}}$ and at each query point $i \in I_{n^{\star}}$, ${^{s}}y^{\star}_{i}$ is assigned the class label from $\{1, 2, \dots, n_{C}\}$ that has the maximal latent value. With the samples $\{{^{s}}\bvec{y}^{\star}\}_{s \in I_{n_{s}}}$, the estimated probability can be computed from \eqref{Equation:EstimatedProbability}, so that the Monte Carlo predictive information entropy for $n_{C} > 2$ classes can also be computed from \eqref{Equation:MCPIE}.
 			
+			AVA STUFF HERE
+			
 	\section{Linearised Model Differential Entropy}
 	\label{InformativeSeafloorExploration:LMDE}
 	
@@ -113,7 +117,7 @@
 		
 			For binary classification, linearisation is performed on the likelihood response.
 					
-			The beginning of this derivation is the same as section \ref{InformativeSeafloorExploration:MCJPIE:Binary} up to \eqref{Equation:PredictiveResponse}. At this stage, instead of proceeding with Monte Carlo sampling, it is proposed to use the joint distribution of the predictive probabilities $\vec{\uppi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\vec{\uppi^{\star}}]$ and variance $\{\mathbb{V}[\pi^{\star}_{i}]\}_{i \in I_{n^{\star}}}$ such that structural information from the latent GP is compromised, it is aimed to utilise also the covariance $\mathbb{V}[\vec{\uppi^{\star}}]$, which contains information regarding both the latent GP and the response likelihood.
+			The beginning of this derivation is the same as section \ref{InformativeSeafloorExploration:MCPIE:Binary} up to \eqref{Equation:PredictiveResponse}. At this stage, instead of proceeding with Monte Carlo sampling, it is proposed to use the joint distribution of the predictive probabilities $\vec{\uppi^{\star}}$ itself as a basis of constructing a measure of mutual information. Unlike traditional approaches where inference depends only on the expectance $\mathbb{E}[\vec{\uppi^{\star}}]$ and variance $\{\mathbb{V}[\pi^{\star}_{i}]\}_{i \in I_{n^{\star}}}$ such that structural information from the latent GP is compromised, it is aimed to utilise also the covariance $\mathbb{V}[\vec{\uppi^{\star}}]$, which contains information regarding both the latent GP and the response likelihood.
 		
 			\begin{figure}[!htbp]
 				\centering
@@ -211,6 +215,8 @@
 			\label{Equation:MulticlassLinearisedEntropy}
 			\end{equation}
 		
+			NOW DERIVE AVA
+			
 	\section{Comparison of Mutual Entropy Measures}
 	\label{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures}
 	
@@ -529,9 +535,11 @@
 			\label{Equation:PathAcquisition}
 			\end{equation}
 						
-		\subsection{Exploration Simulation and Performance Assessment}
+		\subsection{Single Mission Planning for Seafloor Exploration}
 					
-			This section presents the simulation results of various exploration policies for an AUV over Scott Reef \citep{IMOS}. At the start of each simulation, all cases start from the scenario with 200 training points as shown in Figure \ref{Figure:ScottReefInitialPredictions} from section \ref{BenthicHabitatMapping:ScottReef:Maps}. While the reef can be mapped with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to the scarcity of data. In this initial scenario, under AMPIE acquisition the vehicle would simply try to map out all regions as much as possible - a very costly policy. 
+			This section presents the simulation results of various exploration policies for an AUV over Scott Reef \citep{IMOS}. As in the benthic habitat mapping case, while both Monte Carlo prediction information entropy and linearised model differential entropy are available in AVA form, an OVA multiclass classifier is employed. As illustrated in section \ref{BenthicHabitatMapping:Classification:MulticlassClassification}, although AVA classifiers allow a balanced comparison between classes, OVA classifiers achieve better classification performance under low amounts of training data, which is the case here as the seafloor exploration task begins with low amounts of observations.
+			
+			At the start of each simulation, all cases start from the scenario with 200 training points as shown in Figure \ref{Figure:ScottReefInitialPredictions} from section \ref{BenthicHabitatMapping:ScottReef:Maps}. While the reef can be mapped with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to the scarcity of data. In this initial scenario, under AMPIE acquisition the vehicle would simply try to map out all regions as much as possible - a very costly policy. 
 
 			\begin{figure}[!htbp]
 			\centering
@@ -664,5 +672,7 @@
 			\end{figure}	
 				
 			Figure \ref{Figure:VarianceSimulation} demonstrates the stability and consistency of the LMDE acquisition approach under varying horizon lengths and starting locations for the case of Scott Reef. 
-					
+				
+		\subsection{Serial Mission Planning for Seafloor Exploration}
+			
 	\section{Summary}

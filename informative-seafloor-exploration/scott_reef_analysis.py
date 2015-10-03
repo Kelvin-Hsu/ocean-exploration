@@ -551,7 +551,7 @@ def main():
         horizon /= h_steps
         h_steps /= h_steps 
 
-    if (METHOD == 'LMDE') or (METHOD == 'MCPIE'):
+    if (METHOD == 'LMDE') or (METHOD == 'MCPIE') or (METHOD == 'AMPIE'):
         theta_bound = np.deg2rad(20)
         theta_bounds = np.linspace(theta_bound, np.deg2rad(60), num = h_steps) 
         theta_stack_low  = -theta_bounds
@@ -567,7 +567,7 @@ def main():
         ftol_rel = 1e-1
     ctol = 1e-10
 
-    if METHOD == 'MCPIE':
+    if (METHOD == 'MCPIE') or (METHOD == 'AMPIE'):
         xtol_rel = 1e-1
         ftol_rel = 1e-1        
 
