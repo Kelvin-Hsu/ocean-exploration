@@ -479,7 +479,9 @@
 		
 		As discussed in section \ref{BenthicHabitatMapping:BathymetricFeatures}, the benthic habitats are to be modelled upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale). The corresponding feature maps across the reef have been visualised in Figure \ref{Figure:ScottReefBathymetricFeatures}.
 			
-		For the Scott Reef dataset, an OVA Gaussian process classifier is employed due to its simpler structure and stronger inference capabilities under \textit{relatively} small training datasets. While the training dataset is large in size, it is \textit{relatively} small compared to the total region to be mapped. As before, the classifier is trained under Laplace approximation as a good balance between tractability and accuracy. The probit response is chosen as the likelihood response, and the kernel covariance employed is an axis aligned squared exponential kernel.
+		For the Scott Reef dataset, an OVA Gaussian process classifier is employed due to its simpler structure and stronger inference capabilities under \textit{relatively} small training datasets. While the training dataset is large in size, it is \textit{relatively} small compared to the total region to be mapped. Moreover, the results presented in this section also serves as the initial condition for the path planning result shown in the next chapter, which would ideally start from low amounts of training data to rigorously test the path planning algorithms.
+		
+		The classifier is trained under Laplace approximation as a good balance between tractability and accuracy. The probit response is chosen as the likelihood response, and the kernel covariance employed is an axis aligned squared exponential kernel.
 			
 		\subsection{Problems and Solutions to Big Data}
 		\label{BenthicHabitatMapping:ScottReef:BigData}

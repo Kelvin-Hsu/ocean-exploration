@@ -59,6 +59,7 @@ def main():
     DEPTH_PENALTY = sea.io.parse('-depth-penalty', False)
     SKIP_FEATURE_PLOT = sea.io.parse('-skip-feature-plot', False)
     TWO_COLORBAR = sea.io.parse('-two-colorbar', False)
+    FIXED_TYPE = sea.io.parse('-fixed-type', '')
 
     FONTSIZE = 50
     FONTNAME = 'Sans Serif'
@@ -131,15 +132,16 @@ def main():
     }
 
     plt.rc_context(rcparams)
-    # map_kwargs = {'alpha': 0.5, 'edgecolors': 'none', 's': 15}
+
     map_kwargs = {'marker': 'x', 's': 5}
 
     """Initialise Result Logging"""
     if SAVE_RESULTS:
         home_directory = "../../../Results/scott-reef/"
-        save_directory = "t%d_q%d_ts%d_qs%d_method_%s%s_start%.1f%.1f_"\
+        save_directory = "t%d_q%d_ts%d_qs%d_method_%s%s%s_start%.1f%.1f_"\
         "hsteps%d_horizon%.1f/" % (N_TRAIN, N_QUERY, T_SEED, Q_SEED, 
                 METHOD, '_GREEDY' if GREEDY else '', 
+                '_FTYPE' if FIXED_TYPE else '',
                 START_POINT1, START_POINT2, H_STEPS, HORIZON)
         full_directory = gp.classifier.utils.create_directories(
             save_directory, 
@@ -171,11 +173,15 @@ def main():
     """Process Options"""
     test_options  = {   'T_SEED': T_SEED,
                         'Q_SEED': Q_SEED,
+                        'UNIQUE': UNIQUE,
+                        'U_SEED': U_SEED,
                         'N_TRAIN': N_TRAIN,
                         'N_QUERY': N_QUERY,
                         'NOTRAIN': NOTRAIN,
                         'MODEL_ONLY': MODEL_ONLY,
                         'LONG_SCALE_ONLY': LONG_SCALE_ONLY,
+                        'BATCH_START': BATCH_START,
+                        'MISSION_LENGTH': MISSION_LENGTH,
                         'METHOD': METHOD,
                         'GREEDY': GREEDY,
                         'N_TRIALS': N_TRIALS,
@@ -185,7 +191,11 @@ def main():
                         'HORIZON': HORIZON,
                         'CHAOS': CHAOS,
                         'M_STEP': M_STEP,
-                        'N_DRAWS': N_DRAWS}
+                        'N_DRAWS': N_DRAWS,
+                        'DEPTH_PENALTY': DEPTH_PENALTY,
+                        'SKIP_FEATURE_PLOT': SKIP_FEATURE_PLOT,
+                        'TWO_COLORBAR': TWO_COLORBAR,
+                        'FIXED_TYPE': FIXED_TYPE,}
 
     model_options = {   'approxmethod': approxmethod,
                         'multimethod': multimethod,
@@ -620,14 +630,16 @@ def main():
     yq_esd_mean_array = np.nan * np.ones(n_trials)
 
     if METHOD == 'FIXED':
-        turns = np.random.normal(loc = 0, scale = np.deg2rad(30), size = n_trials)
-
-        # turns[[49, 99, 149]] = np.deg2rad(-90.0)
-
-        # turns = np.linspace(-np.deg2rad(10), np.deg2rad(0), num = n_trials)
-
-        # turns = np.deg2rad(30) * np.sin(np.linspace(0, 20*np.pi, num = n_trials))
-        # turns = np.linspace(np.deg2rad(60), np.deg2rad(0), num = n_trials)
+        if FIXED_TYPE == 'curves':
+            turns = np.random.normal(loc = 0, scale = np.deg2rad(30), size = n_trials)
+        elif FIXED_TYPE == 'lines':
+            turns = np.zeros(n_trials)
+            n_turns = 5
+            turns[(np.arange(n_turns) * n_trials / n_turns).astype(int)] = np.random.normal(loc = 0, scale = np.deg2rad(30), size = n_turns)
+        elif FIXED_TYPE == 'spiral':
+            turns = np.linspace(np.deg2rad(30), np.deg2rad(0), num = n_trials)
+        else:
+            raise TypeError('No such FIXED method as %s' % METHOD)
 
     while i_trials < n_trials:
 
