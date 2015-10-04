@@ -141,7 +141,7 @@ def main():
         save_directory = "t%d_q%d_ts%d_qs%d_method_%s%s%s_start%.1f%.1f_"\
         "hsteps%d_horizon%.1f/" % (N_TRAIN, N_QUERY, T_SEED, Q_SEED, 
                 METHOD, '_GREEDY' if GREEDY else '', 
-                '_FTYPE' if FIXED_TYPE else '',
+                ('_FTYPE_%s' % FIXED_TYPE) if FIXED_TYPE else '',
                 START_POINT1, START_POINT2, H_STEPS, HORIZON)
         full_directory = gp.classifier.utils.create_directories(
             save_directory, 
@@ -562,8 +562,10 @@ def main():
         h_steps /= h_steps 
 
     if (METHOD == 'LMDE') or (METHOD == 'MCPIE') or (METHOD == 'AMPIE'):
-        theta_bound = np.deg2rad(20)
-        theta_bounds = np.linspace(theta_bound, np.deg2rad(60), num = h_steps) 
+        # theta_bound = np.deg2rad(20)
+        # theta_bounds = np.linspace(theta_bound, np.deg2rad(60), num = h_steps) 
+        theta_bound = np.deg2rad(90)
+        theta_bounds = theta_bound * np.ones(h_steps)
         theta_stack_low  = -theta_bounds
         theta_stack_high = +theta_bounds
         xtol_rel = 1e-2
@@ -576,6 +578,10 @@ def main():
         xtol_rel = 1e-1
         ftol_rel = 1e-1
     ctol = 1e-10
+
+    if GREEDY:
+        theta_bound = np.deg2rad(60)
+        theta_bounds = theta_bound * np.ones(h_steps)
 
     if (METHOD == 'MCPIE') or (METHOD == 'AMPIE'):
         xtol_rel = 1e-1
@@ -637,7 +643,10 @@ def main():
             n_turns = 5
             turns[(np.arange(n_turns) * n_trials / n_turns).astype(int)] = np.random.normal(loc = 0, scale = np.deg2rad(30), size = n_turns)
         elif FIXED_TYPE == 'spiral':
-            turns = np.linspace(np.deg2rad(30), np.deg2rad(0), num = n_trials)
+            if MISSION_LENGTH > 0:
+                turns = np.array([np.linspace(np.deg2rad(30), np.deg2rad(0), num = MISSION_LENGTH) for i in np.arange(n_trials/MISSION_LENGTH)]).flatten()
+            else:
+                turns = np.linspace(np.deg2rad(30), np.deg2rad(0), num = n_trials)
         else:
             raise TypeError('No such FIXED method as %s' % METHOD)
 
@@ -890,6 +899,13 @@ def main():
             vmin = y_unique[0], vmax = y_unique[-1], 
             cmap = mycmap)
 
+        # Plot the horizon
+        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
+            linewidth = 2, marker = '.')
+
+        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
+            head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
+
         # Save the plot
         fig3.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
@@ -898,13 +914,6 @@ def main():
         if SAVE_EPS:
             plt.savefig('%smie%d.eps' 
                 % (full_directory, i_trials + 1))
-
-        # Plot the horizon
-        gp.classifier.utils.plot_circle(xq_now[-1], horizon, c = 'k', 
-            linewidth = 2, marker = '.')
-
-        plt.gca().arrow(xq_now[-1][0], xq_now[-1][1] + r, 0, -r/4, 
-            head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
         # Plot the proposed path
         sea.vis.scatter(xq1_path, xq2_path, c = yq_path, 
