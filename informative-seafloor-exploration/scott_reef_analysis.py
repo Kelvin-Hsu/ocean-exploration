@@ -19,17 +19,6 @@ import os
 import sea
 import shutil
 
-def kerneldef5(h, k):
-    """Define the kernel used in the classifier"""
-    return  h(1e-4, 1e4, 10)*k('gaussian', 
-            [h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1), 
-            h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1)])
-
-def kerneldef3(h, k):
-    """Define the kernel used in the classifier"""
-    return  h(1e-4, 1e4, 10)*k('gaussian', 
-            [h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1), h(1e-4, 1e4, 0.1)])
-
 def main():
 
     """Test Options"""
@@ -224,7 +213,7 @@ def main():
         feature_names = [   'Bathymetry (Depth)', 
                             'Aspect (Long Scale)',
                             'Rugosity (Long Scale)']
-        kerneldef = kerneldef3
+        kerneldef = sea.model.kerneldef3
     else:
         i_features = [0, 1, 2, 3, 4]
         feature_names = [   'Bathymetry (Depth)', 
@@ -232,7 +221,7 @@ def main():
                             'Rugosity (Short Scale)',
                             'Aspect (Long Scale)',
                             'Rugosity (Long Scale)']
-        kerneldef = kerneldef5
+        kerneldef = sea.model.kerneldef5
 
     X, F, y, Xq, Fq, i_train, i_query = \
         sea.io.sample(*sea.io.load(directory_data, 
@@ -542,55 +531,27 @@ def main():
         return
 
     """Informative Seafloor Exploration: Setup"""
-    xq_now = np.array([[START_POINT1, START_POINT2]])
-
-    # if MISSION_LENGTH > 0:
-    #     if METHOD in ['LMDE', 'MCPIE', 'AMPIE']:
-    #         acquisition_name = METHOD
-    #     else:
-    #         acquisition_name = 'AMPIE'
-
-    #     xq_now = sea.explore.compute_new_starting_location(start_indices, Xq, Fqw, 
-    #                     learned_classifier, acquisition = acquisition_name)
-
-    xq_now = feature_fn.closest_locations(xq_now)
+    xq_now = feature_fn.closest_locations(np.array([[START_POINT1, START_POINT2]]))
     horizon = HORIZON
     h_steps = H_STEPS
 
     if GREEDY or (METHOD == 'RANDOM') or (METHOD == 'FIXED'):
         horizon /= h_steps
-        h_steps /= h_steps 
+        h_steps /= h_steps
 
-    if (METHOD == 'LMDE') or (METHOD == 'MCPIE') or (METHOD == 'AMPIE'):
-        # theta_bound = np.deg2rad(20)
-        # theta_bounds = np.linspace(theta_bound, np.deg2rad(60), num = h_steps) 
-        theta_bound = np.deg2rad(90)
-        theta_bounds = theta_bound * np.ones(h_steps)
-        theta_stack_low  = -theta_bounds
-        theta_stack_high = +theta_bounds
-        xtol_rel = 1e-2
-        ftol_rel = 1e-3
-    else:
-        theta_bound = np.deg2rad(270)
-        theta_bounds = theta_bound * np.ones(h_steps)
-        theta_stack_low  = -theta_bounds
-        theta_stack_high = +theta_bounds
-        xtol_rel = 1e-1
-        ftol_rel = 1e-1
+    theta_bound = np.deg2rad(45)
+    theta_bounds = theta_bound * np.ones(h_steps)
+    theta_stack_low  = -theta_bounds
+    theta_stack_high = +theta_bounds
+
+    xtol_rel = 1e-2
+    ftol_rel = 1e-3
     ctol = 1e-10
-
-    if GREEDY:
-        theta_bound = np.deg2rad(60)
-        theta_bounds = theta_bound * np.ones(h_steps)
-
-    if (METHOD == 'MCPIE') or (METHOD == 'AMPIE'):
-        xtol_rel = 1e-1
-        ftol_rel = 1e-1        
 
     theta_stack_init = np.deg2rad(0) * np.ones(h_steps)
     theta_stack_init[0] = np.deg2rad(180)
-    theta_stack_low[0] = 0.0
-    theta_stack_high[0] = 2 * np.pi
+    theta_stack_low[0] = np.deg2rad(0)
+    theta_stack_high[0] = np.deg2rad(360)
     r = horizon/h_steps
     choice_walltime = 1500.0
 
@@ -624,7 +585,6 @@ def main():
     fig2 = plt.figure(figsize = (19.2, 10.8))
     fig3 = plt.figure(figsize = (19.2, 10.8))
     fig4 = plt.figure(figsize = (19.2, 10.8))
-    fig5 = plt.figure(figsize = (19.2, 10.8))
 
     # Start exploring
     i_trials = 0
@@ -870,7 +830,7 @@ def main():
         """ True Entropy Map """
 
         # Prepare Figure 3
-        plt.figure(fig3.number)
+        plt.figure(fig2.number)
         plt.clf()
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
@@ -907,7 +867,7 @@ def main():
             head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
         # Save the plot
-        fig3.tight_layout()
+        fig2.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%smie%d.png' 
             % (full_directory, i_trials + 1))
@@ -922,7 +882,7 @@ def main():
         sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
 
         # Save the plot
-        fig3.tight_layout()
+        fig2.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%smie_propose%d.png' 
             % (full_directory, i_trials + 1))
@@ -933,7 +893,7 @@ def main():
         """ Class Prediction Map """
 
         # Prepare Figure 4
-        plt.figure(fig4.number)
+        plt.figure(fig3.number)
         plt.clf()
         sea.vis.scatter(
             Xq[:, 0], Xq[:, 1], 
@@ -972,7 +932,7 @@ def main():
             head_width = r/4, head_length = r/4, fc = 'k', ec = 'k')
 
         # Save the plot
-        fig4.tight_layout()
+        fig3.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%spred%d.png' 
             % (full_directory, i_trials + 1))
@@ -988,7 +948,7 @@ def main():
         sea.vis.plot(xq1_path, xq2_path, c = 'k', linewidth = 2)
 
         # Save the plot
-        fig4.tight_layout()
+        fig3.tight_layout()
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.savefig('%spred_propose%d.png' 
             % (full_directory, i_trials + 1))
@@ -997,7 +957,7 @@ def main():
                 % (full_directory, i_trials + 1))
 
         # Prepare Figure 5
-        plt.figure(fig5.number)
+        plt.figure(fig4.number)
         plt.clf()
         fontsize = 24
         ticksize = 14
@@ -1036,7 +996,7 @@ def main():
             tick.label.set_fontsize(ticksize) 
 
         # Save the plot
-        fig5.tight_layout()
+        fig4.tight_layout()
         plt.savefig('%shistory%d.png' 
             % (full_directory, i_trials + 1))
         logging.info('Plotted and Saved Iteration')
