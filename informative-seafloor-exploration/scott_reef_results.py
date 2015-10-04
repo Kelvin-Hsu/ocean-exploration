@@ -63,8 +63,8 @@ def main():
 
         data00 = obtain_data(directory00, {'index': 0, 'label': 'Location 1 with LMDE', 'steps': 200})
         data01 = obtain_data(directory01, {'index': 0, 'label': 'Location 2 with LMDE', 'steps': 200, 'linestyle': 'dashed'})
-        data10 = obtain_data(directory10, {'index': 1, 'label': 'Location 1 with GREEDY', 'steps': 200})
-        data11 = obtain_data(directory11, {'index': 1, 'label': 'Location 2 with GREEDY', 'steps': 200, 'linestyle': 'dashed'})
+        data10 = obtain_data(directory10, {'index': 1, 'label': 'Location 1 with GREEDY-PIE', 'steps': 200})
+        data11 = obtain_data(directory11, {'index': 1, 'label': 'Location 2 with GREEDY-PIE', 'steps': 200, 'linestyle': 'dashed'})
         data20 = obtain_data(directory20, {'index': 2, 'label': 'Location 1 with RANDOM', 'steps': 200})
         data21 = obtain_data(directory21, {'index': 2, 'label': 'Location 2 with RANDOM', 'steps': 200, 'linestyle': 'dashed'})
         data30 = obtain_data(directory30, {'index': 3, 'label': 'Location 1 with MCPIE', 'steps': 200})
@@ -144,10 +144,10 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
 
     plt.rc_context(params)
 
-    fig = plt.figure(figsize = (20, 20))
-    ax1 = fig.add_subplot(311)
-    ax2 = fig.add_subplot(312)
-    ax3 = fig.add_subplot(313)
+    fig = plt.figure(figsize = (20, 15))
+    ax1 = fig.add_subplot(211)
+    # ax2 = fig.add_subplot(312)
+    ax3 = fig.add_subplot(212)
 
     for arg in args:
 
@@ -170,19 +170,19 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
 
         ax1.plot(iterations_plt, miss_ratio_plt, c = color, label = label, linewidth = 2.0, linestyle = linestyle)
         ax1.set_ylim((0, 50))
-        ax2.plot(iterations_plt, yq_lde_plt, c = color, label = label, linewidth = 2.0, linestyle = linestyle)
+        # ax2.plot(iterations_plt, yq_lde_plt, c = color, label = label, linewidth = 2.0, linestyle = linestyle)
         ax3.plot(iterations_plt, yq_mie_plt, c = color, label = label, linewidth = 2.0, linestyle = linestyle)
 
     ax1.legend(bbox_to_anchor = (0., 0.0, 1., .05), loc = 3,
            ncol = ncol, borderaxespad = 0., fontsize = label_font_size)
 
-    ax1.set_title('Percentage of Prediction Misses', fontsize = fontsize)
+    ax1.set_title('Percentage of Map Prediction Misses', fontsize = fontsize)
     ax1.set_ylabel('Misses (\%)', fontsize = fontsize)
     ax1.set_xticklabels( () )
 
-    ax2.set_title('Average Marginalised Linearised Model Differential Entropy', fontsize = fontsize)
-    ax2.set_ylabel('Entropy (nats)', fontsize = fontsize)
-    ax2.set_xticklabels( () )
+    # ax2.set_title('Average Marginalised L. Model Differential Entropy', fontsize = fontsize)
+    # ax2.set_ylabel('Entropy (nats)', fontsize = fontsize)
+    # ax2.set_xticklabels( () )
 
     ax3.set_title('Average Marginalised Prediction Information Entropy', fontsize = fontsize)
     ax3.set_ylabel('Entropy (nats)', fontsize = fontsize)
@@ -191,8 +191,8 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
 
     for tick in ax1.yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size)
-    for tick in ax2.yaxis.get_major_ticks():
-        tick.label.set_fontsize(axis_tick_font_size)
+    # for tick in ax2.yaxis.get_major_ticks():
+    #     tick.label.set_fontsize(axis_tick_font_size)
     for tick in ax3.xaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size)
     for tick in ax3.yaxis.get_major_ticks():

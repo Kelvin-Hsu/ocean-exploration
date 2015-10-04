@@ -636,7 +636,7 @@
 				\begin{center}
 					\begin{tabular}{ l c c c c c c c }
 					\hline
-					Policy & LMDE & MCPIE & AMPIE & GREEDY & RANDOM & LINES & SPIRAL \\
+					Policy & LMDE & MCPIE & AMPIE & GREEDY-PIE & RANDOM & LINES & SPIRAL \\
 					\hline
 					Location 1 & 16.44 & 22.99 & 32.11 & 43.86 & 34.87 & 20.40 & 33.74 \\
 					Location 2 & 20.38 & 27.01 & 40.11 & 37.63 & 35.68 & 25.05 & 43.16 \\
@@ -675,25 +675,55 @@
 				
 		\subsection{Serial Mission Planning for Seafloor Exploration}
 
+
+			\begin{figure}[!htbp]
+			\centering
+			  \subfigure{\label{Figure:SerialMissionsSetup:Training}	\includegraphics[width=0.48\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/figure1.eps}}
+			  \subfigure{\label{Figure:SerialMissionsSetup:InitialMap}	\includegraphics[width=0.48\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/figure8.eps}}
+			\caption{Serial Missions Setup}
+			\label{Figure:SerialMissionsSetup}
+			\end{figure}
+			
 			\begin{figure}[!htbp]
 			\centering
 				\includegraphics[width = 0.8\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred199.eps}
-			\caption{}
-			\label{}
+			\caption{Best Final Prediction Map through LMDE acquisition}
+			\label{Figure:SerialMissionBestMap}
 			\end{figure}
 	
 			\begin{figure}[!htbp]
 			\centering
-			  \subfigure[LMDE Acquisition]{\label{Figure:SerialOptimalPaths:LMDE} 
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/mie_propose1.eps}
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/mie_propose100.eps}
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/mie_propose200.eps}}
-			  \subfigure[MCPIE Acquisition]{\label{Figure:SerialOptimalPaths:MCPIE}	
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/mie_propose1.eps}
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/mie_propose100.eps}
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/mie_propose200.eps}}
+			  \subfigure[LMDE Acquisition (1\%, 5\%, and 25\% of the journey)]{\label{Figure:SerialOptimalPaths:LMDE1} 
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose1.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose10.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose50.eps}}
+			  \subfigure[LMDE Acquisition (50\%, 75\%, and 100\% of the journey)]{\label{Figure:SerialOptimalPaths:LMDE2} 
+				\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose100.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose150.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose199.eps}}
 			\caption{Scott Reef: Exploration paths}
-			\label{Figure:SerialOptimalPaths}
+			\label{Figure:SerialOptimalPaths:LMDE}
 			\end{figure}
-					
+
+			\begin{figure}[!htbp]
+			\centering
+			  \subfigure[MCPIE Acquisition (1\%, 5\%, and 25\% of the journey)]{\label{Figure:SerialOptimalPaths:MCPIE1}	
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/pred_propose1.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/pred_propose10.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/pred_propose50.eps}}
+			  \subfigure[MCPIE Acquisition (50\%, 75\%, and 100\% of the journey)]{\label{Figure:SerialOptimalPaths:MCPIE2} 
+				\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/pred_propose100.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/pred_propose150.eps}
+			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/pred_propose199.eps}}
+			\caption{Scott Reef: Exploration paths}
+			\label{Figure:SerialOptimalPaths:MCPIE}
+			\end{figure}
+
+			\begin{figure}[!htbp]
+			\centering
+				\includegraphics[width = 0.6\linewidth]{Figures/serial_compare_methods.eps}
+			\caption{Comparison of informative path planning policies}
+			\label{Figure:SerialCompareMethods}
+			\end{figure}
+								
 	\section{Summary}
