@@ -8,6 +8,92 @@ import logging
 import time
 from scipy.spatial.distance import cdist
 
+def optimal_difference_path(theta_stack_init, r, x, memory, feature_fn, white_params,
+    Fs, Fw, y, inference_learn, turn_limit = np.deg2rad(30), bound = 100,
+    theta_stack_low = None, theta_stack_high = None,
+    walltime = None, xtol_rel = 0, ftol_rel = 0, ctol = 1e-6):
+
+    def objective(theta_stack, grad):
+        return difference_acquisition(theta_stack, r, x, memory, feature_fn, white_params, Fs, Fw, y, inference_learn)
+
+    # Define the path constraint
+    def constraint(result, theta_stack, grad):
+        result = path_bounds_model(theta_stack, r, x, feature_fn.Xq_ref, bound)
+
+    # Obtain the number of parameters involvevd
+    n_params = theta_stack_init.shape[0]
+
+    # Prepare for global or local optimisation according to specification
+    opt = nlopt.opt(nlopt.LN_COBYLA , n_params)
+
+    # Set lower and upper bound
+    if theta_stack_low is not None:
+        theta_stack_low[0] = theta_stack_init[0] - turn_limit
+        opt.set_lower_bounds(theta_stack_low)
+    if theta_stack_high is not None:
+        theta_stack_high[0] = theta_stack_init[0] + turn_limit
+        opt.set_upper_bounds(theta_stack_high)
+
+    # Set tolerances
+    if xtol_rel > 0:
+        opt.set_xtol_rel(xtol_rel)
+    if ftol_rel > 0:
+        opt.set_ftol_rel(ftol_rel)
+    
+    # Set maximum optimisation time
+    opt.set_maxtime(walltime)
+
+    # Set the objective and constraint and optimise!
+    opt.set_max_objective(objective)
+    opt.add_inequality_mconstraint(constraint, ctol * np.ones(n_params))
+    theta_stack_opt = opt.optimize(theta_stack_init)
+    entropy_opt = opt.last_optimum_value()
+
+    # Compute optimal path
+    x_path_opt = forward_path_model(theta_stack_opt, r, x)
+
+    # Replace the optimal coordinates with the closest query locations
+    x_path_opt = feature_fn.closest_locations(x_path_opt)
+
+    # Approximate the corresponding path angles
+    theta_stack_opt = backward_path_model(x_path_opt, x)
+
+    # Return path coordinates, path angles, and path entropy
+    return x_path_opt, theta_stack_opt, entropy_opt
+
+def difference_acquisition(theta_stack, r, x, memory, feature_fn, white_params, Fs, Fw, y, inference_learn):
+
+    Xq = forward_path_model(theta_stack, r, x)
+    Fq = feature_fn.extract(Xq)
+    Fqw = feature_fn.whiten(Fq, white_params)
+    yq = gp.classifier.predict(Fqw, memory)
+
+    logging.info('Computing difference average marginalised prediction information entropy...')
+    start_time = time.clock()
+
+    memory_new = inference_learn(np.concatenate((Fw, Fqw), axis = 0), np.append(y, yq))
+
+    Fsw = feature_fn.whiten(Fs, white_params)
+
+    predictors_s = gp.classifier.query(memory, Fsw)
+    ys_exp = gp.classifier.expectance(memory, predictors_s)
+    ys_cov = gp.classifier.covariance(memory, predictors_s)
+    entropy_s_before = average_marginalised_prediction_information_entropy(ys_exp, ys_cov, memory)
+
+    predictors_s = gp.classifier.query(memory_new, Fsw)
+    ys_exp = gp.classifier.expectance(memory_new, predictors_s)
+    ys_cov = gp.classifier.covariance(memory_new, predictors_s)
+    entropy_s_after = average_marginalised_prediction_information_entropy(ys_exp, ys_cov, memory_new)
+
+    entropy = entropy_s_before - entropy_s_after
+
+    logging.debug('Difference average marginalised prediction information entropy computational time: %.8f' % 
+        (time.clock() - start_time))
+    logging.debug('Angles (deg): {0} | Entropy: {1}'.format(
+        np.rad2deg(theta_stack), entropy))
+
+    return entropy
+
 def optimal_path(theta_stack_init, r, x, memory, feature_fn, white_params,
     objective = 'LMDE', turn_limit = np.deg2rad(30), bound = 100,
     theta_stack_low = None, theta_stack_high = None,

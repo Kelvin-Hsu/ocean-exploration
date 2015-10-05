@@ -34,7 +34,7 @@ def main():
     LONG_SCALE_ONLY = sea.io.parse('-long-scale', False)
     BATCH_START = sea.io.parse('-batch-start', 'on')
 
-    MISSION_LENGTH = sea.io.parse('-mission-length', 0)
+    MISSION_LENGTH = sea.io.parse('-mission-length', 40)
     METHOD = sea.io.parse('-method', 'LMDE')
     GREEDY = sea.io.parse('-greedy', False)
     N_TRIALS = sea.io.parse('-ntrials', 200)
@@ -55,6 +55,9 @@ def main():
     TICKSIZE = 24
     SAVE_TRIALS = 25
 
+    UNIQUE = True
+    U_SEED = 200
+    
     """Model Options"""
     SAVE_RESULTS = True
 
@@ -230,14 +233,9 @@ def main():
             t_seed = T_SEED, q_seed = Q_SEED, 
             features = i_features, unique_labels = UNIQUE, unique_seed = U_SEED)
 
-    print(F)
-    ii = np.argsort(F[:, 0])
-    print(F[ii, 0], y[ii].astype(int))
-    print([y_names_all[i] for i in y[ii].astype(int)])
-    return
-
     start_indices = np.random.choice(np.arange(Xq.shape[0]), 
                             size = 2500, replace = False)
+    Fs = F[start_indices]
 
     yq_truth = sea.io.load_ground_truth(filename_truth, 
         assert_query_seed = Q_SEED)
@@ -541,10 +539,6 @@ def main():
     horizon = HORIZON
     h_steps = H_STEPS
 
-    if GREEDY or (METHOD == 'RANDOM') or (METHOD == 'FIXED'):
-        horizon /= h_steps
-        h_steps /= h_steps
-
     theta_bound = np.deg2rad(40)
     theta_bounds = theta_bound * np.ones(h_steps)
     theta_stack_low  = -theta_bounds
@@ -601,61 +595,25 @@ def main():
     entropy_opt_array = np.nan * np.ones(n_trials)
     yq_esd_mean_array = np.nan * np.ones(n_trials)
 
-    if METHOD == 'FIXED':
-        if FIXED_TYPE == 'curves':
-            turns = np.random.normal(loc = 0, scale = np.deg2rad(30), size = n_trials)
-        elif FIXED_TYPE == 'lines':
-            turns = np.zeros(n_trials)
-            n_turns = 5
-            turns[(np.arange(n_turns) * n_trials / n_turns).astype(int)] = np.random.normal(loc = 0, scale = np.deg2rad(30), size = n_turns)
-        elif FIXED_TYPE == 'spiral':
-            if MISSION_LENGTH > 0:
-                turns = np.array([np.linspace(np.deg2rad(30), np.deg2rad(0), num = MISSION_LENGTH) for i in np.arange(n_trials/MISSION_LENGTH)]).flatten()
-            else:
-                turns = np.linspace(np.deg2rad(30), np.deg2rad(0), num = n_trials)
-        else:
-            raise TypeError('No such FIXED method as %s' % METHOD)
 
-    while i_trials < n_trials:
+    inference_learn = lambda Fw_new, y_new: gp.classifier.learn(Fw_new, y_new, 
+                        kerneldef, responsefunction, batch_config, 
+                        multimethod = multimethod, approxmethod = approxmethod,
+                        train = True, ftol = 1e-6)
+
+    while i_trials < n_trials/MISSION_LENGTH:
 
         if MISSION_LENGTH > 0:
             if ((i_trials + 1) % MISSION_LENGTH == 0):
 
-                if METHOD in ['LMDE', 'MCPIE', 'AMPIE']:
-                    acquisition_name = METHOD
+                xq_now = sea.explore.compute_new_starting_location(start_indices, Xq, Fqw, 
+                        learned_classifier, acquisition = 'AMPIE')
 
-                    xq_now = sea.explore.compute_new_starting_location(start_indices, Xq, Fqw, 
-                        learned_classifier, acquisition = acquisition_name)
-
-                else:
-                    
-                    xq_now = Xq[np.random.choice(start_indices, size = 1, replace = False)]
-
-
-        if METHOD == 'FIXED':
-            theta_stack_init[0] += turns[i_trials]
-            theta_stack_init[0] = np.mod(theta_stack_init[0], 2 * np.pi)
-
-        # Propose a path
-        if m_step <= k_step:
-            if METHOD == 'RANDOM':
+                Fw_now, white_params = feature_fn(X_now)
                 xq_path, theta_stack_opt, entropy_opt = \
-                    sea.explore.random_path(theta_stack_init, r, xq_now[-1], 
-                        learned_classifier, feature_fn, white_params, 
-                        bound = bound, 
-                        chaos = CHAOS)
-            elif METHOD == 'FIXED':
-                xq_path, theta_stack_opt, entropy_opt = \
-                    sea.explore.fixed_path(theta_stack_init, r, xq_now[-1], 
-                        learned_classifier, feature_fn, white_params,
-                        bound = bound, 
-                        current_step = i_trials, 
-                        turns = turns)
-            else:
-                xq_path, theta_stack_opt, entropy_opt = \
-                    sea.explore.optimal_path(theta_stack_init, r, xq_now[-1],
-                        learned_classifier, feature_fn, white_params,
-                        objective = METHOD,
+                    optimal_difference_path(theta_stack_init, r, x, memory, 
+                        feature_fn, white_params,
+                        Fs, Fw_now, y_now, inference_learn,
                         turn_limit = theta_bound,
                         bound = bound,
                         theta_stack_low = theta_stack_low,
@@ -663,23 +621,10 @@ def main():
                         walltime = choice_walltime,
                         xtol_rel = xtol_rel,
                         ftol_rel = ftol_rel,
-                        ctol = ctol,
-                        globalopt = False,
-                        n_draws = N_DRAWS,
-                        depth_penalty = DEPTH_PENALTY)
-            logging.info('Optimal Joint Entropy: %.5f' % entropy_opt)
-
-            m_step = M_STEP
-            logging.info('Taking %d steps' % m_step)
-        else:
-            m_step -= 1
-            theta_stack_opt = theta_stack_init.copy()
-            xq_path = sea.explore.forward_path_model(theta_stack_init, 
-                r, xq_now[-1])
-            logging.info('%d steps left' % m_step)
+                        ctol = ctol)
 
         # Path steps into the proposed path
-        xq_now = xq_path[:k_step]
+        xq_now = xq_path
 
         # Initialise the next path angles
         theta_stack_init = sea.explore.shift_path(theta_stack_opt, 
@@ -706,21 +651,10 @@ def main():
         logging.info('Learning Classifier...')
         batch_config = \
             gp.classifier.batch_start(optimiser_config, learned_classifier)
-        try:
-            learned_classifier = gp.classifier.learn(Fw_now, y_now, 
+        learned_classifier = gp.classifier.learn(Fw_now, y_now, 
                 kerneldef, responsefunction, batch_config, 
                 multimethod = multimethod, approxmethod = approxmethod,
                 train = True, ftol = 1e-6)
-        except Exception as e:
-            logging.warning('Training failed: {0}'.format(e))
-            try:
-                learned_classifier = gp.classifier.learn(Fw_now, y_now, 
-                    kerneldef, responsefunction, batch_config, 
-                    multimethod = multimethod, approxmethod = approxmethod,
-                    train = False, ftol = 1e-6)
-            except Exception as e:
-                logging.warning('Learning also failed: {0}'.format(e))
-                pass    
         logging.info('Finished Learning')
 
         # This is the finite horizon optimal route

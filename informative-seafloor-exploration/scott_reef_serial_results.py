@@ -22,15 +22,15 @@ def main():
         directory5 = main_directory + 'missions_new_20151003_131955__t17_q100000_ts250_qs500_method_FIXED_FTYPE_lines_start375000.08440000.0_hsteps30_horizon5000.0/'
         directory6 = main_directory + 'missions_new_20151003_234114__t17_q100000_ts250_qs500_method_FIXED_FTYPE_spiral_start375000.08440000.0_hsteps30_horizon5000.0/'
 
-        data0 = obtain_data(directory0, {'index': 0, 'label': 'LMDE Acquisition', 'steps': 200})
-        data1 = obtain_data(directory1, {'index': 1, 'label': 'MCPIE Acquisition', 'steps': 200})
-        data2 = obtain_data(directory2, {'index': 2, 'label': 'AMPIE Acquisition', 'steps': 200})
-        data3 = obtain_data(directory3, {'index': 3, 'label': 'GREEDY-PIE Acquisition', 'steps': 200})
-        data4 = obtain_data(directory4, {'index': 4, 'label': 'RANDOM Exploration', 'steps': 200})
-        data5 = obtain_data(directory5, {'index': 5, 'label': 'LINES Exploration', 'steps': 200})
-        data6 = obtain_data(directory6, {'index': 6, 'label': 'SPIRAL Exploration', 'steps': 200})
+        data0 = obtain_data(directory0, {'index': 0, 'label': 'LMDE Acquisition', 'steps': 199})
+        data1 = obtain_data(directory1, {'index': 1, 'label': 'MCPIE Acquisition', 'steps': 199})
+        data2 = obtain_data(directory2, {'index': 2, 'label': 'AMPIE Acquisition', 'steps': 199})
+        data3 = obtain_data(directory3, {'index': 3, 'label': 'GREEDY-PIE Acquisition', 'steps': 199})
+        data4 = obtain_data(directory4, {'index': 4, 'label': 'RANDOM Exploration', 'steps': 199})
+        data5 = obtain_data(directory5, {'index': 5, 'label': 'LINES Exploration', 'steps': 199})
+        data6 = obtain_data(directory6, {'index': 6, 'label': 'SPIRAL Exploration', 'steps': 199})
 
-        plot_data(main_directory, data0, data1, data2, data3, data4, data5, data6, ncolors = 7, descript = 'methods', label_font_size = 18)
+        plot_data(main_directory, data0, data1, data2, data3, data4, data5, data6, ncolors = 7, descript = 'methods', label_font_size = 22)
 
         logging.info('Compared methods')
         rank_data(data0, data1, data2, data3, data4, data5, data6)
@@ -80,8 +80,8 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
     L = 0.0
     colors = cm.rainbow(np.linspace(0 + L, 1 - L, num = ncolors))
 
-    fontsize = 50
-    axis_tick_font_size = 24
+    fontsize = 64
+    axis_tick_font_size = 30
     
     params = {
         'backend': 'ps',
@@ -100,6 +100,15 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
     ax1 = fig.add_subplot(211)
     # ax2 = fig.add_subplot(312)
     ax3 = fig.add_subplot(212)
+
+    mission_starts = np.array([40, 80, 120, 160, 199]) * (5000.0/30.0)
+    [ax1.axvline(x, color = 'k', linestyle = '--') for x in mission_starts]
+    [ax3.axvline(x, color = 'k', linestyle = '--') for x in mission_starts]
+
+    percentages = np.arange(0, 100, 10)
+    [ax1.axhline(y, color = 'k', linestyle = '--') for y in percentages]
+    entropies = np.arange(1.0, 2.8, 0.2)
+    [ax3.axhline(y, color = 'k', linestyle = '--') for y in entropies]
 
     for arg in args:
 
@@ -136,7 +145,7 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
     # ax2.set_ylabel('Entropy (nats)', fontsize = fontsize)
     # ax2.set_xticklabels( () )
 
-    ax3.set_title('Average Marginalised Prediction Information Entropy', fontsize = fontsize)
+    ax3.set_title('Avg. Marg. Prediction Information Entropy', fontsize = fontsize)
     ax3.set_ylabel('Entropy (nats)', fontsize = fontsize)
     ax3.get_xaxis().get_major_formatter().set_useOffset(False)
     ax3.set_xlabel('Distance Traveled (km)', fontsize = fontsize)

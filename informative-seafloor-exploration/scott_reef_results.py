@@ -26,7 +26,7 @@ def main():
         data3 = obtain_data(directory3, {'index': 3, 'label': 'Location 4', 'steps': 200})
         data4 = obtain_data(directory3, {'index': 4, 'label': 'Location 5', 'steps': 200})
 
-        plot_data(main_directory, data0, data1, data2, data3, data4, ncolors = 5, descript = 'locations', label_font_size = 24, ncol = 5)
+        plot_data(main_directory, data0, data1, data2, data3, data4, ncolors = 5, descript = 'locations', label_font_size = 28, ncol = 5)
         logging.info('Compared starting locations')
 
     # Comparing different horizons
@@ -40,7 +40,7 @@ def main():
         data1 = obtain_data(directory1, {'index': 1, 'label': 'Horizon: 7500 m', 'steps': 200})
         data2 = obtain_data(directory2, {'index': 2, 'label': 'Horizon: 6000 m', 'steps': 200})
 
-        plot_data(main_directory, data0, data1, data2, ncolors = 3, descript = 'horizons', label_font_size = 30)
+        plot_data(main_directory, data0, data1, data2, ncolors = 3, descript = 'horizons', label_font_size = 36)
         logging.info('Compared horizons')
 
     # Compare with other methods
@@ -76,8 +76,8 @@ def main():
         data60 = obtain_data(directory60, {'index': 6, 'label': 'Location 1 with LINES', 'steps': 200})
         data61 = obtain_data(directory61, {'index': 6, 'label': 'Location 2 with LINES', 'steps': 200, 'linestyle': 'dashed'})
 
-        plot_data(main_directory, data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, data60, data61, ncolors = 7, descript = 'methods', label_font_size = 18)
-        plot_data(main_directory, data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, data60, data61, ncolors = 7, descript = 'methods', label_font_size = 18)
+        plot_data(main_directory, data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, data60, data61, ncolors = 7, descript = 'methods', label_font_size = 20.5)
+
         logging.info('Compared methods')
         rank_data(data00, data01, data10, data11, data20, data21, data30, data31, data40, data41, data50, data51, data60, data61)
 
@@ -128,8 +128,8 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
     L = 0.0
     colors = cm.rainbow(np.linspace(0 + L, 1 - L, num = ncolors))
 
-    fontsize = 50
-    axis_tick_font_size = 24
+    fontsize = 64
+    axis_tick_font_size = 30
     
     params = {
         'backend': 'ps',
@@ -148,6 +148,15 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
     ax1 = fig.add_subplot(211)
     # ax2 = fig.add_subplot(312)
     ax3 = fig.add_subplot(212)
+
+    mission_starts = np.array([40, 80, 120, 160, 200]) * (5000.0/30.0)
+    [ax1.axvline(x, color = 'k', linestyle = '--') for x in mission_starts]
+    [ax3.axvline(x, color = 'k', linestyle = '--') for x in mission_starts]
+
+    percentages = np.arange(0, 100, 10)
+    [ax1.axhline(y, color = 'k', linestyle = '--') for y in percentages]
+    entropies = np.arange(1.4, 2.2, 0.2)
+    [ax3.axhline(y, color = 'k', linestyle = '--') for y in entropies]
 
     for arg in args:
 
@@ -184,7 +193,7 @@ def plot_data(directory, *args, ncolors = 1, descript = '', label_font_size = 24
     # ax2.set_ylabel('Entropy (nats)', fontsize = fontsize)
     # ax2.set_xticklabels( () )
 
-    ax3.set_title('Average Marginalised Prediction Information Entropy', fontsize = fontsize)
+    ax3.set_title('Avg. Marg. Prediction Information Entropy', fontsize = fontsize)
     ax3.set_ylabel('Entropy (nats)', fontsize = fontsize)
     ax3.get_xaxis().get_major_formatter().set_useOffset(False)
     ax3.set_xlabel('Distance Traveled (km)', fontsize = fontsize)
