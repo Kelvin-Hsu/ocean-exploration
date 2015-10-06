@@ -26,7 +26,7 @@
 		\subsection{Binary Classification}
 		\label{InformativeSeafloorExploration:MCPIE:Binary}
 		
-			Suppose a Gaussian process classifier has been trained under Laplace approximation with respect to a training set $\mathcal{D} = \{X, \bvec{y}\} = \{[ \bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]^{T}\}$ with $n$ training points. It is known that the latent function $f(\bvec{x})$ is distributed as a GP with a particular predictive mean $m(\bvec{x})$ and covariance $k(\bvec{x}, \bvec{x}')$ once conditioned on the training data \eqref{Equation:PredictiveLatentBinaryGP}. Note that again this section will omit explicitly notating the training data and query data that was conditioned upon. \begin{equation}
+			Suppose a Gaussian process classifier has been trained under Laplace approximation with respect to a training set $\mathcal{D} = \{X, \bvec{y}\} = \{[ \bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]^{T}\}$ with $n$ training points. It is known that the latent function $f(\bvec{x})$ is distributed as a GP with a particular predictive mean $m(\bvec{x})$ and covariance $k(\bvec{x}, \bvec{x}')$ once conditioned on the training data \eqref{Equation:PredictiveLatentBinaryGP}. Note that again this chapter will omit explicitly notating the training data and query data that was conditioned upon, as well as the learned hyperparameters $\vec{\uptheta}$, unless otherwise stated. \begin{equation}
 				f(\bvec{x}) \sim \mathcal{GP}(m(\bvec{x}), k(\bvec{x}, \bvec{x}'))
 			\label{Equation:PredictiveLatentBinaryGP}
 			\end{equation}
@@ -79,34 +79,69 @@
 		\subsection{Multiclass Classification}
 		\label{InformativeSeafloorExploration:MCPIE:Multiclass}
 		
-			The derivation in the multiclass case is similar to the binary case. Specifically, since ${^{s}}\bvec{y}^{\star} \in \{1, 2, \dots, n_{C}\}^{n_{s}}$ it suffices to replace the sampling step \eqref{Equation:MonteCarloSamplingBinaryClassifier} with \eqref{Equation:MonteCarloSamplingMulticlassClassifier}.
+			The derivation in the multiclass case is similar to the binary case. Specifically, since ${^{s}}\bvec{y}^{\star} \in \{1, 2, \dots, n_{C}\}^{n_{s}}$ it suffices to replace the sampling step \eqref{Equation:MonteCarloSamplingBinaryClassifier} with \eqref{Equation:MonteCarloSamplingMulticlassClassifierOVA} in the OVA case or \eqref{Equation:MonteCarloSamplingMulticlassClassifierAVA} in the AVA case, and apply \eqref{Equation:UniqueIndexSet}, \eqref{Equation:EstimatedProbability}, and \eqref{Equation:MCPIE} as before.
 			
-			The technique is first developed for an OVA multiclass classifier (see section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}), and then a AVA multiclass classifier (see section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}). 
+			The technique is first developed for an OVA multiclass classifier (see section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}), and then for an AVA multiclass classifier (see section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}) through reducing the AVA form into an OVA form. 
 			
-			Analogous to \eqref{Equation:PredictiveLatentBinaryGP}, for $c$ classes, there are $n_{C}$ latent functions $\{f^{1}(x), f^{2}(x), \dots, f^{n_{C}}(x)\}$ corresponding to each class \eqref{Equation:PredictiveLatentMulticlassGP}. \begin{equation}
-				f^{c}(\bvec{x}) \sim \mathcal{GP}(m^{c}(\bvec{x}), k^{c}(\bvec{x}, \bvec{x}')) \qquad \forall c \in I_{n_{C}}
-			\label{Equation:PredictiveLatentMulticlassGP}
-			\end{equation}
-						
-			Here the superscript $c$ is used to index the classes. The latent vector $\bvec{f}_{i} := \{f^{c}_{i}\}_{c \in I_{n_{C}}}$ represents the collection of $n_{C}$ latent values across classes at the query point $i \in I_{n^{\star}}$, and is distinct from $\bvec{f}^{c} := \{f^{c}_{i}\}_{i \in I_{n^{\star}}}$ which represents the collection of $n^{\star}$ latent values across query points for class $c \in I_{n_{C}}$.
+			\subsubsection{One Versus All Classifier}
+			\label{InformativeSeafloorExploration:MCPIE:Multiclass:OVA}
 			
-			Again, by definition of a GP, each ${\bvec{f}^{c}}^{\star}$ is multivariate Gaussian distributed with corresponding means ${\mu^{c}}^{\star}_{i} = m^{c}(\bvec{x}^{\star}_{i})$ and covariances ${\Sigma^{c}}^{\star}_{ij} = k^{c}(\bvec{x}^{\star}_{i}, \bvec{x}^{\star}_{j})$ \eqref{Equation:MulticlassPredictiveGaussianDistribution}. \begin{equation}
-				{\bvec{f}^{c}}^{\star} = [{f^{c}}^{\star}_{1}, {f^{c}}^{\star}_{2}, \dots, {f^{c}}^{\star}_{n^{\star}}]^{T} \sim \mathcal{N}({\vec{\upmu}^{c}}^{\star}, {\Sigma^{c}}^{\star})
-			\label{Equation:MulticlassPredictiveGaussianDistribution}
-			\end{equation}
+				Analogous to \eqref{Equation:PredictiveLatentBinaryGP}, for $c$ classes, there are $n_{C}$ latent functions $\{f^{1}(x), f^{2}(x), \dots, f^{n_{C}}(x)\}$ corresponding to each class \eqref{Equation:PredictiveLatentMulticlassOVA}. \begin{equation}
+					f^{c}(\bvec{x}) \sim \mathcal{GP}(m^{c}(\bvec{x}), k^{c}(\bvec{x}, \bvec{x}')) \qquad \forall c \in I_{n_{C}}
+				\label{Equation:PredictiveLatentMulticlassOVA}
+				\end{equation}
+							
+				Here the superscript $c$ is used to index the classes. The latent vector $\bvec{f}_{i} := \{f^{c}_{i}\}_{c \in I_{n_{C}}}$ represents the collection of $n_{C}$ latent values across classes at the query point $i \in I_{n^{\star}}$, and is distinct from $\bvec{f}^{c} := \{f^{c}_{i}\}_{i \in I_{n^{\star}}}$ which represents the collection of $n^{\star}$ latent values across query points for class $c \in I_{n_{C}}$.
+				
+				Again, by definition of a GP, each ${\bvec{f}^{c}}^{\star}$ is multivariate Gaussian distributed with corresponding means ${\mu^{c}}^{\star}_{i} = m^{c}(\bvec{x}^{\star}_{i})$ and covariances ${\Sigma^{c}}^{\star}_{ij} = k^{c}(\bvec{x}^{\star}_{i}, \bvec{x}^{\star}_{j})$ \eqref{Equation:MulticlassPredictiveGaussianDistributionOVA}. \begin{equation}
+					{\bvec{f}^{c}}^{\star} = [{f^{c}_{1}}^{\star}, {f^{c}_{2}}^{\star}, \dots, {f^{c}_{n^{\star}}}^{\star}]^{T} \sim \mathcal{N}({\vec{\upmu}^{c}}^{\star}, {\Sigma^{c}}^{\star})
+				\label{Equation:MulticlassPredictiveGaussianDistributionOVA}
+				\end{equation}
+				
+				For each class $c$, a sample ${^{s}}{\bvec{f}^{c}}^{\star}$ is drawn from ${\bvec{f}^{c}}^{\star} \sim \mathcal{N}({\vec{\upmu}^{c}}^{\star}, {\Sigma^{c}}^{\star})$, where $s \in I_{n_{S}}$. The corresponding sampled target labels are then found by \eqref{Equation:MonteCarloSamplingMulticlassClassifierOVA}. \begin{equation}
+					\begin{aligned}
+						{^{s}}\bvec{y}^{\star} = \bvec{\mathds{M}}_{n_{C}}({^{s}}{\bvec{f}^{1}}^{\star}, {^{s}}{\bvec{f}^{2}}^{\star}, \dots, {^{s}}{\bvec{f}^{n_{C}}}^{\star}) &:= \{\mathbb{M}_{n_{C}}({^{s}}{f^{1}_{i}}^{\star}, {^{s}}{f^{2}_{i}}^{\star}, \dots, {^{s}}{f^{n_{C}}_{i}}^{\star})\}_{i \in I_{n^{\star}}} \quad \forall s \in I_{n_{s}} \\
+						\mathrm{where} \qquad \mathbb{M}_{n_{C}}(z_{1}, z_{2}, \dots, z_{n_{C}}) &:= \argmax_{c \in I_{n_{C}}} z_{c}
+					\end{aligned}
+				\label{Equation:MonteCarloSamplingMulticlassClassifierOVA}
+				\end{equation}
+				
+				That is, for each sample $s \in I_{n_{S}}$ and at each query point $i \in I_{n^{\star}}$, ${^{s}}y^{\star}_{i}$ is assigned the class label from $\{1, 2, \dots, n_{C}\}$ that has the maximal latent value. With the samples $\{{^{s}}\bvec{y}^{\star}\}_{s \in I_{n_{s}}}$, the estimated probability can be computed from \eqref{Equation:EstimatedProbability}, so that the Monte Carlo predictive information entropy for $n_{C} > 2$ classes in the OVA case can be computed from \eqref{Equation:UniqueIndexSet}, \eqref{Equation:EstimatedProbability}, and \eqref{Equation:MCPIE} as before.
 			
-			For each class $c$, a sample ${^{s}}{\bvec{f}^{c}}^{\star}$ is drawn from ${\bvec{f}^{c}}^{\star} \sim \mathcal{N}({\vec{\upmu}^{c}}^{\star}, {\Sigma^{c}}^{\star})$, where $s \in I_{n_{S}}$. The corresponding sampled target labels are then found by \eqref{Equation:MonteCarloSamplingMulticlassClassifier}. \begin{equation}
-				\begin{aligned}
-					{^{s}}\bvec{y}^{\star} = \bvec{\mathds{M}}_{n_{C}}({^{s}}{\bvec{f}^{1}}^{\star}, {^{s}}{\bvec{f}^{2}}^{\star}, \dots, {^{s}}{\bvec{f}^{n_{C}}}^{\star}) &:= \{\mathbb{M}_{n_{C}}({^{s}}{f^{1}}^{\star}_{i}, {^{s}}{f^{2}}^{\star}_{i}, \dots, {^{s}}{f^{n_{C}}}^{\star}_{i})\}_{i \in I_{n^{\star}}} \quad \forall s \in I_{n_{s}} \\
-					\mathrm{where} \qquad \mathbb{M}_{n_{C}}(z_{1}, z_{2}, \dots, z_{n_{C}}) &:= \argmax_{c \in I_{n_{C}}} z_{c}
-				\end{aligned}
-			\label{Equation:MonteCarloSamplingMulticlassClassifier}
-			\end{equation}
+			\subsubsection{All Versus All Classifier}
+			\label{InformativeSeafloorExploration:MCPIE:Multiclass:All}
 			
-			That is, for each sample $s \in I_{n_{S}}$ and at each query point $i \in I_{n^{\star}}$, ${^{s}}y^{\star}_{i}$ is assigned the class label from $\{1, 2, \dots, n_{C}\}$ that has the maximal latent value. With the samples $\{{^{s}}\bvec{y}^{\star}\}_{s \in I_{n_{s}}}$, the estimated probability can be computed from \eqref{Equation:EstimatedProbability}, so that the Monte Carlo predictive information entropy for $n_{C} > 2$ classes can also be computed from \eqref{Equation:MCPIE}.
+				For the AVA case, there are ${n_{C} \choose 2} = \frac{n_{C} (n_{C} - 1)}{2}$ latent functions $\{f^{1, 2}(x), f^{1, 3}(x), \dots, \\ f^{1, n_{C}}(x), f^{2, 3}(x), f^{2, 4}(x), \dots, f^{2, n_{C}}(x), \dots, f^{n_{C} - 1, n_{C}}(x)\}$ corresponding to class pairs $(c, c')$ with $c' > c$ \eqref{Equation:PredictiveLatentMulticlassAVA}. \begin{equation}
+					f^{c, c'}(\bvec{x}) \sim \mathcal{GP}(m^{c, c'}(\bvec{x}), k^{c, c'}(\bvec{x}, \bvec{x}')) \qquad \forall c \in I_{n_{C}}, \quad c' \in \{c + 1, n_{C}\}
+				\label{Equation:PredictiveLatentMulticlassAVA}
+				\end{equation}
 			
-			AVA STUFF HERE
-			
+				Similarly, by definition of a GP, each ${\bvec{f}^{c, c'}}^{\star}$ is multivariate Gaussian distributed with corresponding means ${\mu^{c, c'}}^{\star}_{i} = m^{c, c'}(\bvec{x}^{\star}_{i})$ and covariances ${\Sigma^{c, c'}}^{\star}_{ij} = k^{c, c'}(\bvec{x}^{\star}_{i}, \bvec{x}^{\star}_{j})$ \eqref{Equation:MulticlassPredictiveGaussianDistributionAVA}. \begin{equation}
+					{\bvec{f}^{c, c'}}^{\star} = [{f^{c, c'}_{1}}^{\star}, {f^{c, c'}_{2}}^{\star}, \dots, {f^{c, c'}_{n^{\star}}}^{\star}]^{T} \sim \mathcal{N}({\vec{\upmu}^{c, c'}}^{\star}, {\Sigma^{c, c'}}^{\star})
+				\label{Equation:MulticlassPredictiveGaussianDistributionAVA}
+				\end{equation}
+				
+				For each class pair $(c, c')$, a sample ${^{s}}{\bvec{f}^{c, c'}}^{\star}$ is drawn from ${\bvec{f}^{c, c'}}^{\star} \sim \mathcal{N}({\vec{\upmu}^{c, c'}}^{\star}, {\Sigma^{c, c'}}^{\star})$, where $s \in I_{n_{S}}$. Similar to filling the lower triangular region of \eqref{Equation:UnfilledProbabilityListAVA} through \ref{Equation:ProbabilityListAVA}, the above samples form the upper triangular parts of a double axis list, and the lower triangular region can be filled by setting ${^{s}}{\bvec{f}^{c', c}}^{\star} := -{^{s}}{\bvec{f}^{c, c'}}^{\star}$ by symmetry of binary classifiers \ref{Equation:LatentListAVA}. Here, $\bvec{0}_{n^{\star}} := \{0\}_{i \in I_{n^{\star}}}$ is the zero vector, which represents the zero prior for the latent GP when no comparisons are to be made.
+				
+				\begin{equation}
+					\begin{Bmatrix*}
+						\bvec{0}_{n^{\star}} & {^{s}}{\bvec{f}^{1, 2}}^{\star} & {^{s}}{\bvec{f}^{1, 3}}^{\star} & \dots & {^{s}}{\bvec{f}^{1, n_{C}}}^{\star} \\
+						{^{s}}{\bvec{f}^{2, 1}}^{\star} & \bvec{0}_{n^{\star}} & {^{s}}{\bvec{f}^{2, 3}}^{\star} & \dots & {^{s}}{\bvec{f}^{2, n_{C}}}^{\star} \\
+						{^{s}}{\bvec{f}^{3, 1}}^{\star} & {^{s}}{\bvec{f}^{3, 2}}^{\star} & \bvec{0}_{n^{\star}} & \dots & {^{s}}{\bvec{f}^{3, n_{C}}}^{\star} \\
+						\vdots & \vdots & \vdots & \ddots & \vdots \\
+						{^{s}}{\bvec{f}^{n_{C}, 1}}^{\star} & {^{s}}{\bvec{f}^{n_{C}, 2}}^{\star} & {^{s}}{\bvec{f}^{n_{C}, 3}}^{\star} & \dots & \bvec{0}_{n^{\star}} \qquad \forall s \in I_{n_{S}}
+					\end{Bmatrix*} 
+				\label{Equation:LatentListAVA}
+				\end{equation}
+				
+				Again, each row corresponds to the ``strength'' of each class. A fair transformation into the OVA form can then be obtained by summing along the rows of the double axis list above for each sample $s \in I_{n_{S}}$. In this way, the corresponding sampled target labels are then found by the same way as the OVA case \eqref{Equation:MonteCarloSamplingMulticlassClassifierAVA}. Through this, the Monte Carlo predictive information entropy for $n_{C} > 2$ classes in the AVA case can also be computed from \eqref{Equation:UniqueIndexSet}, \eqref{Equation:EstimatedProbability}, and \eqref{Equation:MCPIE} as before. \begin{equation}
+					\begin{aligned}
+						{^{s}}{\bvec{f}^{c}}^{\star} :=& \sum_{c' = 1}^{n_{C}} {^{s}}{\bvec{f}^{c, c'}}^{\star} \qquad \text{where} \qquad {^{s}}{\bvec{f}^{c, c}}^{\star} := \bvec{0}_{n^{\star}} \qquad \forall c \in I_{n_{C}}, s \in I_{n_{S}} \\
+						{^{s}}\bvec{y}^{\star} =& \quad \bvec{\mathds{M}}_{n_{C}}({^{s}}{\bvec{f}^{1}}^{\star}, {^{s}}{\bvec{f}^{2}}^{\star}, \dots, {^{s}}{\bvec{f}^{n_{C}}}^{\star}) \qquad \forall s \in I_{n_{s}}
+					\end{aligned}
+				\label{Equation:MonteCarloSamplingMulticlassClassifierAVA}
+				\end{equation}
+					
 	\section{Linearised Model Differential Entropy}
 	\label{InformativeSeafloorExploration:LMDE}
 	
