@@ -46,7 +46,7 @@
 			\label{Equation:CovarianceInclusion}
 			\end{equation}
 			
-			To incorporate the expectance $\vec{\upmu}^{\star}$, simple add it to the transformed samples \eqref{Equation:ExpectanceInclusion}.
+			To incorporate the expectance $\vec{\upmu}^{\star}$, simply add it to the transformed samples \eqref{Equation:ExpectanceInclusion}.
 			
 			\begin{equation}
 				\begin{aligned}
@@ -55,9 +55,9 @@
 			\label{Equation:ExpectanceInclusion}
 			\end{equation}
 			
-			Therefore, to sample from any given multivariate Gaussian distribution $\mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star})$, simply sample iid samples through \eqref{Equation:iidGaussianSampling} and transform the samples through \eqref{Equation:ExpectanceInclusion}, and set ${^{s}}\bvec{f}^{\star} := \vec{\upmu}^{\star} + L^{\star} \bvec{z}_{s} \quad \forall s \in I_{n_{S}}$. Generating iid samples from standard normal distributions is much faster, especially with sophisticated libraries which may have pseudo-random number generators specifically for values drawn from the standard normal distribution.
+			Therefore, to sample from any given multivariate Gaussian distribution $\mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star})$, simply draw iid samples through \eqref{Equation:iidGaussianSampling} and transform the samples through \eqref{Equation:ExpectanceInclusion}, and set ${^{s}}\bvec{f}^{\star} := \vec{\upmu}^{\star} + L^{\star} \bvec{z}_{s} \quad \forall s \in I_{n_{S}}$. Generating iid samples from standard normal distributions is much faster, especially with sophisticated libraries which can have pseudo-random number generators specifically for values drawn from the standard normal distribution.
 			
-			Moreover, to vectorise the computation for further computational efficiency, multiple samples can be obtained at once through 
+			Moreover, to vectorise the computation for further computational efficiency, multiple samples can be obtained at once through \eqref{Equation:VectorisedSampling}.
 			
 			\begin{equation}
 				\begin{aligned}
@@ -66,6 +66,12 @@
 				\end{aligned}
 			\label{Equation:VectorisedSampling}
 			\end{equation}			
+			
+			Under usual circumstances, this transformation technique provides a more time efficient method for drawing samples from a multivariate Gaussian distribution. However, if the samples are to be used for Monte Carlo estimation of a certain quantity, such as the joint PIE, and such a quantity is involved in an optimisation process, the above technique is almost necessary \footnote{There are certainly optimisation algorithms that are designed specifically for such an optimisation process, and are generally found under the technique of \textit{stochastic optimisation}. The transformation technique here however avoids the need for such stochastic methods such that any regular optimiser can be employed.}. In fact, this is precisely the case for MCPIE acquisition, where the joint PIE is estimated through Monte Carlo sampling and is also the objective of the optimisation process (section \ref{InformativeSeafloorExploration:MCPIE}).
+			
+			The reason is essentially as follows. Since the MCPIE is estimated from samples that are randomly drawn from a probabilistic distribution, the MCPIE itself is random, even if its variance decreases under the limit of large samples. As such, for the same set of query locations, the optimiser may compute slightly different values for the corresponding MCPIE. This makes the optimisation process numerically unstable with poor convergence properties. In fact, under small samples where the variance of MCPIE is large, the optimisation process generally does not converge. This is because variance in the objective or constraint transfers to a variance in the optimiser Lagrangian, which acts as a noise input to the optimiser. Furthermore, most optimisers utilises numerical gradient methods, and derivatives amplifies noise \footnote{With minimum rigour, derivatives are limits of standardised differences whereas integrals are limits of standardised sums. Differences of noisy quantities are relatively more noisy, and sums of noisy quantities are relatively less noisy. As such, derivatives amplifies noise, while integrals smooths away noise.}. As such, the randomness spreads noise throughout the optimiser Lagrangian and corresponding gradients, which destabilises the process as, figuratively speaking, the optimiser is unable discern the peak of the mountain if the terrain is changing like the waves of an ocean. 
+			
+			The typical way to solve the above problem is to reinitialise the seed to the same value in each optimisation iteration, so that the same samples are drawn for estimation under identical scenarios. Nevertheless, if the transformation technique is used, this is equivalent to drawing a set of iid normal samples $Z$ at the beginning of the optimisation process and continuously reusing these samples for any computation. This avoids resetting the seed and redrawing the samples, thus speeding up the computation. This technique works as, while the distribution to be drawn from in each optimisation iteration changes, such a distribution is entirely captured by the mean vector $\vec{\upmu}^{\star}$ and covariance matrix $\Sigma^{\star}$. Thus, the only quantities that need to change in each iteration are $\vec{\upmu}^{\star}$ and $\Sigma^{\star}$, or equivalently $\mathcal{U}$ and $L^{\star}$ in \eqref{Equation:VectorisedSampling}. That is, through transforming the iid samples with dynamic moments $\vec{\upmu}^{\star}$ and $\Sigma^{\star}$ in every optimisation loop, the optimisation process stabilises and is more efficient than the method of seed reinitialisation.
 			
 	\section{Time Complexity}
 	\label{Appendix:ComputationalAspects:TimeComplexity}
