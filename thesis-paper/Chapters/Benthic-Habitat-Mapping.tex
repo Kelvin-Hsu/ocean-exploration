@@ -423,21 +423,25 @@
 				\label{Equation:ProdFusionAVA2OVA}
 				\end{equation}
 				
+				The consistency-fused probabilities are preferred over other techniques as it ensures a consistent inference framework. However, there are cases where the expectation-fused probabilities are needed as it retains the scales of the probabilities whereas the consistency-fused probabilities shrink the probabilities so that they are even further away from summing up to 1.
+				 
 				Note that the pre-fusion stage does not ensure that the probabilities sum up to 1 across classes - it merely extracts a single expected predictive probability ${^{\star}}\bar{\vec{\uppi}}^{c}$ for each class $c$, which is in the same analytical form as the OVA case. The following section then deals with the probability fusion techniques for consistent inference.
 				
 		\subsection{Probability Fusion Techniques}
 		\label{BenthicHabitatMapping:Classification:ProbabilityFusion}
 			
-			The OVA and AVA multiclass classification framework formulated in section \ref{BenthicHabitatMapping:Classification:MulticlassClassification} outputs expected predictive probabilities that are not always consistent in that they do not represent proper probability distributions that sum up to 1. This section focuses on developing probability fusion techniques for constructing a consistent inference framework from such predictive probabilities.
+			The OVA and AVA multiclass classification framework formulated in section \ref{BenthicHabitatMapping:Classification:MulticlassClassification} outputs expected predictive probabilities that are not always consistent in that they do not represent proper probability distributions that sum up to 1. This section focuses on developing probability fusion techniques \footnote{The term \textit{fusion} here is not to be confused with \textit{sensor fusion}, which is perhaps the most common usage of the term in the robotics context. In the current Bayesian classifier context, \textit{probability fusion} refers to combining, or fusing, the probabilities in a consistent manner.} for constructing a consistent inference framework from such predictive probabilities.
 			
-			The following derivations assumes that the AVA predictive probabilities have been transformed into the same analytical form as the OVA case, as outlined at the end of section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}. That is, the probabilities to be fused come in a single axis list \eqref{Equation:ProbabilityList}, which is either the direct output of an OVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}), or the pre-fused probabilities of an AVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}). For the AVA case, different probability fusion techniques will utilise different pre-fusion functions (either \eqref{Equation:MeanFusionAVA2OVA} or \eqref{Equation:ProdFusionAVA2OVA}), and will be specified explicitly during the discussion. For notational simplicity, the conditioned training labels and hyperparameters will not be explicitly notated.
-			
-			\begin{equation}
-				\begin{Bmatrix*}
-					{^{\star}}\bar{\vec{\uppi}}^{1} & {^{\star}}\bar{\vec{\uppi}}^{2} & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C}}
-				\end{Bmatrix*} 
-			\label{Equation:ProbabilityList}
-			\end{equation}
+			The following derivations assumes that the AVA predictive probabilities have been transformed into the same analytical form as the OVA case, as outlined at the end of section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}. That is, the probabilities to be fused come in a single axis list $\begin{Bmatrix*} {^{\star}}\bar{\vec{\uppi}}^{1} & {^{\star}}\bar{\vec{\uppi}}^{2} & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C}} \end{Bmatrix*}$, which is either the direct output of an OVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}), or the pre-fused probabilities of an AVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}). For the AVA case, different probability fusion techniques will utilise different pre-fusion functions (either \eqref{Equation:MeanFusionAVA2OVA} or \eqref{Equation:ProdFusionAVA2OVA}), and will be specified explicitly during the discussion. For notational simplicity, the conditioned training labels and hyperparameters will not be explicitly notated.
+		
+			It is important to realise that any probability fusion technique should not change the prediction itself. That is, the mode of the ``probability'' distribution before fusion should be invariant under the fusion transformation, so that the class with the highest probability stays the same.
+				
+%			\begin{equation}
+%				\begin{Bmatrix*}
+%					{^{\star}}\bar{\vec{\uppi}}^{1} & {^{\star}}\bar{\vec{\uppi}}^{2} & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C}}
+%				\end{Bmatrix*} 
+%			\label{Equation:ProbabilityList}
+%			\end{equation}
 				
 			\subsubsection{Simple Normalisation}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:SimpleNormalisation}
@@ -449,7 +453,7 @@
 				\label{Equation:SimpleNormalisation}
 				\end{equation}				
 				
-				This is a straightforward approach would would yield a proper probability distribution. However, this does not result in the best output.
+				This is a straightforward approach would would yield a proper probability distribution. The pre-fusion technique in the AVA case is the consistency-fused probabilities \eqref{Equation:ProdFusionAVA2OVA}, as there is no need to use the expectation-fused probabilities.
 				
 			\subsubsection{Mode Keeping}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:ModeKeeping}
@@ -459,6 +463,18 @@
 			
 		\subsection{Fusion Properties \& Performance}
 		\label{BenthicHabitatMapping:Classification:Performance}
+			
+%			{'MSE MODE': 0.035913512803592867, 'MSE EXCL': 0.044286438659792801, 'MSE NORM': 0.088147473555083677}
+
+%INFO:root:{'MSE EXCL': 0.032531845590484776, 'MSE MODE': 0.037336625141050128, 'MSE NORM': 0.098994056667471797}
+%INFO:root:{'MAE EXCL': 0.14192672651299701, 'MAE MODE': 0.16507665844044628, 'MAE NORM': 0.26472359080049002}
+
+			\begin{figure}[!htbp]
+			\centering
+				\includegraphics[width = \linewidth]{Figures/probability_fusion/probability_fusion_comparison_400.eps}
+			\caption{Comparison of Probability Fusion Techniques}
+			\label{Figure:ProbabilityFusion}
+			\end{figure}
 			
 				MENTION THAT OVA AND AVA ALLOW PARALLELISATION
 				

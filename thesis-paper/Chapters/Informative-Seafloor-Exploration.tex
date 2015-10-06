@@ -121,7 +121,7 @@
 				\label{Equation:MulticlassPredictiveGaussianDistributionAVA}
 				\end{equation}
 				
-				For each class pair $(c, c')$, a sample ${^{s}}{\bvec{f}^{c, c'}}^{\star}$ is drawn from ${\bvec{f}^{c, c'}}^{\star} \sim \mathcal{N}({\vec{\upmu}^{c, c'}}^{\star}, {\Sigma^{c, c'}}^{\star})$, where $s \in I_{n_{S}}$. Similar to filling the lower triangular region of \eqref{Equation:UnfilledProbabilityListAVA} through \ref{Equation:ProbabilityListAVA}, the above samples form the upper triangular parts of a double axis list, and the lower triangular region can be filled by setting ${^{s}}{\bvec{f}^{c', c}}^{\star} := -{^{s}}{\bvec{f}^{c, c'}}^{\star}$ by symmetry of binary classifiers \ref{Equation:LatentListAVA}. Here, $\bvec{0}_{n^{\star}} := \{0\}_{i \in I_{n^{\star}}}$ is the zero vector, which represents the zero prior for the latent GP when no comparisons are to be made.
+				For each class pair $(c, c')$, a sample ${^{s}}{\bvec{f}^{c, c'}}^{\star}$ is drawn from ${\bvec{f}^{c, c'}}^{\star} \sim \mathcal{N}({\vec{\upmu}^{c, c'}}^{\star}, {\Sigma^{c, c'}}^{\star})$, where $s \in I_{n_{S}}$. Similar to filling the lower triangular region of \eqref{Equation:UnfilledProbabilityListAVA} through \ref{Equation:ProbabilityListAVA}, the above samples form the upper triangular parts of a double axis list, and the lower triangular region can be filled by setting ${^{s}}{\bvec{f}^{c', c}}^{\star} := -{^{s}}{\bvec{f}^{c, c'}}^{\star}$ by symmetry of binary classifiers \ref{Equation:SampleLatentListAVA}. Here, $\bvec{0}_{n^{\star}} := \{0\}_{i \in I_{n^{\star}}}$ is the zero vector, which represents the zero prior for the latent GP when no comparisons are to be made.
 				
 				\begin{equation}
 					\begin{Bmatrix*}
@@ -129,9 +129,9 @@
 						{^{s}}{\bvec{f}^{2, 1}}^{\star} & \bvec{0}_{n^{\star}} & {^{s}}{\bvec{f}^{2, 3}}^{\star} & \dots & {^{s}}{\bvec{f}^{2, n_{C}}}^{\star} \\
 						{^{s}}{\bvec{f}^{3, 1}}^{\star} & {^{s}}{\bvec{f}^{3, 2}}^{\star} & \bvec{0}_{n^{\star}} & \dots & {^{s}}{\bvec{f}^{3, n_{C}}}^{\star} \\
 						\vdots & \vdots & \vdots & \ddots & \vdots \\
-						{^{s}}{\bvec{f}^{n_{C}, 1}}^{\star} & {^{s}}{\bvec{f}^{n_{C}, 2}}^{\star} & {^{s}}{\bvec{f}^{n_{C}, 3}}^{\star} & \dots & \bvec{0}_{n^{\star}} \qquad \forall s \in I_{n_{S}}
-					\end{Bmatrix*} 
-				\label{Equation:LatentListAVA}
+						{^{s}}{\bvec{f}^{n_{C}, 1}}^{\star} & {^{s}}{\bvec{f}^{n_{C}, 2}}^{\star} & {^{s}}{\bvec{f}^{n_{C}, 3}}^{\star} & \dots & \bvec{0}_{n^{\star}} 
+					\end{Bmatrix*} \qquad \forall s \in I_{n_{S}}
+				\label{Equation:SampleLatentListAVA}
 				\end{equation}
 				
 				Again, each row corresponds to the ``strength'' of each class. A fair transformation into the OVA form can then be obtained by summing along the rows of the double axis list above for each sample $s \in I_{n_{S}}$. In this way, the corresponding sampled target labels are then found by the same way as the OVA case \eqref{Equation:MonteCarloSamplingMulticlassClassifierAVA}. Through this, the Monte Carlo predictive information entropy for $n_{C} > 2$ classes in the AVA case can also be computed from \eqref{Equation:UniqueIndexSet}, \eqref{Equation:EstimatedProbability}, and \eqref{Equation:MCPIE} as before. \begin{equation}
@@ -188,69 +188,99 @@
 			\label{Equation:Softmax}
 			\end{equation}
 			
-			Again, OVA classifiers are employed, where each class is trained against all other classes independently with a binary classifier. For $c$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Equation:Softmax}. This approach avoids the Monte Carlo sampling step in the inference stage of a typical GP multiclass classifier under Laplace Approximation \citep{GaussianProcessForMachineLearning}, and is thus faster in computational time. Note that this Monte Carlo sampling step avoided is separate to the one used in MCJIE. In essence, using OVA classifiers skip one Monte Carlo step, and using LMDE skips another Monte Carlo step through avoiding using MCPIE. Furthermore, because each classifier is trained independently, both the learning stage and the inference stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in under a receding horizon formulation, where the inference stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
+			Similar to deriving the Monte Carlo prediction information entropy, the linearised model differential entropy is first derived in the OVA case. The treatment for the AVA case then again relies on transforming the AVA problem into an OVA problem so that the two share the bulk of the computations involved.
 			
-			Similar to the binary case, to linearise it is imperative to examine the gradient of each of the $c$ softmax functions \eqref{Equation:SoftmaxGradient}. For notational simplicity, the query stars ($^{\star}$) are omitted in this derivation except for $n^{\star}$.
+			\subsubsection{One versus All Classifier}
+			\label{InformativeSeafloorExploration:LMDE:Multiclass:OVA}
 			
-			\begin{equation}
-				\frac{\partial \sigma^{c}}{\partial f^{k}_{i}}(\bvec{f}_{i}) =
-				\begin{cases} 
-					- \frac{\exp(f^{c}_{i}) \exp(f^{k}_{i})}{\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})} & \text{for } k \neq c  \\
-					- \frac{\exp(f^{c}_{i})^{2}}{\big(\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})\big)^{2}} + \frac{\exp(f^{c}_{i})}{\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})}& \text{for } k = c
-				\end{cases}
-			\label{Equation:SoftmaxGradient}
-			\end{equation}			
-		
-			The numerators are explicitly left in the form of products of exponentiation instead of exponentiation of sums to reflect ways to cache quantities during computation. 
+				For $c$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Equation:Softmax}. This approach avoids the Monte Carlo sampling step in the inference stage of a typical GP multiclass classifier under Laplace Approximation \citep{GaussianProcessForMachineLearning}, and is thus faster in computational time. Note that this Monte Carlo sampling step avoided is separate to the one used in MCJIE. In essence, using OVA classifiers skip one Monte Carlo step, and using LMDE skips another Monte Carlo step through avoiding using MCPIE. Furthermore, because each classifier is trained independently, both the learning stage and the inference stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in under a receding horizon formulation, where the inference stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
+				
+				Similar to the binary case, to linearise it is imperative to examine the gradient of each of the $c$ softmax functions \eqref{Equation:SoftmaxGradient}. For notational simplicity, the query stars ($^{\star}$) are omitted in this derivation except for $n^{\star}$.
+				
+				\begin{equation}
+					\frac{\partial \sigma^{c}}{\partial f^{k}_{i}}(\bvec{f}_{i}) =
+					\begin{cases} 
+						- \frac{\exp(f^{c}_{i}) \exp(f^{k}_{i})}{\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})} & \text{for } k \neq c  \\
+						- \frac{\exp(f^{c}_{i})^{2}}{\big(\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})\big)^{2}} + \frac{\exp(f^{c}_{i})}{\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})}& \text{for } k = c
+					\end{cases}
+				\label{Equation:SoftmaxGradient}
+				\end{equation}			
 			
-			Hence, for each class $c$ at query point $i$ a softmax gradient vector is computed \eqref{Equation:SoftmaxGradientVector}.
+				The numerators are explicitly left in the form of products of exponentiation instead of exponentiation of sums to reflect ways to cache quantities during computation. 
+				
+				Hence, for each class $c$ at query point $i$ a softmax gradient vector is computed \eqref{Equation:SoftmaxGradientVector}.
+				
+				\begin{equation}
+					\frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bvec{f}_{i}) := \begin{bmatrix} \frac{\partial \sigma^{c}}{\partial f^{1}_{i}}(\bvec{f}_{i}) & \frac{\partial \sigma^{c}}{\partial f^{2}_{i}}(\bvec{f}_{i}) & \dots & \frac{\partial \sigma^{c}}{\partial f^{n_{C}}_{i}}(\bvec{f}_{i}) \end{bmatrix}^{T}
+				\label{Equation:SoftmaxGradientVector}
+				\end{equation}
+				
+				The linearisation is again performed on the mean latent predictions $\bar{\bvec{f}}_{i} = \mathbb{E}[\bvec{f}_{i}]$ so that each softmax $\sigma^{c}(\bvec{f}_{i})$ can be approximated with the linearised softmax $\sigma^{c}_{L}(\bvec{f}_{i})$ \eqref{Equation:LinearisedSoftmax} in an analogous form as \eqref{Equation:LinearisingSigmoid}.
+				
+				\begin{equation}
+					\begin{aligned}
+						\sigma^{c}(\bvec{f}_{i}) \approx \sigma^{c}_{L}(\bvec{f}_{i}) & := \sigma^{c}(\bar{\bvec{f}}_{i}) + \left. \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}} \right|^{T}_{\bvec{f}_{i} = \bar{\bvec{f}}_{i}} (\bvec{f}_{i} - \bar{\bvec{f}}_{i}) \\
+						& = \bvec{a}^{c}_{i} + (\bvec{g}^{c}_{i})^{T} (\bvec{f}_{i} - \bar{\bvec{f}}_{i})
+					\end{aligned}
+				\label{Equation:LinearisedSoftmax}
+				\end{equation}
+				
+				where we have notated the constants $\bvec{a}^{c}_{i} := \sigma^{c}(\bar{\bvec{f}}_{i})$ and $\bvec{g}^{c}_{i} := \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bar{\bvec{f}}_{i})$.
+				
+				To determine the distribution of the vector of softmax values across query points, first define the following \eqref{Equation:Definitions}.
+				
+				\begin{equation}
+					\begin{aligned}
+						F &:= \{f^{c}_{i}\}_{c \in I_{n_{C}}, i \in I_{n^{\star}}} \in \mathbb{R}^{n_{C} \times n^{\star}} \\
+						\vec{\upsigma}^{c}_{L}(F) &:= \begin{bmatrix} \sigma^{c}_{L}(\bvec{f}_{1}) & \sigma^{c}_{L}(\bvec{f}_{2}) & \dots & \sigma^{c}_{L}(\bvec{f}_{n^{\star}}) \end{bmatrix}^{T} \qquad \forall c \in I_{n_{C}}
+					\end{aligned}
+				\label{Equation:Definitions}
+				\end{equation}
+							
+				The covariance of the linearised softmax of a particular class $c$ between two query points $i$ and $j$ can now be computed, as well as the expectance at a particular query point $i$ \eqref{Equation:MomentsLinearisedSoftmax}.
+				
+				\begin{align*}
+				\numberthis \label{Equation:MomentsLinearisedSoftmax}
+						\vec{\upsigma}^{c}_{L}(F) & \sim \mathcal{N}(\vec{\upmu}^{c}_{L}, \Sigma^{c}_{L}) \\
+						(\mu^{c}_{L})_{i} & = \mathbb{E}[\sigma^{c}_{L}(\bvec{f}_{i})] =  \sigma^{c}(\bar{\bvec{f}}_{i}) \\
+						(\Sigma^{c}_{L})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma^{c}_{L}(\bvec{f}_{i}), \sigma^{c}_{L}(\bvec{f}_{i})] \\
+						& = \mathbb{C}\mathrm{ov}[(\bvec{g}^{c}_{i})^{T} \bvec{f}_{i}, (\bvec{g}^{c}_{j})^{T} \bvec{f}_{j}] \\
+						& = \sum_{m = 1}^{n_{C}} (g^{c}_{i})^{m} (g^{c}_{j})^{m} \mathbb{C}\mathrm{ov}[f^{m}_{i}, f^{m}_{j}]
+				\end{align*}
+							
+				where $(g^{c}_{i})^{m}$ denotes the $m^{\text{th}}$ element of $\bvec{g}^{c}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of classes $c$ and $m$, $c \neq m$, are conditionally independent given training observations.
+				
+				Finally, the linearised model differential entropy of the OVA multiclass Gaussian process classifier is defined as follows \eqref{Equation:MulticlassLinearisedEntropy}. \begin{equation}
+					H^{\mathrm{multiclass}}_{\mathrm{LMDE}} \stackrel{\text{abbrev.}}{:=} H^{\mathrm{multiclass}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Bigg((2 \pi e)^{n^{\star}} \det\bigg(\sum_{c = 1}^{n_{C}} \Sigma^{c}_{L}\bigg)\Bigg)
+				\label{Equation:MulticlassLinearisedEntropy}
+				\end{equation}
+
+			\subsubsection{All versus All Classifier}
+			\label{InformativeSeafloorExploration:LMDE:Multiclass:AVA}
+					
+				Similar to the approach in the MCPIE derivation, the double axis list of latent vectors $\{ {\bvec{f}^{c, c'}}^{\star} \}_{c, c' \in I_{n_{C}}}$ where ${\bvec{f}^{c', c}}^{\star} = - {\bvec{f}^{c, c'}}^{\star}$ and ${\bvec{f}^{c, c}}^{\star} := \bvec{0}_{n^{\star}}$  are to be fused into $n_{C}$ latent vectors $\{ {\bvec{f}^{c}}^{\star} \}_{c \in I_{n_{C}}}$ through the same way as \eqref{Equation:MonteCarloSamplingMulticlassClassifierAVA} with ${\bvec{f}^{c}}^{\star} := \sum_{c' = 1}^{n_{C}} {\bvec{f}^{c, c'}}^{\star}$. However, here the latent vectors to be fused are now random vectors instead of fixed, sampled vectors as before. 
 			
-			\begin{equation}
-				\frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bvec{f}_{i}) := \begin{bmatrix} \frac{\partial \sigma^{c}}{\partial f^{1}_{i}}(\bvec{f}_{i}) & \frac{\partial \sigma^{c}}{\partial f^{2}_{i}}(\bvec{f}_{i}) & \dots & \frac{\partial \sigma^{c}}{\partial f^{n_{C}}_{i}}(\bvec{f}_{i}) \end{bmatrix}^{T}
-			\label{Equation:SoftmaxGradientVector}
-			\end{equation}
-			
-			The linearisation is again performed on the mean latent predictions $\bar{\bvec{f}}_{i} = \mathbb{E}[\bvec{f}_{i}]$ so that each softmax $\sigma^{c}(\bvec{f}_{i})$ can be approximated with the linearised softmax $\sigma^{c}_{L}(\bvec{f}_{i})$ \eqref{Equation:LinearisedSoftmax} in an analogous form as \eqref{Equation:LinearisingSigmoid}.
-			
-			\begin{equation}
-				\begin{aligned}
-					\sigma^{c}(\bvec{f}_{i}) \approx \sigma^{c}_{L}(\bvec{f}_{i}) & := \sigma^{c}(\bar{\bvec{f}}_{i}) + \left. \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}} \right|^{T}_{\bvec{f}_{i} = \bar{\bvec{f}}_{i}} (\bvec{f}_{i} - \bar{\bvec{f}}_{i}) \\
-					& = \bvec{a}^{c}_{i} + (\bvec{g}^{c}_{i})^{T} (\bvec{f}_{i} - \bar{\bvec{f}}_{i})
-				\end{aligned}
-			\label{Equation:LinearisedSoftmax}
-			\end{equation}
-			
-			where we have notated the constants $\bvec{a}^{c}_{i} := \sigma^{c}(\bar{\bvec{f}}_{i})$ and $\bvec{g}^{c}_{i} := \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bar{\bvec{f}}_{i})$.
-			
-			To determine the distribution of the vector of softmax values across query points, first define the following \eqref{Equation:Definitions}.
-			
-			\begin{equation}
-				\begin{aligned}
-					F &:= \{f^{c}_{i}\}_{c \in I_{n_{C}}, i \in I_{n^{\star}}} \in \mathbb{R}^{n_{C} \times n^{\star}} \\
-					\vec{\upsigma}^{c}_{L}(F) &:= \begin{bmatrix} \sigma^{c}_{L}(\bvec{f}_{1}) & \sigma^{c}_{L}(\bvec{f}_{2}) & \dots & \sigma^{c}_{L}(\bvec{f}_{n^{\star}}) \end{bmatrix}^{T} \qquad \forall c \in I_{n_{C}}
-				\end{aligned}
-			\label{Equation:Definitions}
-			\end{equation}
-						
-			The covariance of the linearised softmax of a particular class $c$ between two query points $i$ and $j$ can now be computed, as well as the expectance at a particular query point $i$ \eqref{Equation:MomentsLinearisedSoftmax}.
-			
-			\begin{align*}
-			\numberthis \label{Equation:MomentsLinearisedSoftmax}
-					\vec{\upsigma}^{c}_{L}(F) & \sim \mathcal{N}(\vec{\upmu}^{c}_{L}, \Sigma^{c}_{L}) \\
-					(\mu^{c}_{L})_{i} & = \mathbb{E}[\sigma^{c}_{L}(\bvec{f}_{i})] =  \sigma^{c}(\bar{\bvec{f}}_{i}) \\
-					(\Sigma^{c}_{L})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma^{c}_{L}(\bvec{f}_{i}), \sigma^{c}_{L}(\bvec{f}_{i})] \\
-					& = \mathbb{C}\mathrm{ov}[(\bvec{g}^{c}_{i})^{T} \bvec{f}_{i}, (\bvec{g}^{c}_{j})^{T} \bvec{f}_{j}] \\
-					& = \sum_{m = 1}^{n_{C}} (g^{c}_{i})^{m} (g^{c}_{j})^{m} \mathbb{C}\mathrm{ov}[f^{m}_{i}, f^{m}_{j}]
-			\end{align*}
-						
-			where $(g^{c}_{i})^{m}$ denotes the $m^{\text{th}}$ element of $\bvec{g}^{c}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of classes $c$ and $m$, $c \neq m$, are conditionally independent given training observations.
-			
-			Finally, the linearised entropy of the OVA multiclass Gaussian process classifier is defined as follows \eqref{Equation:MulticlassLinearisedEntropy}. \begin{equation}
-				H^{\mathrm{multiclass}}_{\mathrm{LMDE}} \stackrel{\text{abbrev.}}{:=} H^{\mathrm{multiclass}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Bigg((2 \pi e)^{n^{\star}} \det\bigg(\sum_{c = 1}^{n_{C}} \Sigma^{c}_{L}\bigg)\Bigg)
-			\label{Equation:MulticlassLinearisedEntropy}
-			\end{equation}
-		
-			NOW DERIVE AVA
+				As all of ${\bvec{f}^{c, c'}}^{\star}$ are multivarite Gaussian distributed, and are by construction independent after conditioning on their respectively hyperparameters $\vec{\uptheta}^{c, c'}$ which are not explicitly shown in notation here, the distribution of the fused latent vectors are given by \eqref{Equation:LatentFuseDistributionAVA}. These then provide the latent expectance vector and covariance matrix used in \eqref{Equation:MomentsLinearisedSoftmax}, from which the computations continues as in the OVA scheme.
+				
+				\begin{equation}
+					\begin{aligned}
+						\mathbb{E}[{\bvec{f}^{c}}^{\star}] := \sum_{c' = 1}^{n_{C}} \mathbb{E}[{\bvec{f}^{c, c'}}^{\star}] \qquad \qquad \mathbb{V}[{\bvec{f}^{c}}^{\star}] := \sum_{c' = 1}^{n_{C}} \mathbb{V}[{\bvec{f}^{c, c'}}^{\star}]
+					\end{aligned}
+				\label{Equation:LatentFuseDistributionAVA}
+				\end{equation}
+				
+
+				
+%				\begin{equation}
+%					\begin{Bmatrix*}
+%						\bvec{0}_{n^{\star}} & {\bvec{f}^{1, 2}}^{\star} & {\bvec{f}^{1, 3}}^{\star} & \dots & {\bvec{f}^{1, n_{C}}}^{\star} \\
+%						{\bvec{f}^{2, 1}}^{\star} & \bvec{0}_{n^{\star}} & {\bvec{f}^{2, 3}}^{\star} & \dots & {\bvec{f}^{2, n_{C}}}^{\star} \\
+%						{\bvec{f}^{3, 1}}^{\star} & {\bvec{f}^{3, 2}}^{\star} & \bvec{0}_{n^{\star}} & \dots & {\bvec{f}^{3, n_{C}}}^{\star} \\
+%						\vdots & \vdots & \vdots & \ddots & \vdots \\
+%						{\bvec{f}^{n_{C}, 1}}^{\star} & {\bvec{f}^{n_{C}, 2}}^{\star} & {\bvec{f}^{n_{C}, 3}}^{\star} & \dots & \bvec{0}_{n^{\star}}
+%					\end{Bmatrix*} 
+%				\label{Equation:LatentListAVA}
+%				\end{equation}
 			
 	\section{Comparison of Mutual Entropy Measures}
 	\label{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures}

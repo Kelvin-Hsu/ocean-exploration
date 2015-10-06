@@ -58,7 +58,7 @@ def main():
     test_range_min = -2.5
     test_range_max = +2.5
     test_ranges = (test_range_min, test_range_max)
-    n_train = 500
+    n_train = 400
     n_query = 1000
     n_dims  = 2   # <- Must be 2 for vis
     n_cores = None # number of cores for multi-class (None -> default: c-1)
@@ -239,45 +239,24 @@ def main():
 
     # Training
     gp.classifier.utils.visualise_map(ax1, yq_truth, test_ranges, cmap = mycmap)
-    ax1.set_title('Ground Truth', fontsize = fontsize)
+    ax1.set_title('Ground Truth and Training Set', fontsize = fontsize)
     ax1.set_xlabel('$x_{1}$', fontsize = fontsize)
     ax1.set_ylabel('$x_{2}$', fontsize = fontsize)
     cbar = plt.colorbar()
     cbar.set_ticks(y_unique)
     cbar.set_ticklabels(y_unique)
+    plt.scatter(x1, x2, c = y, marker = 'o', cmap = mycmap)
     gp.classifier.utils.visualise_decision_boundary(ax1,
         test_range_min, test_range_max, decision_boundary)
-    logging.info('Plotted Prediction Labels')
+    logging.info('Plotted Training Labels')
     plt.gca().set_aspect('equal', adjustable = 'box')
     for tick in plt.gca().xaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
+    ax1.set_xlim((test_range_min, test_range_max))
+    ax1.set_ylim((test_range_min, test_range_max))
 
-    """
-    Plot: Training Set
-    """
-
-    # Training
-    gp.classifier.utils.visualise_decision_boundary(ax2,
-        test_range_min, test_range_max, decision_boundary)
-    plt.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    ax2.set_title('Training Labels', fontsize = fontsize)
-    ax2.set_xlabel('$x_{1}$', fontsize = fontsize)
-    ax2.set_ylabel('$x_{2}$', fontsize = fontsize)
-    cbar = plt.colorbar()
-    cbar.set_ticks(y_unique)
-    cbar.set_ticklabels(y_unique)
-    ax2.set_xlim((test_range_min, test_range_max))
-    ax2.set_ylim((test_range_min, test_range_max))
-    plt.gca().patch.set_facecolor('gray')
-    logging.info('Plotted Training Set')
-    plt.gca().set_aspect('equal', adjustable = 'box')
-    for tick in plt.gca().xaxis.get_major_ticks():
-        tick.label.set_fontsize(axis_tick_font_size) 
-    for tick in plt.gca().yaxis.get_major_ticks():
-        tick.label.set_fontsize(axis_tick_font_size) 
-        
     """
     Plot: Query Computations
     """
@@ -292,123 +271,52 @@ def main():
     logging.info('Plot: Computing Variance...')
     var = gp.classifier.variance(learned_classifier, predictor)
 
-    logging.info('Plot: Computing Linearised Entropy...')
-    start_time = time.clock()
-    yq_lmde = gp.classifier.linearised_model_differential_entropy(
-        exp, var, learned_classifier)
-    time_lmde = time.clock() - start_time
-
-    logging.info('Plot: Computing Equivalent Standard Deviation')
-    eqsd = gp.classifier.equivalent_standard_deviation(yq_lmde)
-
     logging.info('Plot: Computing Prediction Probabilities...')
     yq_prob_norm = gp.classifier.predict_from_latent(exp, var, learned_classifier, 
         fusemethod = 'NORM')
-
     yq_prob_mode = gp.classifier.predict_from_latent(exp, var, learned_classifier, 
         fusemethod = 'MODE')
-
     yq_prob_excl = gp.classifier.predict_from_latent(exp, var, learned_classifier, 
         fusemethod = 'EXCLUSION')   
 
-    logging.info('Plot: Computing True Entropy...')
-    start_time = time.clock()
-    yq_pie = gp.classifier.entropy(yq_prob)
-    time_pie = time.clock() - start_time
+    logging.info('Plot: Computing True Entropies...')
+    yq_pie_norm = gp.classifier.entropy(yq_prob_norm)
+    yq_pie_mode = gp.classifier.entropy(yq_prob_mode)
+    yq_pie_excl = gp.classifier.entropy(yq_prob_excl)
 
     n_draws_high = 2500
 
     logging.info('Plot: Computing MCPIE with %d samples' % n_draws_high)
-    start_time = time.clock()
     yq_mcpie_high = gp.classifier.monte_carlo_prediction_information_entropy(exp, var, learned_classifier, n_draws = n_draws_high)
-    time_mcpie_high = time.clock() - start_time
+
+    def mse(ye, yt):
+        return ((ye - yt)**2).sum() / yt.shape[0]
+
+    mse_norm = mse(yq_pie_norm, yq_mcpie_high)
+    mse_mode = mse(yq_pie_mode, yq_mcpie_high)
+    mse_excl = mse(yq_pie_excl, yq_mcpie_high)
+
+    def mae(ye, yt):
+        return np.abs(ye - yt).sum() / yt.shape[0]
+
+    mae_norm = mae(yq_pie_norm, yq_mcpie_high)
+    mae_mode = mae(yq_pie_mode, yq_mcpie_high)
+    mae_excl = mae(yq_pie_excl, yq_mcpie_high)
+
+    mse_list = {'MSE NORM': mse_norm, 'MSE MODE': mse_mode, 'MSE EXCL': mse_excl}
+    mae_list = {'MAE NORM': mae_norm, 'MAE MODE': mae_mode, 'MAE EXCL': mae_excl}
 
     logging.info('Plot: Computing Class Predicitons')
-    yq_pred = gp.classifier.classify(yq_prob, y_unique)
+    yq_pred = gp.classifier.classify(yq_prob_excl, y_unique)
 
     mistake_ratio = (yq_truth - yq_pred).nonzero()[0].shape[0] / yq_truth.shape[0]
 
-    timing = {  'time_lmde': time_lmde,
-                'time_pie': time_pie,
-                'time_mcpie': time_mcpie_high}
-    logging.info(timing)
-
-    # """
-    # THIS SECTION IS EXTRA FOR COLLECTING TIME COMPLEXITY DATA
-    # PLEASE COMMENT OUT UNDER NORMAL CIRCUMSTANCES
-    # """
-
-    # # Compute Linearised and True Entropy for plotting
-    # Xq = np.random.rand(1000, 2)
-    # Xqw = pre.whiten(Xq, whitenparams)
-    # logging.info('Plot: Caching Predictor...')
-    # predictor = gp.classifier.query(learned_classifier, Xqw)
-
-    # logging.info('Plot: Computing Expectance...')
-    # exp = gp.classifier.expectance(learned_classifier, predictor)
-
-    # logging.info('Plot: Computing Variance...')
-    # cov = gp.classifier.covariance(learned_classifier, predictor)
-
-    # logging.info('Plot: Computing Linearised Entropy...')
-    # start_time = time.clock()
-    # yq_lmde = gp.classifier.linearised_model_differential_entropy(
-    #     exp, cov, learned_classifier)
-    # time_lmde = time.clock() - start_time
-
-    # logging.info('Plot: Computing Equivalent Standard Deviation')
-    # eqsd = gp.classifier.equivalent_standard_deviation(yq_lmde)
-
-    # logging.info('Plot: Computing Prediction Probabilities...')
-    # yq_prob = gp.classifier.predict_from_latent(exp, cov, learned_classifier, 
-    #     fusemethod = fusemethod)
-
-    # logging.info('Plot: Computing True Entropy...')
-    # start_time = time.clock()
-    # yq_pie = gp.classifier.entropy(yq_prob)
-    # time_pie = time.clock() - start_time
-
-    # n_draws_low = 25
-    # n_draws_med = 250
-    # n_draws_high = 2500
-
-    # logging.info('Plot: Computing MCPIE with %d samples' % n_draws_low)
-    # start_time = time.clock()
-    # yq_mcpie_low = gp.classifier.monte_carlo_prediction_information_entropy(exp, cov, learned_classifier, n_draws = n_draws_low)
-    # time_mcpie_low = time.clock() - start_time
-
-    # logging.info('Plot: Computing MCPIE with %d samples' % n_draws_med)
-    # start_time = time.clock()
-    # yq_mcpie_med = gp.classifier.monte_carlo_prediction_information_entropy(exp, cov, learned_classifier, n_draws = n_draws_med)
-    # time_mcpie_med = time.clock() - start_time
-
-    # logging.info('Plot: Computing MCPIE with %d samples' % n_draws_high)
-    # start_time = time.clock()
-    # yq_mcpie_high = gp.classifier.monte_carlo_prediction_information_entropy(exp, cov, learned_classifier, n_draws = n_draws_high)
-    # time_mcpie_high = time.clock() - start_time
-
-    # logging.info('Plot: Computing Class Predicitons')
-    # yq_pred = gp.classifier.classify(yq_prob, y_unique)
-
-    # timing = {  'time_lmde': time_lmde,
-    #             'time_pie': time_pie,
-    #             'time_mcpie_low': time_mcpie_low,
-    #             'time_mcpie_med': time_mcpie_med,
-    #             'time_mcpie_high': time_mcpie_high}
-    # logging.info(timing)
-    # print(yq_mcpie_high, yq_lmde)
-    # return
-
-    # """
-    # Plot: Prediction Labels
-    # """
-
     # Query (Prediction Map)
-    gp.classifier.utils.visualise_map(ax3, yq_pred, test_ranges, 
+    gp.classifier.utils.visualise_map(ax2, yq_pred, test_ranges, 
         boundaries = True, cmap = mycmap)
-    ax3.set_title('Prediction [Miss Ratio: %.1f %s]' % (100 * mistake_ratio, '\%'), fontsize = fontsize)
-    ax3.set_xlabel('$x_{1}$', fontsize = fontsize)
-    ax3.set_ylabel('$x_{2}$', fontsize = fontsize)
+    ax2.set_title('Prediction [Miss Ratio: %.1f %s]' % (100 * mistake_ratio, '\%'), fontsize = fontsize)
+    ax2.set_xlabel('$x_{1}$', fontsize = fontsize)
+    ax2.set_ylabel('$x_{2}$', fontsize = fontsize)
     cbar = plt.colorbar()
     cbar.set_ticks(y_unique)
     cbar.set_ticklabels(y_unique)
@@ -418,14 +326,35 @@ def main():
         tick.label.set_fontsize(axis_tick_font_size) 
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
+    
+    """
+    Plot: Monte Carlo Prediction Information Entropy onto Training Set
+    """
+
+    gp.classifier.utils.visualise_map(ax3, yq_mcpie_high, test_ranges, 
+        threshold = entropy_threshold, cmap = cm.coolwarm)
+    ax3.set_title('M.C. Prediction Information Entropy', fontsize = fontsize, x = 0.5)
+    ax3.set_xlabel('$x_{1}$', fontsize = fontsize)
+    ax3.set_ylabel('$x_{2}$', fontsize = fontsize)
+    plt.colorbar()
+    ax3.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
+    ax3.set_xlim((test_range_min, test_range_max))
+    ax3.set_ylim((test_range_min, test_range_max))
+    logging.info('Plotted Monte Carlo Prediction Information Entropy on Training Set')
+    plt.gca().set_aspect('equal', adjustable = 'box')
+    for tick in plt.gca().xaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
+    for tick in plt.gca().yaxis.get_major_ticks():
+        tick.label.set_fontsize(axis_tick_font_size) 
         
+
     """
     Plot: Prediction Information Entropy onto Training Set
     """
 
-    gp.classifier.utils.visualise_map(ax4, yq_pie, test_ranges, 
+    gp.classifier.utils.visualise_map(ax4, yq_pie_norm, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    ax4.set_title('Prediction Information Entropy', fontsize = fontsize)
+    ax4.set_title('PIE with Simple Normaliser Fusion', fontsize = fontsize, x = 0.5)
     ax4.set_xlabel('$x_{1}$', fontsize = fontsize)
     ax4.set_ylabel('$x_{2}$', fontsize = fontsize)
     plt.colorbar()
@@ -438,117 +367,48 @@ def main():
         tick.label.set_fontsize(axis_tick_font_size) 
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
-        
-    """
-    Plot: Monte Carlo Prediction Information Entropy onto Training Set
-    """
 
-    gp.classifier.utils.visualise_map(ax5, yq_mcpie_high, test_ranges, 
+    gp.classifier.utils.visualise_map(ax5, yq_pie_mode, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    ax5.set_title('M.C. Prediction Information Entropy', fontsize = fontsize, x = 0.45)
+    ax5.set_title('PIE with Mode Keeping Fusion', fontsize = fontsize)
     ax5.set_xlabel('$x_{1}$', fontsize = fontsize)
     ax5.set_ylabel('$x_{2}$', fontsize = fontsize)
     plt.colorbar()
     ax5.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
     ax5.set_xlim((test_range_min, test_range_max))
     ax5.set_ylim((test_range_min, test_range_max))
-    logging.info('Plotted Monte Carlo Prediction Information Entropy on Training Set')
+    logging.info('Plotted Prediction Information Entropy on Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
     for tick in plt.gca().xaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
         
-    """
-    Plot: Linearised Model Differential Entropy onto Training Set
-    """
-
-    yq_lmde_min = yq_lmde.min()
-    yq_lmde_max = yq_lmde.max()
-    gp.classifier.utils.visualise_map(ax6, yq_lmde, test_ranges, 
-        threshold = entropy_threshold, cmap = cm.coolwarm, 
-        vmin = -yq_lmde_max, vmax = yq_lmde_max)
-    ax6.set_title('L. Model Differential Entropy', fontsize = fontsize)
+    gp.classifier.utils.visualise_map(ax6, yq_pie_excl, test_ranges, 
+        threshold = entropy_threshold, cmap = cm.coolwarm)
+    ax6.set_title('PIE with Exclusion Fusion', fontsize = fontsize)
     ax6.set_xlabel('$x_{1}$', fontsize = fontsize)
     ax6.set_ylabel('$x_{2}$', fontsize = fontsize)
     plt.colorbar()
     ax6.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
     ax6.set_xlim((test_range_min, test_range_max))
     ax6.set_ylim((test_range_min, test_range_max))
-    logging.info('Plotted Linearised Model Differential Entropy on Training Set')
+    logging.info('Plotted Prediction Information Entropy on Training Set')
     plt.gca().set_aspect('equal', adjustable = 'box')
     for tick in plt.gca().xaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
     for tick in plt.gca().yaxis.get_major_ticks():
         tick.label.set_fontsize(axis_tick_font_size) 
+
+    logging.info(mse_list)
+    logging.info(mae_list)
 
     # plt.show()
     fig.tight_layout()
-    sea.vis.savefig(fig, './mcpie_lmde_comparison/mcpie_lmde_comparison.eps')
 
-    fig = plt.figure(figsize = (19.2, 10.8/2))
-    ax1 = fig.add_subplot(131)
-    ax2 = fig.add_subplot(132)
-    ax3 = fig.add_subplot(133)
+    sea.vis.savefig(fig, './probability_fusion_comparison/probability_fusion_comparison_%s_%d_%d.eps' % (multimethod, n_train, n_draws_high))
 
-    gp.classifier.utils.visualise_map(ax1, yq_mcpie_low, test_ranges, 
-        threshold = entropy_threshold, cmap = cm.coolwarm)
-    ax1.set_title('MCPIE with %d Samples' % n_draws_low, fontsize = fontsize)
-    ax1.set_xlabel('$x_{1}$', fontsize = fontsize)
-    ax1.set_ylabel('$x_{2}$', fontsize = fontsize)
-    plt.colorbar()
-    ax1.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    ax1.set_xlim((test_range_min, test_range_max))
-    ax1.set_ylim((test_range_min, test_range_max))
-    logging.info('Plotted MCPIE with %d Samples on Training Set' % n_draws_low)
-    plt.gca().set_aspect('equal', adjustable = 'box')
-    for tick in plt.gca().xaxis.get_major_ticks():
-        tick.label.set_fontsize(axis_tick_font_size) 
-    for tick in plt.gca().yaxis.get_major_ticks():
-        tick.label.set_fontsize(axis_tick_font_size) 
-
-    gp.classifier.utils.visualise_map(ax2, yq_mcpie_med, test_ranges, 
-        threshold = entropy_threshold, cmap = cm.coolwarm)
-    ax2.set_title('MCPIE with %d Samples' % n_draws_med, fontsize = fontsize)
-    ax2.set_xlabel('$x_{1}$', fontsize = fontsize)
-    ax2.set_ylabel('$x_{2}$', fontsize = fontsize)
-    plt.colorbar()
-    ax2.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    ax2.set_xlim((test_range_min, test_range_max))
-    ax2.set_ylim((test_range_min, test_range_max))
-    logging.info('Plotted MCPIE with %d Samples on Training Set' % n_draws_med)
-    plt.gca().set_aspect('equal', adjustable = 'box')
-    for tick in plt.gca().xaxis.get_major_ticks():
-        tick.label.set_fontsize(axis_tick_font_size) 
-    for tick in plt.gca().yaxis.get_major_ticks():
-        tick.label.set_fontsize(axis_tick_font_size) 
-
-    gp.classifier.utils.visualise_map(ax3, yq_mcpie_high, test_ranges, 
-        threshold = entropy_threshold, cmap = cm.coolwarm)
-    ax3.set_title('MCPIE with %d Samples' % n_draws_high, fontsize = fontsize)
-    ax3.set_xlabel('$x_{1}$', fontsize = fontsize)
-    ax3.set_ylabel('$x_{2}$', fontsize = fontsize)
-    plt.colorbar()
-    ax3.scatter(x1, x2, c = y, marker = 'x', cmap = mycmap)
-    ax3.set_xlim((test_range_min, test_range_max))
-    ax3.set_ylim((test_range_min, test_range_max))
-    logging.info('Plotted MCPIE with %d Samples on Training Set' % n_draws_high)
-    plt.gca().set_aspect('equal', adjustable = 'box')
-    for tick in plt.gca().xaxis.get_major_ticks():
-        tick.label.set_fontsize(axis_tick_font_size) 
-    for tick in plt.gca().yaxis.get_major_ticks():
-        tick.label.set_fontsize(axis_tick_font_size) 
-
-    # plt.show()
-    fig.tight_layout()
-    sea.vis.savefig(fig, './mcpie_lmde_comparison/mcpie_accuracy.eps')
-
-    logging.info(timing)
     plt.show()
 
 if __name__ == "__main__":
     main()
-
-# DO TO: Put learned hyperparam in the title
-# DO TO: Find joint entropy of the whole region and put it in the title
-# TO DO: Find other measures of improvement (sum of entropy (linearised and true)) (sum of variances and standard deviation)
