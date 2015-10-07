@@ -1,0 +1,43 @@
+\chapter{Bathymetric Feature Extraction}
+\lhead{Bathymetric Feature Extraction}
+\label{Appendix:BathymetricFeatureExtraction}
+
+	The following discussion details the bathymetric feature extraction process. Given the bathymetric depth observations, the other bathymetric features, aspect and rugosity, can be computed in the short scale and long scale form in order to obtain a rich feature space for benthic habitat mapping.
+	
+			The feature extraction process assumes that the bathymetric depth data is available in grid form. That is, one can represent the available depth data $Z = \{z_{k}\}_{k \in {1, 2, ..., N}}$ as $Z = \{z_{ij}\}_{i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}}}$ where varying $i$ and $j$ corresponds to varying data points in axis 1 and 2 respectively. Axis 1 and 2 is required to form an orthonormal frame. While axis 1 and 2 is usually aligned with the eastings-northings frame, it is generally not required for the feature extraction process.
+			
+			Without loss of generality, let $x$ and $y$ denote quantities corresponding to the orthogonal axes. We have that at $(x_{i}, y_{j})$ $(i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}})$ the depth is measured as $z_{ij}$. The partial derivatives of various degrees of accuracy and scale can then be estimated through central differencing. Table \ref{Table:AspectExtraction}  shows the case for extracting aspect in the $x$-direction. Correspondingly, replacing the operations from $i$ to $j$ the aspect in the $y$-direction can also be similarly extracted.
+			
+			\bgroup
+			\def\arraystretch{2}%  1 is the default, change whatever you need
+			\begin{table}[h]
+				\begin{center}
+					\begin{tabular}{ c c }
+						\hline
+						\hline
+						N & Aspect (Slope) Extraction [$x$-direction]\\
+						\hline
+						\hline
+						3 & $^{3}_{x}a_{i, j} := \frac{- z_{i - 1, j} + z_{i + 1, j}}{2h}$ \\
+						5 & $^{5}_{x}a_{i, j} := \frac{z_{i - 2, j} - 8 z_{i - 1, j} + 8 z_{i + 1, j} - z_{i + 2, j}}{12h}$ \\
+						7 & $^{7}_{x}a_{i, j} := \frac{-z_{i - 3, j} + 9 z_{i - 2, j} - 45 z_{i - 1, j} + 45 z_{i + 1, j} - 9 z_{i + 2, j} + z_{i + 3, j}}{60h}$ \\
+						9 & $^{9}_{x}a_{i, j} := \frac{3 z_{i - 4 j} - 32 z_{i - 3, j} + 168 z_{i - 2, j} - 672 z_{i - 1, j} + 672 z_{i + 1, j} - 168 z_{i + 2, j} + 32 z_{i + 3, j} - 3 z_{i + 4, j}}{840h}$ \\
+						\hline
+						\hline
+					\end{tabular}
+				\end{center}
+		  	\caption{Aspect feature extraction using finite (central) difference approximations}
+		  	\label{Table:AspectExtraction}			
+		  	\end{table}	
+	  		\egroup
+	  		
+	  		The chosen spacing employed in this thesis are $N = 3$ neighbors for short scale aspect and $N = 9$ neighbors for large scale aspect. That is, \begin{align*} \numberthis \label{Equation:AspectExtraction}
+	  				{_{x}\{a_{s}\}_{i, j}} &:= {^{3}_{x}a_{i, j}} \quad && {_{y}\{a_{s}\}_{i, j}} := {^{3}_{y}a_{i, j}} \quad && {\{a_{s}\}_{i, j}} := \sqrt{{_{x}\{a_{s}\}^{2}_{i, j}} + {_{y}\{a_{s}\}^{2}_{i, j}}} \\
+	  				{_{x}\{a_{l}\}_{i, j}} &:= {^{9}_{x}a_{i, j}} \quad && {_{y}\{a_{l}\}_{i, j}} := {^{9}_{y}a_{i, j}} \quad && {\{a_{l}\}_{i, j}} := \sqrt{{_{x}\{a_{l}\}^{2}_{i, j}} + {_{y}\{a_{l}\}^{2}_{i, j}}}
+	  		\end{align*}
+	  						  					
+			Central differencing is chosen as it is more numerically accurate. The disadvantages of instability and slightly higher time complexity from dynamic cases are not present in the static feature extraction process. Nevertheless, forward differencing is to be used at the boundaries of the dataset where neighboring data is missing on one side.
+						
+			With two axis, the result is a 2 element gradient vector. It is possible to treat the 2 elements as separate features. However, this would make the modeling problem frame dependent which would unnecessarily complicate the modeling process. Therefore, the magnitude of this gradient is taken as the aspect feature \eqref{Equation:AspectExtraction}. 
+			
+			Rugosity is a measure of local height variations in the terrain. By definition, it is computed with $r = A_{r}/A_{g}$, the real surface area divided by the geometric surface area. Under bathymetry measurements that are geo-referenced through stereo imagery, rugosity can be calculated through a Delaunay triangulated surface mesh and projecting areas onto the plane of best fit using Principal Component Analysis (PCA) \citep{Friedman:Rugosity}.

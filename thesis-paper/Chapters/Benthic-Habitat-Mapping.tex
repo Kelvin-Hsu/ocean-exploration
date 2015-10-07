@@ -142,9 +142,9 @@
 			
 			Like the Scott Reef dataset, in most cases the bathymetric observations span the entire region of interest densely. However, while bathymetric data are usually collected rather uniformly and densely, the label data are collected from past AUV missions whose trajectory are continuous paths across the ocean floor \citep{Squidle}. Often times, these paths are approximate line segments which cover a very limited portion of the region of interest. Due to slower AUV velocity as compared to surface ships which often employ SONAR or LIDAR techniques for bathymetry mapping, the label data are also spatially denser and concentrated on the mission trajectory, while being almost non-existent elsewhere, making it a multi-modal distributed dataset. 
 			
-			Therefore, in order for the GP classifier to learn the relationship between the bathymetric features and habitat labels, the bathymetric data and label data must have a one-to-one correspondence. In other words, they must exist at the same locations. 
+			Therefore, in order for the GP classifier to learn the relationship between the bathymetric features and habitat labels, the bathymetric and label data must have a one-to-one correspondence. That is, they must exist at the same locations. 
 			
-			Formally, let $P_{b}, P_{h} \in \mathcal{P}$ be the spatial positions at which bathymetric data and habitat label data have been observed. Let $X_{b} \in \mathcal{X}$ be the bathymetric features observed at $P_{b}$ and $\bvec{y}_{h} \in \mathcal{Y}$ be the habitat labels observed at $P_{h}$. The data matching problem is to obtain or infer $X_{h} \in \mathcal{X}$, the bathymetric features at locations $P_{h}$, from $X_{b}$.
+			Formally, let $P_{b}, P_{h} \in \mathcal{P}$ be the spatial positions at which bathymetric and label data have been observed. Let $X_{b} \in \mathcal{X}$ be the bathymetric features observed at $P_{b}$ and $\bvec{y}_{h} \in \mathcal{Y}$ be the habitat labels observed at $P_{h}$. The data matching problem is to obtain or infer $X_{h} \in \mathcal{X}$, the bathymetric features at locations $P_{h}$, from $X_{b}$.
 			
 			This is a standard supervised learning problem. Specifically, the aim is to learn an inference model $\zeta: P_{h} \mapsto X_{h}$ from the empirical relationship $P_{b} \mapsto X_{b}$.
 			
@@ -157,65 +157,16 @@
 %			Instead, the second choice is to estimate the label data at places where bathymetric data exists. In this setting, regions closer to past mission paths have higher volumes of label data, increasing the amount of training points. Regions further away would naturally generate more prediction uncertainty in the prediction stage.
 %			
 %			Hence, second method is chosen to be employed for data matching, in order to form our training set. Naturally, to predict environment labels from bathymetric features, we again need the Gaussian process classification model.
-			
-			\FloatBarrier
-	
-		\subsection{Feature Extraction}
-		\label{BenthicHabitatMapping:BathymetricFeatures:FeatureExtraction}
-		
-			The feature extraction process assumes that the bathymetric depth data is available in grid form. That is, one can represent the available depth data $Z = \{z_{k}\}_{k \in {1, 2, ..., N}}$ as $Z = \{z_{ij}\}_{i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}}}$ where varying $i$ and $j$ corresponds to varying data points in axis 1 and 2 respectively. Axis 1 and 2 is required to form an orthonormal frame. While axis 1 and 2 is usually aligned with the eastings-northings frame, it is generally not required for the feature extraction process.
-			
-			Without loss of generality, let $x$ and $y$ denote quantities corresponding to the orthogonal axes. We have that at $(x_{i}, y_{j})$ $(i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}})$ the depth is measured as $z_{ij}$. The partial derivatives of various degrees of accuracy and scale can then be estimated through central differencing. Table \ref{Table:AspectExtraction}  shows the case for extracting aspect in the $x$-direction. Correspondingly, replacing the operations from $i$ to $j$ the aspect in the $y$-direction can also be similarly extracted.
-			
-			\bgroup
-			\def\arraystretch{2}%  1 is the default, change whatever you need
-			\begin{table}[h]
-				\begin{center}
-					\begin{tabular}{ c c }
-						\hline
-						\hline
-						N & Aspect (Slope) Extraction [$x$-direction]\\
-						\hline
-						\hline
-						3 & $^{3}_{x}a_{i, j} := \frac{- z_{i - 1, j} + z_{i + 1, j}}{2h}$ \\
-						5 & $^{5}_{x}a_{i, j} := \frac{z_{i - 2, j} - 8 z_{i - 1, j} + 8 z_{i + 1, j} - z_{i + 2, j}}{12h}$ \\
-						7 & $^{7}_{x}a_{i, j} := \frac{-z_{i - 3, j} + 9 z_{i - 2, j} - 45 z_{i - 1, j} + 45 z_{i + 1, j} - 9 z_{i + 2, j} + z_{i + 3, j}}{60h}$ \\
-						9 & $^{9}_{x}a_{i, j} := \frac{3 z_{i - 4 j} - 32 z_{i - 3, j} + 168 z_{i - 2, j} - 672 z_{i - 1, j} + 672 z_{i + 1, j} - 168 z_{i + 2, j} + 32 z_{i + 3, j} - 3 z_{i + 4, j}}{840h}$ \\
-						\hline
-						\hline
-					\end{tabular}
-				\end{center}
-		  	\caption{Aspect feature extraction using finite (central) difference approximations}
-		  	\label{Table:AspectExtraction}			
-		  	\end{table}	
-	  		\egroup
-	  		
-	  		The chosen spacing employed in this thesis are $N = 3$ neighbors for short scale aspect and $N = 9$ neighbors for large scale aspect. That is, \begin{align*} \numberthis \label{Equation:AspectExtraction}
-	  				{_{x}\{a_{s}\}_{i, j}} &:= {^{3}_{x}a_{i, j}} \quad && {_{y}\{a_{s}\}_{i, j}} := {^{3}_{y}a_{i, j}} \quad && {\{a_{s}\}_{i, j}} := \sqrt{{_{x}\{a_{s}\}^{2}_{i, j}} + {_{y}\{a_{s}\}^{2}_{i, j}}} \\
-	  				{_{x}\{a_{l}\}_{i, j}} &:= {^{9}_{x}a_{i, j}} \quad && {_{y}\{a_{l}\}_{i, j}} := {^{9}_{y}a_{i, j}} \quad && {\{a_{l}\}_{i, j}} := \sqrt{{_{x}\{a_{l}\}^{2}_{i, j}} + {_{y}\{a_{l}\}^{2}_{i, j}}}
-	  		\end{align*}
-	  						  					
-			Central differencing is chosen as it is more numerically accurate. The disadvantages of instability and slightly higher time complexity from dynamic cases are not present in the static feature extraction process. Nevertheless, forward differencing is to be used at the boundaries of the dataset where neighboring data is missing on one side.
-						
-			With two axis, the result is a 2 element gradient vector. It is possible to treat the 2 elements as separate features. However, this would make the modeling problem frame dependent which would unnecessarily complicate the modeling process. Therefore, the magnitude of this gradient is taken as the aspect feature \eqref{Equation:AspectExtraction}. 
-			
-			Rugosity is a measure of local height variations in the terrain. By definition, it is computed with $r = A_{r}/A_{g}$, the real surface area divided by the geometric surface area. Under bathymetry measurements that are geo-referenced through stereo imagery, rugosity can be calculated through a Delaunay triangulated surface mesh and projecting areas onto the plane of best fit using Principal Component Analysis (PCA) \citep{Friedman:Rugosity}.
-							
-			\FloatBarrier
 				
 	\section{Gaussian Process Classification}
 	\label{BenthicHabitatMapping:Classification}
 	
 		After extracting the bathymetric features across the seafloor terrain, the next step in benthic habitat mapping is to develop a classification algorithm for habitat class inference. Gaussian process classification is of vital importance to the benthic habitat modeling process. It is used to infer the habitat type, and most importantly quantify the information reward one can gain by exploring a given area. As concluded in section \ref{Background:RelatedWork:AcquisitionFunctions}, there has been many prior attempts in using Gaussian process classifiers for benthic habitat mapping. However, while Gaussian process classifiers are strong in inference and predictive ability, its use is complicated by its lack of analytical tractability. Approximate solutions are therefore required. Furthermore, it is non-trivial to formulate a Gaussian process based multiclass classifier, as well as ensuring a consistent predictive probability distribution from the resulting multiclass classifier. This section address those concerns and outlines the basic formulation of Gaussian process classifiers.
 		
-		Unlike the regression case described in section \ref{Background:GaussianProcesses:Regression}, the analytical intractability is caused by a non-Gaussian likelihood response $p(\bvec{y} | \bvec{f}, \vec{\uptheta})$, since the output labels are no longer continuous \eqref{Equation:ClassificationLogMarginalLikelihoodBayes}. Note that there is no noise parameter $\sigma$ involved, so that the hyperparameters are $\vec{\uptheta}$ in accordance to the notations introduced in section \ref{Background:GaussianProcesses:Regression}.
-
-		\begin{equation}
+		Unlike the regression case described in section \ref{Background:GaussianProcesses:Regression}, the analytical intractability is caused by a non-Gaussian likelihood response $p(\bvec{y} | \bvec{f}, \vec{\uptheta})$, since the output labels are no longer continuous \eqref{Equation:ClassificationLogMarginalLikelihoodBayes}. Note that there is no noise parameter $\sigma$ involved, so that the hyperparameters are simply $\vec{\uptheta}$ in accordance to previous notations. \begin{equation}
 			\overbrace{p(\bvec{f} | \bvec{y}, \vec{\uptheta})}^{\mathclap{\substack{\text{Non-Gaussian} \\ \text{as a result}}}} = \frac{\overbrace{p(\bvec{y} | \bvec{f}, \vec{\uptheta})}^{\text{Non-Gaussian}} \; \overbrace{p(\bvec{f} | \vec{\uptheta})}^{\text{Gaussian}}}{\underbrace{p(\bvec{y} | \vec{\uptheta})}_{\mathclap{\substack{= \int\limits_{\mathbb{R}^{n}} p(\bvec{y} | \bvec{f}, \vec{\uptheta})) p(\bvec{f} | \vec{\uptheta})) d\bvec{f} \\ \Rightarrow \; \text{Non-Gaussian due to above}}}}}
 		\label{Equation:ClassificationLogMarginalLikelihoodBayes}
-		\end{equation}
-
-		The above Bayes relation \eqref{Equation:ClassificationLogMarginalLikelihoodBayes} demonstrates that the posterior probability is in general not Gaussian. In this way, approximations are necessary. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \citep{GaussianProcessForMachineLearning}. As expectation propagation and variational inference is extremely computationally heavy and thus hinder tractability performances, Laplace approximation is chosen as a reasonable balance between accuracy and implementation difficulty. A short investigation of probabilistic least squares will also be provided.
+		\end{equation} The above Bayes relation \eqref{Equation:ClassificationLogMarginalLikelihoodBayes} demonstrates that the posterior probability is in general not Gaussian. In this way, approximations are necessary. Four of the most popular approximations to GP classification, in increasing accuracy and computational complexity, are Probabilistic Least Squares, Laplace Approximation, Expectation Propagation, and Variational Inference \citep{GaussianProcessForMachineLearning}. As expectation propagation and variational inference is extremely computationally heavy and thus hinder tractability performances, Laplace approximation is chosen as a reasonable balance between accuracy and implementation difficulty. A short investigation of probabilistic least squares will also be provided.
 		
 		The general concept behind the approximation is that the posterior $p(\bvec{f} | \bvec{y}, \vec{\uptheta})$ is approximated by another (multivariate) Gaussian distribution $q(\bvec{f} | \bvec{y}, \vec{\uptheta})$ such that the latent function is still distributed as a GP for the inference process presented in Figure \ref{Figure:GaussianProcessGraphicalModel} to remain analytically tractable.
 		
@@ -437,7 +388,7 @@
 			
 			The following derivations assumes that the AVA predictive probabilities have been transformed into the same analytical form as the OVA case, as outlined at the end of section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}. That is, the probabilities to be fused come in a single axis list $\begin{Bmatrix*} {^{\star}}\bar{\vec{\uppi}}^{1} & {^{\star}}\bar{\vec{\uppi}}^{2} & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C}} \end{Bmatrix*}$, which is either the direct output of an OVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}), or the pre-fused probabilities of an AVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}). For the AVA case, different probability fusion techniques will utilise different pre-fusion functions (either \eqref{Equation:MeanFusionAVA2OVA} or \eqref{Equation:ProdFusionAVA2OVA}), and will be specified explicitly during the discussion. For notational simplicity, the conditioned training labels and hyperparameters will not be explicitly notated.
 		
-			It is important to realise that any probability fusion technique should not change the prediction itself. That is, the mode of the ``probability'' distribution before fusion should be invariant under the fusion transformation, so that the class with the highest probability stays the same.
+			It is important to realise that any probability fusion technique should not change the prediction itself. That is, the mode of the ``probability'' distribution before fusion should be invariant under the fusion transformation, so that the class with the highest probability stays the same. The mode of a probability distribution is the value for which the probability density or mass function is maximised. In the classification scenario, it is simply the class with the highest predictive probability at that query point. The corresponding probability is called \textit{mode probability}.
 				
 %			\begin{equation}
 %				\begin{Bmatrix*}
@@ -452,7 +403,7 @@
 				The most natural probability fusion method to be considered is to simply normalise the probabilities such that they sum to up 1. That is, for each query point, the probabilities corresponding to each class is scaled \textit{uniformly} to a proper probability distribution \eqref{Equation:SimpleNormalisation}.
 				
 				\begin{equation}
-					{^{\star}}\tilde{\pi}^{c}_{i} := \frac{1}{\sum_{m = 1}^{n_{C}} {^{\star}}\bar{\pi}^{m}_{i}} {^{\star}}\bar{\pi}^{c}_{i} \qquad \forall i \in I_{n_{C}}
+					{^{\star}}\tilde{\pi}^{c}_{i} := \frac{1}{\sum_{m = 1}^{n_{C}} {^{\star}}\bar{\pi}^{m}_{i}} {^{\star}}\bar{\pi}^{c}_{i} \qquad \forall c \in I_{n_{C}}, \forall i \in I_{n_{\star}}
 				\label{Equation:SimpleNormalisation}
 				\end{equation}				
 				
@@ -461,9 +412,40 @@
 			\subsubsection{Mode Keeping}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:ModeKeeping}
 				
+				In most scenarios involving OVA and AVA classifiers, the simple normalisation factor $\sum_{m = 1}^{n_{C}} {^{\star}}\bar{\pi}^{m}_{i}$ is usually greater than 1, rather than smaller than 1. This is because each probability is the result from a binary classifier, which does not take a holistic view towards the total number of classes there are. This means that if the simple normalisation fusion method is used, each probability will be scaled down uniformly. While the mode probability is necessarily invariant, by scaling down the mode probability, the predictive power is reduced through making the classifier more uncertain about its mode prediction.
+				
+				As such, the mode keeping fusion method aims to address this by modifying the simple normalisation approach. The idea is to keep the mode probability fixed, and scale down all other probabilities \textit{uniformly} so that the sum is 1 \eqref{Equation:ModeKeeping}.
+				
+				\begin{equation}
+					\begin{aligned}
+						M_{i} &:= \argmax_{c \in I_{n_{C}}} {^{\star}}\bar{\pi}^{c}_{i} \qquad \forall i \in I_{n_{\star}} \\
+						{^{\star}}\tilde{\pi}^{c}_{i} &:= \begin{cases}
+							\qquad \quad {^{\star}}\bar{\pi}^{c}_{i} & c = M_{i} \\
+							\frac{1 - {^{\star}}\bar{\pi}^{c}_{i}}{\big(\sum_{m = 1}^{n_{C}} {^{\star}}\bar{\pi}^{m}_{i}\big) - {^{\star}}\bar{\pi}^{c}_{i}} {^{\star}}\bar{\pi}^{c}_{i} & c \neq M_{i}
+						\end{cases} \qquad \forall c \in I_{n_{C}}, \forall i \in I_{n_{\star}}
+					\end{aligned}
+				\label{Equation:ModeKeeping}
+				\end{equation}
+					
+				In this way, the mode predictive probability is kept so that the predictive power is not reduced as significantly. However, this approach is not completely theoretic as it is inspired by experimental results. In the case that the original probabilities actually sum up to less than 1, this approach actually reduces the predictive power even more. As such, this approach should be used carefully.
+				
+				Since this approach is based on the actual magnitudes of the probabilities, this is the only case where the expectation-fused predictive probabilities \eqref{Equation:MeanFusionAVA2OVA} are to be used for AVA pre-fusion. As mentioned earlier, the consistency-fused predictive probabilities do not preserve the original probability magnitudes, and thus are ill-fitted in this context.
+				
 			\subsubsection{Exclusion}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:Exclusion}
 			
+				The exclusion fusion technique is the most theoretic approach out of the three. It is based on the same concept of the consistency-fused predictive probability discussed previously. The main idea is to produce relative probabilities that are \textit{consistent}. Specifically, the exclusion technique attempts to find the probabilities that all $n_{C}$ binary classifiers agree with each other.
+				
+				For example, if there are 4 classes with labels $\mathcal{Y} = \{1, 2, 3, 4\}$ and a single query point, and suppose the probability of interest is the likelihood that the class label is 1, the exclusion method attempts to first compute the probability that all the classifiers agree that the class label is 1, and then normalise such a probability with the corresponding probabilities for other classes. That is, it computes the probability that the ``1 against all'' classifier affirms for ``class 1'' while all the other ``$c$ against all'' classifiers affirms for ``not class $c$'', and then normalise such probabilities \eqref{Equation:Exclusion}. As such, it ``excludes'' the cases where the binary classifiers disagree with each other, such as the case when ``1 against all'' classifier affirms for ``class 1'' while the ``2 against all'' classifier affirms for ``class 2''. In this way, the exclusion approach is the only method of the three that enforces consistency amongst the independently trained binary classifiers.
+		
+				\begin{equation}
+					\begin{aligned}
+						{^{\star}}\hat{\pi}^{c}_{i} &:= \frac{{^{\star}}\bar{\pi}^{c}_{i}}{(1 - {^{\star}}\bar{\pi}^{c}_{i})} \prod_{m = 1}^{n_{C}} (1 - {^{\star}}\bar{\pi}^{m}_{i}) \\
+						{^{\star}}\tilde{\pi}^{c}_{i} &:= \frac{1}{\sum_{m = 1}^{n_{C}} {^{\star}}\hat{\pi}^{m}_{i}} {^{\star}}\hat{\pi}^{c}_{i} 
+					\end{aligned} \qquad \forall c \in I_{n_{C}}, \forall i \in I_{n_{\star}}
+				\label{Equation:Exclusion}
+				\end{equation}
+				
 		\subsection{Fusion Performance of Multiclass Classifiers}
 		\label{BenthicHabitatMapping:Classification:FusionPerformance}
 			

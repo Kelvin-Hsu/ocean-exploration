@@ -52,18 +52,17 @@
 %		
 %		The detailed objective of this thesis is thus to examine and address all the concerns above, and to provide a better understanding towards the methods these active path planning problems can be approached.
 		
-	\newpage
 	\section{Contribution}
 	
 		This thesis is concerned with mapping seafloor benthic habitats efficiently in a principled manner. Specific contributions and focuses of this thesis are:
 		
 		\begin{itemize}
 		
-			\item A computationally efficient, parallelisable implementation for multiclass Gaussian process (GP) classifiers. Time and spatial complexity of the classifier are further improved through taking advantage of the GP classifier structure under Laplace approximation. The computational framework is consistent with sparsification techniques for further complexity improvement although this is not necessary.
+			\item A computationally efficient, parallelisable implementation for multiclass Gaussian process (GP) classifiers through the One versus All scheme. Time and spatial complexity of the classifier are further improved through taking advantage of the GP classifier structure. Under Laplace approximation, this approach avoids the computational complexity from Monte Carlo sampling that is required in the inference stage. The computational framework is consistent with sparsification techniques for further complexity improvement although this is not necessary.
 			
-			% While \textit{one versus all} (OVA) and \textit{all versus all} (AVA) multiclass classifiers have been employed in many parametric and non-Bayesian classifiers, this thesis proposes an OVA and AVA framework for non-parametric, Bayesian GP classifiers. In this framework, both the learning/training and prediction/inference stage are parallelisable. Furthermore, it avoids the computational complexity from Monte Carlo sampling that is commonly required in the inference stage.
-			
-			\item An All versus All approach to GP multiclass classification. While One versus All techniques have been employed in various settings in the literature, there is no direct treatment of GP multiclass classification using All versus All classifiers, which achieves predictions with less biases due to a more balanced binary comparison between classes \textit{under balanced data}. This provides another choice for GP multiclass classification apart from the One versus All approach.
+			\item An All versus All approach to GP multiclass classification. While One versus All techniques have been employed in various settings in the literature, there is no direct treatment of GP multiclass classification using All versus All classifiers, which achieves predictions with less biases due to a more balanced binary comparison between classes \textit{under balanced data}, as well as all the advantages listed above for One versus All classifiers. This provides another choice for GP multiclass classification apart from the One versus All approach.
+
+			\item Two new ways for probability fusion in the GP multiclass classification setting under the One versus All and All versus All approach - mode keeping and exclusion. For the All versus All case, techniques for pre-fusing the probabilities into an appropriate form is also investigated and derived. These methods provide better properties when used for compute entropy of predictions as compared to simple normalisation techniques.
 			
 			\item A Monte Carlo based method for estimating the joint prediction information entropy hereby named \textit{Monte Carlo Prediction Information Entropy} (MCPIE). This work aims to provide a framework to obtain the joint prediction information entropy that is traditionally missing the the treatment of Gaussian process classifiers. While there are no analytical forms for the joint prediction information entropy available, it can be shown that the Monte Carlo estimation converges in value under reasonable amounts of sample draws. A stable and efficient method for Monte Carlo Optimisation is also devised which allows MCPIE to be utilised with reasonable tractability in an information acquisition setting, hereby named \textit{MCPIE acquisition}.
 			
@@ -92,7 +91,6 @@
 %			
 %			Linearised Model Differential Entropy/Linearised Probabilistic Differential Entropy
 			
-	\newpage
 	\section{Structure}
 	
 		The structure of this thesis is outlined as below.
