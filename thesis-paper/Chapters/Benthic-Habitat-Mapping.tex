@@ -2,7 +2,7 @@
 \lhead{Benthic Habitat Mapping}
 \label{BenthicHabitatMapping}
 	
-	 With the general theory and framework of Gaussian process inference provided in section \ref{Background:GaussianProcesses}, this chapter aims to extend such theory to the benthic habitat mapping context. In particular, specific classifier inference techniques are developed and built upon the existing Gaussian process classifier framework. This chapter focuses strictly on the inference techniques necessary for building a map of benthic habitats across a given region. The following chapter would then continue to build on such inference models for the purpose of informative seafloor exploration. 
+	With the general theory and framework of Gaussian process inference provided in section \ref{Background:GaussianProcesses}, this chapter aims to extend such theory to the benthic habitat mapping context. In particular, specific classifier inference techniques are developed and built upon the existing Gaussian process classifier framework. This chapter focuses strictly on the inference techniques necessary for building a map of benthic habitats across a given region. The following chapter would then continue to build on such inference models for the purpose of informative seafloor exploration. 
 	
 	This thesis employs Gaussian process classifiers as the primary inference model for benthic habitat mapping. Gaussian processes are non-parametric, Bayesian models which is able to model a variety of phenomenon. They are known to allow the data to `speak for itself' and provide a principled inference framework for drawing conclusion regarding the gathered data \citep{GaussianProcessForMachineLearning}. 
 	
@@ -304,7 +304,7 @@
 			The main difference is just the training stage!
 			
 			Unfinished
-		\subsection{Approximation Properties \& Performance}
+		\subsection{Approximation Performance of Binary Classifiers}
 		\label{BenthicHabitatMapping:Classification:ApproximationPerformance}
 		
 			Compare probability outputs, classification outputs, entropy outputs, etc
@@ -350,7 +350,7 @@
 				\label{Equation:ProbabilityInconsistencyOVA}
 				\end{equation}
 				
-			\subsubsection{All Versus All Classifier and Probability Pre-Fusion}
+			\subsubsection{All Versus All Classifier}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}
 			
 				The AVA approach operates in a similar fashion to the OVA approach. It instead introduces ${n_{C} \choose 2} = \frac{n_{C} (n_{C} - 1)}{2}$ \textit{independent} classification problems, each performing classification between a pair of labels. This time, each binary classifier is identified with two class labels $c$ and $c'$, where it attempts to distinguish between targets with labels $c$ against targets with labels $c'$ \textit{only}, and makes no attempt to consider observations with target labels that are not $c$ or $c'$. 
@@ -395,6 +395,9 @@
 				\label{Equation:ProbabilityListAVA}
 				\end{equation}	
 				
+			\subsubsection{Probability Pre-Fusion for All versus All Classifiers}
+			\label{BenthicHabitatMapping:Classification:MulticlassClassification:ProbabilityPreFusion}
+						
 				Similar to the OVA case, a consistent framework is again needed for fusing the prediction probabilities into one coherent prediction probability. Notice that here instead there are multiple predictive probabilities corresponding to each class. As such, the probability fusion requires an extra fusion step in the AVA case. 
 			
 				The approach proposed for this pre-fusion problem is to fuse the predictive probabilities from AVA inference \eqref{Equation:ProbabilityListAVA} into the same form as those from OVA inference \eqref{Equation:ProbabilityListOVA}. Recall that ${^{\star}}\bar{\vec{\uppi}}^{c, c'} |_{\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}}$ is the expected predictive probability of observing class $c$ \textit{against} class $c'$. Therefore, the fused predictive probabilities for class $c$ in OVA form is determined by \textit{row} $c$ of the double axis list \eqref{Equation:ProbabilityListAVA}. That is, the fused predictive probabilities in OVA form \eqref{Equation:AVA2OVA} is fused from the $c^{\mathrm{th}}$-row of \eqref{Equation:ProbabilityListAVA}. In the following derivation, the conditionals on $\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}$ is dropped to avoid cluttered notation.
@@ -426,7 +429,7 @@
 				The consistency-fused probabilities are preferred over other techniques as it ensures a consistent inference framework. However, there are cases where the expectation-fused probabilities are needed as it retains the scales of the probabilities whereas the consistency-fused probabilities shrink the probabilities so that they are even further away from summing up to 1.
 				 
 				Note that the pre-fusion stage does not ensure that the probabilities sum up to 1 across classes - it merely extracts a single expected predictive probability ${^{\star}}\bar{\vec{\uppi}}^{c}$ for each class $c$, which is in the same analytical form as the OVA case. The following section then deals with the probability fusion techniques for consistent inference.
-				
+			
 		\subsection{Probability Fusion Techniques}
 		\label{BenthicHabitatMapping:Classification:ProbabilityFusion}
 			
@@ -461,21 +464,37 @@
 			\subsubsection{Exclusion}
 			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:Exclusion}
 			
-		\subsection{Fusion Properties \& Performance}
-		\label{BenthicHabitatMapping:Classification:Performance}
+		\subsection{Fusion Performance of Multiclass Classifiers}
+		\label{BenthicHabitatMapping:Classification:FusionPerformance}
 			
-%			{'MSE MODE': 0.035913512803592867, 'MSE EXCL': 0.044286438659792801, 'MSE NORM': 0.088147473555083677}
-
-%INFO:root:{'MSE EXCL': 0.032531845590484776, 'MSE MODE': 0.037336625141050128, 'MSE NORM': 0.098994056667471797}
-%INFO:root:{'MAE EXCL': 0.14192672651299701, 'MAE MODE': 0.16507665844044628, 'MAE NORM': 0.26472359080049002}
-
+			The probability fusion methods allow GP classifiers to perform training and inference under the OVA and AVA scheme. A brief comparison between the probability fusion techniques are provided in this section. Such a comparison reveals that the exclusion method achieves the best fusion properties that best approximates the true entropy.
+			
+			Figure \ref{Figure:ProbabilityFusion} shows a simple multiclass classification scenario with $n_{C} = 4$ classes. The feature space $\mathcal{X} = \mathbb{R}^{2}$ in this case is the Euclidean plane with features $x_{1}$ and $x_{2}$. There are 400 training points observed from the ground truth as shown in the first subplot. The GP classifier is trained under Laplace approximation with a squared exponential kernel and probit response likelihood. For the example shown, an OVA classification scheme is employed.
+			
 			\begin{figure}[!htbp]
 			\centering
-				\includegraphics[width = \linewidth]{Figures/probability_fusion/probability_fusion_comparison_400.eps}
+				\includegraphics[width = \linewidth]{Figures/probability_fusion/probability_fusion_comparison_OVA_400_2500.eps}
 			\caption{Comparison of Probability Fusion Techniques}
 			\label{Figure:ProbabilityFusion}
 			\end{figure}
 			
+			\begin{table}[t]
+				{\footnotesize
+				\begin{center}
+					\begin{tabular}{ l c c c }
+					\hline
+					Error Criterion & Simple Normalisation & Mode Keeping & Exclusion \\
+					\hline
+					Mean Squared Error & 0.0990 & 0.0373 & 0.0325 \\
+					Mean Absolute Error & 0.265 & 0.165 & 0.142 \\
+					\hline
+					\end{tabular}
+				\end{center}
+				}
+		  	\caption{Entropy Accuracy across Probability Fusion Techniques}
+		  	\label{Table:ProbabilityFusionAccuracy}
+		  	\end{table}	
+		  	
 				MENTION THAT OVA AND AVA ALLOW PARALLELISATION
 				
 	\section{Mapping Scott Reef Benthic Habitats}

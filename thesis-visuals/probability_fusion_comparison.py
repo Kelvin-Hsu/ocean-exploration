@@ -231,6 +231,7 @@ def main():
     ax6 = fig.add_subplot(236)
 
     fontsize = 20
+    title_fontsize = 18
     axis_tick_font_size = 14
 
     """
@@ -239,7 +240,7 @@ def main():
 
     # Training
     gp.classifier.utils.visualise_map(ax1, yq_truth, test_ranges, cmap = mycmap)
-    ax1.set_title('Ground Truth and Training Set', fontsize = fontsize)
+    ax1.set_title('Ground Truth and Training Set', fontsize = title_fontsize)
     ax1.set_xlabel('$x_{1}$', fontsize = fontsize)
     ax1.set_ylabel('$x_{2}$', fontsize = fontsize)
     cbar = plt.colorbar()
@@ -314,7 +315,7 @@ def main():
     # Query (Prediction Map)
     gp.classifier.utils.visualise_map(ax2, yq_pred, test_ranges, 
         boundaries = True, cmap = mycmap)
-    ax2.set_title('Prediction [Miss Ratio: %.1f %s]' % (100 * mistake_ratio, '\%'), fontsize = fontsize)
+    ax2.set_title('Prediction [Miss Ratio: %.1f %s]' % (100 * mistake_ratio, '\%'), fontsize = title_fontsize)
     ax2.set_xlabel('$x_{1}$', fontsize = fontsize)
     ax2.set_ylabel('$x_{2}$', fontsize = fontsize)
     cbar = plt.colorbar()
@@ -333,7 +334,7 @@ def main():
 
     gp.classifier.utils.visualise_map(ax3, yq_mcpie_high, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    ax3.set_title('M.C. Prediction Information Entropy', fontsize = fontsize, x = 0.5)
+    ax3.set_title('MCPIE', fontsize = title_fontsize)
     ax3.set_xlabel('$x_{1}$', fontsize = fontsize)
     ax3.set_ylabel('$x_{2}$', fontsize = fontsize)
     plt.colorbar()
@@ -354,7 +355,7 @@ def main():
 
     gp.classifier.utils.visualise_map(ax4, yq_pie_norm, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    ax4.set_title('PIE with Simple Normaliser Fusion', fontsize = fontsize, x = 0.5)
+    ax4.set_title('PIE with Simple Normalisation', fontsize = title_fontsize)
     ax4.set_xlabel('$x_{1}$', fontsize = fontsize)
     ax4.set_ylabel('$x_{2}$', fontsize = fontsize)
     plt.colorbar()
@@ -370,7 +371,7 @@ def main():
 
     gp.classifier.utils.visualise_map(ax5, yq_pie_mode, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    ax5.set_title('PIE with Mode Keeping Fusion', fontsize = fontsize)
+    ax5.set_title('PIE with Mode Keeping', fontsize = title_fontsize)
     ax5.set_xlabel('$x_{1}$', fontsize = fontsize)
     ax5.set_ylabel('$x_{2}$', fontsize = fontsize)
     plt.colorbar()
@@ -386,7 +387,7 @@ def main():
         
     gp.classifier.utils.visualise_map(ax6, yq_pie_excl, test_ranges, 
         threshold = entropy_threshold, cmap = cm.coolwarm)
-    ax6.set_title('PIE with Exclusion Fusion', fontsize = fontsize)
+    ax6.set_title('PIE with Exclusion', fontsize = title_fontsize)
     ax6.set_xlabel('$x_{1}$', fontsize = fontsize)
     ax6.set_ylabel('$x_{2}$', fontsize = fontsize)
     plt.colorbar()
@@ -405,7 +406,7 @@ def main():
 
     # plt.show()
     fig.tight_layout()
-
+    sea.vis.savefig(fig, './probability_fusion_comparison/probability_fusion_comparison_%s_%d_%d.png' % (multimethod, n_train, n_draws_high))
     sea.vis.savefig(fig, './probability_fusion_comparison/probability_fusion_comparison_%s_%d_%d.eps' % (multimethod, n_train, n_draws_high))
 
     plt.show()
