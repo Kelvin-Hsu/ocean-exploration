@@ -50,16 +50,10 @@
 			
 			where $\mathbb{H}(z)$ is the modified Heaviside function which is 1 is $z$ is positive and -1 otherwise, so that ${^{s}}\bvec{y}^{\star} \in \{-1, 1\}^{n_{S}}$. Note that the sampled labels can be determined completely from the sampled latent function as, once sampled, the latent function is no longer a random function. Hence, any positive (negative) latent values will map to prediction probabilities of more (less) than 0.5 under any likelihood response.
 			
-			Further, define $I_{U} \subseteq I_{n_{S}}$, $n_{U} := \Vert I_{U} \Vert$, as the indices corresponding to the subset with the maximum amount of unique samples \eqref{Equation:UniqueIndexSet}.
-			
-			\begin{equation}
+			Further, define $I_{U} \subseteq I_{n_{S}}$, $n_{U} := \Vert I_{U} \Vert$, as the indices corresponding to the subset with the maximum amount of unique samples \eqref{Equation:UniqueIndexSet}, where $\Vert I \Vert$  stands for the cardinality of $I$. An \textit{estimated} probability vector $\tilde{\bvec{p}}$ can then be formed \eqref{Equation:EstimatedProbability}. \begin{equation}
 				I_{U} := \argmax_{\{I \subseteq I_{n_{S}} | {^{s}}\bvec{y}^{\star} \neq {^{t}}\bvec{y}^{\star}, \forall s, t \in I\}} \Vert I \Vert 
 			\label{Equation:UniqueIndexSet}
-			\end{equation}			
-			
-			where $\Vert I \Vert$  stands for the cardinality of $I$. An \textit{estimated} probability vector $\tilde{\bvec{p}}$ can then be formed \eqref{Equation:EstimatedProbability}.
-
-			\begin{equation}
+			\end{equation} \begin{equation}
 				\begin{aligned}
 					\tilde{\bvec{p}}^{\star} &:= \bigg\{ \frac{1}{n_{S}}\mathbb{F}_{I_{n_{S}}}({^{s}}\bvec{y}^{\star}) \bigg\}_{s \in I_{U}} \\
 					\mathbb{F}_{I_{n_{S}}}({^{s}}\bvec{y}^{\star}) &:= \sum_{t \in I_{n_{S}}} \mathds{1}_{\{{^{s}}\bvec{y}^{\star} = {^{t}}\bvec{y}^{\star}\}}
@@ -69,9 +63,7 @@
 			
 			where $\mathbb{F}_{I_{n_{S}}}({^{s}}\bvec{y}^{\star})$ is the frequency of appearance of the vector ${^{s}}\bvec{y}^{\star}$ amongst all the sampled vectors $\{ {^{s}}\bvec{y}^{\star} \}_{s \in I_{n_{S}}}$. Note that each \textit{unique} sample is assigned a probability such that the vector $\tilde{\bvec{p}}^{\star}$ has exactly $n_{U}$ non-zero entries indexed by $I_{U}$, which is generally smaller than the total number of possible samples. This inherently means that possible samples that were not drawn or \textit{realised} are estimated with probability zero. In this way, since more samples would likely realise those unlikely possibilities and thus raising the corresponding probability to a nonzero value, estimation accuracy will benefit from higher numbers of samples $n_{S}$.
 			
-			Finally,  for $n_{C} = 2$ classes, the Monte Carlo predictive information entropy, as an instance of Shannon entropy \eqref{Equation:DiscreteEntropy}, can be computed from the estimated probabilities that represent the joint distribution \eqref{Equation:MCPIE}. As usual, only non-zero entries of $\tilde{\bvec{p}}$ need to be considered. 
-			
-			\begin{equation}
+			Finally,  for $n_{C} = 2$ classes, the Monte Carlo predictive information entropy, as an instance of Shannon entropy \eqref{Equation:DiscreteEntropy}, can be computed from the estimated probabilities that represent the joint distribution \eqref{Equation:MCPIE}. As usual, only non-zero entries of $\tilde{\bvec{p}}$ need to be considered. \begin{equation}
 				H_{\mathrm{MCPIE}} \stackrel{\text{abbrev.}}{:=} H_{\mathrm{MCPIE}}[X^{\star} | X, \bvec{y}] := - \sum_{i \in I_{n_{U}}} \tilde{p}^{\star}_{i} \log(\tilde{p}^{\star}_{i})
 			\label{Equation:MCPIE}
 			\end{equation}		
@@ -195,60 +187,38 @@
 			
 				For $c$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Equation:Softmax}. This approach avoids the Monte Carlo sampling step in the inference stage of a typical GP multiclass classifier under Laplace Approximation \citep{GaussianProcessForMachineLearning}, and is thus faster in computational time. Note that this Monte Carlo sampling step avoided is separate to the one used in MCJIE. In essence, using OVA classifiers skip one Monte Carlo step, and using LMDE skips another Monte Carlo step through avoiding using MCPIE. Furthermore, because each classifier is trained independently, both the learning stage and the inference stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in under a receding horizon formulation, where the inference stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
 				
-				Similar to the binary case, to linearise it is imperative to examine the gradient of each of the $c$ softmax functions \eqref{Equation:SoftmaxGradient}. For notational simplicity, the query stars ($^{\star}$) are omitted in this derivation except for $n^{\star}$.
-				
-				\begin{equation}
+				Similar to the binary case, to linearise it is imperative to examine the gradient of each of the $c$ softmax functions \eqref{Equation:SoftmaxGradient}. For notational simplicity, the query stars ($^{\star}$) are omitted in this derivation except for $n^{\star}$. The numerators are explicitly left in the form of products of exponentiation instead of exponentiation of sums to reflect ways to cache quantities during computation. Hence, for each class $c$ at query point $i$ a softmax gradient vector is computed \eqref{Equation:SoftmaxGradientVector}. \begin{equation}
 					\frac{\partial \sigma^{c}}{\partial f^{k}_{i}}(\bvec{f}_{i}) =
 					\begin{cases} 
 						- \frac{\exp(f^{c}_{i}) \exp(f^{k}_{i})}{\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})} & \text{for } k \neq c  \\
 						- \frac{\exp(f^{c}_{i})^{2}}{\big(\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})\big)^{2}} + \frac{\exp(f^{c}_{i})}{\sum_{m = 1}^{n_{C}} \exp({f^{c}_{i}})}& \text{for } k = c
 					\end{cases}
 				\label{Equation:SoftmaxGradient}
-				\end{equation}			
-			
-				The numerators are explicitly left in the form of products of exponentiation instead of exponentiation of sums to reflect ways to cache quantities during computation. 
-				
-				Hence, for each class $c$ at query point $i$ a softmax gradient vector is computed \eqref{Equation:SoftmaxGradientVector}.
-				
-				\begin{equation}
+				\end{equation} \begin{equation}
 					\frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bvec{f}_{i}) := \begin{bmatrix} \frac{\partial \sigma^{c}}{\partial f^{1}_{i}}(\bvec{f}_{i}) & \frac{\partial \sigma^{c}}{\partial f^{2}_{i}}(\bvec{f}_{i}) & \dots & \frac{\partial \sigma^{c}}{\partial f^{n_{C}}_{i}}(\bvec{f}_{i}) \end{bmatrix}^{T}
 				\label{Equation:SoftmaxGradientVector}
-				\end{equation}
-				
-				The linearisation is again performed on the mean latent predictions $\bar{\bvec{f}}_{i} = \mathbb{E}[\bvec{f}_{i}]$ so that each softmax $\sigma^{c}(\bvec{f}_{i})$ can be approximated with the linearised softmax $\sigma^{c}_{L}(\bvec{f}_{i})$ \eqref{Equation:LinearisedSoftmax} in an analogous form as \eqref{Equation:LinearisingSigmoid}.
-				
-				\begin{equation}
+				\end{equation} The linearisation is again performed on the mean latent predictions $\bar{\bvec{f}}_{i} = \mathbb{E}[\bvec{f}_{i}]$ so that each softmax $\sigma^{c}(\bvec{f}_{i})$ can be approximated with the linearised softmax $\sigma^{c}_{L}(\bvec{f}_{i})$ \eqref{Equation:LinearisedSoftmax} in an analogous form as \eqref{Equation:LinearisingSigmoid}, with the constants defined by $\bvec{a}^{c}_{i} := \sigma^{c}(\bar{\bvec{f}}_{i})$ and $\bvec{g}^{c}_{i} := \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bar{\bvec{f}}_{i})$. \begin{equation}
 					\begin{aligned}
 						\sigma^{c}(\bvec{f}_{i}) \approx \sigma^{c}_{L}(\bvec{f}_{i}) & := \sigma^{c}(\bar{\bvec{f}}_{i}) + \left. \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}} \right|^{T}_{\bvec{f}_{i} = \bar{\bvec{f}}_{i}} (\bvec{f}_{i} - \bar{\bvec{f}}_{i}) \\
 						& = \bvec{a}^{c}_{i} + (\bvec{g}^{c}_{i})^{T} (\bvec{f}_{i} - \bar{\bvec{f}}_{i})
 					\end{aligned}
 				\label{Equation:LinearisedSoftmax}
-				\end{equation}
+				\end{equation} 
 				
-				where we have notated the constants $\bvec{a}^{c}_{i} := \sigma^{c}(\bar{\bvec{f}}_{i})$ and $\bvec{g}^{c}_{i} := \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bar{\bvec{f}}_{i})$.
-				
-				To determine the distribution of the vector of softmax values across query points, first define the following \eqref{Equation:Definitions}.
-				
-				\begin{equation}
+				To determine the distribution of the vector of softmax values across query points, first define the following \eqref{Equation:Definitions}. \begin{equation}
 					\begin{aligned}
 						F &:= \{f^{c}_{i}\}_{c \in I_{n_{C}}, i \in I_{n^{\star}}} \in \mathbb{R}^{n_{C} \times n^{\star}} \\
 						\vec{\upsigma}^{c}_{L}(F) &:= \begin{bmatrix} \sigma^{c}_{L}(\bvec{f}_{1}) & \sigma^{c}_{L}(\bvec{f}_{2}) & \dots & \sigma^{c}_{L}(\bvec{f}_{n^{\star}}) \end{bmatrix}^{T} \qquad \forall c \in I_{n_{C}}
 					\end{aligned}
 				\label{Equation:Definitions}
-				\end{equation}
-							
-				The covariance of the linearised softmax of a particular class $c$ between two query points $i$ and $j$ can now be computed, as well as the expectance at a particular query point $i$ \eqref{Equation:MomentsLinearisedSoftmax}.
-				
-				\begin{align*}
+				\end{equation} The covariance of the linearised softmax of a particular class $c$ between two query points $i$ and $j$ can now be computed, as well as the expectance at a particular query point $i$ \eqref{Equation:MomentsLinearisedSoftmax}. \begin{align*}
 				\numberthis \label{Equation:MomentsLinearisedSoftmax}
 						\vec{\upsigma}^{c}_{L}(F) & \sim \mathcal{N}(\vec{\upmu}^{c}_{L}, \Sigma^{c}_{L}) \\
 						(\mu^{c}_{L})_{i} & = \mathbb{E}[\sigma^{c}_{L}(\bvec{f}_{i})] =  \sigma^{c}(\bar{\bvec{f}}_{i}) \\
 						(\Sigma^{c}_{L})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma^{c}_{L}(\bvec{f}_{i}), \sigma^{c}_{L}(\bvec{f}_{i})] \\
 						& = \mathbb{C}\mathrm{ov}[(\bvec{g}^{c}_{i})^{T} \bvec{f}_{i}, (\bvec{g}^{c}_{j})^{T} \bvec{f}_{j}] \\
 						& = \sum_{m = 1}^{n_{C}} (g^{c}_{i})^{m} (g^{c}_{j})^{m} \mathbb{C}\mathrm{ov}[f^{m}_{i}, f^{m}_{j}]
-				\end{align*}
-							
-				where $(g^{c}_{i})^{m}$ denotes the $m^{\text{th}}$ element of $\bvec{g}^{c}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of classes $c$ and $m$, $c \neq m$, are conditionally independent given training observations.
+				\end{align*} where $(g^{c}_{i})^{m}$ denotes the $m^{\text{th}}$ element of $\bvec{g}^{c}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of classes $c$ and $m$, $c \neq m$, are conditionally independent given training observations.
 				
 				Finally, the linearised model differential entropy of the OVA multiclass Gaussian process classifier is defined as follows \eqref{Equation:MulticlassLinearisedEntropy}. \begin{equation}
 					H^{\mathrm{multiclass}}_{\mathrm{LMDE}} \stackrel{\text{abbrev.}}{:=} H^{\mathrm{multiclass}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Bigg((2 \pi e)^{n^{\star}} \det\bigg(\sum_{c = 1}^{n_{C}} \Sigma^{c}_{L}\bigg)\Bigg)
@@ -260,9 +230,7 @@
 					
 				Similar to the approach in the MCPIE derivation, the double axis list of latent vectors $\{ {\bvec{f}^{c, c'}}^{\star} \}_{c, c' \in I_{n_{C}}}$ where ${\bvec{f}^{c', c}}^{\star} = - {\bvec{f}^{c, c'}}^{\star}$ and ${\bvec{f}^{c, c}}^{\star} := \bvec{0}_{n^{\star}}$  are to be fused into $n_{C}$ latent vectors $\{ {\bvec{f}^{c}}^{\star} \}_{c \in I_{n_{C}}}$ through the same way as \eqref{Equation:MonteCarloSamplingMulticlassClassifierAVA} with ${\bvec{f}^{c}}^{\star} := \sum_{c' = 1}^{n_{C}} {\bvec{f}^{c, c'}}^{\star}$. However, here the latent vectors to be fused are now random vectors instead of fixed, sampled vectors as before. 
 			
-				As all of ${\bvec{f}^{c, c'}}^{\star}$ are multivarite Gaussian distributed, and are by construction independent after conditioning on their respectively hyperparameters $\vec{\uptheta}^{c, c'}$ which are not explicitly shown in notation here, the distribution of the fused latent vectors are given by \eqref{Equation:LatentFuseDistributionAVA}. These then provide the latent expectance vector and covariance matrix used in \eqref{Equation:MomentsLinearisedSoftmax}, from which the computations continues as in the OVA scheme.
-				
-				\begin{equation}
+				As all of ${\bvec{f}^{c, c'}}^{\star}$ are multivarite Gaussian distributed, and are by construction independent after conditioning on their respectively hyperparameters $\vec{\uptheta}^{c, c'}$ which are not explicitly shown in notation here, the distribution of the fused latent vectors are given by \eqref{Equation:LatentFuseDistributionAVA}. These then provide the latent expectance vector and covariance matrix used in \eqref{Equation:MomentsLinearisedSoftmax}, from which the computations continues as in the OVA scheme. \begin{equation}
 					\begin{aligned}
 						\mathbb{E}[{\bvec{f}^{c}}^{\star}] := \sum_{c' = 1}^{n_{C}} \mathbb{E}[{\bvec{f}^{c, c'}}^{\star}] \qquad \qquad \mathbb{V}[{\bvec{f}^{c}}^{\star}] := \sum_{c' = 1}^{n_{C}} \mathbb{V}[{\bvec{f}^{c, c'}}^{\star}]
 					\end{aligned}
@@ -290,7 +258,7 @@
 		\subsection{Estimation Accuracy under Monte Carlo Sampling}
 		\label{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures:EstimationAccuracy}
 		
-			It is helpful to visualise the practical numbers of samples required for reasonable estimation accuracy for MCPIE. Figure \ref{Figure:mcpie_lmde_comparison_binary} shows a simple case for a binary classification scenario, while Figure \ref{Figure:mcpie_lmde_comparison_multiclass} shows a case for a multiclass classification scenario with 4 classes. 
+			It is helpful to visualise the practical numbers of samples required for reasonable estimation accuracy for MCPIE. Figure \ref{Figure:mcpie_lmde_comparison_binary} shows a simple case for a binary classification scenario. The training data is evenly distributed in the feature space with features $x_{1}$ and $x_{2}$, and the MCPIE is estimated with 2500 samples \textit{at each query point}. Note that only the marginalised entropies can visualised, as it is difficult to visualise multiple regional entropies. However, this is sufficient to provide an intuition for the accuracy of the method.
 			
 			\begin{figure}[!htbp]
 				\centering
@@ -298,17 +266,8 @@
 				\caption{GP binary classifier example}
 				\label{Figure:mcpie_lmde_comparison_binary}
 			\end{figure}			
-						
-			In both cases, the training data are evenly distributed in the feature space with features $x_{1}$ and $x_{2}$. In both Figure \ref{Figure:mcpie_lmde_comparison_binary} and \ref{Figure:mcpie_lmde_comparison_multiclass}, the MCPIEs are estimated with 2500 samples \textit{at each query point}. Note that only the marginalised entropies can visualised, as it is difficult to visualise multiple regional entropies. However, this is sufficient to provide an intuition for the accuracy of the method.
-			
-			\begin{figure}[!htbp]
-				\centering
-					\includegraphics[width = \linewidth]{Figures/mcpie_lmde_comparison_multiclass/mcpie_lmde_comparison.eps}
-				\caption{GP multiclass classifier example}
-				\label{Figure:mcpie_lmde_comparison_multiclass}
-			\end{figure}
-			
-			Since only the marginalised entropies are visualised, there exists analytical forms for prediction information entropy by computing the Shannon entropy over the expected prediction probabilities at each query point. For a multiclass case under the OVA formulation, the probabilities are fused using the \textit{exclusion} method (see section  \ref{BenthicHabitatMapping:Classification:ProbabilityFusion:Exclusion}). Subplots (2, 1) and (2, 2) of Figures \ref{Figure:mcpie_lmde_comparison_binary} and \ref{Figure:mcpie_lmde_comparison_multiclass} show the analytically computed PIE and Monte Carlo estimated PIE (MCPIE) respectively. Both cases show that with 2500 samples, the estimation is fairly accurate.
+					
+			Since only the marginalised entropies are visualised, there exists analytical forms for prediction information entropy by computing the Shannon entropy over the expected prediction probabilities at each query point. For a multiclass case under the OVA formulation, the probabilities are fused using the \textit{exclusion} method (see section  \ref{BenthicHabitatMapping:Classification:Multiclass:ProbabilityFusion}). Subplots (2, 1) and (2, 2) of Figure \ref{Figure:mcpie_lmde_comparison_binary} show the analytically computed PIE and Monte Carlo estimated PIE (MCPIE) respectively, which shows that the estimation is fairly accurate with 2500 samples.
 			
 			\begin{figure}[!htbp]
 				\centering
@@ -317,14 +276,7 @@
 				\label{Figure:mcpie_accuracy_binary}
 			\end{figure}
 				
-			Figures \ref{Figure:mcpie_accuracy_binary} and \ref{Figure:mcpie_accuracy_multiclass} visualises the accuracy improvement as more samples are used for entropy estimation in the corresponding binary and multiclass case respectively. With low numbers of samples, the estimation is noisy and inaccurate, and generally converges to a reasonable accuracy after 1000 samples. Notice however that even with low numbers of samples, the entropies are mostly in the correct range already.
-			
-			\begin{figure}[!htbp]
-				\centering
-					\includegraphics[width = \linewidth]{Figures/mcpie_lmde_comparison_multiclass/mcpie_accuracy.eps}
-				\caption{Accuracy improvement of MCPIE for a multiclass case}
-				\label{Figure:mcpie_accuracy_multiclass}
-			\end{figure}
+			Figure \ref{Figure:mcpie_accuracy_binary} visualises the accuracy improvement as more samples are used for entropy estimation. With small samples, the estimation is noisy and inaccurate, and generally converges to a reasonable accuracy after 1000 samples. Notice however that even with low numbers of samples, the entropies are mostly in the correct range already. Appendix \ref{Appendix:MutualEntropyMeasures} provides the same results for the multiclass case.
 			
 		\subsection{Interpretation of Model Differential Entropy}
 		\label{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures:InterpretationMDE}
@@ -413,22 +365,20 @@
 		
 		The receding horizon approach is inspired by the philosophy of model predictive control (MPC) in control theory, where a continuous problem is discretised such that an optimal control problem is transcribed into a static optimisation problem at each time step. Similar to MPC, while receding horizon methods are almost always suboptimal, it provides a computationally tractable approach that is rather stable in performance. Furthermore, a receding horizon approach avoids a myopic and greedy approach to informative path planning. Myopic approaches often result in the vehicle fixating on a region with local maximum entropy due to its inability to sacrifice immediate rewards for future rewards in a faraway region. Lastly, a receding horizon approach is simple to implement and sufficient for most missions for which strict optimality is not necessary.
 		
-		% Informative path planning is a highly dynamical process in which the observations the vehicle decides to take can significantly impact the belief space of the vehicle and hence alter its action. As a result, Gaussian processes are often used for modeling the environment for which path planning is to be performed. The tractability of Gaussian processes regression allows sophisticated methods for informative path planning, such as  performing sequential Bayesian optimisation to achieve informative path planning over continuous domains \cite{Roman:SequentialBayesianOptimisation}. One desired property we would like to achieve with an informative path-planning problem is that the search is non-myopic. When the objective is to collect data on a particular spatial phenomenon, Gaussian process regression can be used as the model under which strong theoretical performance guarantees can be made \cite{Meliou:2007:NIP:1619645.1619742}. However, in the case where the objective is to collect data in the form of discrete labels, a Gaussian process classifier is used instead for modeling the phenomenon. As discussed earlier, the joint entropy from a Gaussian process classifier is not available in closed form. Instead, another measure of joint entropy was developed in the previous section which demonstrated desired properties for informative exploration. To take advantage of the tractability of linearised differential entropy over finite collections of query points, we discretise the spatial domain and select paths composed of finitely many query points. The acquisition criterion is then set to be the linearised differential entropy of the query points that compose the path.
-		
 		\subsection{Formulation and Structure}
 		\label{InformativeSeafloorExploration:RecedingHorizonFormulation:Structure}
 		
 			The receding horizon approach requires the selection of a horizon length and the number of control points (path query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce paths that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. This is because, for an informative path-planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path.
 	
-			\begin{figure}[!htbp]
+			\begin{wrapfigure}{r}{0.6\linewidth}
 				\begin{center}
-				\smartdiagramset{planet font = \small, satellite font = \scriptsize, planet color = orange!60, planet size = 2cm, satellite size = 2 cm, distance planet-satellite = 3.5cm}
+				\smartdiagramset{planet font = \footnotesize, satellite font = \tiny, planet color = orange!60, planet size = 1cm, satellite size = 2 cm, distance planet-satellite = 3.5cm}
 				\smartdiagram[connected constellation diagram]
 				{Receding Horizon Path Planning, 1. Learn GP model from collected data, 2. Compute finite optimal path, 3. Move to first control point, 4. Record observation}
 				\end{center}
 			\caption{Basic Receding Horizon Structure}
 			\label{Figure:RecedingHorizonMethodOutline}
-			\end{figure}
+			\end{wrapfigure}
 					
 			Figure \ref{Figure:RecedingHorizonMethodOutline} describes the basic flow of the receding horizon approach approach, shown in anti-clockwise order beginning from the top. This procedure resembles the technique of model predictive control (MPC) in control theory. That is, it computes an optimal policy of finite horizon in each time step, and only executes the first action from the policy. In each time step, a new path of the chosen horizon length is proposed by maximising the chosen acquisition criterion, which is discretised into a finite set of control points. The vehicle only executes the policy towards the first control point while recording observations. It then relearns the GP classifier model with new observations, and repeats the process.
 	
@@ -476,56 +426,29 @@
 			
 			There are constraints to the path coordinates $P_{p}$. For example, to simplify the optimisation process, adjacent path coordinates are equidistant from each other. Let this distance be denoted by $r$. This constraint can be readily incorporated into the optimisation process if we use angle coordinates instead of Cartesian coordinates in the optimisation process.
 			
-			Notice that in each optimisation iteration, the starting point is fixed. Denote this starting point as $\bvec{p}_{0} \in \mathbb{R}^{2}$. Further denote each point of the path coordinates $P_{p}$ by $\bvec{p}_{j}$ for $j \in I_{n_{p}}$ such that $P_{p} = \{\bvec{p}_{j}\}_{j \in I_{n_{p}}}$. Then, given $r$ and $\bvec{p}_{0}$, any point $\bvec{p}_{j}$ along the path $P_{p}$ can be specified by the direction $\phi_{j} \in [0, 2 \pi)$ from the previous point $\bvec{p}_{j - 1}$ by \eqref{Equation:AbsoluteAngleCoordinates}.
-				
-			\begin{equation}			
+			Notice that in each optimisation iteration, the starting point is fixed. Denote this starting point as $\bvec{p}_{0} \in \mathbb{R}^{2}$. Further denote each point of the path coordinates $P_{p}$ by $\bvec{p}_{j}$ for $j \in I_{n_{p}}$ such that $P_{p} = \{\bvec{p}_{j}\}_{j \in I_{n_{p}}}$. Then, given $r$ and $\bvec{p}_{0}$, any point $\bvec{p}_{j}$ along the path $P_{p}$ can be specified by the direction $\phi_{j} \in [0, 2 \pi)$ from the previous point $\bvec{p}_{j - 1}$ by \eqref{Equation:AbsoluteAngleCoordinates}. \begin{equation}			
 				\bvec{p}_{j} = \bvec{p}_{j - 1} + [r \cos(\phi_{j}), r \sin(\phi_{j})]^{T}	\qquad \forall j \in I_{n_{p}}			
 			\label{Equation:AbsoluteAngleCoordinates}			
-			\end{equation}
+			\end{equation} Specifically, let $\vec{\upphi} := \{\phi_{j}\}_{j \in I_{n_{p}}} \in [0, 2 \pi)^{n_{p}}$ be hereby named the \textit{absolute angle coordinates} of the path. In this way, the path features $X_{p}$ depends on the path coordinates $P_{p}$ through feature extraction and $P_{p}$ depends on the absolute angle coordinates $\vec{\upphi}$ through the above path generation technique \eqref{Equation:AbsoluteAngleCoordinates}. Let this relationship be summarised by the function composition $f_{e} \circ q_{p}$ where $f_{e}: \mathbb{R}^{n_{p} \times 2} \mapsto \mathbb{R}^{n_{p} \times 5}$ is the feature extraction process and $q_{p}: \mathbb{R}^{n_{p}} \mapsto \mathbb{R}^{n_{p} \times 2}$ is the path generation process.
 			
-			Specifically, let $\vec{\upphi} := \{\phi_{j}\}_{j \in I_{n_{p}}} \in [0, 2 \pi)^{n_{p}}$ be hereby named the \textit{absolute angle coordinates} of the path. In this way, the path features $X_{p}$ depends on the path coordinates $P_{p}$ through feature extraction and $P_{p}$ depends on the absolute angle coordinates $\vec{\upphi}$ through the above path generation technique \eqref{Equation:AbsoluteAngleCoordinates}. Let this relationship be summarised by the function composition $f_{e} \circ q_{p}$ where $f_{e}: \mathbb{R}^{n_{p} \times 2} \mapsto \mathbb{R}^{n_{p} \times 5}$ is the feature extraction process and $q_{p}: \mathbb{R}^{n_{p}} \mapsto \mathbb{R}^{n_{p} \times 2}$ is the path generation process.
-			
-			In this way, the optimisation constraints are can be incorporated into the objective formulation and the optimisation process becomes \eqref{Equation:OptimisationProcessAbsolute}.
-			
-			\begin{equation}
+			In this way, the optimisation constraints are can be incorporated into the objective formulation and the optimisation process becomes \eqref{Equation:OptimisationProcessAbsolute}. \begin{equation}
 				\max_{\vec{\upphi} \in [0, 2 \pi)^{n_{p}}} I[(f_{e} \circ q_{p})(\vec{\upphi}) | X, \bvec{y}, X_{s}]				
 			\label{Equation:OptimisationProcessAbsolute}
-			\end{equation}	
+			\end{equation} Although the above implementation is enough to for the optimisation process to be completed, there are more practical constraints that can be imposed on the path generation process to reflect practical situations. One such constraint considered in this work is the path smoothness. In practice, AUVs have a limited turn rate and prefer to travel in path that are not overly curvy or bumpy. While most methods that involve discretisation does not readily incorporate path smoothness, the receding horizon formulation, along with the above path generation technique, allow natural constraints on path smoothness.
 			
-			Although the above implementation is enough to for the optimisation process to be completed, there are more practical constraints that can be imposed on the path generation process to reflect practical situations. One such constraint considered in this work is the path smoothness. In practice, AUVs have a limited turn rate and prefer to travel in path that are not overly curvy or bumpy. While most methods that involve discretisation does not readily incorporate path smoothness, the receding horizon formulation, along with the above path generation technique, allow natural constraints on path smoothness.
-			
-			Path smoothness, in the discrete setting, translates to bound limits to the \textit{relative} angles between each adjacent coordinate. As such, \textit{relative angle coordinates}, also named \textit{natural angle coordinates}, are defined as $\vec{\uppsi} := \{\psi_{j}\}_{j \in I_{n_{p}}}$ where each element $\psi_{j}$ is given by \eqref{Equation:RelativeAngleCoordinates}, where $\phi_{0} := 0$ by definition. 
-			
-			\begin{equation}
-				\psi_{j} := \phi_{j} - \phi_{j - 1}	\qquad \forall j \in I_{n_{p}}
+			Path smoothness, in the discrete setting, translates to bound limits to the \textit{relative} angles between each adjacent coordinate. As such, \textit{relative angle coordinates}, also named \textit{natural angle coordinates}, are defined as $\vec{\uppsi} := \{\psi_{j}\}_{j \in I_{n_{p}}}$ where each element $\psi_{j}$ is related to absolute angle coordinates by \eqref{Equation:RelativeAngleCoordinates}, where $\phi_{0} := 0$ by definition. That is, beginning with $\psi_{1} = \phi_{1}$, the absolute angle coordinates can be obtained by the cumulative sum of the relative angle coordinates. \begin{equation}
+				\psi_{j} := \phi_{j} - \phi_{j - 1}	\quad \iff \quad \phi_{j} := \sum_{k = 1}^{j} \psi_{k} \qquad \forall j \in I_{n_{p}}
 			\label{Equation:RelativeAngleCoordinates}
-			\end{equation}
-			
-			That is, beginning with $\psi_{1} = \phi_{1}$, the absolute angle coordinates can be obtained by the cumulative sum of the relative angle coordinates \eqref{Equation:RelativeAngleCoordinatesInverse}.
-			
-			\begin{equation}
-				\phi_{j} := \sum_{k = 1}^{j} \psi_{k} \qquad \forall j \in I_{n_{p}}
-			\label{Equation:RelativeAngleCoordinatesInverse}
-			\end{equation}
-				
-			Let the above linear transformation be summarised as $T: \mathbb{R}^{n_{p}} \mapsto \mathbb{R}^{n_{p}}$ so that $\vec{\upphi} = T(\vec{\uppsi})$. Finally, bound limits can be placed onto the relative angle coordinates to impose smoothness constraints. Suppose $\psi_{\mathrm{max}} := \psi_{\mathrm{max}}(r)$ is the maximum angle the AUV can turn across a distance $r$, the bound limits imposed can be formulated as \eqref{Equation:TurnRateBoundLimits}.
-
-			\begin{equation}
+			\end{equation} Let the above linear transformation be summarised as $T: \mathbb{R}^{n_{p}} \mapsto \mathbb{R}^{n_{p}}$ so that $\vec{\upphi} = T(\vec{\uppsi})$. Finally, suppose $\psi_{\mathrm{max}} := \psi_{\mathrm{max}}(r)$ is the maximum angle the AUV can turn across a distance $r$, the bound limits can be placed onto the relative angle coordinates to impose smoothness constraints as \eqref{Equation:TurnRateBoundLimits}. \begin{equation}
 				\begin{aligned}
-					\psi_{1} & \in [0, 2 \pi) \\
-					\psi_{j} & \in [-\psi_{\mathrm{max}}, \psi_{\mathrm{max}}] \qquad j \in \{2, 3, \dots n_{p}\}
+					\psi_{1} \in [0, 2 \pi), \qquad
+					\psi_{j} \in [-\psi_{\mathrm{max}}, \psi_{\mathrm{max}}] \qquad j \in \{2, 3, \dots n_{p}\}
 				\end{aligned}
 			\label{Equation:TurnRateBoundLimits}
-			\end{equation}
-			
-			More concisely, if one define $\Psi_{n_{p}, \psi_{\mathrm{max}}} := [0, 2 \pi) \times [-\psi_{\mathrm{max}}, \psi_{\mathrm{max}}]^{n_{p} - 1}$ as the feasible region, then the above constraint can be summarised as a feasibility constraint $\vec{\uppsi} \in \Psi_{n_{p}}$ in a typical optimisation program. As such, the optimisation process can be written as \eqref{Equation:OptimisationProcess}.
-			
-			\begin{equation}
+			\end{equation} More concisely, if one define $\Psi_{n_{p}, \psi_{\mathrm{max}}} := [0, 2 \pi) \times [-\psi_{\mathrm{max}}, \psi_{\mathrm{max}}]^{n_{p} - 1}$ as the feasible region, then the above constraint can be summarised as a feasibility constraint $\vec{\uppsi} \in \Psi_{n_{p}}$ in a optimisation program \eqref{Equation:OptimisationProcess}. \begin{equation}
 				\max_{\vec{\uppsi} \in \Psi_{n_{p}, \psi_{\mathrm{max}}}} I[(f_{e} \circ q_{p} \circ T)(\vec{\uppsi}) | X, \bvec{y}, X_{s}]				
 			\label{Equation:OptimisationProcess}
-			\end{equation}
-		
-			As such, given the training data $(X, \bvec{y})$ and the query features $X_{s}$ representing the ROI, the acquisition criterion $I$ is a function of $\vec{\psi}$ only. The transformation process can be summarised in Figure \ref{Figure:AcquisitionCriterionTransformation}.
+			\end{equation} As such, given the training data $(X, \bvec{y})$ and the query features $X_{s}$ representing the ROI, the acquisition criterion $I$ is a function of $\vec{\psi}$ only. The transformation process can be summarised in Figure \ref{Figure:AcquisitionCriterionTransformation}.
 			
 			% Define block styles
 			\tikzstyle{line} = [draw, -latex']
@@ -577,51 +500,24 @@
 	\section{Informative Exploration over Scott Reef}
 	\label{InformativeSeafloorExploration:ScottReef}
 	
-		With the acquisition criteria and receding horizon formulation developed previously, this section demonstrates informative exploration over the Scott Reef seafloor for benthic habitat mapping. Specifically, the performance of LMDE acquisition is compared against other acquisition criteria. The results are also evaluated against a greedy myopic approach to demonstrate the advantage of a receding horizon formulation in general. Under a mapping performance criterion, empirical results show that LMDE acquisition achieves stable and desirable results, and experimentally outperform competing methods under most cases.
-		
-		\subsection{Practical Considerations and Big Data}
-		\label{InformativeSeafloorExploration:ScottReef:BigData}
-		
-			Similar to the problems faced in benthic habitat mapping as discussed in Section \ref{BenthicHabitatMapping:ScottReef:BigData}, big data also poses significant problems for informative path planning.
-			
-			As many of the acquisition functions discussed in Section \ref{Background:RelatedWork:AcquisitionFunctions} is based on the average marginalised prediction information entropy (AMPIE) \eqref{Equation:AMPIE}, which does not consider mutual information, the entropy computation can be improved in temporal and spatial complexity through only computing the latent GP variance $\{\mathbb{V}[f^{\star}_{i}]\}_{i \in I_{n^{\star}}}$ shown in Figure \ref{Figure:InferenceFlow} (see appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}). As such, acquisition criterions such as \eqref{Equation:AsherBenderAcquisitionCriterion} and \eqref{Equation:KrauseAcquisitionCriterion} are able to consider the non-mutual entropy of the entire region of interest $X_{s}$. The memory requirement in this case is dominated by the inference kernel $K^{\star}$ as only the diagonal elements of the query matrix $K^{\star \star}$ are required. 
-			
-			However, if mutual information is required, then the entire latent covariance matrix $\mathbb{V}[\bvec{f}^{\star}]$ is required. The memory requirement is then dominated by the full query kernel $K^{\star \star}$ on top of the inference kernel $K^{\star}$. It would then be impractical to compute those covariance matrices for the entire region of interest $X_{s}$. That is, it would be impractical to compute the differential acquisition \eqref{Equation:DifferentialAcquisition} for either $H = H_{\mathrm{MCPIE}}$ or $H = H_{\mathrm{LMDE}}$.
-			
-			\begin{equation}
-				I[X_{p} | X, \bvec{y}, X_{s}] = H[X_{s} | X, \bvec{y}] - H[X_{s} | X \cup X_{p}, \bvec{y} \cup \mathbb{E}[\bvec{y}_{p}]]
-			\label{Equation:DifferentialAcquisition}
-			\end{equation}
-			
-			Instead, the advantage of LMDE acquisition is that the acquisition criterion can be in the form of \eqref{Equation:PathAcquisition}. In other words, this searches for the path with maximal entropy. In the following section, this acquisition criterion form will be used for LMDE, MCPIE, and AMPIE acquisition, where the entropy measure $H$ is replaced by $H_{\mathrm{LMDE}}$, $H_{\mathrm{MCPIE}}$, and $H_{\mathrm{AMPIE}}$ respectively. That is, the acquisition criterion is to maximise the chosen entropy measure of the candidate path.
-
-			\begin{equation}
-				I[X_{p} | X, \bvec{y}, X_{s}] = H[X_{p} | X, \bvec{y}]
-			\label{Equation:PathAcquisition}
-			\end{equation}
+		With the acquisition criteria and receding horizon formulation developed previously, this section demonstrates informative exploration over the Scott Reef seafloor for benthic habitat mapping. Specifically, the performance of LMDE acquisition and MCPIE acquisition is compared against other acquisition criteria. The results are also evaluated against a greedy myopic approach to demonstrate the advantage of a receding horizon formulation in general. Under a mapping performance criterion, empirical results show that LMDE acquisition achieves stable and desirable results, and experimentally outperform competing methods under most cases. Appendix \ref{Appendix:BigData:InformativeSeafloorExploration} discusses big data techniques for seafloor exploration.
 						
 		\subsection{Single Mission Planning for Seafloor Exploration}
 		\label{InformativeSeafloorExploration:ScottReef:SingleMission}
 					
-			This section presents the simulation results of various exploration policies for an AUV over Scott Reef \citep{IMOS}. As in the benthic habitat mapping case, while both Monte Carlo prediction information entropy and linearised model differential entropy are available in AVA form, an OVA multiclass classifier is employed. As illustrated in Section \ref{BenthicHabitatMapping:Classification:MulticlassClassification}, although AVA classifiers allow a balanced comparison between classes, OVA classifiers achieve better classification performance under low amounts of training data, which is the case here as the seafloor exploration task begins with low amounts of observations.
+			This section presents the simulation results of various exploration policies for an AUV over Scott Reef \citep{IMOS}. As in the benthic habitat mapping case, while both Monte Carlo prediction information entropy and linearised model differential entropy are available in AVA form, an OVA multiclass classifier is employed. As illustrated in Section \ref{BenthicHabitatMapping:Classification:MulticlassClassification}, OVA classifiers achieve better classification performance under low amounts of training data, which is the case here as the seafloor exploration task begins with low amounts of observations.
 			
-			At the start of each simulation, all cases start from the scenario with 200 training points as shown in Figure \ref{Figure:ScottReefInitialPredictions} from Section \ref{BenthicHabitatMapping:ScottReef:Maps}. While the reef can be mapped with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to the scarcity of data. In this initial scenario, under AMPIE acquisition the vehicle would simply try to map out all regions as much as possible - a very costly policy. 
+			At the start of each simulation, all cases start from the scenario with 200 training points as shown in Figure \ref{Figure:ScottReefInitialPredictions} from Section \ref{BenthicHabitatMapping:ScottReef:Maps}. While the reef can be mapped with an accuracy of 58.46\% using only 200 training points (figure \ref{Figure:ScottReefInitialPredictions}), the prediction information entropy is rather uniformly high (figure \ref{Figure:ScottReefPredictionInformationEntropy}) due to extremely imbalanced data. In this initial scenario, under AMPIE acquisition the vehicle would simply try to map out all regions as much as possible - a very costly policy. 
 
 			\begin{figure}[!htbp]
 			\centering
-				\includegraphics[width = 0.8\linewidth]{Figures/scott_reef_mapping/Figure9.eps}
-			\caption{Scott Reef: Prediction Information Entropy}
-			\label{Figure:ScottReefPredictionInformationEntropy}
+			  \subfigure[Prediction Information Entropy]{\label{Figure:ScottReefPredictionInformationEntropy} \includegraphics[width = 0.48\linewidth]{Figures/scott_reef_mapping/Figure9.eps}}
+			  \subfigure[Linearised Model Differential Entropy]{\label{Figure:ScottReefLinearisedModelDifferentialEntropy}	\includegraphics[width = 0.48\linewidth]{Figures//scott_reef_mapping/Figure11.eps}}
+			\caption{Scott Reef: Initial Entropy Maps}
+			\label{Figure:InitialEntropyMaps}
 			\end{figure}
 			
 			LMDE acquisition, however, emphasizes on the places where the vehicle should first focus on (figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy}). Comparing Figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy} with the bathymetric features in Figure \ref{Figure:ScottReefBathymetricFeatures}, the marginalised LMDE is highest at places with the highest and lowest depths (figure \ref{Figure:ScottReefBathymetricFeatures:2}). While Figure \ref{Figure:ScottReefLinearisedModelDifferentialEntropy} only visualises the marginalised entropies, the fact that it is able to emphasize regions with marginalised entropies show that it is better equipped to also discern informative paths in the joint entropy case, leading to LMDE acquisition. Interestingly, the places with highest model variance matches the places with the lowest and highest depths, as it is on the edge of the feature space.
-			
-			\begin{figure}[!htbp]
-			\centering
-				\includegraphics[width = 0.8\linewidth]{Figures/scott_reef_mapping/Figure11.eps}
-			\caption{Scott Reef: Linearised Model Differential Entropy}
-			\label{Figure:ScottReefLinearisedModelDifferentialEntropy}
-			\end{figure}
 		
 			The horizon structure selected for the Scott Reef scenario is 5 km in extent with 30 control points. Each control step is therefore $\frac{5 \mathrm{km}}{30}$ = 167 meters in length.  A comparison in performance over a distance of 33.3 km between several acquisition criterion is shown in Figure \ref{Figure:CompareMethods}. Each method is tested with a horizon length of 5 km starting at two distinct initial locations - (377.5, 8440.0) km and (380.0, 8440.0) km in Eastings-Northings frame. These locations will hereafter be referenced as ``location 1'' and ``location 2'' respectively. The acquisition criterion to be compared are linearised model differential entropy (LMDE), Monte Carlo prediction information entropy (MCPIE), one step ahead prediction information entropy (GREEDY-PIE), random walk (RANDOM), average of marginalised prediction information entropy (AMPIE), predetermined spiral path (SPIRAL), and predetermined line segmented paths (LINES). Of these, only LMDE and MCPIE acquisitions consider mutual information.
 		
@@ -643,19 +539,7 @@
 		  	\label{Table:MethodProperties}			
 		  	\end{table}	
 		  	
-			\begin{figure}[!htbp]
-			\centering
-			  \subfigure[LMDE Acquisition]{\label{Figure:OptimalPaths:LMDE} 
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/mie_propose1.eps}
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/mie_propose100.eps}
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/lmde/mie_propose200.eps}}
-			  \subfigure[MCPIE Acquisition]{\label{Figure:OptimalPaths:MCPIE}	
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/mie_propose1.eps}
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/mie_propose100.eps}
-			  	\includegraphics[width = 0.32\linewidth]{Figures/informative_seafloor_exploration/mcpie/mie_propose200.eps}}
-			\caption{Scott Reef: Exploration paths}
-			\label{Figure:OptimalPaths}
-			\end{figure}
+
 		
 %			\begin{figure}[!htbp]
 %			\centering
@@ -697,7 +581,7 @@
 			\label{Figure:FinalPredictionMap}
 			\end{figure}
 		
-			Figures \ref{Figure:OptimalPaths} show snapshots of the resulting path under LMDE and MCPIE acquisition respectively. Since in the end it is the prediction accuracy, instead of the model accuracy, that determines mapping and classification accuracy, the paths are layered onto the prediction information entropy (PIE) map for this visualisation. The snapshots are taken at 0.17 km (1\%), 16.67 km (50\%), and 33.33 km (100\%) into the journey. Figure \ref{Figure:FinalPredictionMap} shows the final predictions after 33.33 km under LMDE acquisition. The circle represents the horizon extent for which the vehicle considers in at each time step, with the vehicle at the center. The black path with small, coloured empty circles represent the path it has taken, and the path with filled hexagons extending from the current location represent the immediate proposed path from the receding horizon optimisation at that time.
+			Figure \ref{Figure:FinalPredictionMap} shows the final predictions after 33.33 km under LMDE acquisition. The circle represents the horizon extent for which the vehicle considers in at each time step, with the vehicle at the center. The black path with small, coloured empty circles represent the path it has taken, and the path with filled hexagons extending from the current location represent the immediate proposed path from the receding horizon optimisation at that time.
 					
 			\begin{table}[t]
 				{\footnotesize
@@ -716,11 +600,9 @@
 		  	\label{Table:CompareMethods}			
 		  	\end{table}	
 	  	
-			As expected, the paths from the two methods are similar, with LMDE acquisition achieving a misclassification ratio of approximately 6.5\% less. This difference is visible through the lower amount of prediction information entropy around the inner regions of the reef under LMDE acquisition compared to MCPIE acquisition, demonstrating better prediction accuracy. Interestingly, although MCPIE acquisition is the joint form of prediction information entropy, it is LMDE acquisition that achieves lower overall prediction information entropy. As discussed in Section \ref{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures:EstimationAccuracy}, while MCPIE acquisition focuses on prediction variance, LMDE acquisition focuses on model variance which translate to both prediction variance and bias. Hence, in general, LMDE acquisition achieves better performance in the long run.
+			As expected, the paths from the two methods are similar, with LMDE acquisition achieving a misclassification ratio of approximately 6.5\% less. Time lapse plots during the journey is shown in Appendix \ref{Appendix:SeafloorExplorationTimeLapse:Single}, where a more detailed analysis with respect to the prediction information entropy is provided.
 			
 			From the initial training set shown in Figure \ref{Figure:ScottReefBathymetricFeatures:1}, it is understood that observations are lacking around the edges of the reef. Moreover, Figures \ref{Figure:ScottReefBathymetricFeatures:2} to \ref{Figure:ScottReefBathymetricFeatures:6} reveals that the bathymetric signatures are quite different around the edges. For instance, the bathymetric depth is much lower, and the aspects are much higher. Therefore, it is expected that the AUV should focus on the edges of the reef. Note that from Figure \ref{Figure:ScottReefBathymetricFeatures:1} the shallowest regions of the region is still at least 23 meters in depth, which is still deep enough for exploration.
-			
-			Under LMDE acquisition, as seen in Figure \ref{Figure:OptimalPaths:LMDE}, the AUV starts from the reef center, travels to the reef edge, returns from the reef edge to observe another inner region, and finally continues to map the reef edge. On the other hand, in Figure \ref{Figure:OptimalPaths:MCPIE}, the AUV simply travels to the reef edge and continues to observe the edges under MCPIE acquisition. As such, both methods focuses on the edges of the reef. However, LMDE acquisition did not neglect other regions while focusing on the reef edge, as it understands that too many observations at similar bathymetric signatures will introduce bias in the model.
 		
 			\begin{figure}[!htbp]
 			\centering
@@ -729,17 +611,7 @@
 			\label{Figure:CompareMethods}
 			\end{figure}
 				
-			Unlike other methods, both the LMDE and MCPIE method take into consideration the mutual information of the proposed path, so that both methods outperform myopic or non-informative methods (figure \ref{Figure:CompareMethods} and table \ref{Table:MethodProperties}). This result demonstrates that under a receding horizon formulation, both LMDE and MCPIE acquisitions achieve lower misclassification rate on average than other exploration policies. Furthermore, a receding horizon method achieves lower misclassification rate than myopic approaches under the same acquisition function.
-
-			\begin{figure}[!htbp]
-			\centering
-			  \subfigure[Initial Starting Positions]{\label{Figure:CompareLocations}	\includegraphics[width=0.48\linewidth]{Figures/compare_locations.eps}}
-			  \subfigure[Receding Horizon Lengths]{\label{Figure:CompareHorizons}	\includegraphics[width=0.48\linewidth]{Figures/compare_horizons.eps}}
-			\caption{Variance across initial starting point and receding horizon lengths}
-			\label{Figure:VarianceSimulation}
-			\end{figure}	
-				
-			Figure \ref{Figure:VarianceSimulation} demonstrates the stability and consistency of the LMDE acquisition approach under varying horizon lengths and starting locations for the case of Scott Reef. 
+			Unlike other methods, both the LMDE and MCPIE method take into consideration the mutual information of the proposed path, so that both methods outperform myopic or non-informative methods (figure \ref{Figure:CompareMethods} and table \ref{Table:MethodProperties}). This result demonstrates that under a receding horizon formulation, both LMDE and MCPIE acquisitions achieve lower misclassification rate on average than other exploration policies. Furthermore, a receding horizon method achieves lower misclassification rate than myopic approaches under the same acquisition function. Appendix \ref{Appendix:SeafloorExplorationTimeLapse:Single} also verifies the stability of LMDE acquisition through variance analysis.
 				
 		\subsection{Serial Mission Planning for Seafloor Exploration}
 		\label{InformativeSeafloorExploration:ScottReef:SerialMission}
@@ -777,46 +649,8 @@
 			The added flexibility in serial mission scenario increases performance drastically. To make this more apparent, the initial starting scenario is composed of a minimal training dataset with 17 training points (figure \ref{Figure:SerialMissionsSetup:Training}). These training points are selected randomly from the dataset under the constraint that every training point has a different label. While it is not necessary to start off with all the possible 17 labels, it makes the simulation faster as it allows corresponding caches to be easily allocated and referenced.
 			
 			The initial prediction map has poor accuracy, with 99.39\% classification miss ratio (figure \ref{Figure:SerialMissionsSetup:InitialMap}), as there are barely any observations to infer upon. Interestingly, the prediction uncertainty (figure \ref{Figure:SerialMissionsSetup:PIE-Map}) and model uncertainty (figure \ref{Figure:SerialMissionsSetup:LMDE-Map}) are almost opposite in trend. Specifically, the effect of bathymetric depth is again the most prominent through comparisons with Figure \ref{Figure:ScottReefBathymetricFeatures:2}. Note that the lowest and highest depths present in the initial training set are 31.69 m and 57.07 m, corresponding to labels \textit{Sand Biota 2} and \textit{Barron Sand 3}. As such, due to a squared exponential kernel, all the regions with depths lower than 31.69 m is predicted with \textit{Sand Biota 2} and all regions with depths higher than 57.07 m is predicted with \textit{Barron Sand 3}, as verified in Figure \ref{Figure:SerialMissionsSetup:InitialMap}. As such, the prediction uncertainty there is low, since there are no other observations to contradict this prediction (figure \ref{Figure:SerialMissionsSetup:PIE-Map}). However, because there is only one observation there, the model uncertainty is high at those points Figure \ref{Figure:SerialMissionsSetup:LMDE-Map}). This again shows that LMDE and PIE are complementary measures of entropy that measures different types of uncertainty.
-	
-			\begin{figure}[!htbp]
-			\centering
-			  \subfigure[Journey: 1\%]{\label{Figure:SerialOptimalPaths:LMDE1} 
-			  	\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose1.eps}}
-			  \subfigure[Journey: 5\%]{\label{Figure:SerialOptimalPaths:LMDE2} 
-			  	\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose10.eps}}
-			  \subfigure[Journey: 25\%]{\label{Figure:SerialOptimalPaths:LMDE3} 
-			  	\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose50.eps}}
-			  \subfigure[Journey: 50\%]{\label{Figure:SerialOptimalPaths:LMDE4} 
-				\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose100.eps}}
-			  \subfigure[Journey: 75\%]{\label{Figure:SerialOptimalPaths:LMDE5} 
-			  	\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose150.eps}}
-			  \subfigure[Journey: 100\%]{\label{Figure:SerialOptimalPaths:LMDE6} 
-			  	\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose199.eps}}
-			\caption{Scott Reef: LMDE Acquisition}
-			\label{Figure:SerialOptimalPaths:LMDE}
-			\end{figure}
 
-			Figures \ref{Figure:SerialOptimalPaths:LMDE} and \ref{Figure:SerialOptimalPaths:MCPIE} show snapshots of the exploration process for LMDE and MCPIE acquisition. For comparison, all methods begin their mission at location 1. While the two exploration policies produces two different resulting paths, the final prediction map achieved is very similar, with 18.30\% and 21.22\% misclassification ratio respectively.
-			
-			\begin{figure}[!htbp]
-			\centering
-			  \subfigure[Journey: 1\%]{\label{Figure:SerialOptimalPaths:MCPIE1} 
-			  	\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_lmde/pred_propose1.eps}}
-			  \subfigure[Journey: 5\%]{\label{Figure:SerialOptimalPaths:MCPIE2} 
-			  	\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/pred_propose10.eps}}
-			  \subfigure[Journey: 25\%]{\label{Figure:SerialOptimalPaths:MCPIE3} 
-			  	\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/pred_propose50.eps}}
-			  \subfigure[Journey: 50\%]{\label{Figure:SerialOptimalPaths:MCPIE4} 
-				\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/pred_propose100.eps}}
-			  \subfigure[Journey: 75\%]{\label{Figure:SerialOptimalPaths:MCPIE5} 
-			  	\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/pred_propose150.eps}}
-			  \subfigure[Journey: 100\%]{\label{Figure:SerialOptimalPaths:MCPIE6} 
-			  	\includegraphics[width = 0.31\linewidth]{Figures/informative_seafloor_exploration/serial_mcpie/pred_propose199.eps}}
-			\caption{Scott Reef: MCPIE Acquisition}
-			\label{Figure:SerialOptimalPaths:MCPIE}
-			\end{figure}
-
-			Other informative exploration policies, AMPIE and GREEDY-PIE, also achieves reasonable mapping rate at 23.21\% and 37.54\% respectively after five 6.6 km missions (figures \ref{Figure:SerialFinalPredictionMapAMPIE} and \ref{Figure:SerialFinalPredictionMapGREEDY}). 
+			For comparison, all methods begin their mission at location 1. While LMDE and MCPIE acquisition produces two different resulting paths, the final prediction map achieved is very similar, with 18.30\% and 21.22\% misclassification ratio respectively (figures \ref{Figure:SerialFinalPredictionMapLMDE} and \ref{Figure:SerialFinalPredictionMapMCPIE}). Other informative exploration policies, AMPIE and GREEDY-PIE, also achieves reasonable mapping rate at 23.21\% and 37.54\% respectively after five 6.6 km missions (figures \ref{Figure:SerialFinalPredictionMapAMPIE} and \ref{Figure:SerialFinalPredictionMapGREEDY}). Compared to the initial scenario with 99.39\% misclassification rate, the four informative path planning methods are able to achieve efficient mapping under five short missions.
 			
 			\begin{figure}[!htbp]
 			\centering
@@ -829,7 +663,7 @@
 			\end{figure}
 			
 			The same set of exploration policies are then compared in Figure \ref{Figure:SerialCompareMethods}, whose final misclassification rate is summarised in Table \ref{Table:SerialCompareMethods}. In this case, LMDE again outperforms other exploration policies, with MCPIE and AMPIE following closely. Note that this is a typical scenario and does not imply that LMDE acquisition always performs the best, but only most of the time. The performance is also highly dependent on the problem dataset, the ground truth, as well as the GP modelling choices itself. 
-		
+
 			\begin{table}[t]
 				{\footnotesize
 				\begin{center}
@@ -845,12 +679,18 @@
 		  	\caption{Final misclassification rate (\%)}
 		  	\label{Table:SerialCompareMethods}
 		  	\end{table}	
-		  					
+		  				
 			\begin{figure}[!htbp]
 			\centering
 				\includegraphics[width = 0.8\linewidth]{Figures/serial_compare_methods.eps}
 			\caption{Comparison of informative path planning policies}
 			\label{Figure:SerialCompareMethods}
 			\end{figure}
+						
+			Nevertheless, Figure \ref{Figure:SerialCompareMethods} reveals that LMDE and MCPIE acquisitions under the receding horizon framework performs the best. Non-informative methods, however, is only able to achieve no more than 50\% mapping accuracy, with LMDE acquisition achieving more than 30\% mapping accuracy at the end of five missions. As such, simulations verifies the strength of non-myopic, informative path planing policies, and affirms the performance of mutual information measures, LMDE and MCPIE, as acquisition functions.
+			
+
+		  					
+
 								
-	\section{Summary}
+%	\section{Summary}

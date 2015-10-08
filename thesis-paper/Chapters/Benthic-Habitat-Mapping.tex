@@ -23,7 +23,7 @@
 		
 	The benthic modeling process begins with extracting bathymetric features from given seafloor locations. Section \ref{BenthicHabitatMapping:BathymetricFeatures} discusses the process of bathymetric feature extraction which includes the modeling choices and assumptions involved, which covers the {\color{BurntOrange} Feature Extraction} bubble. 
 	
-	Once the features have been extracted, a general Gaussian process classifier is developed in Section \ref{BenthicHabitatMapping:Classification}. The usual binary classification framework is extended to cater for multiclass scenarios using the One versus All (OVA) and All versus All (AVA) approach. This covers materials from the {\color{Cyan} Training \& Learning} bubble up to the {\color{Orchid} Latent Distribution} bubble. Furthermore, novel probability fusion techniques are developed to ensure a consistent inference framework for computing the prediction information entropy, which covers the {\color{ForestGreen} green} arrows in the {\color{ForestGreen} Inference \& Prediction} bubble.
+	Once the features have been extracted, a general Gaussian process classifier is developed in Section \ref{BenthicHabitatMapping:Classification}. The usual binary classification framework is extended to cater for multiclass scenarios using the One versus All (OVA) and All versus All (AVA) approach. This covers materials from the {\color{Cyan} Training \& Learning} bubble up to the {\color{Orchid} Latent Distribution} bubble. Furthermore, new probability fusion techniques are developed to ensure a consistent inference framework, which covers the {\color{ForestGreen} green} arrows in the {\color{ForestGreen} Inference \& Prediction} bubble.
 	
 	Finally, Section \ref{BenthicHabitatMapping:ScottReef} demonstrates the techniques developed in this chapter through mapping the benthic habitats of the Scott Reef seafloor. 
 		
@@ -32,13 +32,11 @@
 	
 		This thesis can be broken down into two main parts - benthic habitat mapping and informative path planning. Benthic habitat mapping itself includes bathymetric feature extraction, and habitat class inference. Thus, benthic habitat mapping refers to the two stage process of feature extraction and habitat class inference, with the latter being the main bottleneck for this process. This section will focus on bathymetric feature extraction and modeling.
 			
-		In order for autonomous underwater vehicles to infer a map of the benthic habitats, and later plan a path to increase mapping accuracy, it would need a method to predict the types of environments it may encounter, with a measure of its prediction uncertainty.
+		In order for autonomous underwater vehicles to infer a map of the benthic habitats, and later plan a path to increase mapping accuracy, it would need a method to predict the types of environments it may encounter, with a measure of its prediction uncertainty. While the path planner is to plan in the spatial space, in general the prediction model operates upon some feature space with more direct and explicit relationships with the output to be inferenced.
 		
-		While the path planner is to plan in the spatial space, in general the prediction model operates upon some feature space with more direct and explicit relationships with the output to be inferenced.
+		It is thus important to make a distinction between the feature space $\mathcal{X}$ for which benthic habitat modeling is to occur and the spatial space $\mathcal{P}$ for which path planning is to occur. The spatial space usually consists of Cartesian coordinates $(x, y)$ in the eastings-northings frame or the longitude-latitude frame, so that $\mathcal{P} \subseteq \mathbb{R}^{2}$. The feature space $\mathcal{X} \subseteq \mathbb{R}^{p}$, where $p$ is the number of features, includes bathymetric features for which the habitat labels will be modeled upon. Depending on the features employed for the modeling process, there are usually approximate analytical forms for extracting such features from raw depth observations.
 		
-		It is thus important to make a distinction between the feature space $\mathcal{X}$ for which benthic habitat modeling is to occur and the spatial space $\mathcal{P}$ for which bathymetric modeling and planning is to occur. The spatial space usually consists of Cartesian coordinates $(x, y)$ in the eastings-northings frame or the longitude-latitude frame, so that $\mathcal{P} \subseteq \mathbb{R}^{2}$. The path is to be planned in this spatial space. The frame is usually converted into a local body frame during the execution of control signals for path tracking. However, this does not affect the formulation presented here. The feature space $\mathcal{X} \subseteq \mathbb{R}^{p}$, where $p$ is the number of features (feature dimensions), includes bathymetric features for which the habitat labels will be modeled upon. Depending on the features employed for the modeling process, there are usually approximate analytical forms for extracting such features from raw depth observations.
-		
-		The following bathymetric features shown in \cref{Table:BathymetricFeatures} were selected for habitat mapping. The benthic habitats would be modelled upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale). Spatial coordinates are chosen to be excluded from the bathymetric feature set. For benthic habitat mapping, it is expected that ecological habitats and geological sites exhibit no explicit relationship with the location of the site, and that its properties arise solely due to the local terrain structure and seafloor characteristics  of that site. This means that the nature of the habitat depends on the location implicitly through explicit dependence on bathymetric structure of the seafloor. These five bathymetric features summarises the local terrain structure at every location of the seafloor, and forms our feature space $\mathcal{X} \subseteq \mathbb{R}^{5}$ with $p = 5$.
+		The following bathymetric features shown in \cref{Table:BathymetricFeatures} were selected for habitat mapping. The benthic habitats would be modelled upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale). Aspect also refers to the slope of the seafloor terrain, while rugosity is a measure of small-scale variations or amplitude in the height of a surface. Spatial coordinates are chosen to be excluded from the bathymetric feature set. For benthic habitat mapping, it is expected that ecological habitats and geological sites exhibit no explicit relationship with the location of the site, and that its properties arise solely due to the local terrain structure and seafloor characteristics  of that site. This means that the nature of the habitat depends on the location implicitly through explicit dependence on bathymetric structure of the seafloor. These five bathymetric features summarises the local terrain structure at every location of the seafloor, and forms our feature space $\mathcal{X} \subseteq \mathbb{R}^{5}$ with $p = 5$. 
 		
 		\begin{table}[h]
 			\begin{center}
@@ -60,8 +58,6 @@
 	  	\caption{Bathymetric Features}
 	  	\label{Table:BathymetricFeatures}			
 	  	\end{table}	
-		
-		Aspect also refers to the slope of the seafloor terrain, while rugosity is a measure of small-scale variations or amplitude in the height of a surface.
 		
 		The raw bathymetric data contains depth information at various spatial locations. Such data are often collected rather uniformly in approximate grid formations such that it is possible to calculate the ocean floor slope through finite differencing. The aspect, or slope, is divided into small scale and large scale variations, as marine environments - especially underwater habitats - often depend not only on the immediate slope but also slope variations on the larger scale. The same idea applies to rugosity to measure local height variations at two different scales.
 		
@@ -97,9 +93,7 @@
 		\label{Figure:BenthicHabitatMappingProcess}
 		\end{figure}
 		
-		Figure \ref{Figure:BenthicHabitatMappingProcess} show a high level overview of the benthic habitat mapping process. As bathymetric data is available in more quantities and distributed more uniformly, it is often sufficient to employ the feature extraction process outlined in \cref{BenthicHabitatMapping:BathymetricFeatures:FeatureExtraction} to obtain the bathymetric features for modeling. However, if the bathymetric data is sufficiently sparse or is not distributed uniformly for grid based methods, then the feature extraction process itself becomes a prediction problem.
-
-		In that case, a Gaussian process regression model is proposed for predicting the features at a given spatial location. While this is much more computationally expensive than performing feature extraction, it is also quite rare that this is necessary under abundant bathymetric data. In most cases, it suffices to simply take the nearest neighbouring feature.		
+		Figure \ref{Figure:BenthicHabitatMappingProcess} show a high level overview of the benthic habitat mapping process. As bathymetric data is available in more quantities and distributed more uniformly, it is often sufficient to employ standard finite differencing as outlined in Appendix \ref{Appendix:BathymetricFeatureExtraction} for feature extraction. 
 		
 		\subsection{Formulation}
 		
@@ -107,11 +101,11 @@
 			
 			As established previously, the spatial space $\mathcal{P} \subseteq \mathbb{R}^{2}$ and feature space $\mathcal{X} \subseteq \mathbb{R}^{5}$ are compact subsets of $\mathbb{R}^{2}$ and $\mathbb{R}^{5}$ respectively. On the other hand, the habitat map space $\mathcal{Y} \subset \mathbb{N}$ is a strict finite subset of the the natural numbers, with each distinct integer representing a particular habitat type.
 			
-			Further, define $\mathscr{P} := \mathscr{P}(\mathcal{P})$, $\mathscr{X} := \mathscr{X}(\mathcal{X})$, and $\mathscr{Y} := \mathscr{Y}(\mathcal{Y})$ as the $\sigma$-algebras generated by $\mathcal{P} \subseteq \mathbb{R}^{2}$, $\mathcal{X} \subseteq \mathbb{R}^{5}$, and $\mathcal{Y} \subset \mathbb{N}$ respectively. Specifically, this means that $X \in \mathscr{X}$ implies $X \subseteq \mathcal{X}$, and similarly for $\mathscr{P}$ and $\mathscr{Y}$.
+			Further, define $\mathscr{P} := \mathscr{P}(\mathcal{P})$, $\mathscr{X} := \mathscr{X}(\mathcal{X})$, and $\mathscr{Y} := \mathscr{Y}(\mathcal{Y})$ as the $\sigma$-algebras generated by $\mathcal{P} \subseteq \mathbb{R}^{2}$, $\mathcal{X} \subseteq \mathbb{R}^{5}$, and $\mathcal{Y} \subset \mathbb{N}$ respectively. Specifically, this means that $X \in \mathscr{X}$ implies $X \subseteq \mathcal{X}$, and similarly for $\mathscr{P}$ and $\mathscr{Y}$. Note that if $X := \{\bvec{x}_{i}\}_{i \in I_{n}} := \{\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}\} \in \mathscr{X}$ is a \textit{finite} collection of feature vectors $\bvec{x}_{i} \in \mathcal{X}$ for all $i \in I_{n}$, then $X$ is equivalent to the matrix $[\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T} \in \mathbb{R}^{n \times p}$. This notation is used consistently throughout, and a similar formulation applies to spatial coordinates $P \in \mathscr{P}$ and target labels $\bvec{y} := \{y_{i}\}_{i \in I_{n}} := \{y_{1}, y_{2}, \dots, y_{n}\} \in \mathscr{Y}$.
 			
-			Note that if $X := \{\bvec{x}_{i}\}_{i \in I_{n}} := \{\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}\} \in \mathscr{X}$ is a \textit{finite} collection of feature vectors $\bvec{x}_{i} \in \mathcal{X}$ for all $i \in I_{n}$, then $X$ is equivalent to the matrix $[\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T} \in \mathbb{R}^{n \times p}$. For notational and analytical convenience, the two quantities will be considered equivalent such that $X := \{\bvec{x}_{i}\}_{i \in I_{n}} := \{\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}\} \equiv [\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}$. This notation is used consistently throughout, and a similar formulation applies to spatial coordinates $P \in \mathscr{P}$. For target labels in the habitat map space, $\bvec{y} := \{y_{i}\}_{i \in I_{n}} := \{y_{1}, y_{2}, \dots, y_{n}\} \in \mathscr{Y}$ is already consistent with existing nomenclature for vectors, and also complies in form with the above matrix formulation. Recall that for an arbitrary quantity $q_{i}$ indexed by $i \in I_{n}$, $\{q_{i}\}_{i \in I_{n}}$ is defined to be $\{q_{1}, q_{2}, \dots, q_{n}\}$ which is equivalent to a vector if $q_{i}$ is a scalar and a matrix if $q_{i}$ is a vector.
+%			Recall that for an arbitrary quantity $q_{i}$ indexed by $i \in I_{n}$, $\{q_{i}\}_{i \in I_{n}}$ is defined to be $\{q_{1}, q_{2}, \dots, q_{n}\}$ which is equivalent to a vector if $q_{i}$ is a scalar and a matrix if $q_{i}$ is a vector.
 		
-		\subsection{Data Matching}
+		\subsection{Data Matching on Real Datasets}
 		\label{BenthicHabitatMapping:BathymetricFeatures:DataMatching}
 		
 			A subtlety that arises from the above formulation is that during the training stage, the bathymetric data and the label data are not necessarily observed at the same places. Figure \ref{Figure:ScottReefBathymetricFeatures} illustrates the spatial distribution of the two datasets in a typical setting using the Scott Reef data set \citep{IMOS} as an example. Note that the colour scales have been shifted to emphasize the feature variations.
@@ -140,17 +134,11 @@
 %			\label{Figure:ScottReefBathymetricFeatures}
 %			\end{figure}
 			
-			Like the Scott Reef dataset, in most cases the bathymetric observations span the entire region of interest densely. However, while bathymetric data are usually collected rather uniformly and densely, the label data are collected from past AUV missions whose trajectory are continuous paths across the ocean floor \citep{Squidle}. Often times, these paths are approximate line segments which cover a very limited portion of the region of interest. Due to slower AUV velocity as compared to surface ships which often employ SONAR or LIDAR techniques for bathymetry mapping, the label data are also spatially denser and concentrated on the mission trajectory, while being almost non-existent elsewhere, making it a multi-modal distributed dataset. 
+			Like the Scott Reef dataset, in most cases the bathymetric observations span the entire region of interest densely. However, while bathymetric data are usually collected rather uniformly and densely, the label data are collected from past AUV missions whose trajectory are continuous paths across a very limited region of the ocean floor \citep{Squidle}. As such, the label data are also spatially concentrated on the mission trajectory, while being almost non-existent elsewhere, making it a multi-modal distributed dataset. However, in order for the GP classifier to learn the relationship between the bathymetric features and habitat labels, the bathymetric and label data must have a one-to-one correspondence. That is, they must exist at the same locations. 
 			
-			Therefore, in order for the GP classifier to learn the relationship between the bathymetric features and habitat labels, the bathymetric and label data must have a one-to-one correspondence. That is, they must exist at the same locations. 
+			Formally, let $P_{b}, P_{h} \in \mathcal{P}$ be the spatial positions at which bathymetric and label data have been observed. Let $X_{b} \in \mathcal{X}$ be the bathymetric features observed at $P_{b}$ and $\bvec{y}_{h} \in \mathcal{Y}$ be the habitat labels observed at $P_{h}$. The data matching problem is to obtain or infer $X_{h} \in \mathcal{X}$, the bathymetric features at locations $P_{h}$, from $X_{b}$. This is a standard supervised learning problem. Specifically, the aim is to learn an inference model $\zeta: P_{h} \mapsto X_{h}$ from the empirical relationship $P_{b} \mapsto X_{b}$.
 			
-			Formally, let $P_{b}, P_{h} \in \mathcal{P}$ be the spatial positions at which bathymetric and label data have been observed. Let $X_{b} \in \mathcal{X}$ be the bathymetric features observed at $P_{b}$ and $\bvec{y}_{h} \in \mathcal{Y}$ be the habitat labels observed at $P_{h}$. The data matching problem is to obtain or infer $X_{h} \in \mathcal{X}$, the bathymetric features at locations $P_{h}$, from $X_{b}$.
-			
-			This is a standard supervised learning problem. Specifically, the aim is to learn an inference model $\zeta: P_{h} \mapsto X_{h}$ from the empirical relationship $P_{b} \mapsto X_{b}$.
-			
-			While it is possible to employ a separate GP regressor to perform the above inference, this adds unnecessary computational complexity. Since GPs are $O(n^{3})$ algorithms, using a layered GP approach where both stages of the benthic habitat mapping process employs GPs will increase the inference bottleneck.
-			
-			Instead, as there exists an abundance of bathymetric data, without much loss of accuracy it suffices to employ a nearest neighbour interpolation to obtain $X_{h}$. 
+			While it is possible to employ a separate GP regressor to perform the above inference, this adds unnecessary computational complexity. Since GPs are $O(n^{3})$ algorithms, using a layered GP approach where both stages of the benthic habitat mapping process employs GPs will increase the inference bottleneck. Instead, as there exists an abundance of bathymetric data, without much loss of accuracy it suffices to employ a nearest neighbour interpolation to obtain $X_{h}$. 
 			
 %			Therefore, in order to predict label data, the training data would need to be matched accurately. There are two straight forward choices at hand. The first is to estimate the bathymetric features at places where label data exists. However, at places near past mission paths, bathymetric data appears much more sparsely than label data, so that the feature extraction or regression prediction will yield very similar features across manly label data points. This reduces prediction power through a slow varying and limited feature group.
 %			
@@ -188,12 +176,12 @@
 		
 			Before discussing the various types of GP classifiers, it is important to understand the role of \textit{response functions} in Bayesian classifiers, which serves to perform the ``squashing'' described previously.
 
-			\begin{figure}[!htbp]
+			\begin{wrapfigure}{r}{0.4\linewidth}
 				\centering
-					\includegraphics[width=0.6\textwidth]{Figures/responses.eps}
+					\includegraphics[width=\linewidth]{Figures/responses.eps}
 				\caption{Common likelihood responses}
 				\label{Figure:LikelihoodResponses}
-			\end{figure}
+			\end{wrapfigure}
 					
 			The response function, often also called a sigmoid function, is used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\sigma: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to ``squeeze'' the latent functions into a range where probabilistic interpretation is possible.
 				
@@ -208,95 +196,69 @@
 			\label{Equation:LikelihoodResponse}
 			\end{equation}				
 			
-			In a binary case, since $y^{\star}_{i} \in \{-1, 1\}$, it is customary to define $\pi^{\star}_{i} := p(y^{\star}_{i} = 1 | f^{\star}_{i})$ as the probability of observing label $y^{\star}_{i} = 1$ given the latent value $f^{\star}_{i}$. Note that $\pi^{\star}_{i}$ is still a random variable since $f_{i}$ is a latent random variable. In this way, the probability of observing label $y_{i} = -1$ given the latent value $f^{\star}_{i}$ is simply $1 - \pi^{\star}_{i}$. As such, at the query locations $X^{\star}$, the random vector $\vec{\uppi}^{\star} := \{\pi^{\star}_{i}\}_{i \in I_{n^{\star}}}$ defines the distribution at the query locations completely.
+			In a binary case, since $y^{\star}_{i} \in \{-1, 1\}$, it is customary to define $\pi^{\star}_{i} := p(y^{\star}_{i} = 1 | f^{\star}_{i})$ as the probability of observing label $y^{\star}_{i} = 1$ given the latent value $f^{\star}_{i}$. Note that $\pi^{\star}_{i}$ is still a random variable since $f_{i}$ is a latent random variable. In this way, the probability of observing label $y_{i} = -1$ given the latent value $f^{\star}_{i}$ is simply $1 - \pi^{\star}_{i}$. As such, at the query locations $X^{\star}$, the random vector $\vec{\uppi}^{\star} := \{\pi^{\star}_{i}\}_{i \in I_{n^{\star}}}$ defines the distribution at the query locations completely. By \eqref{Equation:LikelihoodResponse}, this means that $\pi^{\star}_{i} = \sigma(f^{\star}_{i})$, which provides a simple relationship between the latent function and the predictive probability, and achieves the ``squashing'' effect mentioned previously. The vector form of this relationship can be written as $\vec{\uppi}^{\star} = \vec{\upsigma}(\bvec{f}^{\star}) := \{\sigma(f^{\star}_{i})\}_{i \in I_{n^{\star}}}$. Again, if $\bvec{f}^{\star}$ is random, then so is $\vec{\uppi}^{\star}$.
 			
-			By \eqref{Equation:LikelihoodResponse}, this means that $\pi^{\star}_{i} = \sigma(f^{\star}_{i})$, which provides a simple relationship between the latent function and the predictive probability, and achieves the ``squashing'' effect mentioned previously. The vector form of this relationship can be written as $\vec{\uppi}^{\star} = \vec{\upsigma}(\bvec{f}^{\star}) := \{\sigma(f^{\star}_{i})\}_{i \in I_{n^{\star}}}$. Again, if $\bvec{f}^{\star}$ is random, then so is $\vec{\uppi}^{\star}$.
-			
-			In order to perform prediction, the predictive probabilities $\vec{\uppi}^{\star}$ must be known. However, given the above likelihood response formulation, since $\vec{\uppi}^{\star}$ is random, further inference must be obtained by taking the \textit{expected prediction probabilities} $\bar{\vec{\uppi}}^{\star} := \mathbb{E}[\vec{\uppi}^{\star}] = \mathbb{E}[\vec{\upsigma}(\bvec{f}^{\star})]$ for inference \eqref{Equation:PriorExpectedPredictionProbabilities}. Of course, since $f$ is formulated as a GP, the distribution of $\bvec{f}^{\star}$, $p(\bvec{f}^{\star})$, is requires the optimally learned hyperparameters $\vec{\uptheta}$. This fact is notated explicitly in \eqref{Equation:PriorExpectedPredictionProbabilities}.
-			
-			\begin{equation}
+			In order to perform prediction, the predictive probabilities $\vec{\uppi}^{\star}$ must be known. However, given the above likelihood response formulation, since $\vec{\uppi}^{\star}$ is random, further inference must be obtained by taking the \textit{expected prediction probabilities} $\bar{\vec{\uppi}}^{\star} := \mathbb{E}[\vec{\uppi}^{\star}] = \mathbb{E}[\vec{\upsigma}(\bvec{f}^{\star})]$ for inference \eqref{Equation:PriorExpectedPredictionProbabilities}. Of course, since $f$ is formulated as a GP, the distribution of $\bvec{f}^{\star}$, $p(\bvec{f}^{\star})$, is requires the optimally learned hyperparameters $\vec{\uptheta}$. This fact is notated explicitly in \eqref{Equation:PriorExpectedPredictionProbabilities}. \begin{equation}
 				\bar{\vec{\uppi}}^{\star} |_{\vec{\uptheta}} := \mathbb{E}_{\vec{\uptheta}}[\vec{\uppi}^{\star}] = \mathbb{E}_{\vec{\uptheta}}[\vec{\upsigma}(\bvec{f}^{\star})] = \int_{\mathbb{R}^{n^{\star}}} \vec{\upsigma}(\bvec{f}^{\star}) p(\bvec{f}^{\star} | \vec{\uptheta}) d \bvec{f}^{\star}
 			\label{Equation:PriorExpectedPredictionProbabilities}
-			\end{equation}	
-			
-			 Note that without any observations $\bvec{y}$ the prior distribution $p(\bvec{f}^{\star} | \vec{\uptheta})$ will be centred around zero mean. Since the response function $\vec{\upsigma}$ maps zero latents to a probability of 0.5, the expected predictive probabilities also become $\bar{\pi}^{\star}_{i} |_{\vec{\uptheta}} = 0.5$ for $i \in I_{n^{\star}}$. This reflects that before any observations, the targets at the query points have an equal chance of being -1 or 1, which indeed makes sense.
+			\end{equation} Note that without any observations $\bvec{y}$ the prior distribution $p(\bvec{f}^{\star} | \vec{\uptheta})$ will be centred around zero mean. Since the response function $\vec{\upsigma}$ maps zero latents to a probability of 0.5, the expected predictive probabilities also become $\bar{\pi}^{\star}_{i} |_{\vec{\uptheta}} = 0.5$ for $i \in I_{n^{\star}}$. This reflects that before any observations, the targets at the query points have an equal chance of being -1 or 1, which indeed makes sense.
 			 
-			 With observations $\bvec{y}$, the expected predictive probabilities is computed by the conditionally expectation on $\bvec{y}$ using the posterior distribution $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ \eqref{Equation:PosteriorExpectedPredictionProbabilities}.
-	
-			\begin{equation}
+			With observations $\bvec{y}$, the expected predictive probabilities is computed by the conditionally expectation on $\bvec{y}$ using the posterior distribution $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ \eqref{Equation:PosteriorExpectedPredictionProbabilities}. \begin{equation}
 				\bar{\vec{\uppi}}^{\star} |_{\bvec{y}, \vec{\uptheta}} := \mathbb{E}_{\vec{\uptheta}}[\vec{\uppi}^{\star} | \bvec{y}] = \mathbb{E}_{\vec{\uptheta}}[\vec{\upsigma}(\bvec{f}^{\star}) | \bvec{y}] = \int_{\mathbb{R}^{n^{\star}}} \vec{\upsigma}(\bvec{f}^{\star}) p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta}) d \bvec{f}^{\star}
 			\label{Equation:PosteriorExpectedPredictionProbabilities}
-			\end{equation}	
-			
-			Before introducing the approximation techniques, it is worthwhile to first observe the properties of the integral \eqref{Equation:PosteriorExpectedPredictionProbabilities}. Firstly, the integral can also be written in scalar form for each query point $i \in I_{n^{\star}}$ separately \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar}.
-
-			\begin{equation}
+			\end{equation} Before introducing the approximation techniques, it is worthwhile to first observe the properties of the integral \eqref{Equation:PosteriorExpectedPredictionProbabilities}. Firstly, the integral can also be written in scalar form for each query point $i \in I_{n^{\star}}$ separately \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar}. \begin{equation}
 				 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \mathbb{E}_{\vec{\uptheta}}[\pi^{\star}_{i} | \bvec{y}] = \mathbb{E}_{\vec{\uptheta}}[\sigma(f^{\star}_{i}) | \bvec{y}] = \int_{\mathbb{R}} \sigma(f^{\star}_{i}) p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta}) d f^{\star}_{i} \qquad \forall i \in I_{n^{\star}}
 			\label{Equation:PosteriorExpectedPredictionProbabilitiesScalar}
-			\end{equation}		
-						
-			For a general likelihood response $\sigma(z)$, the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} must be computed numerically through a techniques such as \textit{quadratures}. However, if $p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})$ is a Gaussian density, and a probit response is chosen for the likelihood \eqref{Equation:ProbitResponse}, then there exists an analytical solution to the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} and hence \eqref{Equation:PosteriorExpectedPredictionProbabilities} through vectorising, as given by \eqref{Equation:ProbitAnalyticalIntegral} \citep{GaussianProcessForMachineLearning}. This means that under an appropriate approximation technique, the probit response allows \textit{analytically tractable inference} to be performed. As such, there is significant computational advantage of choosing the probit response. Choosing the probit response also exhibits further advantages for linearisation discussed later in Section \ref{InformativeSeafloorExploration:LMDE}.
-			
-			\begin{equation}
+			\end{equation} For a general likelihood response $\sigma(z)$, the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} must be computed numerically through a techniques such as \textit{quadratures}. However, if $p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})$ is a Gaussian density, and a probit response is chosen for the likelihood \eqref{Equation:ProbitResponse}, then there exists an analytical solution to the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} and hence \eqref{Equation:PosteriorExpectedPredictionProbabilities} through vectorising, as given by \eqref{Equation:ProbitAnalyticalIntegral} \citep{GaussianProcessForMachineLearning}. This means that under an appropriate approximation technique, the probit response allows \textit{analytically tractable inference} to be performed. As such, there is significant computational advantage of choosing the probit response. Choosing the probit response also exhibits further advantages for linearisation discussed later in Section \ref{InformativeSeafloorExploration:LMDE}. \begin{equation}
 				 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \int_{\mathbb{R}} \overbrace{\Phi(f^{\star}_{i})}^{\mathclap{\substack{\text{Probit} \\ \text{Response}}}} \overbrace{p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})}^{\text{If Gaussian}} d f^{\star}_{i} \stackrel{\mathclap{\substack{\text{Analytical} \\ \text{Solution} \\ \quad }}}{=} \Phi\Bigg(\frac{\mathbb{E}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}{\sqrt{1 + \mathbb{V}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}}\Bigg) \qquad \forall i \in I_{n^{\star}}
 			\label{Equation:ProbitAnalyticalIntegral}
 			\end{equation}
 			
-		\subsection{Laplace Approximation}
-		\label{BenthicHabitatMapping:Classification:LaplaceApproximation}
+		\subsection{Laplace \& Probabilistic Least Square Approximation}
+		\label{BenthicHabitatMapping:Classification:Approximation}
 		
-			After choosing a response function $\sigma(z)$, the expected predictive probabilities can be computed from the posterior distribution $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ using \eqref{Equation:PosteriorExpectedPredictionProbabilities}. The heart of all GP classifier approximation techniques then lies in approximating the posterior $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ as a multivariate Gaussian density.
+			After choosing a response function $\sigma(z)$, the expected predictive probabilities can be computed from the posterior distribution $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ using \eqref{Equation:PosteriorExpectedPredictionProbabilities}. With the inference techniques involved in classification  presented above, this section summarises the corresponding training stage under two of many approximations.
 			
-			Unfinished
+			The heart of GP classifier approximation techniques then lies in approximating the posterior $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ as a multivariate Gaussian. In Laplace approximation, the response likelihood is approximated by a Gaussian such that the marginalised likelihood $p(\bvec{y} | \vec{\uptheta})$ can be approximated as a Gaussian density $q(\bvec{y} | \vec{\uptheta})$. Through the basic Bayes relation, the posterior also becomes Gaussian approximated as a result. As such, it suffices to replace the marginalised likelihood objective by \eqref{Equation:ClassificationLogMarginalLikelihood} to find the optimal hyperparameters $\vec{\uptheta}_{\mathrm{opt}}$ \citep{GaussianProcessForMachineLearning}. Note that the Hessian of the log likelihood is diagonal so that square roots operate over elements (see Appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:DiagonalHessians}). \begin{equation}
+				\begin{aligned}
+					\vec{\uptheta}_{\mathrm{opt}} =& \argmax_{\vec{\uptheta}} \log(p(\bvec{y} | \vec{\uptheta})) \\
+					\log(q(\bvec{y} | \vec{\uptheta})) =& - \frac{1}{2} \bar{\bvec{f}}^{T} K_{\vec{\uptheta}}^{-1} \bar{\bvec{f}} + \log(p(\bvec{y} | \bar{\bvec{f}})) - \frac{1}{2} \log|I + W^{\frac{1}{2}} K_{\vec{\uptheta}} W^{\frac{1}{2}}| \\
+					W :=& - \frac{\partial^{2}}{{\partial \bvec{f}}^{2}} \log(\bvec{y} | \bvec{f}) |_{\bvec{f} = \bar{\bvec{f}}} = - \mathrm{diag} \bigg\{  \frac{\partial^{2}}{{\partial f_{i}}^{2}} \log(y_{i} | f_{i}) |_{f_{i} = \bar{f}_{i}} \bigg\}_{i \in I_{n}}
+				\end{aligned}
+			\label{Equation:ClassificationLogMarginalLikelihood}
+			\end{equation}
 			
-		\subsection{Probabilistic Least Squares Approximation}
-		\label{BenthicHabitatMapping:Classification:ProbabilisticLeastSquaresApproximation}
-		
-			The main difference is just the training stage!
+			Classification under probabilistic least square approximation is much simpler. In this framework, the training output targets $\bvec{y} \in \{-1, 1\}^{n}$ is treated as a continuous target and is thus treated as a regression problem (see Section \ref{Background:GaussianProcesses:Regression}). As such, all of the training and inference stages of Gaussian process regression applies. In this way, approximation is trivial as the posterior and maginal likelihood are all Gaussian distributed in the regression scheme already. Evidently, this is a very artificial way of performing classification, which explains its relatively poor performance accuracy. However, this also means that probabilistic least squares has the same computational complexity as GP regression, which is in general much faster than GP classification.
 			
-			Unfinished
-		\subsection{Approximation Performance of Binary Classifiers}
-		\label{BenthicHabitatMapping:Classification:ApproximationPerformance}
-		
-			Compare probability outputs, classification outputs, entropy outputs, etc
-		
-			Unfinished
+			Note that if treated as a regression output, the range $y \in \{-1, 1\}$ is rather arbitrary in scale. Thus, in order to allow flexibility in the probabilistic least squares model, a slope and intercept parameter is introduced to remove the dependency of scale and datum reference.
+			
+			The above formulations suggests that Laplace approximation allow a more principled thus accurate inference framework for classification, and will thus be employed as the approximation technique for benthic habitat mapping. Appendix \ref{Appendix:ApproximationPerformance} briefly compares the performance of Laplace and probabilistic least square approximation which supports this claim.
 			
 		\subsection{Multiclass Classification}
 		\label{BenthicHabitatMapping:Classification:MulticlassClassification}
 		
 			Contrary to binary classification, multiclass classification investigates the case where there are more than two labels for target outputs to be classified into so that $n_{C} > 2$. In this case, the class labels are formulated to be in the range $y \in I_{n_{C}} = \{1, 2, \dots, n_{C}\}$ for convenience. However, not that this is not strictly necessary. Any set of labels $\mathcal{Y}$ is equivalent as long as $\Vert \mathcal{Y} \Vert = n_{C}$ such that $n_{C}$ distinct numbers are used. In other words, there must exist a one-to-one correspondence between the set of label $\mathcal{Y}$ and $I_{n_{C}}$.
 			
-			The previous sections established two of many approximation techniques for binary classification. While there exists a multiclass version for classification under Laplace approximation, the method requires multiple inversion stages \textit{per iteration} in the training and inference stage, and most importantly a Monte Carlo estimation stage in the inference stage. This introduces many inners loops in both the training and inference stage. As matrix inversions are $O(n^{3})$ algorithms, it is not desirable to repeat them multiple times in \textit{each iteration}, which would make the training stage significantly slower. Furthermore, the inference stage is bottlenecked by the Monte Carlo estimation loops, which introduces an accuracy-complexity trade-off that is not desirable in a big data problem such as informative seafloor exploration. Moreover, the multiclass formulation is specific to only Laplace approximation, which limits its application.
+			The previous sections established two of many approximation techniques for binary classification. While there exists a multiclass version for classification under Laplace approximation, the method requires multiple inversion stages \textit{per iteration} in the training and inference stage, and most importantly a Monte Carlo estimation stage in the inference stage. This introduces many inners loops in both the training and inference stage. As matrix inversions are $O(n^{3})$ algorithms, it is not desirable to repeat them multiple times in \textit{each iteration}, which would make the training stage significantly slower. Furthermore, the inference stage is bottlenecked by the Monte Carlo estimation loops, which introduces an accuracy-complexity trade-off that is not desirable in a big data problem such as informative seafloor exploration. Moreover, the current multiclass formulation is specific to only Laplace approximation, which limits its application.
 			
-			As such, this thesis investigates other general methods for multiclass classification. The methods investigated are \textit{One versus All} (OVA) and \textit{All versus All} (AVA) classification.
+			As such, this thesis investigates other general methods for multiclass classification. The methods investigated are \textit{One versus All} (OVA) and \textit{All versus All} (AVA) classification, which involves breaking down a multiclass problem into several binary problems. On top of the advantages mentioned above, if formulated as proposed below, these binary classifiers can be trained and inferenced independently such that parallel computing frameworks can be used for further improvement in tractability. This parallelisation has been implemented in this thesis in order to use up all the available cores in a given computing environment for maximal inference efficiency.
 	
 			\subsubsection{One Versus All Classifier}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}
 						
 				The OVA approach performs classification by introducing $n_{C}$ \textit{independent} classification problems, each classifying a particular label against all other labels. Each binary classifier is identified with a class label $c$, where it attempts to distinguish targets with labels $c$ against targets with any other label $c' \in I_{n^{C}} \backslash c$. Each of these problems are thus a binary classification problem for which solution methods are as demonstrated previously.
 				
-				The approach begins by translating the training observations from a multiclass target vector $\bvec{y} \in \{1, 2, \dots, n_{C}\}^{n}$ into $n_{C}$ binary target vectors $\bvec{y}^{c} \in \{-1, 1\}^{n}$ for $c \in \{1, 2, \dots, n_{C}\}$ \eqref{Equation:TargetTranslationOVA}.
-				
-				\begin{equation}
+				The approach begins by translating the training observations from a multiclass target vector $\bvec{y} \in \{1, 2, \dots, n_{C}\}^{n}$ into $n_{C}$ binary target vectors $\bvec{y}^{c} \in \{-1, 1\}^{n}$ for $c \in \{1, 2, \dots, n_{C}\}$ \eqref{Equation:TargetTranslationOVA}. \begin{equation}
 					\bvec{y}^{c} = \{\mathds{1}_{\{y_{i} = c\}} - \mathds{1}_{\{y_{i} \neq c\}}\}_{i \in I_{n}}
 				\label{Equation:TargetTranslationOVA}
-				\end{equation}				
+				\end{equation} That is, $\bvec{y}^{c}$ is a vector of the same length as $\bvec{y}$, with its components equal to $1$ where the corresponding components of $\bvec{y}$ is equal to $c$. All other components are equal to $-1$. Here, $\mathds{1}_{A}$ is the standard notation for the indicator function, which is $1$ when $A$ is true and $0$ otherwise.
 				
-				That is, $\bvec{y}^{c}$ is a vector of the same length as $\bvec{y}$, with its components equal to $1$ where the corresponding components of $\bvec{y}$ is equal to $c$. All other components are equal to $-1$. Here, $\mathds{1}_{A}$ is the standard notation for the indicator function, which is $1$ when $A$ is true and $0$ otherwise.
-				
-				As such, the binary classifier between class $c$ and all other labels is trained with the training data $(X, \bvec{y}^{c})$, and is trained independently from the other binary classifiers. Each binary classifier thus has its own set of optimal hyperparameters $\vec{\uptheta}^{c}$, and performs inference and prediction separately. This outputs a single axis list of expected predictive probabilities \eqref{Equation:ProbabilityListOVA} at all query points $X^{\star}$. Note that the query star $^{\star}$ is moved to the left to avoid cluttered notation.
-				
-				\begin{equation}
+				As such, the binary classifier between class $c$ and all other labels is trained with the training data $(X, \bvec{y}^{c})$, and is trained independently from the other binary classifiers. Each binary classifier thus has its own set of optimal hyperparameters $\vec{\uptheta}^{c}$, and performs inference and prediction separately. This outputs a single axis list of expected predictive probabilities \eqref{Equation:ProbabilityListOVA} at all query points $X^{\star}$. Note that the query star $^{\star}$ is moved to the left to avoid cluttered notation. \begin{equation}
 					\begin{Bmatrix*}
 						{^{\star}}\bar{\vec{\uppi}}^{1} |_{\bvec{y}^{1}, \vec{\uptheta}^{1}} & {^{\star}}\bar{\vec{\uppi}}^{2} |_{\bvec{y}^{2}, \vec{\uptheta}^{2}} & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C}} |_{\bvec{y}^{n_{C}}, \vec{\uptheta}^{n_{C}}}
 					\end{Bmatrix*} 
 				\label{Equation:ProbabilityListOVA}
-				\end{equation}
-				
-				Once the predictive probabilities from each binary GP classifiers are obtained, a consistent framework is required for fusing the separate predictive probabilities into a coherent prediction probability. This is necessary as the binary classifiers are independently learned and performs prediction independently, and thus may not necessarily provide coherent results. In fact, simply stacking the predictive probabilities together yields a ``probability'' distribution that does not sum up to 1 \eqref{Equation:ProbabilityInconsistencyOVA}. This is the focus of Section \ref{BenthicHabitatMapping:Classification:ProbabilityFusion}.
-
-				\begin{equation}
+				\end{equation} Once the predictive probabilities from each binary GP classifiers are obtained, a consistent framework is required for fusing the separate predictive probabilities into a coherent prediction probability. This is necessary as the binary classifiers are independently learned and performs prediction independently, and thus may not necessarily provide coherent results. In fact, simply stacking the predictive probabilities together yields a ``probability'' distribution that does not sum up to 1 \eqref{Equation:ProbabilityInconsistencyOVA}. This is the focus of Section \ref{BenthicHabitatMapping:Classification:ProbabilityFusion}. \begin{equation}
 					\sum_{c}^{n_{C}} {^{\star}}\bar{\pi}^{c}_{i} |_{\bvec{y}^{c}, \vec{\uptheta}^{c}} \stackrel{\mathclap{\substack{\text{in} \\ \text{general} \\ \quad }}}{\neq} 1 \qquad \forall i \in I_{n^{\star}}
 				\label{Equation:ProbabilityInconsistencyOVA}
 				\end{equation}
@@ -306,9 +268,7 @@
 			
 				The AVA approach operates in a similar fashion to the OVA approach. It instead introduces ${n_{C} \choose 2} = \frac{n_{C} (n_{C} - 1)}{2}$ \textit{independent} classification problems, each performing classification between a pair of labels. This time, each binary classifier is identified with two class labels $c$ and $c'$, where it attempts to distinguish between targets with labels $c$ against targets with labels $c'$ \textit{only}, and makes no attempt to consider observations with target labels that are not $c$ or $c'$. 
 				
-				Similar to the OVA case, the training observations are also to be translated from a multiclass target vector $\bvec{y} \in \{1, 2, \dots, n_{C}\}^{n}$ into $\frac{n_{C} (n_{C} - 1)}{2}$ binary target vectors $\bvec{y}^{c, c'} \in \{-1, 1\}^{n^{c, c'}}$ for $c \in \{1, 2, \dots, n_{C}\}$ and $c' \in \{c + 1, c + 2, \dots, n_{C}\}$ \eqref{Equation:TargetTranslationAVA}.
-								
-				\begin{equation}
+				Similar to the OVA case, the training observations are also to be translated from a multiclass target vector $\bvec{y} \in \{1, 2, \dots, n_{C}\}^{n}$ into $\frac{n_{C} (n_{C} - 1)}{2}$ binary target vectors $\bvec{y}^{c, c'} \in \{-1, 1\}^{n^{c, c'}}$ for $c \in \{1, 2, \dots, n_{C}\}$ and $c' \in \{c + 1, c + 2, \dots, n_{C}\}$ \eqref{Equation:TargetTranslationAVA}. \begin{equation}
 					\begin{aligned}
 						X^{c, c'} =& \{\bvec{x}_{i}\}_{i \in I^{c, c'}} \\
 						\bvec{y}^{c, c'} =& \{\mathds{1}_{\{y_{i} = c\}} - \mathds{1}_{\{y_{i} = c'\}}\}_{i \in I^{c, c'}} \\
@@ -316,26 +276,9 @@
 						n^{c, c'} :=& \Vert I^{c, c'} \Vert
 					\end{aligned}
 				\label{Equation:TargetTranslationAVA}
-				\end{equation}				
+				\end{equation} Notice that, contrary to the OVA case, the new target vector $\bvec{y}^{c, c'}$ does not share the same length as $\bvec{y}$, but instead have a smaller length. That is, $n^{c, c'} < n$ for all $c \in \{1, 2, \dots, n_{C}\}$ and $c' \in \{c + 1, c + 2, \dots, n_{C}\}$.
 				
-				Notice that, contrary to the OVA case, the new target vector $\bvec{y}^{c, c'}$ does not share the same length as $\bvec{y}$, but instead have a smaller length. That is, $n^{c, c'} < n$ for all $c \in \{1, 2, \dots, n_{C}\}$ and $c' \in \{c + 1, c + 2, \dots, n_{C}\}$.
-				
-				With this, the binary classifier corresponding to $c$ and $c'$ is trained with the training data $(X^{c, c'}, \bvec{y}^{c, c'})$, again in an independent fashion. This again results in a set of optimal hypermeters $\vec{\uptheta}^{c, c'}$ for each of the binary classifiers. This outputs a double axis list of expected predictive probabilities \eqref{Equation:UnfilledProbabilityListAVA} at all query points $X^{\star}$.
-				
-				\begin{equation}
-					\begin{Bmatrix*}
-						N/A & {^{\star}}\bar{\vec{\uppi}}^{1, 2} |_{\bvec{y}^{1, 2}, \vec{\uptheta}^{1, 2}} & {^{\star}}\bar{\vec{\uppi}}^{1, 3} |_{\bvec{y}^{1, 3}, \vec{\uptheta}^{1, 3}} & \dots & {^{\star}}\bar{\vec{\uppi}}^{1, n_{C}} |_{\bvec{y}^{1, n_{C}}, \vec{\uptheta}^{1, n_{C}}} \\
-						N/A & N/A & {^{\star}}\bar{\vec{\uppi}}^{2, 3} |_{\bvec{y}^{2, 3}, \vec{\uptheta}^{2, 3}} & \dots & {^{\star}}\bar{\vec{\uppi}}^{2, n_{C}} |_{\bvec{y}^{2, n_{C}}, \vec{\uptheta}^{2, n_{C}}} \\
-						\vdots & \vdots & \vdots & \ddots & \vdots \\
-						N/A & N/A & N/A & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C} - 1, n_{C}} |_{\bvec{y}^{n_{C} - 1, n_{C}}, \vec{\uptheta}^{n_{C} - 1, n_{C}}} \\
-						N/A & N/A & N/A & \dots & N/A
-					\end{Bmatrix*} 
-				\label{Equation:UnfilledProbabilityListAVA}
-				\end{equation}				
-							
-				Notice that only the upper triangular components, excluding the diagonal components, are computed in this double axis list. The AVA approach is formulated this way in order to avoid repeated computations. Notice that to obtain the corresponding lower triangular elements, the expected predictive probabilities required are simply ${^{\star}}\bar{\vec{\uppi}}^{c', c} |_{\bvec{y}^{c', c}, \vec{\uptheta}^{c', c}} = \bvec{1}_{n^{\star}} - {^{\star}}\bar{\vec{\uppi}}^{c, c'} |_{\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}}$ by symmetry, where $\bvec{1}_{n^{\star}} := \{1\}_{i \in I_{n^{\star}}}$. The diagonal elements extends naturally to $\bvec{1}_{n^{\star}}$, since it represent the probabilities of the targets having label $c$ in a binary classifier between label $c$ and itself, which is trivially $1$. Thus, the double axis list can be filled correspondingly \eqref{Equation:ProbabilityListAVA}.
-				
-				\begin{equation}
+				With this, the binary classifier corresponding to $c$ and $c'$ is trained with the training data $(X^{c, c'}, \bvec{y}^{c, c'})$, again in an independent fashion. This again results in a set of optimal hypermeters $\vec{\uptheta}^{c, c'}$ for each of the binary classifiers. This outputs a double axis list of expected predictive probabilities \eqref{Equation:ProbabilityListAVA} at all query points $X^{\star}$. \begin{equation}
 					\begin{Bmatrix*}
 						\bvec{1}_{n^{\star}} & {^{\star}}\bar{\vec{\uppi}}^{1, 2} |_{\bvec{y}^{1, 2}, \vec{\uptheta}^{1, 2}} & {^{\star}}\bar{\vec{\uppi}}^{1, 3} |_{\bvec{y}^{1, 3}, \vec{\uptheta}^{1, 3}} & \dots & {^{\star}}\bar{\vec{\uppi}}^{1, n_{C}} |_{\bvec{y}^{1, n_{C}}, \vec{\uptheta}^{1, n_{C}}} \\
 						{^{\star}}\bar{\vec{\uppi}}^{2, 1} |_{\bvec{y}^{2, 1}, \vec{\uptheta}^{2, 1}} & \bvec{1}_{n^{\star}} & {^{\star}}\bar{\vec{\uppi}}^{2, 3} |_{\bvec{y}^{2, 3}, \vec{\uptheta}^{2, 3}} & \dots & {^{\star}}\bar{\vec{\uppi}}^{2, n_{C}} |_{\bvec{y}^{2, n_{C}}, \vec{\uptheta}^{2, n_{C}}} \\
@@ -344,118 +287,82 @@
 						{^{\star}}\bar{\vec{\uppi}}^{n_{C}, 1} |_{\bvec{y}^{n_{C}, 1}, \vec{\uptheta}^{n_{C}, 1}} & {^{\star}}\bar{\vec{\uppi}}^{n_{C}, 2} |_{\bvec{y}^{n_{C}, 2}, \vec{\uptheta}^{n_{C}, 2}} & {^{\star}}\bar{\vec{\uppi}}^{n_{C}, 3} |_{\bvec{y}^{n_{C}, 3}, \vec{\uptheta}^{n_{C}, 3}} & \dots & \bvec{1}_{n^{\star}}
 					\end{Bmatrix*} 
 				\label{Equation:ProbabilityListAVA}
-				\end{equation}	
-				
+				\end{equation} Notice that only the upper triangular components, excluding the diagonal components, are computed in this double axis list. The AVA approach is formulated this way in order to avoid repeated computations. Notice that to obtain the corresponding lower triangular elements, the expected predictive probabilities required are simply ${^{\star}}\bar{\vec{\uppi}}^{c', c} |_{\bvec{y}^{c', c}, \vec{\uptheta}^{c', c}} = \bvec{1}_{n^{\star}} - {^{\star}}\bar{\vec{\uppi}}^{c, c'} |_{\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}}$ by symmetry, where $\bvec{1}_{n^{\star}} := \{1\}_{i \in I_{n^{\star}}}$. The diagonal elements extends naturally to $\bvec{1}_{n^{\star}}$, since it represent the probabilities of the targets having label $c$ in a binary classifier between label $c$ and itself, which is trivially $1$. Thus, the double axis list can be filled correspondingly.
+
 			\subsubsection{Probability Pre-Fusion for All versus All Classifiers}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:ProbabilityPreFusion}
 						
 				Similar to the OVA case, a consistent framework is again needed for fusing the prediction probabilities into one coherent prediction probability. Notice that here instead there are multiple predictive probabilities corresponding to each class. As such, the probability fusion requires an extra fusion step in the AVA case. 
 			
-				The approach proposed for this pre-fusion problem is to fuse the predictive probabilities from AVA inference \eqref{Equation:ProbabilityListAVA} into the same form as those from OVA inference \eqref{Equation:ProbabilityListOVA}. Recall that ${^{\star}}\bar{\vec{\uppi}}^{c, c'} |_{\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}}$ is the expected predictive probability of observing class $c$ \textit{against} class $c'$. Therefore, the fused predictive probabilities for class $c$ in OVA form is determined by \textit{row} $c$ of the double axis list \eqref{Equation:ProbabilityListAVA}. That is, the fused predictive probabilities in OVA form \eqref{Equation:AVA2OVA} is fused from the $c^{\mathrm{th}}$-row of \eqref{Equation:ProbabilityListAVA}. In the following derivation, the conditionals on $\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}$ is dropped to avoid cluttered notation.
-				
-				\begin{equation}
+				The approach proposed for this pre-fusion problem is to fuse the predictive probabilities from AVA inference \eqref{Equation:ProbabilityListAVA} into the same form as those from OVA inference \eqref{Equation:ProbabilityListOVA}. Recall that ${^{\star}}\bar{\vec{\uppi}}^{c, c'} |_{\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}}$ is the expected predictive probability of observing class $c$ \textit{against} class $c'$. Therefore, the fused predictive probabilities for class $c$ in OVA form is determined by \textit{row} $c$ of the double axis list \eqref{Equation:ProbabilityListAVA}. That is, the fused predictive probabilities in OVA form \eqref{Equation:AVA2OVA} is fused from the $c^{\mathrm{th}}$-row of \eqref{Equation:ProbabilityListAVA}. In the following derivation, the conditionals on $\bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'}$ is dropped to avoid cluttered notation. \begin{equation}
 					\begin{aligned}
 						{^{\star}}\bar{\vec{\uppi}}^{c} |_{\{ \bvec{y}^{c, c'}, \vec{\uptheta}^{c, c'} \}_{c' \in I_{n_{C}}}} &\stackrel{\text{abbrev.}}{:=} {^{\star}}\bar{\vec{\uppi}}^{c} := \mathbb{F}\Big(\{{^{\star}}\bar{\vec{\uppi}}^{c, c'}\}_{c' \in I_{n_{C}}}\Big) \qquad \text{where} \\
 						{^{\star}}\bar{\vec{\uppi}}^{c, c} &\stackrel{\text{abbrev.}}{:=} \bvec{1}_{n^{\star}} \qquad \qquad \qquad \qquad \quad \qquad \forall c \in I_{n_{C}}
 					\end{aligned}
 				\label{Equation:AVA2OVA}
-				\end{equation}
+				\end{equation} Two such fusion functions $\mathbb{F}$ are devised in this thesis - expectation fusion \eqref{Equation:MeanFusionAVA2OVA} and consistency fusion \eqref{Equation:ProdFusionAVA2OVA}. Note that the operations are always element by element wise, as the operations are to be identical across all query points.
 				
-				Two such fusion functions $\mathbb{F}$ are devised in this thesis - expectation fusion \eqref{Equation:MeanFusionAVA2OVA} and consistency fusion \eqref{Equation:ProdFusionAVA2OVA}. Note that the operations are always element by element wise, as the operations are to be identical across all query points.
-				
-				The expectation-fused predictive probability treats the predictive probabilities ${^{\star}}\bar{\vec{\uppi}}^{c, c'}$ as an observation drawn for ${^{\star}}\bar{\vec{\uppi}}^{c}$. As such, it is defined as the empirical expectation, or mean, across the row of predictive probabilities $\{{^{\star}}\bar{\vec{\uppi}}^{c, c'}\}_{c' \in I_{n_{C}}}$. 
-				
-				\begin{equation}
+				The expectation-fused predictive probability treats the predictive probabilities ${^{\star}}\bar{\vec{\uppi}}^{c, c'}$ as an observation drawn for ${^{\star}}\bar{\vec{\uppi}}^{c}$. As such, it is defined as the empirical expectation, or mean, across the row of predictive probabilities $\{{^{\star}}\bar{\vec{\uppi}}^{c, c'}\}_{c' \in I_{n_{C}}}$. \begin{equation}
 					\mathbb{F}\Big(\{{^{\star}}\bar{\vec{\uppi}}^{c, c'}\}_{c' \in I_{n_{C}}}\Big) = \frac{1}{n_{C}}\sum_{c' = 1}^{n_{C}} {^{\star}}\bar{\vec{\uppi}}^{c, c'}
 				\label{Equation:MeanFusionAVA2OVA}
-				\end{equation}
-				
-				However, a more theoretic approach leads to the consistency-fused predictive probability. As its name implies, consistency-fused predictive probability computes the probability that all binary classifiers performs inference \textit{consistently} for that class $c$. That is, the probability that the binary classifiers between $(c, c')$ across $c'$ all predicting the class label to be $c$. As the binary classifiers are trained \textit{independently} by construction, this probability is simply the product of ${^{\star}}\bar{\vec{\uppi}}^{c, c'}$ across $c'$.
-				
-				\begin{equation}
+				\end{equation} However, a more theoretic approach leads to the consistency-fused predictive probability. As its name implies, consistency-fused predictive probability computes the probability that all binary classifiers performs inference \textit{consistently} for that class $c$. That is, the probability that the binary classifiers between $(c, c')$ across $c'$ all predicting the class label to be $c$. As the binary classifiers are trained \textit{independently} by construction, this probability is simply the product of ${^{\star}}\bar{\vec{\uppi}}^{c, c'}$ across $c'$. \begin{equation}
 					\mathbb{F}\Big(\{{^{\star}}\bar{\vec{\uppi}}^{c, c'}\}_{c' \in I_{n_{C}}}\Big) = \prod_{c' = 1}^{n_{C}} {^{\star}}\bar{\vec{\uppi}}^{c, c'}
 				\label{Equation:ProdFusionAVA2OVA}
-				\end{equation}
-				
-				The consistency-fused probabilities are preferred over other techniques as it ensures a consistent inference framework. However, there are cases where the expectation-fused probabilities are needed as it retains the scales of the probabilities whereas the consistency-fused probabilities shrink the probabilities so that they are even further away from summing up to 1.
+				\end{equation} The consistency-fused probabilities are preferred over other techniques as it ensures a consistent inference framework. However, there are cases where the expectation-fused probabilities are needed as it retains the scales of the probabilities whereas the consistency-fused probabilities shrink the probabilities so that they are even further away from summing up to 1.
 				 
 				Note that the pre-fusion stage does not ensure that the probabilities sum up to 1 across classes - it merely extracts a single expected predictive probability ${^{\star}}\bar{\vec{\uppi}}^{c}$ for each class $c$, which is in the same analytical form as the OVA case. The following section then deals with the probability fusion techniques for consistent inference.
 			
-			\subsubsection{Advantages of Multiple Binary Classification}
-			\label{BenthicHabitatMapping:Classification:MulticlassClassification:Advantages}
+			\subsubsection{Probability Fusion Techniques}
+			\label{BenthicHabitatMapping:Classification:Multiclass:ProbabilityFusion}
+				
+				The OVA and AVA multiclass classification framework formulated in Section \ref{BenthicHabitatMapping:Classification:MulticlassClassification} outputs expected predictive probabilities that are not always consistent in that they do not represent proper probability distributions that sum up to 1. On top of \text{simple normalisation}, this section presents two new and alternative probability fusion techniques \footnote{The term \textit{fusion} here is not to be confused with \textit{sensor fusion}, which is perhaps the most common usage of the term in the robotics context. In the current Bayesian classifier context, \textit{probability fusion} refers to combining, or fusing, the probabilities in a consistent manner.}, \textit{mode keeping} and \text{exclusion}, for constructing a consistent inference framework from raw predictive probabilities.
+				
+				The following derivations assumes that the AVA predictive probabilities have been transformed into the same analytical form as the OVA case, as outlined at the end of Section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}. That is, the probabilities to be fused come in a single axis list $\begin{Bmatrix*} {^{\star}}\bar{\vec{\uppi}}^{1} & {^{\star}}\bar{\vec{\uppi}}^{2} & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C}} \end{Bmatrix*}$, which is either the direct output of an OVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}), or the pre-fused probabilities of an AVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}). For the AVA case, different probability fusion techniques will utilise different pre-fusion functions (either \eqref{Equation:MeanFusionAVA2OVA} or \eqref{Equation:ProdFusionAVA2OVA}), and will be specified explicitly during the discussion. For notational simplicity, the conditioned training labels and hyperparameters will not be explicitly notated.
 			
-				
-		\subsection{Probability Fusion Techniques}
-		\label{BenthicHabitatMapping:Classification:ProbabilityFusion}
-			
-			The OVA and AVA multiclass classification framework formulated in Section \ref{BenthicHabitatMapping:Classification:MulticlassClassification} outputs expected predictive probabilities that are not always consistent in that they do not represent proper probability distributions that sum up to 1. This section focuses on developing probability fusion techniques \footnote{The term \textit{fusion} here is not to be confused with \textit{sensor fusion}, which is perhaps the most common usage of the term in the robotics context. In the current Bayesian classifier context, \textit{probability fusion} refers to combining, or fusing, the probabilities in a consistent manner.} for constructing a consistent inference framework from such predictive probabilities.
-			
-			The following derivations assumes that the AVA predictive probabilities have been transformed into the same analytical form as the OVA case, as outlined at the end of Section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}. That is, the probabilities to be fused come in a single axis list $\begin{Bmatrix*} {^{\star}}\bar{\vec{\uppi}}^{1} & {^{\star}}\bar{\vec{\uppi}}^{2} & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C}} \end{Bmatrix*}$, which is either the direct output of an OVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}), or the pre-fused probabilities of an AVA classifier (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}). For the AVA case, different probability fusion techniques will utilise different pre-fusion functions (either \eqref{Equation:MeanFusionAVA2OVA} or \eqref{Equation:ProdFusionAVA2OVA}), and will be specified explicitly during the discussion. For notational simplicity, the conditioned training labels and hyperparameters will not be explicitly notated.
-		
-			It is important to realise that any probability fusion technique should not change the prediction itself. That is, the mode of the ``probability'' distribution before fusion should be invariant under the fusion transformation, so that the class with the highest probability stays the same. The mode of a probability distribution is the value for which the probability density or mass function is maximised. In the classification scenario, it is simply the class with the highest predictive probability at that query point. The corresponding probability is called \textit{mode probability}.
-				
-%			\begin{equation}
-%				\begin{Bmatrix*}
-%					{^{\star}}\bar{\vec{\uppi}}^{1} & {^{\star}}\bar{\vec{\uppi}}^{2} & \dots & {^{\star}}\bar{\vec{\uppi}}^{n_{C}}
-%				\end{Bmatrix*} 
-%			\label{Equation:ProbabilityList}
-%			\end{equation}
-				
-			\subsubsection{Simple Normalisation}
-			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:SimpleNormalisation}
-				
-				The most natural probability fusion method to be considered is to simply normalise the probabilities such that they sum to up 1. That is, for each query point, the probabilities corresponding to each class is scaled \textit{uniformly} to a proper probability distribution \eqref{Equation:SimpleNormalisation}.
-				
-				\begin{equation}
-					{^{\star}}\tilde{\pi}^{c}_{i} := \frac{1}{\sum_{m = 1}^{n_{C}} {^{\star}}\bar{\pi}^{m}_{i}} {^{\star}}\bar{\pi}^{c}_{i} \qquad \forall c \in I_{n_{C}}, \forall i \in I_{n_{\star}}
-				\label{Equation:SimpleNormalisation}
-				\end{equation}				
-				
-				This is a straightforward approach would would yield a proper probability distribution. The pre-fusion technique in the AVA case is the consistency-fused probabilities \eqref{Equation:ProdFusionAVA2OVA}, as there is no need to use the expectation-fused probabilities.
-				
-			\subsubsection{Mode Keeping}
-			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:ModeKeeping}
-				
-				In most scenarios involving OVA and AVA classifiers, the simple normalisation factor $\sum_{m = 1}^{n_{C}} {^{\star}}\bar{\pi}^{m}_{i}$ is usually greater than 1, rather than smaller than 1. This is because each probability is the result from a binary classifier, which does not take a holistic view towards the total number of classes there are. This means that if the simple normalisation fusion method is used, each probability will be scaled down uniformly. While the mode probability is necessarily invariant, by scaling down the mode probability, the predictive power is reduced through making the classifier more uncertain about its mode prediction.
-				
-				As such, the mode keeping fusion method aims to address this by modifying the simple normalisation approach. The idea is to keep the mode probability fixed, and scale down all other probabilities \textit{uniformly} so that the sum is 1 \eqref{Equation:ModeKeeping}.
-				
-				\begin{equation}
-					\begin{aligned}
-						M_{i} &:= \argmax_{c \in I_{n_{C}}} {^{\star}}\bar{\pi}^{c}_{i} \qquad \forall i \in I_{n_{\star}} \\
-						{^{\star}}\tilde{\pi}^{c}_{i} &:= \begin{cases}
-							\qquad \quad {^{\star}}\bar{\pi}^{c}_{i} & c = M_{i} \\
-							\frac{1 - {^{\star}}\bar{\pi}^{c}_{i}}{\big(\sum_{m = 1}^{n_{C}} {^{\star}}\bar{\pi}^{m}_{i}\big) - {^{\star}}\bar{\pi}^{c}_{i}} {^{\star}}\bar{\pi}^{c}_{i} & c \neq M_{i}
-						\end{cases} \qquad \forall c \in I_{n_{C}}, \forall i \in I_{n_{\star}}
-					\end{aligned}
-				\label{Equation:ModeKeeping}
-				\end{equation}
+				It is important to realise that any probability fusion technique should not change the prediction itself. That is, the mode of the ``probability'' distribution before fusion should be invariant under the fusion transformation, so that the class with the highest probability stays the same. The mode of a probability distribution is the value for which the probability density or mass function is maximised. In the classification scenario, it is simply the class with the highest predictive probability at that query point. The corresponding probability is called \textit{mode probability}.
 					
-				In this way, the mode predictive probability is kept so that the predictive power is not reduced as significantly. However, this approach is not completely theoretic as it is inspired by experimental results. In the case that the original probabilities actually sum up to less than 1, this approach actually reduces the predictive power even more. As such, this approach should be used carefully.
+%				\subsubsection{Simple Normalisation}
+%				\label{BenthicHabitatMapping:Classification:ProbabilityFusion:SimpleNormalisation}
+					
+					The most natural fusion method is to \textit{simply normalise} the probabilities such that they sum to up 1. That is, for each query point, the probabilities corresponding to each class is scaled \textit{uniformly} to a proper probability distribution \eqref{Equation:SimpleNormalisation}. \begin{equation}
+						{^{\star}}\tilde{\pi}^{c}_{i} := \frac{1}{\sum_{m = 1}^{n_{C}} {^{\star}}\bar{\pi}^{m}_{i}} {^{\star}}\bar{\pi}^{c}_{i} \qquad \forall c \in I_{n_{C}}, \forall i \in I_{n_{\star}}
+					\label{Equation:SimpleNormalisation}
+					\end{equation} This is a straightforward approach would would yield a proper probability distribution. The pre-fusion technique in the AVA case is the consistency-fused probabilities \eqref{Equation:ProdFusionAVA2OVA}, as there is no need to use the expectation-fused probabilities.
+					
+%				\subsubsection{Mode Keeping}
+%				\label{BenthicHabitatMapping:Classification:ProbabilityFusion:ModeKeeping}
+					
+					In most scenarios involving OVA and AVA classifiers, the simple normalisation factor $\sum_{m = 1}^{n_{C}} {^{\star}}\bar{\pi}^{m}_{i}$ is usually greater than 1, rather than smaller than 1. This is because each probability is the result from a binary classifier, which does not take a holistic view towards the total number of classes there are. This means that if the simple normalisation fusion method is used, each probability will be scaled down uniformly. While the mode probability is necessarily invariant, by scaling down the mode probability, the predictive power is reduced through making the classifier more uncertain about its mode prediction. As such, the \textit{mode keeping} fusion method aims to address this by modifying the simple normalisation approach. The idea is to keep the mode probability fixed, and scale down all other probabilities \textit{uniformly} so that the sum is 1 \eqref{Equation:ModeKeeping}. \begin{equation}
+						\begin{aligned}
+							{^{\star}}\tilde{\pi}^{c}_{i} := \begin{cases}
+								\qquad \quad {^{\star}}\bar{\pi}^{c}_{i} & c = M_{i} :=  \argmax\limits_{c \in I_{n_{C}}} {^{\star}}\bar{\pi}^{c}_{i} \\
+								\frac{1 - {^{\star}}\bar{\pi}^{c}_{i}}{\big(\sum_{m = 1}^{n_{C}} {^{\star}}\bar{\pi}^{m}_{i}\big) - {^{\star}}\bar{\pi}^{c}_{i}} {^{\star}}\bar{\pi}^{c}_{i} & \text{otherwise}
+							\end{cases} \qquad \forall c \in I_{n_{C}}, \forall i \in I_{n_{\star}}
+						\end{aligned}
+					\label{Equation:ModeKeeping}
+					\end{equation} In this way, the mode predictive probability is kept so that the predictive power is not reduced as significantly. However, this approach is not completely theoretic as it is inspired by experimental results. In the case that the original probabilities actually sum up to less than 1, this approach actually reduces the predictive power even more. As such, this approach should be used carefully.
+					
+					Since this approach is based on the actual probability magnitudes, this is the only case where the expectation-fused probabilities \eqref{Equation:MeanFusionAVA2OVA} are to be used for AVA pre-fusion. As mentioned earlier, the consistency-fused predictive probabilities do not preserve the original probability magnitudes, and thus are ill-fitted in this context.
+					
+%				\subsubsection{Exclusion}
+%				\label{BenthicHabitatMapping:Classification:ProbabilityFusion:Exclusion}
 				
-				Since this approach is based on the actual magnitudes of the probabilities, this is the only case where the expectation-fused predictive probabilities \eqref{Equation:MeanFusionAVA2OVA} are to be used for AVA pre-fusion. As mentioned earlier, the consistency-fused predictive probabilities do not preserve the original probability magnitudes, and thus are ill-fitted in this context.
-				
-			\subsubsection{Exclusion}
-			\label{BenthicHabitatMapping:Classification:ProbabilityFusion:Exclusion}
-			
-				The exclusion fusion technique is the most theoretic approach out of the three. It is based on the same concept of the consistency-fused predictive probability discussed previously. The main idea is to produce relative probabilities that are \textit{consistent}. Specifically, the exclusion technique attempts to find the probabilities that all $n_{C}$ binary classifiers agree with each other.
-				
-				For example, if there are 4 classes with labels $\mathcal{Y} = \{1, 2, 3, 4\}$ and a single query point, and suppose the probability of interest is the likelihood that the class label is 1, the exclusion method attempts to first compute the probability that all the classifiers agree that the class label is 1, and then normalise such a probability with the corresponding probabilities for other classes. That is, it computes the probability that the ``1 against all'' classifier affirms for ``class 1'' while all the other ``$c$ against all'' classifiers affirms for ``not class $c$'', and then normalise such probabilities \eqref{Equation:Exclusion}. As such, it ``excludes'' the cases where the binary classifiers disagree with each other, such as the case when ``1 against all'' classifier affirms for ``class 1'' while the ``2 against all'' classifier affirms for ``class 2''. In this way, the exclusion approach is the only method of the three that enforces consistency amongst the independently trained binary classifiers.
-		
-				\begin{equation}
-					\begin{aligned}
-						{^{\star}}\hat{\pi}^{c}_{i} &:= \frac{{^{\star}}\bar{\pi}^{c}_{i}}{(1 - {^{\star}}\bar{\pi}^{c}_{i})} \prod_{m = 1}^{n_{C}} (1 - {^{\star}}\bar{\pi}^{m}_{i}) \\
-						{^{\star}}\tilde{\pi}^{c}_{i} &:= \frac{1}{\sum_{m = 1}^{n_{C}} {^{\star}}\hat{\pi}^{m}_{i}} {^{\star}}\hat{\pi}^{c}_{i} 
-					\end{aligned} \qquad \forall c \in I_{n_{C}}, \forall i \in I_{n_{\star}}
-				\label{Equation:Exclusion}
-				\end{equation}
+					The \textit{exclusion} fusion technique is the most theoretic approach out of the three. It is based on the same concept of the consistency-fused predictive probability. The main idea is to produce relative probabilities that are \textit{consistent} through finding the probabilities that all $n_{C}$ binary classifiers agree with each other. For example, if there are 4 classes with labels $\mathcal{Y} = \{1, 2, 3, 4\}$ and a single query point, and suppose the probability of interest is the likelihood that the class label is 1, the exclusion method attempts to first compute the probability that all the classifiers agree that the class label is 1, and then normalise such a probability with the corresponding probabilities for other classes. That is, it computes the probability that the ``1 against all'' classifier affirms for ``class 1'' while all the other ``$c$ against all'' classifiers affirms for ``not class $c$'', and then normalise such probabilities \eqref{Equation:Exclusion}. As such, it ``excludes'' the cases where the binary classifiers disagree with each other, such as the case when ``1 against all'' classifier affirms for ``class 1'' while the ``2 against all'' classifier affirms for ``class 2''. In this way, the exclusion approach is the only method of the three that enforces consistency in a principled manner amongst the independently trained binary classifiers. \begin{equation}
+						\begin{aligned}
+							{^{\star}}\hat{\pi}^{c}_{i} &:= \frac{{^{\star}}\bar{\pi}^{c}_{i}}{(1 - {^{\star}}\bar{\pi}^{c}_{i})} \prod_{m = 1}^{n_{C}} (1 - {^{\star}}\bar{\pi}^{m}_{i}) \\
+							{^{\star}}\tilde{\pi}^{c}_{i} &:= \frac{1}{\sum_{m = 1}^{n_{C}} {^{\star}}\hat{\pi}^{m}_{i}} {^{\star}}\hat{\pi}^{c}_{i} 
+						\end{aligned} \qquad \forall c \in I_{n_{C}}, \forall i \in I_{n_{\star}}
+					\label{Equation:Exclusion}
+					\end{equation}
 				
 		\subsection{Fusion Performance of Multiclass Classifiers}
 		\label{BenthicHabitatMapping:Classification:FusionPerformance}
 			
 			Probability fusion methods allow GP classifiers to perform consistent inference under the OVA and AVA scheme. A brief comparison between the probability fusion techniques are provided in this section. Such a comparison reveals that the exclusion method achieves the best fusion properties that best approximates the true entropy.
-			
+					
 			Figure \ref{Figure:ProbabilityFusion} shows a simple multiclass classification scenario with $n_{C} = 4$ classes. The feature space $\mathcal{X} = \mathbb{R}^{2}$ in this case is the Euclidean plane with features $x_{1}$ and $x_{2}$. There are 400 training points observed from the ground truth as shown in the first subplot. The GP classifier is trained under Laplace approximation with a squared exponential kernel and probit response likelihood. For the example shown, an OVA classification scheme is employed.
+			
+			In this example, the true entropy is computed by Monte Carlo techniques, which is discussed later in Section \ref{InformativeSeafloorExploration:MCPIE}. Under large samples, this produces the true entropy of the predictions, and will thus be used as the benchmark for evaluating the accuracy of the three probability fusion techniques.
 			
 			\begin{figure}[!htbp]
 			\centering
@@ -464,6 +371,8 @@
 			\label{Figure:ProbabilityFusion}
 			\end{figure}
 			
+			Visually, it is evident that simple normalisation performs the worst in PIE approximation, while exclusion performs the best. The mean squared error and mean absolute error of the approximations from each fusion technique is provided in Table \ref{Table:ProbabilityFusionAccuracy}, which asserts the claim suggested by the figures. As such, this thesis will employ the exclusion fusion technique for benthic habitat mapping.
+					
 			\begin{table}[t]
 				{\footnotesize
 				\begin{center}
@@ -480,67 +389,44 @@
 		  	\caption{Entropy Accuracy across Probability Fusion Techniques}
 		  	\label{Table:ProbabilityFusionAccuracy}
 		  	\end{table}	
-		  	
-				
-				
-				MENTION FROM NOW ON WE ALL USE EXCLUSION
-				
+
 	\section{Mapping Scott Reef Benthic Habitats}
 	\label{BenthicHabitatMapping:ScottReef}
-
+		
 		With a coherent and tractable inference method with Gaussian process classifiers, it can now be applied to map the benthic habitats of a given region. This section presents the mapping results by applying the techniques formulated previously on the Scott Reef dataset provided by \cite{IMOS}.  
-
+	
 		\begin{wrapfigure}{r}{0.4\linewidth}
 			\centering
 				\includegraphics[width=\linewidth]{Figures/label_images.png}
 			\caption{Gaussian LDA \\ clustered habitat imagery \\ \citep{Steinberg2015128}}
 			\label{Figure:LabelImages}
 		\end{wrapfigure}
-			
+		
 		With the bathymetric depth recorded at both training locations $P$ and query locations $P^{\star}$, the corresponding bathymetric features $X$ and $X^{\star}$ can be extracted through the process detailed in Section \ref{BenthicHabitatMapping:BathymetricFeatures}. Along with the benthic habitat labels $\bvec{y}$ observed at the training points, the effective dataset consists of the training data $(P, X, \bvec{y})$ and query data $(P^{\star}, X^{\star})$.
 
 		The habitat labels are clustered in an unsupervised manner from the collected benthic imagery using Gaussian latent Dirichlet allocation (LDA) \citep{Steinberg2015128}, producing 24 unique benthic class labels, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting (figure \ref{Figure:LabelImages}). For example, the first two rows in Figure \ref{Figure:LabelImages} are under-exposed and thus will not be included in the analysis. Therefore, benthic habitat mapping over Scott Reef is a multiclass classification problem with $n_{C} = 17$ classes.
-		
-		As discussed in Section \ref{BenthicHabitatMapping:BathymetricFeatures}, the benthic habitats are to be modelled upon five bathymetric features - bathymetric depth, aspect (short scale), rugosity (short scale), aspect (long scale), and rugosity (long scale). The corresponding feature maps across the reef have been visualised in Figure \ref{Figure:ScottReefBathymetricFeatures}.
 			
-		For the Scott Reef dataset, an OVA Gaussian process classifier is employed due to its simpler structure and stronger inference capabilities under \textit{relatively} small training datasets. While the training dataset is large in size, it is \textit{relatively} small compared to the total region to be mapped. Moreover, the results presented in this section also serves as the initial condition for the path planning result shown in the next chapter, which would ideally start from low amounts of training data to rigorously test the path planning algorithms.
-		
-		The classifier is trained under Laplace approximation as a good balance between tractability and accuracy. The probit response is chosen as the likelihood response, and the kernel covariance employed is an axis aligned squared exponential kernel.
-			
-		\subsection{Problems and Solutions to Big Data}
-		\label{BenthicHabitatMapping:ScottReef:BigData}
-		
-			One of the problems of performing inference on big datasets is that it has high memory and time complexity requirements. In the current Scott Reef example, there are a total of $n = 34890$ training points and $n^{\star} = 17675180$ query points, even after removing all invalid entries. With regards to the training stage, since Gaussian processes are $O(n^{3})$ algorithms, the high number of training points will cause learning bottlenecks in the process.
-			
-			More importantly, however, is the memory requirements involved in the inference stage. As explained in sections \ref{Background:GaussianProcesses:Regression} and \ref{BenthicHabitatMapping:Classification}, the inference stage requires the computation of a data kernel $K \in \mathbb{R}^{n \times n}$, an inference kernel $K^{\star} \in \mathbb{R}^{n \times n^{\star}}$, and a query kernel $K^{\star \star} \in \mathbb{R}^{n^{\star} \times n^{\star}}$. Since $n^{\star}$ is orders of magnitude greater than $n$, the memory requirements are dominated by $K^{\star \star}$. Fortunately, in the mapping scenario, it is not necessary to know the covariances between all the query points. Merely the variances at each query point needs to be known such that only the diagonal elements of $K^{\star \star}$ is required, which is $n^{\star}$ in length. The details of this computational shortcut is detailed in appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}. However, the full inference kernel $K^{\star}$ is required in order to relate the training points to the query points, without which no inference can be performed. The inference kernel has $n \times n^{\star} = 616687030200 \approx 6 \times 10^{11}$ elements. Even if 32 bit floats instead of 64 bit floats are used, each element takes 32 bits = 4 bytes of memory, such that the total memory requirement for the inference kernel using the entire dataset would be $616687030200 \times 4$ bytes $\approx 2297$ GB \textit{for each binary classifier}. With an OVA classifier for 17 labels, this means more than 39 TB of storage is needed, which is infeasible to store on a standard computer of 4 to 16 GB RAM.
-			
-			As such, it is imperative to perform analysis with a sample of the dataset. As this section also serves to demonstrate the situation before a path planning mission is initiated, small numbers of training points will be chosen to reflect the high uncertainty in the resulting map due to a lack of data. In the following sections, $n = 200$ training points and $n^{\star} = 100000$ query points are randomly selected from the dataset for map inference, which forms the effective training data $(P, X, \bvec{y})$ and query data $(P^{\star}, X^{\star})$.
+		For the Scott Reef dataset, an OVA Gaussian process classifier is employed due to its simpler structure and stronger inference capabilities under \textit{relatively} small training datasets as compared to the total region to be mapped. The classifier is trained under Laplace approximation as a good balance between tractability and accuracy. The probit response is chosen as the likelihood response, and the kernel covariance employed is an axis aligned squared exponential kernel.
 			
 		\subsection{Prediction Map}
 		\label{BenthicHabitatMapping:ScottReef:Maps}
 
-			As training labels are only available around past mission tracks (figure \ref{Figure:ScottReefBathymetricFeatures:1}), a synthetic ground truth is generated separately in order to assess the mapping performance (figure \ref{Figure:ScottReefSyntheticGroundTruth}). Only the 17 labels out of the 22 image clusters that are identifiable are shown. This ground truth is generated separately with 800 training points available in the dataset, which is a reasonable size on a computer with 8 GB RAM as the inference kernel would take $800 \times 100000 \times 17 \times 4$ bytes $\approx 5$ GB of storage. Since the synthetic ground truth is generated with only 800 training points, it does not necessary represent the physical reality at Scott Reef. 
-	
+			As training labels are only available around past mission tracks (figure \ref{Figure:ScottReefBathymetricFeatures:1}), a synthetic ground truth is generated separately in order to assess the mapping performance (figure \ref{Figure:ScottReefSyntheticGroundTruth}). Only the 17 labels out of the 22 image clusters that are identifiable are shown. This ground truth is generated separately with 800 training points available in the dataset, which is a reasonable size on a computer with 8 GB RAM as the inference kernel would take $800 \times 100000 \times 17 \times 4$ bytes $\approx 5$ GB of storage (see Appendix \ref{Appendix:BigData:BenthicHabitatMapping} for methods of dealing with big data). Since the synthetic ground truth is generated with only 800 training points, it does not necessary represent the physical reality at Scott Reef. 
+
 			\begin{figure}[!htbp]
 			\centering
-				\includegraphics[width = 0.8\linewidth]{Figures/scott_reef_mapping/Figure7.eps}
-			\caption{Scott Reef: Synthetic Ground Truth}
-			\label{Figure:ScottReefSyntheticGroundTruth}
-			\end{figure}
-			
-			With merely 200 training points, the classifier is able to infer a map which achieves a 41.54\% misclassification rate, or 58.46\% prediction accuracy, over 100000 query points (figure \ref{Figure:ScottReefInitialPredictions200}). This demonstrates the advantage of modeling the benthic environment upon a bathymetric feature space instead of spatial coordinates. The training tracks covers $\frac{200}{100000} = 0.2\%$ of the query region, yet almost 60\% of the region can be accurately modeled with such scarce data. This model takes advantage of the fact that although habitats can be far away spatially, they can have similar bathymetric structures such that they are close in the bathymetric feature space.
-			
-			\begin{figure}[!htbp]
-			\centering
-			  \subfigure[Initial Prediction with 200 training points]{\label{Figure:ScottReefInitialPredictions200}	\includegraphics[width=0.8\linewidth]{Figures/scott_reef_mapping/Figure8.eps}}
+			  \subfigure[Synthetic Ground Truth]{\label{Figure:ScottReefSyntheticGroundTruth} \includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping/Figure7.eps}}
+			  \subfigure[Initial Prediction with 200 training points]{\label{Figure:ScottReefInitialPredictions200}	\includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping/Figure8.eps}}
 			  \subfigure[Initial Prediction with 400 training points]{\label{Figure:ScottReefInitialPredictions400}	\includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping_400/Figure8.eps}}
 			  \subfigure[Initial Prediction with 600 training points]{\label{Figure:ScottReefInitialPredictions600}	\includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping_600/Figure8.eps}}
 			\caption{Scott Reef: Initial Predictions}
 			\label{Figure:ScottReefInitialPredictions}
 			\end{figure}
-
-			The effect of increasing the number of randomly selected training points from the training data set is shown in Figure \ref{Figure:ScottReefBathymetricFeatures:1}. As subsequently added training points are still within similar regions with similar bathymetric signatures, the classification accuracy does not necessarily improve.
-												
-	\section{Summary}
-	
 			
+			With merely 200 training points, the classifier is able to infer a map which achieves a 41.54\% misclassification rate, or 58.46\% prediction accuracy, over 100000 query points (figure \ref{Figure:ScottReefInitialPredictions200}). This demonstrates the advantage of modeling the benthic environment upon a bathymetric feature space instead of spatial coordinates. The training tracks covers $\frac{200}{100000} = 0.2\%$ of the query region, yet almost 60\% of the region can be accurately modeled with such scarce data. This model takes advantage of the fact that although habitats can be far away spatially, they can have similar bathymetric structures such that they are close in the bathymetric feature space. The effect of increasing the number of randomly selected training points from the training data set is shown in Figure \ref{Figure:ScottReefBathymetricFeatures:1}. As subsequently added training points are still within similar regions with similar bathymetric signatures, the classification accuracy does not necessarily improve.
+												
+%	\section{Summary}
+%	\label{BenthicHabitatMapping:Summary}
+%	
+%		In summary, this chapter derived 
+		

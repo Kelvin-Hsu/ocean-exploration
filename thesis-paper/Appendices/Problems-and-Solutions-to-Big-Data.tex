@@ -1,0 +1,34 @@
+\chapter{Problems and Solutions to Big Data}
+\lhead{Problems and Solutions to Big Data}
+\label{Appendix:BigData}
+
+		\section{Benthic Habitat Mapping}
+		\label{Appendix:BigData:BenthicHabitatMapping}
+		
+			One of the problems of performing inference on big datasets is that it has high memory and time complexity requirements. In the current Scott Reef example, there are a total of $n = 34890$ training points and $n^{\star} = 17675180$ query points, even after removing all invalid entries. With regards to the training stage, since Gaussian processes are $O(n^{3})$ algorithms, the high number of training points will cause learning bottlenecks in the process.
+			
+			More importantly, however, is the memory requirements involved in the inference stage. As explained in sections \ref{Background:GaussianProcesses:Regression} and \ref{BenthicHabitatMapping:Classification}, the inference stage requires the computation of a data kernel $K \in \mathbb{R}^{n \times n}$, an inference kernel $K^{\star} \in \mathbb{R}^{n \times n^{\star}}$, and a query kernel $K^{\star \star} \in \mathbb{R}^{n^{\star} \times n^{\star}}$. Since $n^{\star}$ is orders of magnitude greater than $n$, the memory requirements are dominated by $K^{\star \star}$. Fortunately, in the mapping scenario, it is not necessary to know the covariances between all the query points. Merely the variances at each query point needs to be known such that only the diagonal elements of $K^{\star \star}$ is required, which is $n^{\star}$ in length. The details of this computational shortcut is detailed in appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}. However, the full inference kernel $K^{\star}$ is required in order to relate the training points to the query points, without which no inference can be performed. The inference kernel has $n \times n^{\star} = 616687030200 \approx 6 \times 10^{11}$ elements. Even if 32 bit floats instead of 64 bit floats are used, each element takes 32 bits = 4 bytes of memory, such that the total memory requirement for the inference kernel using the entire dataset would be $616687030200 \times 4$ bytes $\approx 2297$ GB \textit{for each binary classifier}. With an OVA classifier for 17 labels, this means more than 39 TB of storage is needed, which is infeasible to store on a standard computer of 4 to 16 GB RAM.
+			
+			As such, it is imperative to perform analysis with a sample of the dataset. As this section also serves to demonstrate the situation before a path planning mission is initiated, small numbers of training points will be chosen to reflect the high uncertainty in the resulting map due to a lack of data. In the following sections, $n = 200$ training points and $n^{\star} = 100000$ query points are randomly selected from the dataset for map inference, which forms the effective training data $(P, X, \bvec{y})$ and query data $(P^{\star}, X^{\star})$.
+			
+		\section{Informative Seafloor Exploration}
+		\label{Appendix:BigData:InformativeSeafloorExploration}
+		
+			Similar to the problems faced in benthic habitat mapping as discussed in Section \ref{BenthicHabitatMapping:ScottReef:BigData}, big data also poses significant problems for informative path planning.
+			
+			As many of the acquisition functions discussed in Section \ref{Background:RelatedWork:AcquisitionFunctions} is based on the average marginalised prediction information entropy (AMPIE) \eqref{Equation:AMPIE}, which does not consider mutual information, the entropy computation can be improved in temporal and spatial complexity through only computing the latent GP variance $\{\mathbb{V}[f^{\star}_{i}]\}_{i \in I_{n^{\star}}}$ shown in Figure \ref{Figure:InferenceFlow} (see appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}). As such, acquisition criterions such as \eqref{Equation:AsherBenderAcquisitionCriterion} and \eqref{Equation:KrauseAcquisitionCriterion} are able to consider the non-mutual entropy of the entire region of interest $X_{s}$. The memory requirement in this case is dominated by the inference kernel $K^{\star}$ as only the diagonal elements of the query matrix $K^{\star \star}$ are required. 
+			
+			However, if mutual information is required, then the entire latent covariance matrix $\mathbb{V}[\bvec{f}^{\star}]$ is required. The memory requirement is then dominated by the full query kernel $K^{\star \star}$ on top of the inference kernel $K^{\star}$. It would then be impractical to compute those covariance matrices for the entire region of interest $X_{s}$. That is, it would be impractical to compute the differential acquisition \eqref{Equation:DifferentialAcquisition} for either $H = H_{\mathrm{MCPIE}}$ or $H = H_{\mathrm{LMDE}}$.
+			
+			\begin{equation}
+				I[X_{p} | X, \bvec{y}, X_{s}] = H[X_{s} | X, \bvec{y}] - H[X_{s} | X \cup X_{p}, \bvec{y} \cup \mathbb{E}[\bvec{y}_{p}]]
+			\label{Equation:DifferentialAcquisition}
+			\end{equation}
+			
+			Instead, the advantage of LMDE acquisition is that the acquisition criterion can be in the form of \eqref{Equation:PathAcquisition}. In other words, this searches for the path with maximal entropy. In the following section, this acquisition criterion form will be used for LMDE, MCPIE, and AMPIE acquisition, where the entropy measure $H$ is replaced by $H_{\mathrm{LMDE}}$, $H_{\mathrm{MCPIE}}$, and $H_{\mathrm{AMPIE}}$ respectively. That is, the acquisition criterion is to maximise the chosen entropy measure of the candidate path.
+
+			\begin{equation}
+				I[X_{p} | X, \bvec{y}, X_{s}] = H[X_{p} | X, \bvec{y}]
+			\label{Equation:PathAcquisition}
+			\end{equation}
+			

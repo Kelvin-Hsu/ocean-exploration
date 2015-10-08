@@ -83,9 +83,9 @@
 %
 %			Definition \ref{Definition:GaussianProcess} is defined for a univariate input feature $x$. In fact, this definition generalises naturally to a multivariate input feature $\bvec{x} \in \mathbb{R}^{p}$ with $p$ features. This motivates definition \ref{Definition:GaussianRandomField}.
 			
-			\newtheorem{grfdef}{Gaussian Random Field}[section]
+			\newtheorem{grfdef}{Gaussian Process}[section]
 			\begin{grfdef}
-				A random function $f(\bvec{x})$, $\bvec{x} \in \mathbb{R}^{p}$, is distributed as a Gaussian random field with mean function $m(\bvec{x})$ and covariance function $k(\bvec{x}, \bvec{x}')$, if for any finite collection of feature vectors $X := \{\bvec{x}_{i}\}_{i \in I_{n}} := [\bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}$, the corresponding vector $\bvec{f}(X) := \{f(\bvec{x}_{i})\}_{i \in I_{n}} := [f(\bvec{x}_{1}), f(\bvec{x}_{2}), \dots, f(\bvec{x}_{n})]^{T}$ is jointly multivariate Gaussian distributed such that \begin{equation}
+				A random function $f(\bvec{x})$, $\bvec{x} \in \mathbb{R}^{p}$, is distributed as a Gaussian process with mean function $m(\bvec{x})$ and covariance function $k(\bvec{x}, \bvec{x}')$, if for any finite collection of feature vectors $X := \{\bvec{x}_{i}\}_{i \in I_{n}}$, the corresponding vector $\bvec{f}(X) := \{f(\bvec{x}_{i})\}_{i \in I_{n}}$ is jointly multivariate Gaussian distributed such that \begin{equation}
 						\bvec{f}(X) \sim \mathcal{N}(\bvec{m}(X), K(X, X'))
 					\label{Equation:GaussianRandomFieldFiniteDistribution}
 					\end{equation} where $\bvec{m}(X) :=  \{m(\bvec{x}_{i})\}_{i \in I_{n}} \in \mathbb{R}^{n}$ and $K(X, X') := \{k(\bvec{x}_{i}, \bvec{x}_{j})\}_{i \in I_{n}, j \in I_{n}}$. Such a function $f(\bvec{x})$ is then notated as \begin{equation}
@@ -94,7 +94,9 @@
 					\end{equation}	
 					
 			\label{Definition:GaussianRandomField}
-			\end{grfdef} Definition \ref{Definition:GaussianRandomField} is defined for a general multivariate input feature $\bvec{x}$. Formally, a Gaussian process is a specific case of a Gaussian random field where the input feature $\bvec{x} = x$ is one dimensional. However, in practice the term ``Gaussian random field'' is seldom used, and instead are also referred to as Gaussian processes. As such, it is conventional to simply write $\mathcal{GP}$ instead of $\mathcal{GRF}$ in \eqref{Equation:GaussianRandomField}. Finally, as the mean function can be generally assumed to be the zero function, this elucidates that Gaussian processes are completely defined by their covariance function $k$. The covariance function $k$ is also refered to as the \textit{kernel} function.
+			\end{grfdef}
+			
+%			Definition \ref{Definition:GaussianRandomField} is defined for a general multivariate input feature $\bvec{x}$. Formally, a Gaussian process is a specific case of a Gaussian random field where the input feature $\bvec{x} = x$ is one dimensional. However, in practice the term ``Gaussian random field'' is seldom used, and instead are also referred to as Gaussian processes. As such, it is conventional to simply write $\mathcal{GP}$ instead of $\mathcal{GRF}$ in \eqref{Equation:GaussianRandomField}. Finally, as the mean function can be generally assumed to be the zero function, this elucidates that Gaussian processes are completely defined by their covariance function $k$. The covariance function $k$ is also refered to as the \textit{kernel} function.
 			
 %			Certainly, this definition generalises finite dimensional multivariate Gaussian distributions, in that any subset of a multivariate Gaussian distributed random vector is also a multivariate Gaussian distributed of lower dimensionality.
 			
@@ -258,35 +260,11 @@
 			
 			Specifically, the \textit{entropy} of a probability distribution is the expected amount of information or unpredictability contained in a distribution \citep{ShannonEntropy}. While the variance $\mathbb{V}[\bvec{y}^{\star}]$ is a perfectly valid way to quantify uncertainty, it is usually measured in the squared unit of the quantity interested. On the other hand, entropy is always measured in nats. More importantly however is the fact that entropy directly measures the amount of information to be expected from the query locations, such that informative actions can be taken.
 			
-			For a random vector $\bvec{X} \in A$ with continuous support $A$ and a probability density function $p(\bvec{x})$, the entropy is called a \textit{differential entropy} \eqref{Equation:ContinuousEntropy}. \begin{equation}
-				H(\bvec{x}) = - \int_{A} p(\bvec{z}) \log(p(\bvec{z})) d\bvec{z}
-			\label{Equation:ContinuousEntropy}
-			\end{equation} On the other hand, for a random vector $\bvec{X} \in A$ with discrete support $A$ and a probability mass function $p(\bvec{x})$, the entropy is called a \textit{information entropy}. \begin{equation}
-				H(\bvec{x}) = - \sum_{\bvec{z} \in A} p(\bvec{z}) \log(p(\bvec{z})) d\bvec{z}
-			\label{Equation:DiscreteEntropy}
-			\end{equation} The above notation is used in most statistics literature. However, in the machine learning context where the training features $X$ and targets $\bvec{y}$ are observed and the query targets $\bvec{y}^{\star}$ corresponding to query features $X$ are to be inferred, it is customary to write the entropy as \eqref{Equation:EntropyInformativePathPlanningNotation}, which is understood as the ``entropy of the targets $\bvec{y}^{\star}$ at the query locations $X^{\star}$ given the observations $(X, \bvec{y})$''. \begin{equation}
-				H(\bvec{y}^{\star}) \equiv H[X^{\star} | X, \bvec{y}]
-			\label{Equation:EntropyInformativePathPlanningNotation}
-			\end{equation}
-			
-%	\section{Active Sampling}
-%	\label{Background:ActiveSampling}
-%	
-%		\subsection{Static Active Sampling}
-%		\label{Background:ActiveSampling:Static}
-%		
-%		\subsection{Dynamic Active Sampling}
-%		\label{Background:ActiveSampling:Dynamic}
-		
-%	\section{Informative Path Planning}
-%	\label{Background:InformativePathPlanning}
-%		
-%		\subsection{Myopic and Non-myopic Planning}
-%		\label{Background:InformativePathPlanning:MyopicNonmyopicPlanning}
-%		
-%		\subsection{Advantages of Gaussian Process Models}
-%		\label{Background:InformativePathPlanning:GaussianProcessAdvantage}
-		
+			For a random vector $\bvec{X} \in A$ with continuous support $A$ and a probability density function $p(\bvec{x})$, the entropy is called a \textit{differential entropy}. On the other hand, for a random vector $\bvec{X} \in B$ with discrete support $B$ and a probability mass function $p(\bvec{x})$, the entropy is called a \textit{information entropy}. \begin{equation}
+				H(\bvec{X}) = - \int_{A} p(\bvec{x}) \log(p(\bvec{x})) d\bvec{x} \qquad H(\bvec{X}) = - \sum_{\bvec{x} \in B} p(\bvec{x}) \log(p(\bvec{x})) d\bvec{z}
+			\label{Equation:Entropy}
+			\end{equation} The above notation is used in most statistics literature. However, in the machine learning context where the training features $X$ and targets $\bvec{y}$ are observed and the query targets $\bvec{y}^{\star}$ corresponding to query features $X$ are to be inferred, it is customary to write $H(\bvec{y}^{\star}) \equiv H[X^{\star} | X, \bvec{y}]$, which is understood as the ``entropy of the targets $\bvec{y}^{\star}$ at the query locations $X^{\star}$ given the observations $(X, \bvec{y})$''.
+
 	\section{Related Work}
 	\label{Background:RelatedWork}
 		
@@ -314,10 +292,7 @@
 			Several types of acquisition functions have been proposed in the benthic habitat mapping context. \cite{AsherBender} uses an acquisition criterion given by \eqref{Equation:AMPIE} where $\pi^{c}_{i}$ is the probability of the habitat label being a member of class $c \in I_{n_{C}}$ at query location $\bvec{x}^{\star}_{i}$ where $i \in I_{n^{\star}}$. Here $n_{C}$ is the number of classes and $n^{\star}$ is the number of query points. Again the query locations are denoted as $X^{\star} := \{\bvec{x}^{\star}_{i}\}_{i \in I_{n^{\star}}}$. \begin{equation}
 				H_{\mathrm{AMPIE}} \stackrel{\text{abbrev.}}{:=} H_{\mathrm{AMPIE}}[X^{\star} | X, \bvec{y}] = - \frac{1}{n^{\star}} \sum_{i = 1}^{n^{\star}} \sum_{c = 1}^{n_{C}} \pi^{c}_{i} \log(\pi^{c}_{i})
 			\label{Equation:AMPIE}
-			\end{equation} For a given query point $i$, $- \sum_{c = 1}^{n_{C}} \pi^{c}_{i} \log(\pi^{c}_{i})$ is exactly the prediction information entropy (PIE) at location $i \in I_{n^{\star}}$, which captures the local model uncertainty and thus potential information \eqref{Equation:PIE}. \begin{equation}
-				\{H_{\mathrm{PIE}}\}_{i} \stackrel{\text{abbrev.}}{:=} H_{\mathrm{PIE}}[\bvec{x}^{\star}_{i} | X, \bvec{y}] = - \sum_{c = 1}^{n_{C}} \pi^{c}_{i} \log(\pi^{c}_{i})
-			\label{Equation:PIE}
-			\end{equation} As a result, the acquisition criterion given in \eqref{Equation:AMPIE} is the average of the marginalised prediction information entropy across query points, which does not capture mutual information through considering the joint distributions of the class labels across the set of query points $X^{\star}$. The term \textit{marginalised} emphasizes this fact. This acquisition criterion will thus be referred to as AMPIE for average marginalised prediction information entropy. In this approach, the quality of a given proposed path $X_{p}$ is assessed by an informative acquisition criterion $I[X_{p} | X, \bvec{y}, X_{s}]$, which is the difference of the AMPIE before and after an observation is made \eqref{Equation:AsherBenderAcquisitionCriterion} \citep{Rigby:ROB20372}. This utility is used in conjunction with a GP classifier under probabilistic least squares approximation to optimise selected survey paths through considering the differential entropy across the entire region of interest (ROI). Below, ($X, \bvec{y}$) are the already observed feature locations and habitat labels used for training as usual, $X_{s}$ is the set of query points representing the entire seafloor, and ($X_{p}, \bvec{y}_{p}$) are the features and labels of the proposed path. Note that before the path is traversed $\bvec{y}_{p}$ is a random vector. \begin{equation}
+			\end{equation} For a given query point $i$, $- \sum_{c = 1}^{n_{C}} \pi^{c}_{i} \log(\pi^{c}_{i})$ is exactly the prediction information entropy $\{H_{\mathrm{PIE}}\}_{i} \stackrel{\text{abbrev.}}{:=} H_{\mathrm{PIE}}[\bvec{x}^{\star}_{i} | X, \bvec{y}] = - \sum_{c = 1}^{n_{C}} \pi^{c}_{i} \log(\pi^{c}_{i})$ at location $i \in I_{n^{\star}}$, which captures the local model uncertainty and thus potential information. As a result, the acquisition criterion given in \eqref{Equation:AMPIE} is the average of the marginalised prediction information entropy across query points, which does not capture mutual information through considering the joint distributions of the class labels across the set of query points $X^{\star}$. The term \textit{marginalised} emphasizes this fact. This acquisition criterion will thus be referred to as AMPIE for average marginalised prediction information entropy. In this approach, the quality of a given proposed path $X_{p}$ is assessed by an informative acquisition criterion $I[X_{p} | X, \bvec{y}, X_{s}]$, which is the difference of the AMPIE before and after an observation is made \eqref{Equation:AsherBenderAcquisitionCriterion} \citep{Rigby:ROB20372}. This utility is used in conjunction with a GP classifier under probabilistic least squares approximation to optimise selected survey paths through considering the differential entropy across the entire region of interest (ROI). Below, ($X, \bvec{y}$) are the already observed feature locations and habitat labels used for training as usual, $X_{s}$ is the set of query points representing the entire seafloor, and ($X_{p}, \bvec{y}_{p}$) are the features and labels of the proposed path. Note that before the path is traversed $\bvec{y}_{p}$ is a random vector. \begin{equation}
 				I[X_{p} | X, \bvec{y}, X_{s}] = H_{\mathrm{AMPIE}}[X_{s} | X, \bvec{y}] - H_{\mathrm{AMPIE}}[X_{s} | X \cup X_{p}, \bvec{y} \cup \mathbb{E}[\bvec{y}_{p}]]
 			\label{Equation:AsherBenderAcquisitionCriterion}
 			\end{equation} \cite{Krause:2008:NSP:1390681.1390689} instead focuses on sensor placement methodologies to optimse mutual information gained. This aims to reduce predictive variance at all query points. The chosen acquisition function is the difference between the AMPIE at all \textit{final} unobserved locations $X_{s} \backslash X_{p} := \big\{\bvec{x}^{\star} \big| \{\bvec{x}^{\star} \in X_{s}\} \cap \{\bvec{x}^{\star} \notin X_{p}\} \big\}$ before and after the observations are taken \eqref{Equation:KrauseAcquisitionCriterion}. \begin{equation}
@@ -325,13 +300,8 @@
 			\label{Equation:KrauseAcquisitionCriterion}
 			\end{equation} Under the GP classification model, however, this results in an integral that can only be estimated through sampling techniques which are computationally expensive. As such, computationally tractable methods usually employ experimental design philosophies in minimising the predictive variance \citep{AsherBender}.
 			
-			\cite{Kapoor} demonstrates the use of posterior mean and covariance of the GP classifier latent function. While this approach takes full advantage of the analytical forms available for a Gaussian latent process, it does not consider the mutual behaviour of the unobserved locations with the proposed path.
-			
-			On the other hand, \cite{Roman:SequentialBayesianOptimisation} approaches the problem from a continuous path planning perspective in which two GPs are used - one to model the phenomenon and another to assess the quality of proposed paths. However, this layered Sequential Bayesian Optimisation approach is primarily devised for a regression setting which becomes difficult to emulate in the classification domain.
-
-		\subsection{Relation to thesis goals}
-		\label{Background:RelatedWork:ThesisGoals}
+			\cite{Kapoor} demonstrates the use of posterior mean and covariance of the GP classifier latent function. While this approach takes full advantage of the analytical forms available for a Gaussian latent process, it does not consider the mutual behaviour of the unobserved locations with the proposed path. On the other hand, while promising, the layered Sequential Bayesian Optimisation approach devised by \cite{Roman:SequentialBayesianOptimisation} is primarily devised for a regression setting which becomes difficult to emulate in the classification domain.
 		
-			Much of the intractability discussed in such literature can trace its reason down to the fact that benthic habitat mapping is a classification problem instead of a regression problem. While Gaussian process regression provide analytical forms for inference, due to a non-Gaussian likelihood response, Gaussian process classification is no longer analytically tractable. Instead, several approximations must be made, which is discussed in Section \ref{BenthicHabitatMapping:Classification}.
+			Much of the intractability discussed in such literature can trace its reason down to the fact that benthic habitat mapping is a classification problem instead of a regression problem. While Gaussian process regression provide analytical forms for inference, due to a non-Gaussian likelihood response, Gaussian process classification is no longer analytically tractable.
 			
-			This thesis addresses the tractability status of the problem through proposing an alternative acquisition criterion, hereby named linearised model differential entropy (LMDE), that captures mutual information. In the current literature, acquisition criterion either do not directly capture mutual information, such as \eqref{Equation:AsherBenderAcquisitionCriterion}, or take too long to compute due to required estimations from sampling, such as \eqref{Equation:KrauseAcquisitionCriterion}. This work shows that LMDE as an acquisition function captures an particular form of mutual information that improves both tractability and mapping accuracy. Another acquisition function based on Monte Carlo approaches is also devised, which demonstrates good performance properties which closely follows that of LMDE acquisition.
+			This thesis addresses the tractability status of the problem through proposing two alternative acquisition functions. In the current literature, acquisition criterion either do not directly capture mutual information, such as \eqref{Equation:AsherBenderAcquisitionCriterion}, or take too long to compute due to required estimations from sampling, such as \eqref{Equation:KrauseAcquisitionCriterion}. This work shows that the proposed acquisition functions improve both tractability and mapping accuracy.
