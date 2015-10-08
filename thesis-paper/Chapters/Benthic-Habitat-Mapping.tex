@@ -381,6 +381,10 @@
 				 
 				Note that the pre-fusion stage does not ensure that the probabilities sum up to 1 across classes - it merely extracts a single expected predictive probability ${^{\star}}\bar{\vec{\uppi}}^{c}$ for each class $c$, which is in the same analytical form as the OVA case. The following section then deals with the probability fusion techniques for consistent inference.
 			
+			\subsubsection{Advantages of Multiple Binary Classification}
+			\label{BenthicHabitatMapping:Classification:MulticlassClassification:Advantages}
+			
+				
 		\subsection{Probability Fusion Techniques}
 		\label{BenthicHabitatMapping:Classification:ProbabilityFusion}
 			
@@ -449,7 +453,7 @@
 		\subsection{Fusion Performance of Multiclass Classifiers}
 		\label{BenthicHabitatMapping:Classification:FusionPerformance}
 			
-			The probability fusion methods allow GP classifiers to perform training and inference under the OVA and AVA scheme. A brief comparison between the probability fusion techniques are provided in this section. Such a comparison reveals that the exclusion method achieves the best fusion properties that best approximates the true entropy.
+			Probability fusion methods allow GP classifiers to perform consistent inference under the OVA and AVA scheme. A brief comparison between the probability fusion techniques are provided in this section. Such a comparison reveals that the exclusion method achieves the best fusion properties that best approximates the true entropy.
 			
 			Figure \ref{Figure:ProbabilityFusion} shows a simple multiclass classification scenario with $n_{C} = 4$ classes. The feature space $\mathcal{X} = \mathbb{R}^{2}$ in this case is the Euclidean plane with features $x_{1}$ and $x_{2}$. There are 400 training points observed from the ground truth as shown in the first subplot. The GP classifier is trained under Laplace approximation with a squared exponential kernel and probit response likelihood. For the example shown, an OVA classification scheme is employed.
 			
@@ -477,7 +481,9 @@
 		  	\label{Table:ProbabilityFusionAccuracy}
 		  	\end{table}	
 		  	
-				MENTION THAT OVA AND AVA ALLOW PARALLELISATION
+				
+				
+				MENTION FROM NOW ON WE ALL USE EXCLUSION
 				
 	\section{Mapping Scott Reef Benthic Habitats}
 	\label{BenthicHabitatMapping:ScottReef}
