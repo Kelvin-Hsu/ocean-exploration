@@ -160,7 +160,7 @@
 		
 		In most GP classification schemes, the latent function also has a particular interpretation - it quantifies the how strongly a particular point belongs to a given class. As a binary classification example, if the classifier is to distinguish between ``apples'' and ``oranges'', the latent function would represent the ``appleness'' of each point, with high ``appleness'' corresponding to observations likely to be ``apples'' and low ``appleness'' corresponding to observations likely to be ``oranges''. Note that only one latent function is needed in the binary case and there is no need for a latent function for ``orangeness''. Intuitively, the latent function translates to a probability through being monotonically ``squashed'' into the unit range $[0, 1]$.
 		
-		The outset of this section, Section \ref{BenthicHabitatMapping:Classification:BinaryClassification}, begins by introducing the basic theory behind binary classification. After a summarising the basics of response functions in Section \ref{BenthicHabitatMapping:Classification:ResponseFunction}, the technique of Laplace approximation and probabilistic least squares approximations are then presented respectively in sections \ref{BenthicHabitatMapping:Classification:LaplaceApproximation} and \ref{BenthicHabitatMapping:Classification:ProbabilisticLeastSquaresApproximation}. These approximations are then compared in performance in Section \ref{BenthicHabitatMapping:Classification:ApproximationPerformance}. This then allows the development of multiclass classification methods, which are detailed in Section \ref{BenthicHabitatMapping:Classification:MulticlassClassification}. Finally, to ensure inference consistency, two novel probability fusion techniques are presented in Section \ref{BenthicHabitatMapping:Classification:ProbabilityFusion} as an alternative to simple normalisation.
+		The outset of this section, Section \ref{BenthicHabitatMapping:Classification:BinaryClassification}, begins by introducing the basic theory behind binary classification. After a summarising the basics of response functions in Section \ref{BenthicHabitatMapping:Classification:ResponseFunction}, the technique of Laplace approximation and probabilistic least squares approximations are then briefly summarised in \ref{BenthicHabitatMapping:Classification:Approximation}. This then allows the development of multiclass classification methods, which are detailed in Section \ref{BenthicHabitatMapping:Classification:MulticlassClassification}. Most importantly, to ensure inference consistency, two novel probability fusion techniques are presented in Section \ref{BenthicHabitatMapping:Classification:Multiclass:ProbabilityFusion} as an alternative to simple normalisation.
 		
 		\subsection{Binary Classification}
 		\label{BenthicHabitatMapping:Classification:BinaryClassification}
@@ -171,68 +171,68 @@
 			
 			Naturally, to protect the symmetry involved as well as to simplify the formulation, it is customary to choose 1 and -1 as the target class labels $y$, so that $y \in \{-1, 1\}$. The continuous output from a regressor is simply the latent function $f(\bvec{x}) \in \mathbb{R}$. In this way, $y = 1$ are associated with $f > 0$, while $y = -1$ are associated with $f < 0$. Note that this inference process still follows the basic structure presented in Figure \ref{Figure:GaussianProcessGraphicalModel}. The specific way the target labels $y$ are associated with the latent $f$ is usually summarised by a \textit{likelihood response} $p(y | f)$. As such, the first step towards Gaussian process classification is to choose an appropriate \textit{response function}.
 			
-		\subsection{Response Functions}
-		\label{BenthicHabitatMapping:Classification:ResponseFunction}
-		
-			Before discussing the various types of GP classifiers, it is important to understand the role of \textit{response functions} in Bayesian classifiers, which serves to perform the ``squashing'' described previously.
-
-			\begin{wrapfigure}{r}{0.4\linewidth}
-				\centering
-					\includegraphics[width=\linewidth]{Figures/responses.eps}
-				\caption{Common likelihood responses}
-				\label{Figure:LikelihoodResponses}
-			\end{wrapfigure}
+			\subsubsection{Response Functions}
+			\label{BenthicHabitatMapping:Classification:ResponseFunction}
+			
+				Before discussing the various types of GP classifiers, it is important to understand the role of \textit{response functions} in Bayesian classifiers, which serves to perform the ``squashing'' described previously.
+	
+				\begin{wrapfigure}{r}{0.4\linewidth}
+					\centering
+						\includegraphics[width=\linewidth]{Figures/responses.eps}
+					\caption{Common likelihood responses}
+					\label{Figure:LikelihoodResponses}
+				\end{wrapfigure}
+						
+				The response function, often also called a sigmoid function, is used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\sigma: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to ``squeeze'' the latent functions into a range where probabilistic interpretation is possible.
 					
-			The response function, often also called a sigmoid function, is used as the likelihood model for Bayesian classifiers. These functions must satisfy the requirement that is it monotonically non-decreasing with a domain of all real numbers $\mathbb{R}$ and a range of unit interval [0, 1]. That is, $\sigma: \mathbb{R} \mapsto [0, 1]$. As referenced above, these functions serve to ``squeeze'' the latent functions into a range where probabilistic interpretation is possible.
+				The most widely used response functions are the logistic response \eqref{Equation:LogisticResponse} and probit \footnote{The probit function is also simply the standard normal cumulative distribution. The term \textit{probit} is used to make explicit its interpretation as a response likelihood function.} response \eqref{Equation:ProbitResponse} (figure \ref{Figure:LikelihoodResponses}). After a specific response function is chosen, the likelihood is given by \eqref{Equation:LikelihoodResponse}. Note that the likelihood $p(\bvec{y}^{\star} | \bvec{f}^{\star}, \vec{\uptheta}) = p(\bvec{y}^{\star} | \bvec{f}^{\star})$ is independent of the hyperparameters $\vec{\uptheta}$ by construction. Furthermore, each target $y^{\star}_{i}$ depends only on the corresponding latent $f^{\star}_{i}$ given all the latents $\bvec{f}^{\star}$, such that with multiple latent values $\bvec{f}^{\star}$ and corresponding targets $\bvec{y}^{\star}$ the likelihood is simply the product of the likelihoods considered separately. \begin{equation}
+					\sigma(z) = \frac{1}{1 + \exp(-z)}
+				\label{Equation:LogisticResponse}
+				\end{equation} \begin{equation}
+					\sigma(z) = \Phi(z) := \int\limits_{-\infty}^{z} \phi(x) dx =  \int\limits_{-\infty}^{z} \frac{1}{\sqrt{2 \pi}} \exp\Big(- \frac{1}{2} x^{2}\Big) dx
+				\label{Equation:ProbitResponse}
+				\end{equation} \begin{equation}
+					p(y^{\star}_{i} | f^{\star}_{i}) = \sigma(y^{\star}_{i} f^{\star}_{i}) \implies p(\bvec{y}^{\star} | \bvec{f}^{\star}) = \prod_{i = 1}^{n} p(y^{\star}_{i} | f^{\star}_{i}) = \prod_{i = 1}^{n} \sigma(y^{\star}_{i} f^{\star}_{i})
+				\label{Equation:LikelihoodResponse}
+				\end{equation}				
 				
-			The most widely used response functions are the logistic response \eqref{Equation:LogisticResponse} and probit \footnote{The probit function is also simply the standard normal cumulative distribution. The term \textit{probit} is used to make explicit its interpretation as a response likelihood function.} response \eqref{Equation:ProbitResponse} (figure \ref{Figure:LikelihoodResponses}). After a specific response function is chosen, the likelihood is given by \eqref{Equation:LikelihoodResponse}. Note that the likelihood $p(\bvec{y}^{\star} | \bvec{f}^{\star}, \vec{\uptheta}) = p(\bvec{y}^{\star} | \bvec{f}^{\star})$ is independent of the hyperparameters $\vec{\uptheta}$ by construction. Furthermore, each target $y^{\star}_{i}$ depends only on the corresponding latent $f^{\star}_{i}$ given all the latents $\bvec{f}^{\star}$, such that with multiple latent values $\bvec{f}^{\star}$ and corresponding targets $\bvec{y}^{\star}$ the likelihood is simply the product of the likelihoods considered separately. \begin{equation}
-				\sigma(z) = \frac{1}{1 + \exp(-z)}
-			\label{Equation:LogisticResponse}
-			\end{equation} \begin{equation}
-				\sigma(z) = \Phi(z) := \int\limits_{-\infty}^{z} \phi(x) dx =  \int\limits_{-\infty}^{z} \frac{1}{\sqrt{2 \pi}} \exp\Big(- \frac{1}{2} x^{2}\Big) dx
-			\label{Equation:ProbitResponse}
-			\end{equation} \begin{equation}
-				p(y^{\star}_{i} | f^{\star}_{i}) = \sigma(y^{\star}_{i} f^{\star}_{i}) \implies p(\bvec{y}^{\star} | \bvec{f}^{\star}) = \prod_{i = 1}^{n} p(y^{\star}_{i} | f^{\star}_{i}) = \prod_{i = 1}^{n} \sigma(y^{\star}_{i} f^{\star}_{i})
-			\label{Equation:LikelihoodResponse}
-			\end{equation}				
+				In a binary case, since $y^{\star}_{i} \in \{-1, 1\}$, it is customary to define $\pi^{\star}_{i} := p(y^{\star}_{i} = 1 | f^{\star}_{i})$ as the probability of observing label $y^{\star}_{i} = 1$ given the latent value $f^{\star}_{i}$. Note that $\pi^{\star}_{i}$ is still a random variable since $f_{i}$ is a latent random variable. In this way, the probability of observing label $y_{i} = -1$ given the latent value $f^{\star}_{i}$ is simply $1 - \pi^{\star}_{i}$. As such, at the query locations $X^{\star}$, the random vector $\vec{\uppi}^{\star} := \{\pi^{\star}_{i}\}_{i \in I_{n^{\star}}}$ defines the distribution at the query locations completely. By \eqref{Equation:LikelihoodResponse}, this means that $\pi^{\star}_{i} = \sigma(f^{\star}_{i})$, which provides a simple relationship between the latent function and the predictive probability, and achieves the ``squashing'' effect mentioned previously. The vector form of this relationship can be written as $\vec{\uppi}^{\star} = \vec{\upsigma}(\bvec{f}^{\star}) := \{\sigma(f^{\star}_{i})\}_{i \in I_{n^{\star}}}$. Again, if $\bvec{f}^{\star}$ is random, then so is $\vec{\uppi}^{\star}$.
+				
+				In order to perform prediction, the predictive probabilities $\vec{\uppi}^{\star}$ must be known. However, given the above likelihood response formulation, since $\vec{\uppi}^{\star}$ is random, further inference must be obtained by taking the \textit{expected prediction probabilities} $\bar{\vec{\uppi}}^{\star} := \mathbb{E}[\vec{\uppi}^{\star}] = \mathbb{E}[\vec{\upsigma}(\bvec{f}^{\star})]$ for inference \eqref{Equation:PriorExpectedPredictionProbabilities}. Of course, since $f$ is formulated as a GP, the distribution of $\bvec{f}^{\star}$, $p(\bvec{f}^{\star})$, is requires the optimally learned hyperparameters $\vec{\uptheta}$. This fact is notated explicitly in \eqref{Equation:PriorExpectedPredictionProbabilities}. \begin{equation}
+					\bar{\vec{\uppi}}^{\star} |_{\vec{\uptheta}} := \mathbb{E}_{\vec{\uptheta}}[\vec{\uppi}^{\star}] = \mathbb{E}_{\vec{\uptheta}}[\vec{\upsigma}(\bvec{f}^{\star})] = \int_{\mathbb{R}^{n^{\star}}} \vec{\upsigma}(\bvec{f}^{\star}) p(\bvec{f}^{\star} | \vec{\uptheta}) d \bvec{f}^{\star}
+				\label{Equation:PriorExpectedPredictionProbabilities}
+				\end{equation} Note that without any observations $\bvec{y}$ the prior distribution $p(\bvec{f}^{\star} | \vec{\uptheta})$ will be centred around zero mean. Since the response function $\vec{\upsigma}$ maps zero latents to a probability of 0.5, the expected predictive probabilities also become $\bar{\pi}^{\star}_{i} |_{\vec{\uptheta}} = 0.5$ for $i \in I_{n^{\star}}$. This reflects that before any observations, the targets at the query points have an equal chance of being -1 or 1, which indeed makes sense.
+				 
+				With observations $\bvec{y}$, the expected predictive probabilities is computed by the conditionally expectation on $\bvec{y}$ using the posterior distribution $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ \eqref{Equation:PosteriorExpectedPredictionProbabilities}. \begin{equation}
+					\bar{\vec{\uppi}}^{\star} |_{\bvec{y}, \vec{\uptheta}} := \mathbb{E}_{\vec{\uptheta}}[\vec{\uppi}^{\star} | \bvec{y}] = \mathbb{E}_{\vec{\uptheta}}[\vec{\upsigma}(\bvec{f}^{\star}) | \bvec{y}] = \int_{\mathbb{R}^{n^{\star}}} \vec{\upsigma}(\bvec{f}^{\star}) p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta}) d \bvec{f}^{\star}
+				\label{Equation:PosteriorExpectedPredictionProbabilities}
+				\end{equation} Before introducing the approximation techniques, it is worthwhile to first observe the properties of the integral \eqref{Equation:PosteriorExpectedPredictionProbabilities}. Firstly, the integral can also be written in scalar form for each query point $i \in I_{n^{\star}}$ separately \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar}. \begin{equation}
+					 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \mathbb{E}_{\vec{\uptheta}}[\pi^{\star}_{i} | \bvec{y}] = \mathbb{E}_{\vec{\uptheta}}[\sigma(f^{\star}_{i}) | \bvec{y}] = \int_{\mathbb{R}} \sigma(f^{\star}_{i}) p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta}) d f^{\star}_{i} \qquad \forall i \in I_{n^{\star}}
+				\label{Equation:PosteriorExpectedPredictionProbabilitiesScalar}
+				\end{equation} For a general likelihood response $\sigma(z)$, the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} must be computed numerically through a techniques such as \textit{quadratures}. However, if $p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})$ is a Gaussian density, and a probit response is chosen for the likelihood \eqref{Equation:ProbitResponse}, then there exists an analytical solution to the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} and hence \eqref{Equation:PosteriorExpectedPredictionProbabilities} through vectorising, as given by \eqref{Equation:ProbitAnalyticalIntegral} \citep{GaussianProcessForMachineLearning}. This means that under an appropriate approximation technique, the probit response allows \textit{analytically tractable inference} to be performed. As such, there is significant computational advantage of choosing the probit response. Choosing the probit response also exhibits further advantages for linearisation discussed later in Section \ref{InformativeSeafloorExploration:LMDE}. \begin{equation}
+					 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \int_{\mathbb{R}} \overbrace{\Phi(f^{\star}_{i})}^{\mathclap{\substack{\text{Probit} \\ \text{Response}}}} \overbrace{p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})}^{\text{If Gaussian}} d f^{\star}_{i} \stackrel{\mathclap{\substack{\text{Analytical} \\ \text{Solution} \\ \quad }}}{=} \Phi\Bigg(\frac{\mathbb{E}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}{\sqrt{1 + \mathbb{V}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}}\Bigg) \qquad \forall i \in I_{n^{\star}}
+				\label{Equation:ProbitAnalyticalIntegral}
+				\end{equation}
+				
+			\subsubsection{Laplace \& Probabilistic Least Square Approximation}
+			\label{BenthicHabitatMapping:Classification:Approximation}
 			
-			In a binary case, since $y^{\star}_{i} \in \{-1, 1\}$, it is customary to define $\pi^{\star}_{i} := p(y^{\star}_{i} = 1 | f^{\star}_{i})$ as the probability of observing label $y^{\star}_{i} = 1$ given the latent value $f^{\star}_{i}$. Note that $\pi^{\star}_{i}$ is still a random variable since $f_{i}$ is a latent random variable. In this way, the probability of observing label $y_{i} = -1$ given the latent value $f^{\star}_{i}$ is simply $1 - \pi^{\star}_{i}$. As such, at the query locations $X^{\star}$, the random vector $\vec{\uppi}^{\star} := \{\pi^{\star}_{i}\}_{i \in I_{n^{\star}}}$ defines the distribution at the query locations completely. By \eqref{Equation:LikelihoodResponse}, this means that $\pi^{\star}_{i} = \sigma(f^{\star}_{i})$, which provides a simple relationship between the latent function and the predictive probability, and achieves the ``squashing'' effect mentioned previously. The vector form of this relationship can be written as $\vec{\uppi}^{\star} = \vec{\upsigma}(\bvec{f}^{\star}) := \{\sigma(f^{\star}_{i})\}_{i \in I_{n^{\star}}}$. Again, if $\bvec{f}^{\star}$ is random, then so is $\vec{\uppi}^{\star}$.
-			
-			In order to perform prediction, the predictive probabilities $\vec{\uppi}^{\star}$ must be known. However, given the above likelihood response formulation, since $\vec{\uppi}^{\star}$ is random, further inference must be obtained by taking the \textit{expected prediction probabilities} $\bar{\vec{\uppi}}^{\star} := \mathbb{E}[\vec{\uppi}^{\star}] = \mathbb{E}[\vec{\upsigma}(\bvec{f}^{\star})]$ for inference \eqref{Equation:PriorExpectedPredictionProbabilities}. Of course, since $f$ is formulated as a GP, the distribution of $\bvec{f}^{\star}$, $p(\bvec{f}^{\star})$, is requires the optimally learned hyperparameters $\vec{\uptheta}$. This fact is notated explicitly in \eqref{Equation:PriorExpectedPredictionProbabilities}. \begin{equation}
-				\bar{\vec{\uppi}}^{\star} |_{\vec{\uptheta}} := \mathbb{E}_{\vec{\uptheta}}[\vec{\uppi}^{\star}] = \mathbb{E}_{\vec{\uptheta}}[\vec{\upsigma}(\bvec{f}^{\star})] = \int_{\mathbb{R}^{n^{\star}}} \vec{\upsigma}(\bvec{f}^{\star}) p(\bvec{f}^{\star} | \vec{\uptheta}) d \bvec{f}^{\star}
-			\label{Equation:PriorExpectedPredictionProbabilities}
-			\end{equation} Note that without any observations $\bvec{y}$ the prior distribution $p(\bvec{f}^{\star} | \vec{\uptheta})$ will be centred around zero mean. Since the response function $\vec{\upsigma}$ maps zero latents to a probability of 0.5, the expected predictive probabilities also become $\bar{\pi}^{\star}_{i} |_{\vec{\uptheta}} = 0.5$ for $i \in I_{n^{\star}}$. This reflects that before any observations, the targets at the query points have an equal chance of being -1 or 1, which indeed makes sense.
-			 
-			With observations $\bvec{y}$, the expected predictive probabilities is computed by the conditionally expectation on $\bvec{y}$ using the posterior distribution $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ \eqref{Equation:PosteriorExpectedPredictionProbabilities}. \begin{equation}
-				\bar{\vec{\uppi}}^{\star} |_{\bvec{y}, \vec{\uptheta}} := \mathbb{E}_{\vec{\uptheta}}[\vec{\uppi}^{\star} | \bvec{y}] = \mathbb{E}_{\vec{\uptheta}}[\vec{\upsigma}(\bvec{f}^{\star}) | \bvec{y}] = \int_{\mathbb{R}^{n^{\star}}} \vec{\upsigma}(\bvec{f}^{\star}) p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta}) d \bvec{f}^{\star}
-			\label{Equation:PosteriorExpectedPredictionProbabilities}
-			\end{equation} Before introducing the approximation techniques, it is worthwhile to first observe the properties of the integral \eqref{Equation:PosteriorExpectedPredictionProbabilities}. Firstly, the integral can also be written in scalar form for each query point $i \in I_{n^{\star}}$ separately \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar}. \begin{equation}
-				 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \mathbb{E}_{\vec{\uptheta}}[\pi^{\star}_{i} | \bvec{y}] = \mathbb{E}_{\vec{\uptheta}}[\sigma(f^{\star}_{i}) | \bvec{y}] = \int_{\mathbb{R}} \sigma(f^{\star}_{i}) p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta}) d f^{\star}_{i} \qquad \forall i \in I_{n^{\star}}
-			\label{Equation:PosteriorExpectedPredictionProbabilitiesScalar}
-			\end{equation} For a general likelihood response $\sigma(z)$, the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} must be computed numerically through a techniques such as \textit{quadratures}. However, if $p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})$ is a Gaussian density, and a probit response is chosen for the likelihood \eqref{Equation:ProbitResponse}, then there exists an analytical solution to the integral \eqref{Equation:PosteriorExpectedPredictionProbabilitiesScalar} and hence \eqref{Equation:PosteriorExpectedPredictionProbabilities} through vectorising, as given by \eqref{Equation:ProbitAnalyticalIntegral} \citep{GaussianProcessForMachineLearning}. This means that under an appropriate approximation technique, the probit response allows \textit{analytically tractable inference} to be performed. As such, there is significant computational advantage of choosing the probit response. Choosing the probit response also exhibits further advantages for linearisation discussed later in Section \ref{InformativeSeafloorExploration:LMDE}. \begin{equation}
-				 \bar{\pi}^{\star}_{i} |_{\bvec{y}, \vec{\uptheta}} = \int_{\mathbb{R}} \overbrace{\Phi(f^{\star}_{i})}^{\mathclap{\substack{\text{Probit} \\ \text{Response}}}} \overbrace{p(f^{\star}_{i} | \bvec{y}, \vec{\uptheta})}^{\text{If Gaussian}} d f^{\star}_{i} \stackrel{\mathclap{\substack{\text{Analytical} \\ \text{Solution} \\ \quad }}}{=} \Phi\Bigg(\frac{\mathbb{E}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}{\sqrt{1 + \mathbb{V}_{\vec{\uptheta}}[f^{\star}_{i} | \bvec{y}]}}\Bigg) \qquad \forall i \in I_{n^{\star}}
-			\label{Equation:ProbitAnalyticalIntegral}
-			\end{equation}
-			
-		\subsection{Laplace \& Probabilistic Least Square Approximation}
-		\label{BenthicHabitatMapping:Classification:Approximation}
-		
-			After choosing a response function $\sigma(z)$, the expected predictive probabilities can be computed from the posterior distribution $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ using \eqref{Equation:PosteriorExpectedPredictionProbabilities}. With the inference techniques involved in classification  presented above, this section summarises the corresponding training stage under two of many approximations.
-			
-			The heart of GP classifier approximation techniques then lies in approximating the posterior $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ as a multivariate Gaussian. In Laplace approximation, the response likelihood is approximated by a Gaussian such that the marginalised likelihood $p(\bvec{y} | \vec{\uptheta})$ can be approximated as a Gaussian density $q(\bvec{y} | \vec{\uptheta})$. Through the basic Bayes relation, the posterior also becomes Gaussian approximated as a result. As such, it suffices to replace the marginalised likelihood objective by \eqref{Equation:ClassificationLogMarginalLikelihood} to find the optimal hyperparameters $\vec{\uptheta}_{\mathrm{opt}}$ \citep{GaussianProcessForMachineLearning}. Note that the Hessian of the log likelihood is diagonal so that square roots operate over elements (see Appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:DiagonalHessians}). \begin{equation}
-				\begin{aligned}
-					\vec{\uptheta}_{\mathrm{opt}} =& \argmax_{\vec{\uptheta}} \log(p(\bvec{y} | \vec{\uptheta})) \\
-					\log(q(\bvec{y} | \vec{\uptheta})) =& - \frac{1}{2} \bar{\bvec{f}}^{T} K_{\vec{\uptheta}}^{-1} \bar{\bvec{f}} + \log(p(\bvec{y} | \bar{\bvec{f}})) - \frac{1}{2} \log|I + W^{\frac{1}{2}} K_{\vec{\uptheta}} W^{\frac{1}{2}}| \\
-					W :=& - \frac{\partial^{2}}{{\partial \bvec{f}}^{2}} \log(\bvec{y} | \bvec{f}) |_{\bvec{f} = \bar{\bvec{f}}} = - \mathrm{diag} \bigg\{  \frac{\partial^{2}}{{\partial f_{i}}^{2}} \log(y_{i} | f_{i}) |_{f_{i} = \bar{f}_{i}} \bigg\}_{i \in I_{n}}
-				\end{aligned}
-			\label{Equation:ClassificationLogMarginalLikelihood}
-			\end{equation}
-			
-			Classification under probabilistic least square approximation is much simpler. In this framework, the training output targets $\bvec{y} \in \{-1, 1\}^{n}$ is treated as a continuous target and is thus treated as a regression problem (see Section \ref{Background:GaussianProcesses:Regression}). As such, all of the training and inference stages of Gaussian process regression applies. In this way, approximation is trivial as the posterior and maginal likelihood are all Gaussian distributed in the regression scheme already. Evidently, this is a very artificial way of performing classification, which explains its relatively poor performance accuracy. However, this also means that probabilistic least squares has the same computational complexity as GP regression, which is in general much faster than GP classification.
-			
-			Note that if treated as a regression output, the range $y \in \{-1, 1\}$ is rather arbitrary in scale. Thus, in order to allow flexibility in the probabilistic least squares model, a slope and intercept parameter is introduced to remove the dependency of scale and datum reference.
-			
-			The above formulations suggests that Laplace approximation allow a more principled thus accurate inference framework for classification, and will thus be employed as the approximation technique for benthic habitat mapping. Appendix \ref{Appendix:ApproximationPerformance} briefly compares the performance of Laplace and probabilistic least square approximation which supports this claim.
+				After choosing a response function $\sigma(z)$, the expected predictive probabilities can be computed from the posterior distribution $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ using \eqref{Equation:PosteriorExpectedPredictionProbabilities}. With the inference techniques involved in classification  presented above, this section summarises the corresponding training stage under two of many approximations.
+				
+				The heart of GP classifier approximation techniques then lies in approximating the posterior $p(\bvec{f}^{\star} | \bvec{y}, \vec{\uptheta})$ as a multivariate Gaussian. In Laplace approximation, the response likelihood is approximated by a Gaussian such that the marginalised likelihood $p(\bvec{y} | \vec{\uptheta})$ can be approximated as a Gaussian density $q(\bvec{y} | \vec{\uptheta})$. Through the basic Bayes relation, the posterior also becomes Gaussian approximated as a result. As such, it suffices to replace the marginalised likelihood objective by \eqref{Equation:ClassificationLogMarginalLikelihood} to find the optimal hyperparameters $\vec{\uptheta}_{\mathrm{opt}}$ \citep{GaussianProcessForMachineLearning}. Note that the Hessian of the log likelihood is diagonal so that square roots operate over elements (see Appendix \ref{Appendix:ComputationalAspects:TimeSpaceComplexity:DiagonalHessians}). \begin{equation}
+					\begin{aligned}
+						\vec{\uptheta}_{\mathrm{opt}} =& \argmax_{\vec{\uptheta}} \log(p(\bvec{y} | \vec{\uptheta})) \\
+						\log(q(\bvec{y} | \vec{\uptheta})) =& - \frac{1}{2} \bar{\bvec{f}}^{T} K_{\vec{\uptheta}}^{-1} \bar{\bvec{f}} + \log(p(\bvec{y} | \bar{\bvec{f}})) - \frac{1}{2} \log|I + W^{\frac{1}{2}} K_{\vec{\uptheta}} W^{\frac{1}{2}}| \\
+						W :=& - \frac{\partial^{2}}{{\partial \bvec{f}}^{2}} \log(\bvec{y} | \bvec{f}) |_{\bvec{f} = \bar{\bvec{f}}} = - \mathrm{diag} \bigg\{  \frac{\partial^{2}}{{\partial f_{i}}^{2}} \log(y_{i} | f_{i}) |_{f_{i} = \bar{f}_{i}} \bigg\}_{i \in I_{n}}
+					\end{aligned}
+				\label{Equation:ClassificationLogMarginalLikelihood}
+				\end{equation}
+				
+				Classification under probabilistic least square approximation is much simpler. In this framework, the training output targets $\bvec{y} \in \{-1, 1\}^{n}$ is treated as a continuous target and is thus treated as a regression problem (see Section \ref{Background:GaussianProcesses:Regression}). As such, all of the training and inference stages of Gaussian process regression applies. In this way, approximation is trivial as the posterior and maginal likelihood are all Gaussian distributed in the regression scheme already. Evidently, this is a very artificial way of performing classification, which explains its relatively poor performance accuracy. However, this also means that probabilistic least squares has the same computational complexity as GP regression, which is in general much faster than GP classification.
+				
+				Note that if treated as a regression output, the range $y \in \{-1, 1\}$ is rather arbitrary in scale. Thus, in order to allow flexibility in the probabilistic least squares model, a slope and intercept parameter is introduced to remove the dependency of scale and datum reference.
+				
+				The above formulations suggests that Laplace approximation allow a more principled thus accurate inference framework for classification, and will thus be employed as the approximation technique for benthic habitat mapping. Appendix \ref{Appendix:ApproximationPerformance} briefly compares the performance of Laplace and probabilistic least square approximation which supports this claim.
 			
 		\subsection{Multiclass Classification}
 		\label{BenthicHabitatMapping:Classification:MulticlassClassification}
@@ -246,10 +246,8 @@
 			\subsubsection{One Versus All Classifier}
 			\label{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}
 						
-				The OVA approach performs classification by introducing $n_{C}$ \textit{independent} classification problems, each classifying a particular label against all other labels. Each binary classifier is identified with a class label $c$, where it attempts to distinguish targets with labels $c$ against targets with any other label $c' \in I_{n^{C}} \backslash c$. Each of these problems are thus a binary classification problem for which solution methods are as demonstrated previously.
-				
-				The approach begins by translating the training observations from a multiclass target vector $\bvec{y} \in \{1, 2, \dots, n_{C}\}^{n}$ into $n_{C}$ binary target vectors $\bvec{y}^{c} \in \{-1, 1\}^{n}$ for $c \in \{1, 2, \dots, n_{C}\}$ \eqref{Equation:TargetTranslationOVA}. \begin{equation}
-					\bvec{y}^{c} = \{\mathds{1}_{\{y_{i} = c\}} - \mathds{1}_{\{y_{i} \neq c\}}\}_{i \in I_{n}}
+				The OVA approach performs classification by introducing $n_{C}$ \textit{independent} classification problems, each identified with a class label $c$, where it attempts to distinguish targets with labels $c$ against targets with any other label $c' \in I_{n^{C}} \backslash c$. Each of these problems are thus a binary classification problem for which solution methods are as demonstrated previously. The approach begins by translating the training observations from a multiclass target vector $\bvec{y} \in \{1, 2, \dots, n_{C}\}^{n}$ into $n_{C}$ binary target vectors $\bvec{y}^{c} \in \{-1, 1\}^{n}$ \eqref{Equation:TargetTranslationOVA}. \begin{equation}
+					\bvec{y}^{c} = \{\mathds{1}_{\{y_{i} = c\}} - \mathds{1}_{\{y_{i} \neq c\}}\}_{i \in I_{n}} \qquad \forall c \in \{1, 2, \dots, n_{C}\}
 				\label{Equation:TargetTranslationOVA}
 				\end{equation} That is, $\bvec{y}^{c}$ is a vector of the same length as $\bvec{y}$, with its components equal to $1$ where the corresponding components of $\bvec{y}$ is equal to $c$. All other components are equal to $-1$. Here, $\mathds{1}_{A}$ is the standard notation for the indicator function, which is $1$ when $A$ is true and $0$ otherwise.
 				
@@ -355,78 +353,75 @@
 					\label{Equation:Exclusion}
 					\end{equation}
 				
-		\subsection{Fusion Performance of Multiclass Classifiers}
-		\label{BenthicHabitatMapping:Classification:FusionPerformance}
-			
-			Probability fusion methods allow GP classifiers to perform consistent inference under the OVA and AVA scheme. A brief comparison between the probability fusion techniques are provided in this section. Such a comparison reveals that the exclusion method achieves the best fusion properties that best approximates the true entropy.
-					
-			Figure \ref{Figure:ProbabilityFusion} shows a simple multiclass classification scenario with $n_{C} = 4$ classes. The feature space $\mathcal{X} = \mathbb{R}^{2}$ in this case is the Euclidean plane with features $x_{1}$ and $x_{2}$. There are 400 training points observed from the ground truth as shown in the first subplot. The GP classifier is trained under Laplace approximation with a squared exponential kernel and probit response likelihood. For the example shown, an OVA classification scheme is employed.
-			
-			In this example, the true entropy is computed by Monte Carlo techniques, which is discussed later in Section \ref{InformativeSeafloorExploration:MCPIE}. Under large samples, this produces the true entropy of the predictions, and will thus be used as the benchmark for evaluating the accuracy of the three probability fusion techniques.
-			
-			\begin{figure}[!htbp]
-			\centering
-				\includegraphics[width = \linewidth]{Figures/probability_fusion/probability_fusion_comparison_OVA_400_2500.eps}
-			\caption{Comparison of Probability Fusion Techniques}
-			\label{Figure:ProbabilityFusion}
-			\end{figure}
-			
-			Visually, it is evident that simple normalisation performs the worst in PIE approximation, while exclusion performs the best. The mean squared error and mean absolute error of the approximations from each fusion technique is provided in Table \ref{Table:ProbabilityFusionAccuracy}, which asserts the claim suggested by the figures. As such, this thesis will employ the exclusion fusion technique for benthic habitat mapping.
-					
-			\begin{table}[t]
-				{\footnotesize
-				\begin{center}
-					\begin{tabular}{ l c c c }
-					\hline
-					Error Criterion & Simple Normalisation & Mode Keeping & Exclusion \\
-					\hline
-					Mean Squared Error & 0.0990 & 0.0373 & 0.0325 \\
-					Mean Absolute Error & 0.265 & 0.165 & 0.142 \\
-					\hline
-					\end{tabular}
-				\end{center}
-				}
-		  	\caption{Entropy Accuracy across Probability Fusion Techniques}
-		  	\label{Table:ProbabilityFusionAccuracy}
-		  	\end{table}	
+			\subsubsection{Performance of Probability Fusion Techniques}
+			\label{BenthicHabitatMapping:Classification:FusionPerformance}
+				
+				Probability fusion methods allow GP classifiers to perform consistent inference under the OVA and AVA scheme. A brief comparison between the probability fusion techniques are provided in this section. Such a comparison reveals that the exclusion method achieves the best fusion properties that best approximates the true entropy.
+						
+				Figure \ref{Figure:ProbabilityFusion} shows a simple multiclass classification scenario with $n_{C} = 4$ classes. The feature space $\mathcal{X} = \mathbb{R}^{2}$ in this case is the Euclidean plane with features $x_{1}$ and $x_{2}$. There are 400 training points observed from the ground truth as shown in the first subplot. The GP classifier is trained under Laplace approximation with a squared exponential kernel and probit response likelihood. For the example shown, an OVA classification scheme is employed.
+				
+				In this example, the true entropy is computed by Monte Carlo techniques, which is discussed later in Section \ref{InformativeSeafloorExploration:MCPIE}. Under large samples, this produces the true entropy of the predictions, and will thus be used as the benchmark for evaluating the accuracy of the three probability fusion techniques.
+				
+				Visually, it is evident that simple normalisation performs the worst in PIE approximation, while exclusion performs the best. The mean squared error and mean absolute error of the approximations from each fusion technique is provided in Table \ref{Table:ProbabilityFusionAccuracy}, which asserts the claim suggested by the figures. As such, this thesis will employ the exclusion fusion technique for benthic habitat mapping.
+						
+				\begin{table}[t]
+					{\footnotesize
+					\begin{center}
+						\begin{tabular}{ l c c c }
+						\hline
+						Error Criterion & Simple Normalisation & Mode Keeping & Exclusion \\
+						\hline
+						Mean Squared Error & 0.0990 & 0.0373 & 0.0325 \\
+						Mean Absolute Error & 0.265 & 0.165 & 0.142 \\
+						\hline
+						\end{tabular}
+					\end{center}
+					}
+			  	\caption{Entropy Accuracy across Probability Fusion Techniques}
+			  	\label{Table:ProbabilityFusionAccuracy}
+			  	\end{table}	
 
+				\begin{figure}[!htbp]
+				\centering
+					\includegraphics[width = \linewidth]{Figures/probability_fusion/probability_fusion_comparison_OVA_400_2500.eps}
+				\caption{Comparison of Probability Fusion Techniques}
+				\label{Figure:ProbabilityFusion}
+				\end{figure}
+				
 	\section{Mapping Scott Reef Benthic Habitats}
 	\label{BenthicHabitatMapping:ScottReef}
 		
 		With a coherent and tractable inference method with Gaussian process classifiers, it can now be applied to map the benthic habitats of a given region. This section presents the mapping results by applying the techniques formulated previously on the Scott Reef dataset provided by \cite{IMOS}.  
-	
-		\begin{wrapfigure}{r}{0.4\linewidth}
+			
+		With the bathymetric depth recorded at both training locations $P$ and query locations $P^{\star}$, the corresponding bathymetric features $X$ and $X^{\star}$ can be extracted through the process detailed in Section \ref{BenthicHabitatMapping:BathymetricFeatures}. Along with the benthic habitat labels $\bvec{y}$ observed at the training points, the effective dataset consists of the training data $(P, X, \bvec{y})$ and query data $(P^{\star}, X^{\star})$.
+
+		\begin{wrapfigure}{r}{0.33\linewidth}
 			\centering
 				\includegraphics[width=\linewidth]{Figures/label_images.png}
-			\caption{Gaussian LDA \\ clustered habitat imagery \\ \citep{Steinberg2015128}}
+			\caption{Gaussian LDA clustered habitat imagery \citep{Steinberg2015128}}
 			\label{Figure:LabelImages}
 		\end{wrapfigure}
 		
-		With the bathymetric depth recorded at both training locations $P$ and query locations $P^{\star}$, the corresponding bathymetric features $X$ and $X^{\star}$ can be extracted through the process detailed in Section \ref{BenthicHabitatMapping:BathymetricFeatures}. Along with the benthic habitat labels $\bvec{y}$ observed at the training points, the effective dataset consists of the training data $(P, X, \bvec{y})$ and query data $(P^{\star}, X^{\star})$.
-
 		The habitat labels are clustered in an unsupervised manner from the collected benthic imagery using Gaussian latent Dirichlet allocation (LDA) \citep{Steinberg2015128}, producing 24 unique benthic class labels, with 17 of them associated with identifiable semantic meaning and the rest either over-exposed or under-exposed in lighting (figure \ref{Figure:LabelImages}). For example, the first two rows in Figure \ref{Figure:LabelImages} are under-exposed and thus will not be included in the analysis. Therefore, benthic habitat mapping over Scott Reef is a multiclass classification problem with $n_{C} = 17$ classes.
 			
-		For the Scott Reef dataset, an OVA Gaussian process classifier is employed due to its simpler structure and stronger inference capabilities under \textit{relatively} small training datasets as compared to the total region to be mapped. The classifier is trained under Laplace approximation as a good balance between tractability and accuracy. The probit response is chosen as the likelihood response, and the kernel covariance employed is an axis aligned squared exponential kernel.
-			
-		\subsection{Prediction Map}
-		\label{BenthicHabitatMapping:ScottReef:Maps}
+		For the Scott Reef dataset, an OVA Gaussian process classifier is employed due to its simpler structure and stronger inference capabilities under \textit{relatively} small training datasets as compared to the total region. The classifier is trained under Laplace approximation with probit likelihood response and an axis aligned squared exponential kernel as a good balance between tractability and accuracy.
 
-			As training labels are only available around past mission tracks (figure \ref{Figure:ScottReefBathymetricFeatures:1}), a synthetic ground truth is generated separately in order to assess the mapping performance (figure \ref{Figure:ScottReefSyntheticGroundTruth}). Only the 17 labels out of the 22 image clusters that are identifiable are shown. This ground truth is generated separately with 800 training points available in the dataset, which is a reasonable size on a computer with 8 GB RAM as the inference kernel would take $800 \times 100000 \times 17 \times 4$ bytes $\approx 5$ GB of storage (see Appendix \ref{Appendix:BigData:BenthicHabitatMapping} for methods of dealing with big data). Since the synthetic ground truth is generated with only 800 training points, it does not necessary represent the physical reality at Scott Reef. 
+		As training labels are only available around past mission tracks (figure \ref{Figure:ScottReefBathymetricFeatures:1}), a synthetic ground truth is generated separately in order to assess the mapping performance (figure \ref{Figure:ScottReefSyntheticGroundTruth}). Only the 17 labels out of the 22 image clusters that are identifiable are shown. This ground truth is generated separately with 800 training points available in the dataset, which is a reasonable size on a computer with 8 GB RAM as the inference kernel would take $800 \times 100000 \times 17 \times 4$ bytes $\approx 5$ GB of storage (see Appendix \ref{Appendix:BigData:BenthicHabitatMapping} for methods of dealing with big data). Since the synthetic ground truth is generated with only 800 training points, it does not necessary represent the physical reality at Scott Reef. 
 
-			\begin{figure}[!htbp]
-			\centering
-			  \subfigure[Synthetic Ground Truth]{\label{Figure:ScottReefSyntheticGroundTruth} \includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping/Figure7.eps}}
-			  \subfigure[Initial Prediction with 200 training points]{\label{Figure:ScottReefInitialPredictions200}	\includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping/Figure8.eps}}
-			  \subfigure[Initial Prediction with 400 training points]{\label{Figure:ScottReefInitialPredictions400}	\includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping_400/Figure8.eps}}
-			  \subfigure[Initial Prediction with 600 training points]{\label{Figure:ScottReefInitialPredictions600}	\includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping_600/Figure8.eps}}
-			\caption{Scott Reef: Initial Predictions}
-			\label{Figure:ScottReefInitialPredictions}
-			\end{figure}
-			
-			With merely 200 training points, the classifier is able to infer a map which achieves a 41.54\% misclassification rate, or 58.46\% prediction accuracy, over 100000 query points (figure \ref{Figure:ScottReefInitialPredictions200}). This demonstrates the advantage of modeling the benthic environment upon a bathymetric feature space instead of spatial coordinates. The training tracks covers $\frac{200}{100000} = 0.2\%$ of the query region, yet almost 60\% of the region can be accurately modeled with such scarce data. This model takes advantage of the fact that although habitats can be far away spatially, they can have similar bathymetric structures such that they are close in the bathymetric feature space. The effect of increasing the number of randomly selected training points from the training data set is shown in Figure \ref{Figure:ScottReefBathymetricFeatures:1}. As subsequently added training points are still within similar regions with similar bathymetric signatures, the classification accuracy does not necessarily improve.
+		\begin{figure}[!htbp]
+		\centering
+		  \subfigure[Synthetic Ground Truth]{\label{Figure:ScottReefSyntheticGroundTruth} \includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping/Figure7.eps}}
+		  \subfigure[Initial Prediction with 200 training points]{\label{Figure:ScottReefInitialPredictions200}	\includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping/Figure8.eps}}
+		  \subfigure[Initial Prediction with 400 training points]{\label{Figure:ScottReefInitialPredictions400}	\includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping_400/Figure8.eps}}
+		  \subfigure[Initial Prediction with 600 training points]{\label{Figure:ScottReefInitialPredictions600}	\includegraphics[width=0.48\linewidth]{Figures/scott_reef_mapping_600/Figure8.eps}}
+		\caption{Scott Reef: Initial Predictions}
+		\label{Figure:ScottReefInitialPredictions}
+		\end{figure}
+		
+		With merely 200 training points, the classifier is able to infer a map which achieves a 41.54\% misclassification rate, or 58.46\% prediction accuracy, over 100000 query points (figure \ref{Figure:ScottReefInitialPredictions200}). This demonstrates the advantage of modeling the benthic environment upon a bathymetric feature space instead of spatial coordinates. The training tracks covers $\frac{200}{100000} = 0.2\%$ of the query region, yet almost 60\% of the region can be accurately modeled with such scarce data. This model takes advantage of the fact that although habitats can be far away spatially, they can have similar bathymetric structures such that they are close in the bathymetric feature space. The effect of increasing the number of randomly selected training points from the training data set is shown in Figure \ref{Figure:ScottReefBathymetricFeatures:1}. As subsequently added training points are still within similar regions with similar bathymetric signatures, the classification accuracy does not necessarily improve.
 												
-%	\section{Summary}
-%	\label{BenthicHabitatMapping:Summary}
-%	
-%		In summary, this chapter derived 
+	\section{Summary}
+	\label{BenthicHabitatMapping:Summary}
+	
+		In summary, this chapter provided the methodology for mapping the benthic habitats of a seafloor region using bathymetric features. Efficient and parallelisable multiclass classifiers are developed through extending the usual Gaussian process binary classification framework, where consistent Bayesian inference is enforced through two novel probability fusion techniques. Such a classifier is then applied to the Scott Reef dataset to demonstrate its effectiveness to build a habitat map over a seafloor region under limited observations.
 		
