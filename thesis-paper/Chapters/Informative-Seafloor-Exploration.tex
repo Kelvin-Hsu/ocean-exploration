@@ -618,7 +618,7 @@
 			
 			Section \ref{InformativeSeafloorExploration:ScottReef:SingleMission} presented the case for a single mission that is 33.3 km in length. However, in practice the AUV would most likely run out of battery before such long length missions are completed. It is therefore more practical to deploy AUVs on multiple shorter missions, one after the another. Extra flexibility is introduced in this process where the next starting location can be chosen informatively from the observations collected thus far from the previous mission.
 			
-			As such, this section simulates a serial mission planning process for seafloor exploration, and compares the same set of exploration policies outlined previously. Figure \ref{Figure:ScottReefBathymetricFeatures:1} shows past mission tracks, which are usually more than 10 km in length. The following results assumes that the AUV is equipped with a conservative power supply that allows a mission length of 6.6 km. This distance is also chosen so that 5 such missions yield a total underwater distance covered of 33.3 km to allow qualitative comparisons against the single mission planning as shown previously. The AUV is to be picked up after each 6.6 km mission through a buoyant vehicle such as a boat, which can sail to the next starting location relatively quickly.
+			As such, this section simulates a serial mission planning process for seafloor exploration, comparing the same set of exploration policies outlined previously. Figure \ref{Figure:ScottReefBathymetricFeatures:1} shows past mission tracks, which are usually more than 8 km in length. The following results assumes that the AUV is equipped with a conservative power supply that allows a mission length of 6.6 km. This distance is also chosen so that five such missions yield a total underwater distance covered of 33.3 km to allow qualitative comparisons against the single mission planning as shown previously. The AUV is to be picked up after each 6.6 km mission through a buoyant vehicle such as a boat, which can sail to the next starting location relatively quickly.
 			
 			Suppose the AUV is informatively exploring the seafloor using acquisition criterion $I$. After each 6.6 km mission, the AUV chooses the best location $\bvec{p}^{\star}$ to start from for the next mission through finding the region with the highest \textit{regional} acquisition value \eqref{Equation:SerialMissionOptimalLocation}. To allow for fair comparison of the regions, each region is composed of the same number of query points through a standard $k_{NN}$ algorithm.
 			
@@ -630,11 +630,9 @@
 			\label{Equation:SerialMissionOptimalLocation}
 			\end{equation}
 			
-			Here, $X$ and $\bvec{y}$ are the observations collected up that that particular mission. $k_{NN}(\bvec{p}, P_{r}, k)$ is the $k$-nearest-neighbour algorithm which finds the top $k$ points in $P_{r}$ that is closest to $\bvec{p}$ with respect to the standard Euclidean distance. Furthermore, instead of using the whole seafloor $P_{s}$, a finite subset $P_{r}$ of the $P_{s}$ is used to represent the seafloor to speed up computation. This means that only approximate optimal starting locations can be computed. In practical scenarios, however, this is sufficient.
+			Here, $(X, \bvec{y})$ are the observations collected up to that mission. $k_{NN}(\bvec{p}, P_{r}, k)$ is the $k$-nearest-neighbour algorithm which finds the top $k$ points in $P_{r}$ that is closest to $\bvec{p}$ with respect to the standard Euclidean distance. Furthermore, instead of using the whole seafloor $P_{s}$, a finite subset $P_{r}$ of the $P_{s}$ is used to represent the seafloor to speed up computation. This means that only approximate optimal starting locations can be computed. In practical scenarios, however, this is sufficient.
 			
-			For the results below, $k = 10$ is chosen. $P_{r}$ is also sampled from $P_{s}$ such that for every point in $P_{r}$, there always exists another point in $P_{r}$ that is less than $100$ meters away.
-			
-			Note that for methods that do not use an informative acquisition criterion, such as RANDOM, LINES, and SPIRAL, the starting points are then chosen randomly. 
+			For the results below, $k = 10$ is chosen. $P_{r}$ is also sampled from $P_{s}$ such that for every point in $P_{r}$, there always exists another point in $P_{r}$ that is less than $100$ meters away. For methods non-informative methods, such as RANDOM, LINES, and SPIRAL, the starting points are then chosen randomly. 
 			
 			\begin{figure}[!htbp]
 			\centering
@@ -646,11 +644,11 @@
 			\label{Figure:SerialMissionsSetup}
 			\end{figure}
 			
-			The added flexibility in serial mission scenario increases performance drastically. To make this more apparent, the initial starting scenario is composed of a minimal training dataset with 17 training points (figure \ref{Figure:SerialMissionsSetup:Training}). These training points are selected randomly from the dataset under the constraint that every training point has a different label. While it is not necessary to start off with all the possible 17 labels, it makes the simulation faster as it allows corresponding caches to be easily allocated and referenced.
+			The added flexibility in serial mission scenario increases performance drastically. To make this more apparent, the initial starting scenario is composed of a minimal training dataset with 17 training points selected randomly from the dataset under the constraint that every training point has a different label (figure \ref{Figure:SerialMissionsSetup:Training}). While it is not necessary to start off with all the possible 17 labels, it enables efficient simulation as it allows corresponding caches to be easily allocated.
 			
 			The initial prediction map has poor accuracy, with 99.39\% classification miss ratio (figure \ref{Figure:SerialMissionsSetup:InitialMap}), as there are barely any observations to infer upon. Interestingly, the prediction uncertainty (figure \ref{Figure:SerialMissionsSetup:PIE-Map}) and model uncertainty (figure \ref{Figure:SerialMissionsSetup:LMDE-Map}) are almost opposite in trend. Specifically, the effect of bathymetric depth is again the most prominent through comparisons with Figure \ref{Figure:ScottReefBathymetricFeatures:2}. Note that the lowest and highest depths present in the initial training set are 31.69 m and 57.07 m, corresponding to labels \textit{Sand Biota 2} and \textit{Barron Sand 3}. As such, due to a squared exponential kernel, all the regions with depths lower than 31.69 m is predicted with \textit{Sand Biota 2} and all regions with depths higher than 57.07 m is predicted with \textit{Barron Sand 3}, as verified in Figure \ref{Figure:SerialMissionsSetup:InitialMap}. As such, the prediction uncertainty there is low, since there are no other observations to contradict this prediction (figure \ref{Figure:SerialMissionsSetup:PIE-Map}). However, because there is only one observation there, the model uncertainty is high at those points Figure \ref{Figure:SerialMissionsSetup:LMDE-Map}). This again shows that LMDE and PIE are complementary measures of entropy that measures different types of uncertainty.
 
-			For comparison, all methods begin their mission at location 1. While LMDE and MCPIE acquisition produces two different resulting paths, the final prediction map achieved is very similar, with 18.30\% and 21.22\% misclassification ratio respectively (figures \ref{Figure:SerialFinalPredictionMapLMDE} and \ref{Figure:SerialFinalPredictionMapMCPIE}). Other informative exploration policies, AMPIE and GREEDY-PIE, also achieves reasonable mapping rate at 23.21\% and 37.54\% respectively after five 6.6 km missions (figures \ref{Figure:SerialFinalPredictionMapAMPIE} and \ref{Figure:SerialFinalPredictionMapGREEDY}). Compared to the initial scenario with 99.39\% misclassification rate, the four informative path planning methods are able to achieve efficient mapping under five short missions.
+			For comparison, all methods begin their mission at location 1. While LMDE and MCPIE acquisition produces two different resulting paths, the final prediction map achieved is very similar, with 18.30\% and 21.22\% misclassification ratio respectively (figures \ref{Figure:SerialFinalPredictionMapLMDE} and \ref{Figure:SerialFinalPredictionMapMCPIE}). Other informative exploration policies, AMPIE and GREEDY-PIE, also achieves reasonable mapping rate at 23.21\% and 37.54\% respectively after five 6.6 km missions (figures \ref{Figure:SerialFinalPredictionMapAMPIE} and \ref{Figure:SerialFinalPredictionMapGREEDY}). Compared to the initial scenario with 99.39\% misclassification rate, informative planning are able to achieve efficient mapping under five short missions.
 			
 			\begin{figure}[!htbp]
 			\centering
@@ -688,9 +686,12 @@
 			\end{figure}
 						
 			Nevertheless, Figure \ref{Figure:SerialCompareMethods} reveals that LMDE and MCPIE acquisitions under the receding horizon framework performs the best. Non-informative methods, however, is only able to achieve no more than 50\% mapping accuracy, with LMDE acquisition achieving more than 30\% mapping accuracy at the end of five missions. As such, simulations verifies the strength of non-myopic, informative path planing policies, and affirms the performance of mutual information measures, LMDE and MCPIE, as acquisition functions.
-			
-
-		  					
-
 								
-%	\section{Summary}
+	\section{Summary}
+	
+		This chapter concludes the work in this thesis through verifying the performance of the two proposed acquisition criteria, LMDE acquisition and MCPIE acquisition. With a proposed receding horizon path planning scheme on the Scott Reef dataset, informative path planning with LMDE acquisition outperforms other methods under a mapping accuracy criteria.
+		
+		 
+		
+		
+		
