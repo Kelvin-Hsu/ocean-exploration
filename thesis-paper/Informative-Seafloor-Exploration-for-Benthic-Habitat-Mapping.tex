@@ -240,7 +240,6 @@ I would also like to thank the people I worked with at NICTA, who made the worki
 		AUV & Autonomous Underwater Vehicle \\
 		AVA & All Versus All \\
 		\\
-		BDKD & Big Data Knowledge Discovery \\
 		BO & Bayesian Optimisation \\
 		\\
 		CDF & Cumulative Distribution Function \\
@@ -275,9 +274,8 @@ I would also like to thank the people I worked with at NICTA, who made the worki
 		POMDP & Partially Observable Markov Decision Processes \\
 		PRM	& Probabilistic Road Map \\
 		\\
-		SBO & Sequantial Bayesian Optimisation \\
+		SBO & Sequential Bayesian Optimisation \\
 		SE & Squared Exponential \\
-		SIEF & Science \& Industry Endowment Fund \\
 		SONAR & Sound Navigation And Ranging \\
 }
 
@@ -291,10 +289,10 @@ I would also like to thank the people I worked with at NICTA, who made the worki
 	Sequences & $\{a_{i}\}_{i \in I_{n}}$ & $:=$ & $\{a_{1}, a_{2}, \dots, a_{n}\}$ & \\
 	Vector Shorthand & $\bvec{a} := \{a_{i}\}_{i \in I_{n}}$ & $\equiv$ & $[a_{1}, a_{2}, \dots, a_{n}]^{T} \in \mathbb{C}^{n}$ & if $a_{i} \in \mathbb{C} \quad \forall i \in I_{n}$ \\
 	Matrix Shorthand & $A := \{\bvec{a}_{i}\}_{i \in I_{n}}$ & $\equiv$ & $[\bvec{a}_{1}, \bvec{a}_{2}, \dots, \bvec{a}_{n}]^{T} \in \mathbb{C}^{n \times p}$ & if $\bvec{a}_{i} \in \mathbb{C}^{p} \quad \forall i \in I_{n}$ \\
-	Matrix as Sets & $\bvec{a} \in A$ & $\equiv$ & $\exists \; i \in I_{n}$ s.t. $\bvec{a_{i}} = \bvec{a}$ & where $A := \{\bvec{a}_{i}\}_{i \in I_{n}}$ \\
-	Matrix Union & $A_{1} \cup A_{2}$ & $\equiv$ & $\big\{ \bvec{a} \big| \{\bvec{a} \in A_{1}\} \cup \{\bvec{a} \in A_{2}\} \big\}$ & \\
-	Matrix Intersection & $A_{1} \cap A_{2}$ & $\equiv$ & $\big\{ \bvec{a} \big| \{\bvec{a} \in A_{1}\} \cap \{\bvec{a} \in A_{2}\} \big\}$ & \\
-	Matrix Exclusion & $A_{1} \backslash A_{2}$ & $\equiv$ & $\big\{ \bvec{a} \big| \{\bvec{a} \in A_{1}\} \cup \{\bvec{a} \notin A_{2}\} \big\}$ & \\
+	Matrix as Sets & $\bvec{a} \in A$ & $\equiv$ & $\exists \; i \in I_{n}$ s.t. $\bvec{a}_{i} = \bvec{a}$ & where $A := \{\bvec{a}_{i}\}_{i \in I_{n}}$ \\
+	Matrix Union & $A_{1} \cup A_{2}$ & $\equiv$ & $\big\{ \bvec{a} \big| \{\bvec{a} \in A_{1}\} \cup \{\bvec{a} \in A_{2}\} \big\}$ & $A_{1}$ Order Precedence \\
+	Matrix Intersection & $A_{1} \cap A_{2}$ & $\equiv$ & $\big\{ \bvec{a} \big| \{\bvec{a} \in A_{1}\} \cap \{\bvec{a} \in A_{2}\} \big\}$ & $A_{1}$ Order Precedence \\
+	Matrix Exclusion & $A_{1} \backslash A_{2}$ & $\equiv$ & $\big\{ \bvec{a} \big| \{\bvec{a} \in A_{1}\} \cup \{\bvec{a} \notin A_{2}\} \big\}$ & $A_{1}$ Order Precedence \\
 }
 
 %%% ----------------------------------------------------------------
@@ -303,17 +301,69 @@ I would also like to thank the people I worked with at NICTA, who made the worki
 \listofnomenclature{ll}  % Include a list of Symbols (a three column table)
 {
 	% symbol & name \\
-	$P$ & Training Positions \\
-	$X$ & Training Features \\
-	$\bvec{y}$ & Training Target Outputs \textit{or} Training Target Labels \\
-	& \\ % Gap to separate the Roman symbols from the Greek
+	$\bvec{p}$ & Position Vector \\
+	$\bvec{x}$ & Feature Vector \\
+	$\bvec{x}'$ & Feature Vector \\
+	$f$ & Latent Function \\
+	$m$ & Expectance/Mean Function \\
+	$k$ & Kernel/Covariance Function \\
+	$\Sigma$ & Covariance Matrix \textit{or} Length Scale Matrix \\
+	$l_{ij}$ & Joint Length Scale of Axis $i$ and $j$ \\
+	$\sigma_{f}$ & Kernel Sensitivity \\
+	$\vec{\uptheta}$ & Hyperparameters \\
+	$K$ & Data Kernel \textit{or} Training Kernel \\
+	$K^{\star}$ & Inference Kernel \\
+	$K^{\star \star}$ & Query Kernel \\
+	$p$ & Number of Features \\
+	$n$ & Number of Training Points \\
+	$n^{\star}$ & Number of Query Points \\
+	$n_{C}$ & Number of Classes \\
+	$n_{S}$ & Number of Samples \\
 	$\mathcal{P}$ & Spatial Space \\
 	$\mathcal{X}$ & Feature Space \\
-	$\mathcal{Y}$ & Target Space \textit{or} Label/Map Space \\
-	& \\ % Gap to separate the Roman symbols from the Greek
+	$\mathcal{Y}$ & Target Space \\
 	$\mathscr{P}$ & Spatial Space $\sigma$-algebra \\
 	$\mathscr{X}$ & Feature Space $\sigma$-algebra \\
-	$\mathscr{Y}$ & Target Space $\sigma$-algebra \textit{or} Label/Map Space $\sigma$-algebra \\
+	$\mathscr{Y}$ & Target Space $\sigma$-algebra \\
+	$P$ & Training Positions \\
+	$X$ & Training Features \\
+	$\bvec{y}$ & Training Target Outputs \\
+	$\bvec{f}$ & Training Latents \\
+	$P^{\star}$ & Query Positions \\
+	$X^{\star}$ & Query Features \\
+	$\bvec{y}^{\star}$ & Query Target Outputs  \\
+	$\bvec{f}^{\star}$ & Query Latents \\
+	$H$ & Entropy \textit{or} Model Representative Event \\
+	$D$ & Data Observation Event \\
+	$I$ & Information Criterion \textit{or} Acquisition Criterion \\
+	$\mathcal{H}$ & Inference Model \\
+	$\mathcal{D}$ & Data Set \\
+	$\mathcal{N}$ & Gaussian Distribution \\
+	$\mathcal{GP}$ & Gaussian Process \\
+	$z$ & Bathymetric Depth \textit{or} Generic Dummy Variable \\
+	$a_{s}$ & Aspect (Short Scale) \\
+	$a_{l}$ & Aspect (Long Scale) \\
+	$r_{s}$ & Rugosity (Short Scale) \\
+	$r_{l}$ & Rugosity (Long Scale) \\
+	$\sigma$ & Likelihood Response Function \textit{or} Sigmoid \textit{or} Softmax \\
+	$\vec{\uppi}$ & Predictive Probabilities \\
+	$\bar{\vec{\uppi}}$ & Expected Predictive Probabilities \\
+	$W$ & Negative Log Likelihood Response Hessian \\
+	$\mathds{1}$ & Indicator Function \\
+	$\mathbb{F}$ & Probability Pre-Fusion  \textit{or} Frequency Counter Function \\
+	$\tilde{\bvec{p}}^{\star}$ & Estimated Joint Probability Vector at Query Points \\
+	$\mathbb{H}$ & Modified Heaviside Function \\
+	$\bvec{\mathds{H}}$ & Vectorised Modified Heaviside Function \\
+	$\mathbb{M}$ & Class Prediction Function \\
+	$\bvec{\mathds{M}}$ & Vectorised Class Prediction Function \\
+	$\bvec{\psi}$ & Relative Angle Coordinates \\
+	$\bvec{\phi}$ & Absolute Angle Coordinates \\
+	$T$ & Cumulative Sum \\
+	$q_{p}$ & Path Generation Function \\
+	$f_{e}$ & Feature Extraction \\
+%	& \\ % Gap to separate the Roman symbols from the Greek
+%	& \\ % Gap to separate the Roman symbols from the Greek
+
 }
 %%% ----------------------------------------------------------------
 %% End of the pre-able, contents and lists of things
