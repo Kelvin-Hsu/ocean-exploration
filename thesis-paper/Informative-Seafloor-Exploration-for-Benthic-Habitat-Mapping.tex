@@ -281,8 +281,8 @@ I would also like to thank the people I worked with at NICTA, who made the worki
 
 %%% ----------------------------------------------------------------
 \clearpage  % Start a new page
-\lhead{\emph{Notations}}  % Set the left side page header to "Physical Constants"
-\listofnotations{llcll}  % Include a list of Physical Constants (a four column table)
+\lhead{\emph{Notations}}  % Set the left side page header to "Notations"
+\listofnotations{llcll}  % Include a list of Notations (a four column table)
 {
 	% Constant Name & Symbol & = & Constant Value (with units) \\
 	Index Sets & $I_{n}$ & $:=$ & $\{1, 2, \dots, n\}$ & where $n \in \mathbb{N}$ \\
@@ -297,14 +297,15 @@ I would also like to thank the people I worked with at NICTA, who made the worki
 
 %%% ----------------------------------------------------------------
 \clearpage  %Start a new page
-\lhead{\emph{Symbols}}  % Set the left side page header to "Symbols"
-\listofnomenclature{ll}  % Include a list of Symbols (a three column table)
+\lhead{\emph{Nomenclature}}  % Set the left side page header to "Nomenclature"
+\listofnomenclature{ll}  % Include a list of Nomenclature (a three column table)
 {
 	% symbol & name \\
 	$\bvec{p}$ & Position Vector \\
 	$\bvec{x}$ & Feature Vector \\
 	$\bvec{x}'$ & Feature Vector \\
 	$f$ & Latent Function \\
+	$y$ & Target Output \\
 	$m$ & Expectance/Mean Function \\
 	$k$ & Kernel/Covariance Function \\
 	$\Sigma$ & Covariance Matrix \textit{or} Length Scale Matrix \\
@@ -349,9 +350,9 @@ I would also like to thank the people I worked with at NICTA, who made the worki
 	$\vec{\uppi}$ & Predictive Probabilities \\
 	$\bar{\vec{\uppi}}$ & Expected Predictive Probabilities \\
 	$W$ & Negative Log Likelihood Response Hessian \\
+	$\tilde{\bvec{p}}^{\star}$ & Essential Empirical Joint Probability Distribution at Query Points \\
 	$\mathds{1}$ & Indicator Function \\
 	$\mathbb{F}$ & Probability Pre-Fusion  \textit{or} Frequency Counter Function \\
-	$\tilde{\bvec{p}}^{\star}$ & Estimated Joint Probability Vector at Query Points \\
 	$\mathbb{H}$ & Modified Heaviside Function \\
 	$\bvec{\mathds{H}}$ & Vectorised Modified Heaviside Function \\
 	$\mathbb{M}$ & Class Prediction Function \\
@@ -410,11 +411,6 @@ I would also like to thank the people I worked with at NICTA, who made the worki
 \input{Appendices/Mutual-Entropy-Measures}
 \input{Appendices/Problems-and-Solutions-to-Big-Data}
 \input{Appendices/Seafloor-Exploration-Time-Lapse}
-
-
-% \input{Appendices/Other-Approximations-for-Gaussian-Process-Classification} % Other Approximations for Gaussian Process Classification
-
-%\input{Appendices/AppendixC} % Appendix Title
 
 \addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
 \backmatter
