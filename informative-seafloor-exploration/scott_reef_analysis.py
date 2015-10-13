@@ -230,12 +230,6 @@ def main():
             t_seed = T_SEED, q_seed = Q_SEED, 
             features = i_features, unique_labels = UNIQUE, unique_seed = U_SEED)
 
-    print(F)
-    ii = np.argsort(F[:, 0])
-    print(F[ii, 0], y[ii].astype(int))
-    print([y_names_all[i] for i in y[ii].astype(int)])
-    return
-
     start_indices = np.random.choice(np.arange(Xq.shape[0]), 
                             size = 2500, replace = False)
 
