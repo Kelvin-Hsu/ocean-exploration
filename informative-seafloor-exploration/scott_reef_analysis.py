@@ -436,7 +436,7 @@ def main():
         Xq[:, 0], Xq[:, 1], 
         c = yq_truth, vmin = y_unique[0], vmax = y_unique[-1], cmap = mycmap,
         **map_kwargs)
-    sea.vis.describe_plot(title = 'Synthetic Ground Truth Map', 
+    sea.vis.describe_plot(title = 'Ground Truth Benthic Habitat Map', 
         xlabel = 'x [Eastings (km)]', ylabel = 'y [Northings (km)]', 
         clabel = 'Habitat Labels', cticks = y_unique, cticklabels = y_names,
         vis_range = vis_range, aspect_equal = True, 
