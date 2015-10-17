@@ -63,7 +63,7 @@
 			
 			where $\mathbb{F}_{I_{n_{S}}}({^{s}}\bvec{y}^{\star})$ is the frequency of appearance of the vector ${^{s}}\bvec{y}^{\star}$ amongst all the sampled vectors $\{ {^{s}}\bvec{y}^{\star} \}_{s \in I_{n_{S}}}$. Note that each \textit{unique} sample is assigned a probability such that the vector $\tilde{\bvec{p}}^{\star}$ has exactly $n_{U}$ non-zero entries indexed by $I_{U}$, which is generally smaller than the total number of possible samples. This inherently means that possible samples that were not drawn or \textit{realised} are estimated with probability zero. In this way, since more samples would likely realise those unlikely possibilities and thus raising the corresponding probability to a nonzero value, estimation accuracy will benefit from higher numbers of samples $n_{S}$.
 			
-			Finally,  for $n_{C} = 2$ classes, the Monte Carlo predictive information entropy, as an instance of Shannon entropy \eqref{Equation:DiscreteEntropy}, can be computed from the estimated probabilities that represent the joint distribution \eqref{Equation:MCPIE}. As usual, only non-zero entries of $\tilde{\bvec{p}}$ need to be considered. \begin{equation}
+			Finally,  for $n_{C} = 2$ classes, the Monte Carlo predictive information entropy, as an instance of Shannon entropy \cite{ShannonEntropy}, can be computed from the estimated probabilities that represent the joint distribution \eqref{Equation:MCPIE}. As usual, only non-zero entries of $\tilde{\bvec{p}}$ need to be considered. \begin{equation}
 				H_{\mathrm{MCPIE}} \stackrel{\text{abbrev.}}{:=} H_{\mathrm{MCPIE}}[X^{\star} | X, \bvec{y}] := - \sum_{i \in I_{n_{U}}} \tilde{p}^{\star}_{i} \log(\tilde{p}^{\star}_{i})
 			\label{Equation:MCPIE}
 			\end{equation}		
@@ -113,7 +113,7 @@
 				\label{Equation:MulticlassPredictiveGaussianDistributionAVA}
 				\end{equation}
 				
-				For each class pair $(c, c')$, a sample ${^{s}}{\bvec{f}^{c, c'}}^{\star}$ is drawn from ${\bvec{f}^{c, c'}}^{\star} \sim \mathcal{N}({\vec{\upmu}^{c, c'}}^{\star}, {\Sigma^{c, c'}}^{\star})$, where $s \in I_{n_{S}}$. Similar to filling the lower triangular region of \eqref{Equation:UnfilledProbabilityListAVA} through \ref{Equation:ProbabilityListAVA}, the above samples form the upper triangular parts of a double axis list, and the lower triangular region can be filled by setting ${^{s}}{\bvec{f}^{c', c}}^{\star} := -{^{s}}{\bvec{f}^{c, c'}}^{\star}$ by symmetry of binary classifiers \ref{Equation:SampleLatentListAVA}. Here, $\bvec{0}_{n^{\star}} := \{0\}_{i \in I_{n^{\star}}}$ is the zero vector, which represents the zero prior for the latent GP when no comparisons are to be made.
+				For each class pair $(c, c')$, a sample ${^{s}}{\bvec{f}^{c, c'}}^{\star}$ is drawn from ${\bvec{f}^{c, c'}}^{\star} \sim \mathcal{N}({\vec{\upmu}^{c, c'}}^{\star}, {\Sigma^{c, c'}}^{\star})$, where $s \in I_{n_{S}}$. Similar to filling the lower triangular region of \eqref{Equation:ProbabilityListAVA}, the above samples form the upper triangular parts of a double axis list, and the lower triangular region can be filled by setting ${^{s}}{\bvec{f}^{c', c}}^{\star} := -{^{s}}{\bvec{f}^{c, c'}}^{\star}$ by symmetry of binary classifiers \ref{Equation:SampleLatentListAVA}. Here, $\bvec{0}_{n^{\star}} := \{0\}_{i \in I_{n^{\star}}}$ is the zero vector, which represents the zero prior for the latent GP when no comparisons are to be made.
 				
 				\begin{equation}
 					\begin{Bmatrix*}

@@ -19,7 +19,7 @@
 		
 			Section \ref{InformativeSeafloorExploration:MCPIE} formulates the Monte Carlo prediction information entropy (MCPIE), which involves a Monte Carlo sampling stage for entropy estimation. In order to enhance the computational tractability of the approach, this thesis also investigates the practical implementation methods which would allow efficient computation for MCPIE.
 			
-			By definition of a GP, drawing from a GP at a \textit{finite} number of query points $X^{\star}$ is equivalent to drawing \textit{jointly} from a multivariate Gaussian distribution, as represented by \eqref{Equation:BinaryPredictiveGaussianDistribution} and \eqref{Equation:MulticlassPredictiveGaussianDistribution}. In general the sampling stage can be summarised by \eqref{Equation:GeneralMultivariateGaussianDistribution} for some mean vector $\vec{\upmu} \in \mathbb{R}^{n^{\star}}$ and covariance vector $\Sigma \in \mathbb{R}^{n^{\star} \times n^{\star}}$. 
+			By definition of a GP, drawing from a GP at a \textit{finite} number of query points $X^{\star}$ is equivalent to drawing \textit{jointly} from a multivariate Gaussian distribution, as represented by \eqref{Equation:BinaryPredictiveGaussianDistribution}, \eqref{Equation:MulticlassPredictiveGaussianDistributionOVA}, and \eqref{Equation:MulticlassPredictiveGaussianDistributionAVA}. In general the sampling stage can be summarised by \eqref{Equation:GeneralMultivariateGaussianDistribution} for some mean vector $\vec{\upmu} \in \mathbb{R}^{n^{\star}}$ and covariance vector $\Sigma \in \mathbb{R}^{n^{\star} \times n^{\star}}$. 
 			
 			\begin{equation}
 				{^{s}}\bvec{f}^{\star} \stackrel{\text{sample}}{\sim} \mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star}) \qquad \forall s \in I_{n_{S}}
