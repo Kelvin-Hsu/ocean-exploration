@@ -2,18 +2,48 @@
 \lhead{Computational Aspects of Gaussian Processes}
 \label{Appendix:ComputationalAspects}
 
+	While Gaussian processes are extremely flexible models that are able to model a variety of phenomenon, its flexibility also comes with a cost in computational complexity. As such, there are many subtleties involved in its implementation, as well as plenty of methods to improve its performance.
+	
+	The following sections provides a brief discussion for some of those computational techniques developed in this thesis that can be used for implementing Gaussian processes. While these techniques are initially developed for the work in this thesis, these techniques are general and can be applied to any work that requires the use of Gaussian process models. 
+	
 	\section{Numerical Stability}
 	\label{Appendix:ComputationalAspects:NumericalStability}
 	
+		Due to limited numerical precisions, numerical computations on the computer may sometimes result in instability of errors even if it is impossible under analytical approaches. Furthermore, as computers cannot generate true random numbers, any sampling technique must employ pseudo random number generators, which could potentially cause problems in the computations if not used carefully. The Monte Carlo prediction information entropy  developed in this thesis requires a sampling step whose numerical stability can be improved by taking into consideration the points mentioned above through a stable and efficient Monte Carlo optimisation method.
+		
+		Before such a technique is discussed, however, the Cholesky decomposition matrix must be first introduced.
+		
 		\subsection{Cholesky Decomposition}
 		\label{Appendix:ComputationalAspects:NumericalStability:Cholesky}
-
+			
+			In linear algebra, the Cholesky decomposition of a positive definite matrix $S$ is a lower triangular matrix $L$ that satisfies \eqref{Equation:CholeskyDecomposition}.
+			
+			\begin{equation}
+				S = L L^{T}
+			\label{Equation:CholeskyDecomposition}
+			\end{equation}
+			
+			Every positive definite matrix has a unique Cholesky decomposition. Once a Cholesky decomposition is computed, any inversion problem of the form \eqref{Equation:InversionProblem} can then be solved by \eqref{Equation:InversionProblemCholesky} instead, which are more stable and efficient since $L$ and $L^{T}$ are now triangular matrices.
+			
+			\begin{equation}
+				S \bvec{x} = \vec{b} \implies \bvec{x} = S \backslash \vec{b}
+			\label{Equation:InversionProblem}
+			\end{equation}
+			
+			\begin{equation}
+				L L^{T} \bvec{x} = \vec{b} \implies \bvec{x} = L^{T} \backslash (L \backslash \vec{b})
+			\label{Equation:InversionProblemCholesky}
+			\end{equation}
+			
 		\subsection{Cholesky Jittering}
 		\label{Appendix:ComputationalAspects:NumericalStability:CholeskyJittering}
-				
-		\subsection{Solving Triangular Matrix Equations}
-		\label{Appendix:ComputationalAspects:NumericalStability:SolvingTriangularMatrices}
-		
+
+			As mentioned before, even with the more stable and efficient Cholesky decomposition method, there are still cases where a Cholesky decomposition cannot be found as the numerical representation of the positive definite matrix $S$ is slightly off such that it is no longer a positive definite matrix. For example, it may be a positive semi-definite matrix or even slightly negative semi-definite.
+			
+			As such, a common method to solve this problem is to employ some jittering in the cholesky decomposition process. As a positive definite matrix usually have its most positive values on the diagonals, the method begins by adding small positive numbers, or \textit{jitters}, onto the diagonal. The method then attempts to find the Cholesky decomposition of the new and slightly different matrix. If there is still an error, the process repeats until there is no error in finding the Cholesky decomposition anymore.
+			
+			While this will not always guarantee a successful Cholesky decomposition, it is used commonly in practice and seldom fails.
+			
 		\subsection{Stable and Efficient Monte Carlo Optimisation}
 		\label{Appendix:ComputationalAspects:NumericalStability:MonteCarlo}
 		
@@ -73,36 +103,45 @@
 			
 			The typical way to solve the above problem is to reinitialise the seed to the same value in each optimisation iteration, so that the same samples are drawn for estimation under identical scenarios. Nevertheless, if the transformation technique is used, this is equivalent to drawing a set of iid normal samples $Z$ at the beginning of the optimisation process and continuously reusing these samples for any computation. This avoids resetting the seed and redrawing the samples, thus speeding up the computation. This technique works as, while the distribution to be drawn from in each optimisation iteration changes, such a distribution is entirely captured by the mean vector $\vec{\upmu}^{\star}$ and covariance matrix $\Sigma^{\star}$. Thus, the only quantities that need to change in each iteration are $\vec{\upmu}^{\star}$ and $\Sigma^{\star}$, or equivalently $\mathcal{U}$ and $L^{\star}$ in \eqref{Equation:VectorisedSampling}. That is, through transforming the iid samples with dynamic moments $\vec{\upmu}^{\star}$ and $\Sigma^{\star}$ in every optimisation loop, the optimisation process stabilises and is more efficient than the method of seed reinitialisation.
 			
-	\section{Time Complexity}
+	\section{Time \& Spatial Complexity}
 	\label{Appendix:ComputationalAspects:TimeComplexity}
 	
-		Reducing computational time
+		As Gaussian processes are typically $O(n^{3})$ algorithms in time and $O(n^{2})$ algorithms in space, there has been a lot of related work in reducing the time and spatial complexity of the algorithms. Some notable examples are sparsifications of covariance kernel matrices and other matrix approximation techniques.
 		
-%		\subsection{Numpy and Vectorisation}
+		The following sections instead discusses some simple ways to reduce time and spatial complexity without such complicated change to the model implementation.
 		
-		\subsection{Cholesky Update and Downdate}
-		\label{Appendix:ComputationalAspects:TimeComplexity:CholeskyUpdateDowndate}
+		\subsection{Caching learned quantities for fast prediction}
+		\label{Appendix:ComputationalAspects:TimeSpaceComplexity:Cache}
 		
-		\subsection{Caching learned GPs for fast prediction}
-		
-		\subsection{Parallelisation of GP learning and hyper-parameter batching}
-		
-		\subsection{Parallelisation of GP prediction and relevant subtleties}
-		
-%		\subsection{Fast vectorised GP drawing for regression and classification}
-		
-		
-	\section{Time \& Spatial Complexity}
-	\label{Appendix:ComputationalAspects:TimeSpaceComplexity}
-	
-		\subsection{Avoiding full covariance computations}
+			In many cases, the first approach to reduce time complexity is to avoid recomputing quantities when possible. In the Gaussian process classification scheme under Laplace approximation, the following quantities are shared between the learning and inference stage such that caching such quantities can speed up the computations by a noticeable amount.
+			
+			\begin{itemize}
+				\item Negative Log-Likelihood Hessian Matrix
+				\item Square Root of Negative Log-Likelihood Hessian Matrix
+				\item Log Likelihood Gradient Vector
+				\item Cholesky Decomposition Matrix of Effective Training Covariance
+			\end{itemize}
+
+		\subsection{Diagonal Log-Likelihood Hessians}
+		\label{Appendix:ComputationalAspects:TimeSpaceComplexity:DiagonalHessians}
+					
+			For Gaussian process classification under Laplace approximation, the Hessian matrix of the log-likelihood response is a diagonal matrix since each output $y_{i}$ is only correlated to the corresponding latent $f_{i}$ at that point. Therefore, to speed up computations and reduce memory usage, the matrix can be stored in a single axis array which contains its diagonal elements, which would reduce the memory usage from $O(n^{2})$ to $O(n)$.
+			
+			Furthermore, the Laplace approximation algorithm requires the Cholesky Decomposition of the log-likelihood Hessian. Since the Hessian matrix is diagonal, the Cholesky Decomposition is simply a diagonal matrix whose elements are square roots of the original matrix. This further speeds up computations as square roots can be performed element-by-element wise without the need for a Cholesky decomposition step.
+			
+		\subsection{Avoiding Full Covariance Computations}
 		\label{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}
 		
-		\subsection{Taking advantage of diagonal log-likelihood Hessians}
-		\label{Appendix:ComputationalAspects:TimeSpaceComplexity:DiagonalHessians}
-		
-			BTW, SQRT IS ALSO CHOLESKY IF DIAGONAL
+			Similar to the case with diagonal log-likelihood Hessians, there are other cases where the full matrix does not need to be computed. 
 			
-		\subsection{Creating predictor objects to modularise prediction}
+			The computations of the prediction classes and the prediction information entropy are non-mutual. As such, they do not require the covariance structure of the latent Gaussian process. Therefore, in order to compute the prediction map and the entropy maps, one can simply compute the diagonal elements of the covariance matrix, which results in a variance vector. Together with the expectance vector, this provides sufficient information for non mutual analysis.
+			
+			This reinforces the advantage of using a receding horizon approach for informative path planning. In the receding horizon scheme, the only computations that require a full covariance structure is the computation of the acquisition function along the path. Since the path is composed of much fewer query points than the entire map, it is feasible and achievable to compute such covariances in a reasonable amount of time. Meanwhile, the map itself does not require the covariance structure, and therefore can be quickly computed through a variance vector even though it is composed of many query points.
+	
+
+		
+
+		
+			
 		
 		

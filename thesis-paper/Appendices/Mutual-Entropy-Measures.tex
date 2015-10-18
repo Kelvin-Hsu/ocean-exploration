@@ -2,105 +2,22 @@
 \lhead{Mutual Entropy Measures}
 \label{Appendix:MutualEntropyMeasures}
 
-			\begin{figure}[!htbp]
-				\centering
-					\includegraphics[width = \linewidth]{Figures/mcpie_lmde_comparison_multiclass/mcpie_lmde_comparison.eps}
-				\caption{GP multiclass classifier example}
-				\label{Figure:mcpie_lmde_comparison_multiclass}
-			\end{figure}
-			
-			\begin{figure}[!htbp]
-				\centering
-					\includegraphics[width = \linewidth]{Figures/mcpie_lmde_comparison_multiclass/mcpie_accuracy.eps}
-				\caption{Accuracy improvement of MCPIE for a multiclass case}
-				\label{Figure:mcpie_accuracy_multiclass}
-			\end{figure}
-			
-			
-			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/informative_seafloor_exploration/serial_lmde/mie199.eps}
-%			\end{figure}
+	This section supports the analysis in Section \ref{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures:EstimationAccuracy} by providing the corresponding results for the multiclass case.
+	
+	The tests cases are setup in the same way as the binary classification scenario in Section \ref{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures:EstimationAccuracy}. An OVA multiclass classifier is used (section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}), and the probabilities are fused using the \textit{exclusion} method (section  \ref{BenthicHabitatMapping:Classification:Multiclass:ProbabilityFusion}).
 
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/informative_seafloor_exploration/serial_lmde/mie_propose1.eps}
-%			\end{figure}
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/informative_seafloor_exploration/serial_lmde/mie_propose2.eps}
-%			\end{figure}
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/informative_seafloor_exploration/serial_lmde/mie_propose3.eps}
-%			\end{figure}
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/informative_seafloor_exploration/serial_lmde/mie_propose4.eps}
-%			\end{figure}
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/informative_seafloor_exploration/serial_lmde/mie_propose5.eps}
-%			\end{figure}
-			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure1.eps}
-%			\end{figure}
-%			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure2.eps}
-%			\end{figure}
-%			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure3.eps}
-%			\end{figure}
-%			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure4.eps}
-%			\end{figure}
-%			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure5.eps}
-%			\end{figure}
-%			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure6.eps}
-%			\end{figure}
-%			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure7.eps}
-%			\end{figure}
-%			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure8.eps}
-%			\end{figure}
-%			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure9.eps}
-%			\end{figure}
-%			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure10.eps}
-%			\end{figure}
-%			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure11.eps}
-%			\end{figure}
-%			
-%			\begin{figure}[!htbp]
-%				\centering
-%					\includegraphics[width = \linewidth]{Figures/presentation_temp/Figure12.eps}
-%			\end{figure}
-			
+	\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/mcpie_lmde_comparison_multiclass/mcpie_lmde_comparison.eps}
+		\caption{GP multiclass classifier example}
+		\label{Figure:mcpie_lmde_comparison_multiclass}
+	\end{figure}
+		
+	In summary, the results are consistent with the observations with the binary case, in that linearised model differential entropy better captures the decision boundaries and places without observations more distinctly than the usual prediction information entropy (figure \ref{Figure:mcpie_lmde_comparison_multiclass}). Furthermore, it also takes around more than 1000 samples for the Monte Carlo prediction information entropy to converge to the true prediction information entropy.
+	
+	\begin{figure}[!htbp]
+		\centering
+			\includegraphics[width = \linewidth]{Figures/mcpie_lmde_comparison_multiclass/mcpie_accuracy.eps}
+		\caption{Accuracy improvement of MCPIE for a multiclass case}
+		\label{Figure:mcpie_accuracy_multiclass}
+	\end{figure}
