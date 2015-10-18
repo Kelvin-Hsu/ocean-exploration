@@ -2,7 +2,7 @@
 \lhead{Bathymetric Feature Extraction}
 \label{Appendix:BathymetricFeatureExtraction}
 
-	The following discussion details the bathymetric feature extraction process. Given the bathymetric depth observations, the other bathymetric features, aspect and rugosity, can be computed in the short scale and long scale form in order to obtain a rich feature space for benthic habitat mapping.
+	The following discussion details the ``Feature Extraction'' bubble in Figure \ref{Figure:InferenceFlow}. Given the bathymetric depth observations, the other bathymetric features, aspect and rugosity, can be computed in the short scale and long scale form in order to obtain a rich feature space for benthic habitat mapping.
 	
 	\section{Formulation}
 	\label{Appendix:BathymetricFeatureExtraction:Formulation}
@@ -24,7 +24,7 @@
 			
 	\section{Aspect and Rugosity}
 	\label{Appendix:BathymetricFeatureExtraction:DataMatching:AspectAndRugosity}
-	
+		
 		The feature extraction process assumes that the bathymetric depth data is available in grid form. That is, one can represent the available depth data $Z = \{z_{k}\}_{k \in {1, 2, ..., N}}$ as $Z = \{z_{ij}\}_{i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}}}$ where varying $i$ and $j$ corresponds to varying data points in axis 1 and 2 respectively. Axis 1 and 2 is required to form an orthonormal frame. While axis 1 and 2 is usually aligned with the eastings-northings frame, it is generally not required for the feature extraction process.
 		
 		Without loss of generality, let $x$ and $y$ denote quantities corresponding to the orthogonal axes. We have that at $(x_{i}, y_{j})$ $(i \in {1, 2, ..., n_{i}}, \;\; j \in {1, 2, ..., n_{j}})$ the depth is measured as $z_{ij}$. The partial derivatives of various degrees of accuracy and scale can then be estimated through central differencing. Table \ref{Table:AspectExtraction}  shows the case for extracting aspect in the $x$-direction. Correspondingly, replacing the operations from $i$ to $j$ the aspect in the $y$-direction can also be similarly extracted.
@@ -67,5 +67,7 @@
 		
 		In the benthic habitat mapping scenario, however, part of the reason that bathymetric features are used in the beginning is that bathymetric data is abundant and relatively densely observed. Therefore, it is rare to find a case where the above feature extraction does not apply.
 		
-		After each feature is extracted, each feature can then be whitened, or standardised, in order to allow better numerical properties for the classifier to model the benthic habitats upon the bathymetric features. While this is not necessarily, it ensures that each feature are roughly in the same numerical range so that no particular feature would dominate the model simply due to differences in the orders of magnitude. To standardise, each training feature set is subtracted by its mean and divided by its standard deviation, which are referred to as the \textit{whiten parameters}. The query feature set then undergoes the same transformation using the whiten parameters from the training set to allow uniform transformations. This covers the whitening process indicated in Figure \ref{Figure:InferenceFlow}.
+		After each feature is extracted, each feature can then be whitened, or standardised, in order to allow better numerical properties for the classifier to model the benthic habitats upon the bathymetric features. While this is not necessarily, it ensures that each feature are roughly in the same numerical range so that no particular feature would dominate the model simply due to differences in the orders of magnitude. To standardise, each training feature set is subtracted by its mean and divided by its standard deviation, which are referred to as the \textit{whiten parameters}. The query feature set then undergoes the same transformation using the whiten parameters from the training set to allow uniform transformations.
+		
+		
 		

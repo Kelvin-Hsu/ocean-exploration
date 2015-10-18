@@ -93,12 +93,7 @@
 		\label{Figure:BenthicHabitatMappingProcess}
 		\end{figure}
 		
-		Figure \ref{Figure:BenthicHabitatMappingProcess} show a high level overview of the benthic habitat mapping process. As bathymetric data is available in more quantities and distributed more uniformly, it is often sufficient to employ standard finite differencing as outlined in Appendix \ref{Appendix:BathymetricFeatureExtraction} for feature extraction, which also discusses the subtlety of modeling benthic habitats on bathymetric features on real datasets.
-		
-
-		
-
-			
+		Figure \ref{Figure:BenthicHabitatMappingProcess} show a high level overview of the benthic habitat mapping process. As bathymetric data is available in more quantities and distributed more uniformly, it is often sufficient to employ standard finite differencing as outlined in Appendix \ref{Appendix:BathymetricFeatureExtraction} for feature extraction, which also discusses the subtlety of modeling benthic habitats on bathymetric features on real datasets, and summarises the Feature Extraction bubble in Figure \ref{Figure:InferenceFlow}.
 				
 	\section{Gaussian Process Classification}
 	\label{BenthicHabitatMapping:Classification}
@@ -186,7 +181,7 @@
 				
 				Note that if treated as a regression output, the range $y \in \{-1, 1\}$ is rather arbitrary in scale. Thus, in order to allow flexibility in the probabilistic least squares model, a slope and intercept parameter is introduced to remove the dependency of scale and datum reference.
 				
-				The above formulations suggests that Laplace approximation allow a more principled thus accurate inference framework for classification, and will thus be employed as the approximation technique for benthic habitat mapping. 
+				The above formulations suggests that Laplace approximation allow a more principled thus accurate inference framework for classification, and will thus be employed as the approximation technique for benthic habitat mapping. This covers the ``Learning \& Training'' bubble in Figure \ref{Figure:InferenceFlow}.
 %				Appendix \ref{Appendix:ApproximationPerformance} briefly compares the performance of Laplace and probabilistic least square approximation which supports this claim.
 			
 		\subsection{Multiclass Classification}
@@ -307,6 +302,8 @@
 					\label{Equation:Exclusion}
 					\end{equation}
 				
+					This covers up to the green arrows within the ``Inference \& Prediction'' bubble in Figure \ref{Figure:InferenceFlow}.
+					
 			\subsubsection{Performance of Probability Fusion Techniques}
 			\label{BenthicHabitatMapping:Classification:FusionPerformance}
 				

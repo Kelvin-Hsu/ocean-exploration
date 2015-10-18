@@ -103,31 +103,19 @@
 			
 			The typical way to solve the above problem is to reinitialise the seed to the same value in each optimisation iteration, so that the same samples are drawn for estimation under identical scenarios. Nevertheless, if the transformation technique is used, this is equivalent to drawing a set of iid normal samples $Z$ at the beginning of the optimisation process and continuously reusing these samples for any computation. This avoids resetting the seed and redrawing the samples, thus speeding up the computation. This technique works as, while the distribution to be drawn from in each optimisation iteration changes, such a distribution is entirely captured by the mean vector $\vec{\upmu}^{\star}$ and covariance matrix $\Sigma^{\star}$. Thus, the only quantities that need to change in each iteration are $\vec{\upmu}^{\star}$ and $\Sigma^{\star}$, or equivalently $\mathcal{U}$ and $L^{\star}$ in \eqref{Equation:VectorisedSampling}. That is, through transforming the iid samples with dynamic moments $\vec{\upmu}^{\star}$ and $\Sigma^{\star}$ in every optimisation loop, the optimisation process stabilises and is more efficient than the method of seed reinitialisation.
 			
-	\section{Time \& Spatial Complexity}
+	\section{Time and Spatial Complexity}
 	\label{Appendix:ComputationalAspects:TimeComplexity}
 	
 		As Gaussian processes are typically $O(n^{3})$ algorithms in time and $O(n^{2})$ algorithms in space, there has been a lot of related work in reducing the time and spatial complexity of the algorithms. Some notable examples are sparsifications of covariance kernel matrices and other matrix approximation techniques.
 		
 		The following sections instead discusses some simple ways to reduce time and spatial complexity without such complicated change to the model implementation.
 		
-		\subsection{Caching learned quantities for fast prediction}
-		\label{Appendix:ComputationalAspects:TimeSpaceComplexity:Cache}
-		
-			In many cases, the first approach to reduce time complexity is to avoid recomputing quantities when possible. In the Gaussian process classification scheme under Laplace approximation, the following quantities are shared between the learning and inference stage such that caching such quantities can speed up the computations by a noticeable amount.
-			
-			\begin{itemize}
-				\item Negative Log-Likelihood Hessian Matrix
-				\item Square Root of Negative Log-Likelihood Hessian Matrix
-				\item Log Likelihood Gradient Vector
-				\item Cholesky Decomposition Matrix of Effective Training Covariance
-			\end{itemize}
-
 		\subsection{Diagonal Log-Likelihood Hessians}
 		\label{Appendix:ComputationalAspects:TimeSpaceComplexity:DiagonalHessians}
 					
 			For Gaussian process classification under Laplace approximation, the Hessian matrix of the log-likelihood response is a diagonal matrix since each output $y_{i}$ is only correlated to the corresponding latent $f_{i}$ at that point. Therefore, to speed up computations and reduce memory usage, the matrix can be stored in a single axis array which contains its diagonal elements, which would reduce the memory usage from $O(n^{2})$ to $O(n)$.
 			
-			Furthermore, the Laplace approximation algorithm requires the Cholesky Decomposition of the log-likelihood Hessian. Since the Hessian matrix is diagonal, the Cholesky Decomposition is simply a diagonal matrix whose elements are square roots of the original matrix. This further speeds up computations as square roots can be performed element-by-element wise without the need for a Cholesky decomposition step.
+			Furthermore, the Laplace approximation algorithm requires the Cholesky Decomposition of the negative log-likelihood Hessian $W := -\frac{\partial^{2}}{{\partial \bvec{f}}^{2}} \log(p(\bvec{y} | \bvec{f}))$. Since the negative Hessian matrix is diagonal, the Cholesky Decomposition is simply a diagonal matrix whose elements are square roots of the original matrix. This further speeds up computations as square roots can be performed element-by-element wise without the need for a Cholesky decomposition step.
 			
 		\subsection{Avoiding Full Covariance Computations}
 		\label{Appendix:ComputationalAspects:TimeSpaceComplexity:CovarianceAvoidance}
@@ -138,7 +126,23 @@
 			
 			This reinforces the advantage of using a receding horizon approach for informative path planning. In the receding horizon scheme, the only computations that require a full covariance structure is the computation of the acquisition function along the path. Since the path is composed of much fewer query points than the entire map, it is feasible and achievable to compute such covariances in a reasonable amount of time. Meanwhile, the map itself does not require the covariance structure, and therefore can be quickly computed through a variance vector even though it is composed of many query points.
 	
+		\subsection{Fast Inference with Learner and Predictor Cache}
+		\label{Appendix:ComputationalAspects:TimeSpaceComplexity:Cache}
+		
+			In many cases, the first approach to reduce time complexity is to avoid recomputing quantities when possible. In the Gaussian process classification scheme under Laplace approximation, the following quantities are shared between the learning and inference stage such that caching such quantities can speed up the computations by a noticeable amount.
+			
+			\begin{itemize}
+				\item Negative Log-Likelihood Hessian Matrix $W := -\frac{\partial^{2}}{{\partial \bvec{f}}^{2}} \log(p(\bvec{y} | \bvec{f}))$
+				\item Square Root of Negative Log-Likelihood Hessian Matrix $W^{\frac{1}{2}}$
+				\item Log Likelihood Gradient Vector $\frac{\partial}{\partial \bvec{f}} \log(p(\bvec{y} | \bvec{f}))$
+				\item Cholesky Decomposition Matrix $L$ of Effective Training Covariance
+			\end{itemize}
 
+			By caching these quantities in the learner stage and thus avoiding recomputations in the inference stage, the inference process can be sped up significantly. This summarises the ``Learner Cache'' in Figure \ref{Figure:InferenceFlow}.
+			
+			Furthermore, as the expectance vector, variance vector, and covariance matrix requires the computation of the inference matrix $K^{\star}$, such a matrix can be cached in the predictor stage, thereby avoiding recomputations further. Together with the already known query features $X^{\star}$, this forms the ``Predictor Cache'' in Figure \ref{Figure:InferenceFlow}.
+			
+			Together, the ``Learner Cache'' and ``Predictor Cache'' is sufficient to compute the ``Latent Expectance'', ``Latent Covariance'', and ``Latent Variance'', as denoted in Figure \ref{Figure:InferenceFlow}. The latent process is then sufficient to compute all further inference and predictions.
 		
 
 		
