@@ -38,7 +38,7 @@
 		\subsection{Cholesky Jittering}
 		\label{Appendix:ComputationalAspects:NumericalStability:CholeskyJittering}
 
-			As mentioned before, even with the more stable and efficient Cholesky decomposition method, there are still cases where a Cholesky decomposition cannot be found as the numerical representation of the positive definite matrix $S$ is slightly off such that it is no longer a positive definite matrix. For example, it may be a positive semi-definite matrix or even slightly negative semi-definite.
+			As mentioned before, even with the more stable and efficient Cholesky decomposition method, there are still cases where a Cholesky decomposition cannot be found as the numerical representation of the positive definite matrix $S$ is slightly off such that it is no longer a positive definite matrix. For example, it may be positive semi-definite or even slightly negative semi-definite.
 			
 			As such, a common method to solve this problem is to employ some jittering in the cholesky decomposition process. As a positive definite matrix usually have its most positive values on the diagonals, the method begins by adding small positive numbers, or \textit{jitters}, onto the diagonal. The method then attempts to find the Cholesky decomposition of the new and slightly different matrix. If there is still an error, the process repeats until there is no error in finding the Cholesky decomposition anymore.
 			
