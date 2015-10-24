@@ -8,25 +8,25 @@
 	
 	Nevertheless, as Gaussian process classifiers lack analytical forms for the \textit{predictive} joint distribution of target labels, any mutual information measure derived from the predictive joint distribution must rely on numerical estimation techniques. As such, estimating joint prediction information entropy requires a Monte Carlo sampling based approach. Section \ref{InformativeSeafloorExploration:MCPIE} describes such a mutual information criterion, hereby named Monte Carlo Predictive Information Entropy (MCPIE).
 	
-	However, a Monte Carlo approach suffers some several drawbacks, such as computational complexity and limited estimation accuracy. Instead, this thesis proposes a new and alternative mutual information measure, Linearised Model Differential Entropy (LMDE), that is more computationally tractable than MCPIE. Instead of focusing on the \textit{predictive} joint distribution, LMDE focuses on utilising the \textit{latent} joint distribution, where inference remains analytically tractable. Section \ref{InformativeSeafloorExploration:LMDE} defines and derives LMDE as an appropriate form of mutual information. Specifically, it regularises between reducing mutual bias and mutual uncertainty through taking advantage of both the latent mean and covariance structure, as well as the non-Gaussian likelihood response. Tractability of the approach is further improved through a linearisation approximation on such an acquisition criterion.
+	However, a Monte Carlo approach suffers several drawbacks, such as computational complexity and limited estimation accuracy. Instead, this thesis proposes a new and alternative mutual information measure, Linearised Model Differential Entropy (LMDE), that is more computationally tractable than MCPIE. Instead of focusing on the \textit{predictive} joint distribution, LMDE focuses on the \textit{model} joint distribution by utilising the \textit{latent} joint distribution, where inference remains analytically tractable. Section \ref{InformativeSeafloorExploration:LMDE} defines and derives LMDE as an appropriate form of mutual information. Specifically, it regularises between reducing mutual bias and mutual uncertainty through taking advantage of both the latent mean and covariance structure, as well as the non-Gaussian likelihood response. Tractability of the approach is further improved through a linearisation approximation on such an acquisition criterion.
 	
 	Section \ref{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures} proceeds to demonstrate the two mutual entropy measures through example datasets. Interpretation of the experimental results provides an intuitive understanding of their differences in time complexity, accuracy, and most importantly, their properties.
 	
 	Section \ref{InformativeSeafloorExploration:RecedingHorizonFormulation} then formulates a receding horizon approach to informative path planning. This provides a simple yet effective framework for a large scale exploration task such as seafloor exploration for benthic habitat mapping. In particular, the receding horizon formulation strikes a balance between exploring in a non-myopic way and doing so with reasonable tractability constraints.
 	
-	Finally, Section \ref{InformativeSeafloorExploration:ScottReef} assesses the performance of various approaches to informative seafloor exploration for benthic habitat mapping. Multiple acquisition criterions are tested under both the receding horizon approach and a myopic greedy approach, which verifies the benefits of linearised model differential entropy under the receding horizon formulation. Under a mapping accuracy criterion, simulations over the Scott Reef dataset demonstrates that LMDE acquisition outperform other criterions, including MCPIE acquisition.
+	Finally, Section \ref{InformativeSeafloorExploration:ScottReef} assesses the performance of various approaches to informative seafloor exploration for benthic habitat mapping. Multiple acquisition criteria are tested under both the receding horizon approach and a myopic greedy approach, which verifies the benefits of linearised model differential entropy under the receding horizon formulation. Under a mapping accuracy criterion, simulations over the Scott Reef dataset demonstrates that LMDE acquisition outperform other criterions, with MCPIE acquisition following closely in performance.
 		
 	\section{Monte Carlo Predictive Information Entropy}
 	\label{InformativeSeafloorExploration:MCPIE}
 	
 		This section introduces the Monte Carlo predictive information entropy (MCPIE) of Gaussian process classifiers. Monte Carlo sampling methods provide a way to estimate the joint predictive entropy through considering the joint distributions of the latent function at the query points.
 	
-		Monte Carlo sampling, as its name suggests, involve using sampled draws from a particular distribution to estimate a certain quantity that can be characterised by the distribution. In MCPIE case, the distribution to be sampled from is the latent GP process of the GP classifier, whose moments are analytically tractable, and the quantity to be estimated is the \textit{joint} predictive information entropy of the query points. A brief description of the method is provided for both binary and multiclass classification.
+		Monte Carlo sampling, as its name suggests, involve using sampled draws from a particular distribution to estimate a certain quantity that can be characterised by the distribution. In the MCPIE case, the distribution to be sampled from is the latent GP process of the GP classifier, whose moments are analytically tractable, and the quantity to be estimated is the \textit{joint} predictive information entropy of the query points. A brief description of the method is provided for both binary and multiclass classification.
 		
 		\subsection{Binary Classification}
 		\label{InformativeSeafloorExploration:MCPIE:Binary}
 		
-			Suppose a Gaussian process classifier has been trained under Laplace approximation with respect to a training set $\mathcal{D} = \{X, \bvec{y}\} = \{[ \bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]^{T}\}$ with $n$ training points. It is known that the latent function $f(\bvec{x})$ is distributed as a GP with a particular predictive mean $m(\bvec{x})$ and covariance $k(\bvec{x}, \bvec{x}')$ once conditioned on the training data \eqref{Equation:PredictiveLatentBinaryGP}. Note that again this chapter will omit explicitly notating the training data and query data that was conditioned upon, as well as the learned hyperparameters $\vec{\uptheta}$, unless otherwise stated. \begin{equation}
+			Suppose a Gaussian process classifier has been trained under \textit{any} approximation technique with respect to a training set $\mathcal{D} = \{X, \bvec{y}\} = \{[ \bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]^{T}\}$ with $n$ training points. It is known that the latent function $f(\bvec{x})$ is distributed as a GP with a particular predictive mean $m(\bvec{x})$ and covariance $k(\bvec{x}, \bvec{x}')$ once conditioned on the training data \eqref{Equation:PredictiveLatentBinaryGP}. Note that this chapter will omit explicitly notating the training data and query data that was conditioned upon, as well as the learned hyperparameters $\vec{\uptheta}$, unless otherwise stated. \begin{equation}
 				f(\bvec{x}) \sim \mathcal{GP}(m(\bvec{x}), k(\bvec{x}, \bvec{x}'))
 			\label{Equation:PredictiveLatentBinaryGP}
 			\end{equation}
@@ -43,12 +43,12 @@
 			
 			As a straightforward transformation of the latent vector, the predictive probability vector $\vec{\uppi^{\star}}$ is thus a random vector itself. The usual procedure is then to treat the expected prediction probabilities $\mathbb{E}[\vec{\uppi^{\star}}]$ as the posterior class probabilities for further inference. However, this discards any information regarding the joint behaviour of an arbitrary collection of query points. As a result, a measure of mutual information shared amongst the query points cannot be obtained.
 			
-			As such, one straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP latent, whose distribution is completely characterised through \eqref{Equation:PredictiveLatentBinaryGP} and definition \ref{Definition:GaussianRandomField}. For each jointly sampled vector, the components with positive latent values are assigned class label 1, and -1 otherwise. That is, for a particular sample ${^{s}}\bvec{f}^{\star}$ drawn from $\bvec{f}^{\star} \sim \mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star})$ \eqref{Equation:BinaryPredictiveGaussianDistribution}, $s \in I_{n_{S}}$ where $n_{S}$ is the number of samples, the corresponding class assignments are computed through \eqref{Equation:MonteCarloSamplingBinaryClassifier}. Here, the left superscript $s$ indexes the sampled value or vector. As before, without the left superscript $s$, $\bvec{f}^{\star}$ is a random vector, while ${^{s}}\bvec{f}^{\star}$ is a particular realised, fixed vector. \begin{equation}
+			As such, one straightforward approach to address this problem is to perform Monte Carlo estimation of the posterior joint distribution for class predictions via jointly sampling latent vectors from the GP latent, whose distribution is completely characterised through \eqref{Equation:PredictiveLatentBinaryGP} and Definition \ref{Definition:GaussianRandomField}. For each jointly sampled vector, the components with positive latent values are assigned class label 1, and -1 otherwise. That is, for a particular sample ${^{s}}\bvec{f}^{\star}$ drawn from $\bvec{f}^{\star} \sim \mathcal{N}(\vec{\upmu}^{\star}, \Sigma^{\star})$ \eqref{Equation:BinaryPredictiveGaussianDistribution}, $s \in I_{n_{S}}$ where $n_{S}$ is the number of samples, the corresponding class assignments are computed through \eqref{Equation:MonteCarloSamplingBinaryClassifier}. Here, the left superscript $s$ indexes the sampled value or vector. Without the left superscript $s$, $\bvec{f}^{\star}$ is a random vector, while ${^{s}}\bvec{f}^{\star}$ is a particular realised, fixed vector. \begin{equation}
 				{^{s}}\bvec{y}^{\star} = \bvec{\mathds{H}}({^{s}}\bvec{f}^{\star}) := \{\mathbb{H}({^{s}}f^{\star}_{i})\}_{i \in I_{n^{\star}}} \quad \forall s \in I_{n_{s}} \quad \mathrm{where} \quad \mathbb{H}(z) := \mathds{1}_{\{z > 0\}} - \mathds{1}_{\{z \leq 0\}}
 			\label{Equation:MonteCarloSamplingBinaryClassifier}
 			\end{equation}
 			
-			where $\mathbb{H}(z)$ is the modified Heaviside function which is 1 is $z$ is positive and -1 otherwise, so that ${^{s}}\bvec{y}^{\star} \in \{-1, 1\}^{n_{S}}$. Note that the sampled labels can be determined completely from the sampled latent function as, once sampled, the latent function is no longer a random function. Hence, any positive (negative) latent values will map to prediction probabilities of more (less) than 0.5 under any likelihood response.
+			Above, $\mathbb{H}(z)$ is the modified Heaviside function which is 1 is $z$ is positive and -1 otherwise, so that ${^{s}}\bvec{y}^{\star} \in \{-1, 1\}^{n_{S}}$. Note that the sampled labels can be determined completely from the sampled latent function as, once sampled, the latent function is no longer a random. Hence, any positive (negative) latent values will map to prediction probabilities of more (less) than 0.5 under any likelihood response.
 			
 			Further, define $I_{U} \subseteq I_{n_{S}}$, $n_{U} := \Vert I_{U} \Vert$, as the indices corresponding to the subset with the maximum amount of unique samples \eqref{Equation:UniqueIndexSet}, where $\Vert I \Vert$  stands for the cardinality of $I$. An \textit{estimated} probability vector $\tilde{\bvec{p}}$ can then be formed \eqref{Equation:EstimatedProbability}. \begin{equation}
 				I_{U} := \argmax_{\{I \subseteq I_{n_{S}} | {^{s}}\bvec{y}^{\star} \neq {^{t}}\bvec{y}^{\star}, \forall s, t \in I\}} \Vert I \Vert 
@@ -63,7 +63,7 @@
 			
 			where $\mathbb{F}_{I_{n_{S}}}({^{s}}\bvec{y}^{\star})$ is the frequency of appearance of the vector ${^{s}}\bvec{y}^{\star}$ amongst all the sampled vectors $\{ {^{s}}\bvec{y}^{\star} \}_{s \in I_{n_{S}}}$. Note that each \textit{unique} sample is assigned a probability such that the vector $\tilde{\bvec{p}}^{\star}$ has exactly $n_{U}$ non-zero entries indexed by $I_{U}$, which is generally smaller than the total number of possible samples. This inherently means that possible samples that were not drawn or \textit{realised} are estimated with probability zero. In this way, since more samples would likely realise those unlikely possibilities and thus raising the corresponding probability to a nonzero value, estimation accuracy will benefit from higher numbers of samples $n_{S}$.
 			
-			Finally,  for $n_{C} = 2$ classes, the Monte Carlo predictive information entropy, as an instance of Shannon entropy \cite{ShannonEntropy}, can be computed from the estimated probabilities that represent the joint distribution \eqref{Equation:MCPIE}. As usual, only non-zero entries of $\tilde{\bvec{p}}$ need to be considered. \begin{equation}
+			Finally, the Monte Carlo predictive information entropy, as an instance of Shannon entropy, can be computed from the estimated probabilities that represent the joint distribution \eqref{Equation:MCPIE}. The algorithm developed here takes full advantage of the fact that entropy computations depend only on the \textit{non-ordered} and \textit{non-zero} probabilities without any reference to the actual realised sample values. \begin{equation}
 				H_{\mathrm{MCPIE}} \stackrel{\text{abbrev.}}{:=} H_{\mathrm{MCPIE}}[X^{\star} | X, \bvec{y}] := - \sum_{i \in I_{n_{U}}} \tilde{p}^{\star}_{i} \log(\tilde{p}^{\star}_{i})
 			\label{Equation:MCPIE}
 			\end{equation}		
@@ -71,9 +71,7 @@
 		\subsection{Multiclass Classification}
 		\label{InformativeSeafloorExploration:MCPIE:Multiclass}
 		
-			The derivation in the multiclass case is similar to the binary case. Specifically, since ${^{s}}\bvec{y}^{\star} \in \{1, 2, \dots, n_{C}\}^{n_{s}}$ it suffices to replace the sampling step \eqref{Equation:MonteCarloSamplingBinaryClassifier} with \eqref{Equation:MonteCarloSamplingMulticlassClassifierOVA} in the OVA case or \eqref{Equation:MonteCarloSamplingMulticlassClassifierAVA} in the AVA case, and apply \eqref{Equation:UniqueIndexSet}, \eqref{Equation:EstimatedProbability}, and \eqref{Equation:MCPIE} as before.
-			
-			The technique is first developed for an OVA multiclass classifier (see Section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:OVA}), and then for an AVA multiclass classifier (see Section \ref{BenthicHabitatMapping:Classification:MulticlassClassification:AVA}) through reducing the AVA form into an OVA form. 
+			The derivation in the multiclass case is similar to the binary case. Specifically, since ${^{s}}\bvec{y}^{\star} \in \{1, 2, \dots, n_{C}\}^{n_{s}}$ it suffices to replace the sampling step \eqref{Equation:MonteCarloSamplingBinaryClassifier} with \eqref{Equation:MonteCarloSamplingMulticlassClassifierOVA} in the OVA case or \eqref{Equation:MonteCarloSamplingMulticlassClassifierAVA} in the AVA case, and apply \eqref{Equation:UniqueIndexSet}, \eqref{Equation:EstimatedProbability}, and \eqref{Equation:MCPIE} as before. The technique is first developed for an OVA multiclass classifier, and then for an AVA multiclass classifier through reducing the AVA form into an OVA form. 
 			
 			\subsubsection{One Versus All Classifier}
 			\label{InformativeSeafloorExploration:MCPIE:Multiclass:OVA}
@@ -86,7 +84,7 @@
 				Here the superscript $c$ is used to index the classes. The latent vector $\bvec{f}_{i} := \{f^{c}_{i}\}_{c \in I_{n_{C}}}$ represents the collection of $n_{C}$ latent values across classes at the query point $i \in I_{n^{\star}}$, and is distinct from $\bvec{f}^{c} := \{f^{c}_{i}\}_{i \in I_{n^{\star}}}$ which represents the collection of $n^{\star}$ latent values across query points for class $c \in I_{n_{C}}$.
 				
 				Again, by definition of a GP, each ${\bvec{f}^{c}}^{\star}$ is multivariate Gaussian distributed with corresponding means ${\mu^{c}}^{\star}_{i} = m^{c}(\bvec{x}^{\star}_{i})$ and covariances ${\Sigma^{c}}^{\star}_{ij} = k^{c}(\bvec{x}^{\star}_{i}, \bvec{x}^{\star}_{j})$ \eqref{Equation:MulticlassPredictiveGaussianDistributionOVA}. \begin{equation}
-					{\bvec{f}^{c}}^{\star} = [{f^{c}_{1}}^{\star}, {f^{c}_{2}}^{\star}, \dots, {f^{c}_{n^{\star}}}^{\star}]^{T} \sim \mathcal{N}({\vec{\upmu}^{c}}^{\star}, {\Sigma^{c}}^{\star})
+					{\bvec{f}^{c}}^{\star} = [{f^{c}_{1}}^{\star}, {f^{c}_{2}}^{\star}, \dots, {f^{c  \star}_{n^{\star}}}]^{T} \sim \mathcal{N}({\vec{\upmu}^{c}}^{\star}, {\Sigma^{c}}^{\star})
 				\label{Equation:MulticlassPredictiveGaussianDistributionOVA}
 				\end{equation}
 				
@@ -108,12 +106,12 @@
 				\label{Equation:PredictiveLatentMulticlassAVA}
 				\end{equation}
 			
-				Similarly, by definition of a GP, each ${\bvec{f}^{c, c'}}^{\star}$ is multivariate Gaussian distributed with corresponding means ${\mu^{c, c'}}^{\star}_{i} = m^{c, c'}(\bvec{x}^{\star}_{i})$ and covariances ${\Sigma^{c, c'}}^{\star}_{ij} = k^{c, c'}(\bvec{x}^{\star}_{i}, \bvec{x}^{\star}_{j})$ \eqref{Equation:MulticlassPredictiveGaussianDistributionAVA}. \begin{equation}
+				Similarly, by definition of a GP, each ${\bvec{f}^{c, c'}}^{\star}$ is multivariate Gaussian distributed with corresponding means ${\mu^{c, c'}_{i}}^{\star} = m^{c, c'}(\bvec{x}^{\star}_{i})$ and covariances ${\Sigma^{c, c'}_{ij}}^{\star} = k^{c, c'}(\bvec{x}^{\star}_{i}, \bvec{x}^{\star}_{j})$ \eqref{Equation:MulticlassPredictiveGaussianDistributionAVA}. \begin{equation}
 					{\bvec{f}^{c, c'}}^{\star} = [{f^{c, c'}_{1}}^{\star}, {f^{c, c'}_{2}}^{\star}, \dots, {f^{c, c'}_{n^{\star}}}^{\star}]^{T} \sim \mathcal{N}({\vec{\upmu}^{c, c'}}^{\star}, {\Sigma^{c, c'}}^{\star})
 				\label{Equation:MulticlassPredictiveGaussianDistributionAVA}
 				\end{equation}
 				
-				For each class pair $(c, c')$, a sample ${^{s}}{\bvec{f}^{c, c'}}^{\star}$ is drawn from ${\bvec{f}^{c, c'}}^{\star} \sim \mathcal{N}({\vec{\upmu}^{c, c'}}^{\star}, {\Sigma^{c, c'}}^{\star})$, where $s \in I_{n_{S}}$. Similar to filling the lower triangular region of \eqref{Equation:ProbabilityListAVA}, the above samples form the upper triangular parts of a double axis list, and the lower triangular region can be filled by setting ${^{s}}{\bvec{f}^{c', c}}^{\star} := -{^{s}}{\bvec{f}^{c, c'}}^{\star}$ by symmetry of binary classifiers \ref{Equation:SampleLatentListAVA}. Here, $\bvec{0}_{n^{\star}} := \{0\}_{i \in I_{n^{\star}}}$ is the zero vector, which represents the zero prior for the latent GP when no comparisons are to be made.
+				For each class pair $(c, c')$, a sample ${^{s}}{\bvec{f}^{c, c'}}^{\star}$ is drawn from ${\bvec{f}^{c, c'}}^{\star} \sim \mathcal{N}({\vec{\upmu}^{c, c'}}^{\star}, {\Sigma^{c, c'}}^{\star})$, where $s \in I_{n_{S}}$. Similar to filling the lower triangular region of \eqref{Equation:ProbabilityListAVA}, the above samples form the upper triangular parts of a double axis list, and the lower triangular region can be filled through setting ${^{s}}{\bvec{f}^{c', c}}^{\star} := -{^{s}}{\bvec{f}^{c, c'}}^{\star}$ by symmetry of binary classifiers \eqref{Equation:SampleLatentListAVA}. Here, $\bvec{0}_{n^{\star}} := \{0\}_{i \in I_{n^{\star}}}$ is the zero vector, which represents the zero prior for the latent GP when no comparisons are to be made.
 				
 				\begin{equation}
 					\begin{Bmatrix*}
@@ -137,7 +135,7 @@
 	\section{Linearised Model Differential Entropy}
 	\label{InformativeSeafloorExploration:LMDE}
 	
-		This section introduces the linearised model differential entropy (LMDE) of Gaussian process classifiers. This information measure attempts to address the need for a measure of mutual entropy that is more computationally viable compared than Monte Carlo methods. Through investigating the structure of the GP classification inference model in both the binary and multiclass classification setting, a simple derivation for LMDE is provided.
+		This section introduces the linearised model differential entropy (LMDE) of Gaussian process classifiers. This information measure attempts to address the need for a measure of mutual entropy that is more computationally viable compared to Monte Carlo methods. Through investigating the structure of the GP classification inference model in both the binary and multiclass classification setting, a simple derivation for LMDE is provided.
 		
 		\subsection{Binary Classification}
 		\label{InformativeSeafloorExploration:LMDE:Binary}
@@ -155,7 +153,7 @@
 				
 			As the predictive probabilities are nonlinear transformations of the Gaussian distributed latent vector, they are no longer Gaussian distributed. In order to retain analytical tractability, the proposed approach is to linearise the response function about the latent expectance $\bar{f}^{\star}_{i} := \mathbb{E}[f^{\star}_{i}]$. Figure \ref{Figure:Linearisation} illustrates the linearisation accuracy for a probit response. Observe that points with latent expectance far away from zero translate to near zero predictive variance even under high latent variance. Linearisation is thus very accurate for those points. For points with latent expectances near zero, we require the latent variances to be sufficiently small for linearisation to be accurate.
 			
-			The linearised can thus be derived, which also serves to construct the definition of linearised differential entropy. With first order Taylor expansion, the response is linearised the latent mean $\bar{f}^{\star}_{i} = \mathbb{E}[f^{\star}_{i}]$ \eqref{Equation:LinearisingSigmoid}. \begin{equation}
+			The linearisation can thus be derived, which also serves to construct the definition of linearised model differential entropy. With first order Taylor expansion, the response is linearised about the latent mean $\bar{f}^{\star}_{i} = \mathbb{E}[f^{\star}_{i}]$ \eqref{Equation:LinearisingSigmoid}. \begin{equation}
 				\sigma(f^{\star}_{i}) \approx \sigma_{L}(f^{\star}_{i}) := \sigma(\bar{f}^{\star}_{i}) + \sigma'(\bar{f}^{\star}_{i}) (f^{\star}_{i} - \bar{f}^{\star}_{i})
 			\label{Equation:LinearisingSigmoid}
 			\end{equation}
@@ -167,7 +165,7 @@
 					({\Sigma^{\star}_{L}})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma_{L}(f^{\star}_{i}), \sigma_{L}(f^{\star}_{j})] = \sigma'(\bar{f}^{\star}_{i}) \sigma'(\bar{f}^{\star}_{j}) \mathbb{C}\mathrm{ov}[f^{\star}_{i}, f^{\star}_{j}]
 			\end{align*}
 			
-			Finally, the linearised model differential entropy $H_{\mathrm{LMDE}}$ at the query points $X^{\star}$ is defined to be the differential entropy corresponding to the random vector $\vec{\upsigma}_{L}(\bvec{f}^{\star})$. Since $\vec{\upsigma}_{L}(\bvec{f}^{\star})$ is multivariate Gaussian distributed, $H_{\mathrm{LMDE}}$ exhibits a closed form \eqref{Equation:BinaryLinearisedEntropy}. \begin{equation}
+			Finally, the linearised model differential entropy $H^{\mathrm{binary}}_{\mathrm{LMDE}}$ at the query points $X^{\star}$ is defined to be the differential entropy corresponding to the random vector $\vec{\upsigma}_{L}(\bvec{f}^{\star})$. Since $\vec{\upsigma}_{L}(\bvec{f}^{\star})$ is multivariate Gaussian distributed, there exhibits a closed analytical form for $H^{\mathrm{binary}}_{\mathrm{LMDE}}$ \eqref{Equation:BinaryLinearisedEntropy}. \begin{equation}
 				H^{\mathrm{binary}}_{\mathrm{LMDE}} \stackrel{\text{abbrev.}}{:=} H^{\mathrm{binary}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Big((2 \pi e)^{n^{\star}} \det(\Sigma^{\star}_{L})\Big)
 			\label{Equation:BinaryLinearisedEntropy}
 			\end{equation}			
@@ -180,12 +178,12 @@
 			\label{Equation:Softmax}
 			\end{equation}
 			
-			Similar to deriving the Monte Carlo prediction information entropy, the linearised model differential entropy is first derived in the OVA case. The treatment for the AVA case then again relies on transforming the AVA problem into an OVA problem so that the two share the bulk of the computations involved.
+			Similar to deriving the Monte Carlo prediction information entropy, the linearised model differential entropy is first derived in the OVA case. The treatment for the AVA case then again relies on transforming the AVA problem into an OVA problem so that the two share the bulk of the computations involved. If Laplace approximation is employed, this approach avoids the Monte Carlo sampling step in the inference stage \citep{GaussianProcessForMachineLearning}, and is thus faster in computational time. Note that this avoided Monte Carlo step is separate to the one used in MCPIE. In essence, using OVA or AVA classifiers skips one Monte Carlo step, and using LMDE skips another Monte Carlo step through avoiding using MCPIE. Furthermore, because each classifier is trained independently, both the learning stage and the inference stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in path planning under a receding horizon formulation, where the inference stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
 			
 			\subsubsection{One versus All Classifier}
 			\label{InformativeSeafloorExploration:LMDE:Multiclass:OVA}
 			
-				For $c$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Equation:Softmax}. This approach avoids the Monte Carlo sampling step in the inference stage of a typical GP multiclass classifier under Laplace Approximation \citep{GaussianProcessForMachineLearning}, and is thus faster in computational time. Note that this Monte Carlo sampling step avoided is separate to the one used in MCJIE. In essence, using OVA classifiers skip one Monte Carlo step, and using LMDE skips another Monte Carlo step through avoiding using MCPIE. Furthermore, because each classifier is trained independently, both the learning stage and the inference stage can be performed in parallel, further speeding up the process in a way that was not available under the original scheme. This is important later in under a receding horizon formulation, where the inference stage is included in the objective function of an optimiser such that repeated evaluations would benefit dramatically from shorter inference time.
+				For $n_{C}$ classes, $c$ binary classifiers are trained independently and also performs inference independently. The normalisation is then inherently captured in the softmax \eqref{Equation:Softmax}. 
 				
 				Similar to the binary case, to linearise it is imperative to examine the gradient of each of the $c$ softmax functions \eqref{Equation:SoftmaxGradient}. For notational simplicity, the query stars ($^{\star}$) are omitted in this derivation except for $n^{\star}$. The numerators are explicitly left in the form of products of exponentiation instead of exponentiation of sums to reflect ways to cache quantities during computation. Hence, for each class $c$ at query point $i$ a softmax gradient vector is computed \eqref{Equation:SoftmaxGradientVector}. \begin{equation}
 					\frac{\partial \sigma^{c}}{\partial f^{k}_{i}}(\bvec{f}_{i}) =
@@ -197,7 +195,7 @@
 				\end{equation} \begin{equation}
 					\frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bvec{f}_{i}) := \begin{bmatrix} \frac{\partial \sigma^{c}}{\partial f^{1}_{i}}(\bvec{f}_{i}) & \frac{\partial \sigma^{c}}{\partial f^{2}_{i}}(\bvec{f}_{i}) & \dots & \frac{\partial \sigma^{c}}{\partial f^{n_{C}}_{i}}(\bvec{f}_{i}) \end{bmatrix}^{T}
 				\label{Equation:SoftmaxGradientVector}
-				\end{equation} The linearisation is again performed on the mean latent predictions $\bar{\bvec{f}}_{i} = \mathbb{E}[\bvec{f}_{i}]$ so that each softmax $\sigma^{c}(\bvec{f}_{i})$ can be approximated with the linearised softmax $\sigma^{c}_{L}(\bvec{f}_{i})$ \eqref{Equation:LinearisedSoftmax} in an analogous form as \eqref{Equation:LinearisingSigmoid}, with the constants defined by $\bvec{a}^{c}_{i} := \sigma^{c}(\bar{\bvec{f}}_{i})$ and $\bvec{g}^{c}_{i} := \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bar{\bvec{f}}_{i})$. \begin{equation}
+				\end{equation} The linearisation is again performed on the latent expectance $\bar{\bvec{f}}_{i} = \mathbb{E}[\bvec{f}_{i}]$ so that each softmax $\sigma^{c}(\bvec{f}_{i})$ can be approximated with the linearised softmax $\sigma^{c}_{L}(\bvec{f}_{i})$ \eqref{Equation:LinearisedSoftmax} in an analogous form as \eqref{Equation:LinearisingSigmoid}, with the constants defined by $\bvec{a}^{c}_{i} := \sigma^{c}(\bar{\bvec{f}}_{i})$ and $\bvec{g}^{c}_{i} := \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}}(\bar{\bvec{f}}_{i})$. \begin{equation}
 					\begin{aligned}
 						\sigma^{c}(\bvec{f}_{i}) \approx \sigma^{c}_{L}(\bvec{f}_{i}) & := \sigma^{c}(\bar{\bvec{f}}_{i}) + \left. \frac{\partial \sigma^{c}}{\partial \bvec{f}_{i}} \right|^{T}_{\bvec{f}_{i} = \bar{\bvec{f}}_{i}} (\bvec{f}_{i} - \bar{\bvec{f}}_{i}) \\
 						& = \bvec{a}^{c}_{i} + (\bvec{g}^{c}_{i})^{T} (\bvec{f}_{i} - \bar{\bvec{f}}_{i})
@@ -218,9 +216,9 @@
 						(\Sigma^{c}_{L})_{ij} & = \mathbb{C}\mathrm{ov}[\sigma^{c}_{L}(\bvec{f}_{i}), \sigma^{c}_{L}(\bvec{f}_{i})] \\
 						& = \mathbb{C}\mathrm{ov}[(\bvec{g}^{c}_{i})^{T} \bvec{f}_{i}, (\bvec{g}^{c}_{j})^{T} \bvec{f}_{j}] \\
 						& = \sum_{m = 1}^{n_{C}} (g^{c}_{i})^{m} (g^{c}_{j})^{m} \mathbb{C}\mathrm{ov}[f^{m}_{i}, f^{m}_{j}]
-				\end{align*} where $(g^{c}_{i})^{m}$ denotes the $m^{\text{th}}$ element of $\bvec{g}^{c}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of classes $c$ and $m$, $c \neq m$, are conditionally independent given training observations.
+				\end{align*} Here, $(g^{c}_{i})^{m}$ denotes the $m^{\text{th}}$ element of $\bvec{g}^{c}_{i}$. The last equality arises as a result of employing OVA multiclass classification, where latent values of classes $c$ and $m$, $c \neq m$, are conditionally independent given training observations.
 				
-				Finally, the linearised model differential entropy of the OVA multiclass Gaussian process classifier is defined as follows \eqref{Equation:MulticlassLinearisedEntropy}. \begin{equation}
+				Finally, the linearised model differential entropy of the OVA multiclass Gaussian process classifier is defined to be the differential entropy of the random vector $\vec{\upsigma}^{c}_{L}(F)$. Similar to before, as $\vec{\upsigma}^{c}_{L}(F)$ is now multivariate Gaussian distributed, there exhibits a corresponding closed analytical form for $H^{\mathrm{multiclass}}_{\mathrm{LMDE}}$ \eqref{Equation:MulticlassLinearisedEntropy}. \begin{equation}
 					H^{\mathrm{multiclass}}_{\mathrm{LMDE}} \stackrel{\text{abbrev.}}{:=} H^{\mathrm{multiclass}}_{\mathrm{LMDE}}[X^{\star} | X, \bvec{y}] := \frac{1}{2} \log\Bigg((2 \pi e)^{n^{\star}} \det\bigg(\sum_{c = 1}^{n_{C}} \Sigma^{c}_{L}\bigg)\Bigg)
 				\label{Equation:MulticlassLinearisedEntropy}
 				\end{equation}
@@ -228,28 +226,15 @@
 			\subsubsection{All versus All Classifier}
 			\label{InformativeSeafloorExploration:LMDE:Multiclass:AVA}
 					
-				Similar to the approach in the MCPIE derivation, the double axis list of latent vectors $\{ {\bvec{f}^{c, c'}}^{\star} \}_{c, c' \in I_{n_{C}}}$ where ${\bvec{f}^{c', c}}^{\star} = - {\bvec{f}^{c, c'}}^{\star}$ and ${\bvec{f}^{c, c}}^{\star} := \bvec{0}_{n^{\star}}$  are to be fused into $n_{C}$ latent vectors $\{ {\bvec{f}^{c}}^{\star} \}_{c \in I_{n_{C}}}$ through the same way as \eqref{Equation:MonteCarloSamplingMulticlassClassifierAVA} with ${\bvec{f}^{c}}^{\star} := \sum_{c' = 1}^{n_{C}} {\bvec{f}^{c, c'}}^{\star}$. However, here the latent vectors to be fused are now random vectors instead of fixed, sampled vectors as before. 
+				Similar to the approach in the MCPIE derivation, the double axis list of latent vectors $\{ {\bvec{f}^{c, c'}}^{\star} \}_{c, c' \in I_{n_{C}}}$ where ${\bvec{f}^{c', c}}^{\star} = - {\bvec{f}^{c, c'}}^{\star}$ and ${\bvec{f}^{c, c}}^{\star} := \bvec{0}_{n^{\star}}$  are to be fused into $n_{C}$ latent vectors $\{ {\bvec{f}^{c}}^{\star} \}_{c \in I_{n_{C}}}$ through the same way as \eqref{Equation:MonteCarloSamplingMulticlassClassifierAVA} with ${\bvec{f}^{c}}^{\star} := \sum_{c' = 1}^{n_{C}} {\bvec{f}^{c, c'}}^{\star}$. However, this time the latent vectors to be fused are kept as random vectors. 
 			
-				As all of ${\bvec{f}^{c, c'}}^{\star}$ are multivarite Gaussian distributed, and are by construction independent after conditioning on their respectively hyperparameters $\vec{\uptheta}^{c, c'}$ which are not explicitly shown in notation here, the distribution of the fused latent vectors are given by \eqref{Equation:LatentFuseDistributionAVA}. These then provide the latent expectance vector and covariance matrix used in \eqref{Equation:MomentsLinearisedSoftmax}, from which the computations continues as in the OVA scheme. \begin{equation}
+				As all of ${\bvec{f}^{c, c'}}^{\star}$ are multivarite Gaussian distributed, and are by construction independent after conditioning on their respectively hyperparameters $\vec{\uptheta}^{c, c'}$ and training sets, the distribution of the fused latent vectors are given by \eqref{Equation:LatentFuseDistributionAVA}. These then provide the latent expectance vector and covariance matrix used in \eqref{Equation:MomentsLinearisedSoftmax}, from which the computations continues as in the OVA scheme. \begin{equation}
 					\begin{aligned}
 						\mathbb{E}[{\bvec{f}^{c}}^{\star}] := \sum_{c' = 1}^{n_{C}} \mathbb{E}[{\bvec{f}^{c, c'}}^{\star}] \qquad \qquad \mathbb{V}[{\bvec{f}^{c}}^{\star}] := \sum_{c' = 1}^{n_{C}} \mathbb{V}[{\bvec{f}^{c, c'}}^{\star}]
 					\end{aligned}
 				\label{Equation:LatentFuseDistributionAVA}
 				\end{equation}
-				
 
-				
-%				\begin{equation}
-%					\begin{Bmatrix*}
-%						\bvec{0}_{n^{\star}} & {\bvec{f}^{1, 2}}^{\star} & {\bvec{f}^{1, 3}}^{\star} & \dots & {\bvec{f}^{1, n_{C}}}^{\star} \\
-%						{\bvec{f}^{2, 1}}^{\star} & \bvec{0}_{n^{\star}} & {\bvec{f}^{2, 3}}^{\star} & \dots & {\bvec{f}^{2, n_{C}}}^{\star} \\
-%						{\bvec{f}^{3, 1}}^{\star} & {\bvec{f}^{3, 2}}^{\star} & \bvec{0}_{n^{\star}} & \dots & {\bvec{f}^{3, n_{C}}}^{\star} \\
-%						\vdots & \vdots & \vdots & \ddots & \vdots \\
-%						{\bvec{f}^{n_{C}, 1}}^{\star} & {\bvec{f}^{n_{C}, 2}}^{\star} & {\bvec{f}^{n_{C}, 3}}^{\star} & \dots & \bvec{0}_{n^{\star}}
-%					\end{Bmatrix*} 
-%				\label{Equation:LatentListAVA}
-%				\end{equation}
-			
 	\section{Comparison of Mutual Entropy Measures}
 	\label{InformativeSeafloorExploration:ComparisonMutualEntropyMeasures}
 	
