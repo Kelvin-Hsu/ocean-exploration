@@ -173,7 +173,7 @@ Date:\\
 	\begin{center}
 	\textbf{Informative Seafloor Exploration for Benthic Habitat Mapping} \\
 	\end{center}
-	While seafloor bathymetry have been mapped extensively over the last few decades, geological and ecological observations of seafloor benthic zones only began recently. Unlike bathymetric mapping, data collection of benthic imagery requires \textit{in situ} exploration - a significantly slower and costly endeavour. An efficient exploration policy would therefore require solving the informative path planning problem. This thesis investigates a Gaussian process based informative exploration policy for benthic habitat mapping. Emphasis is placed on a mutual information measure as an acquisition criterion that is computationally feasible. A novel acquisition function, the linearised model differential entropy, is defined and derived which exhibit outstanding properties as compard to non-mutual information measures or Monte Carlo based mutual information measures. Along with the proposed receding horizon formulation for path planning, this work demonstrates the computational feasibility and performance of non-myopic acquisition under mutual linearised model differential entropy. Such a method is tested on collected benthic and bathymetric datasets from past AUV missions Scott Reef, Western Australia.
+	While seafloor bathymetry have been mapped extensively over the last few decades, geological and ecological observations of seafloor benthic zones only began recently. Unlike bathymetric mapping, data collection of benthic imagery requires \textit{in situ} exploration - a significantly slower and costly endeavour. An efficient exploration policy would therefore require solving the informative path planning problem. This thesis investigates a Gaussian process based informative exploration policy for benthic habitat mapping. Emphasis is placed on a mutual information measure as an acquisition criterion that is computationally feasible. A novel acquisition function, the linearised model differential entropy, is defined and derived which exhibit outstanding properties as compard to non-mutual information measures or Monte Carlo based mutual information measures. Through proposing and implementing an efficient receding horizon formulation for informative path planning, this work demonstrates the computational feasibility and performance of non-myopic acquisition under mutual linearised model differential entropy. Finally, such an exploration policy is tested on collected benthic and bathymetric datasets from past autonomous underwater vehicle missions at Scott Reef, Western Australia.
 }
 
 \clearpage  % Abstract ended, start a new page
@@ -185,14 +185,11 @@ Date:\\
 \acknowledgements{
 \addtocontents{toc}{\vspace{0em}}  % Add a gap in the Contents, for aesthetics
 %
-I am deeply grateful for the support from my supervisors Stefan Williams and Simon O'Callaghan. To Stef, thank you for being so down to earth and easy to talk to. You always manage to point me to the right direction just when I need it. To Simon, thank you for being so approachable to talk to. You always listen to what I have to say and reply with kind suggestions. Thank you for patiently thinking through problems and saying `hm, that's interesting alright' with me everytime I discover something strange or new. You made it easy for me to share my ideas and thoughts without fearing being in the wrong. In short, thank you both for your awesomeness.
+Firstly, I would like to express my gratitude to my supervisors Stefan Williams and Simon O'Callaghan for their overwhelming support throughout the year. To Stef, despite your busy schedule, you were always approachable and offered helpful advice and uplifting encouragement when I most needed it. To Simon, thank you for your unending patience in thinking through and assisting me with my problems. It was great to have someone I could share my ideas with and ask anything without fear of sounding silly.
 
-I would also like to express my thanks to the people at NICTA, who made the working environment fun and enjoyable. This thesis would not be possible without their understanding and support. To Alistair, I admire your clear thinking and explanations. You always seem to understand what I am trying to ask even when I myself have trouble identifying my confusion. Many of the ideas developed in this thesis were inspired by our discussions. To Dan, thank you for your thoughtful advices and suggestions throughout the year. You were always quick to point out interesting things that I can look into. Thank you for stepping me through some of the difficult concepts in the beginning and even patiently helping me hunt those frustrating bugs when things were not working so well. To Lachlan, thank you for all the wise advices throughout the year. I still remember your detailed explanation about Bayesian inference and the almost philosophical note about logic and probability theory during the summer. That was very cool to listen to.
+I would also like to thank my colleagues at NICTA, who created a highly enjoyable culture to work in. This thesis would not have been possible without their tremendous understanding and support. To Alistair, I admire your clarity of thought and explanations. You really had a knack for understanding my problems when I did not even know where to begin! Many of the ideas developed in this thesis were inspired by our discussions. To Dan, I highly appreciate the advice and thoughtful suggestions I received from you throughout the year. On numerous occasions you were quick to point out interesting concepts for further exploration. To Lachlan, thank you for your insightful advices throughout the year. Your thesis tips were very helpful! To the team at the collabatron, thank you for making the room such a fun place to be. 
 
-Finally, I would like to thank my friends and family for being the supportive bunch they always have been. From all the silly chats, stress inspired rants, mutual mocking, to the understanding support and encouragement, I would not have managed this much without you all. 
-
-
-
+Finally, I would like to thank my friends and family for their support throughout the course of the year. From all the silly chats, basketball duels, random night outs, sudden ramen dates, and total procrastination sessions, to the encouraging and uplifting moments we had as we discuss about the future, you guys had made this year memorable. It might be clichéd, but I could not have done it without you all.
 
 %
 }
@@ -231,7 +228,7 @@ Finally, I would like to thank my friends and family for being the supportive bu
 		\\
 		EP & Expectation Propagation \\
 		\\
-		iid & independent and identically distributed \\
+		iid & independently and identically distributed \\
 		\\
 		GP & Gaussian Process \\ 
 		GPBC & Gaussian Process Binary Classification/Classifier \\
@@ -254,6 +251,7 @@ Finally, I would like to thank my friends and family for being the supportive bu
 		OVA & One Versus All \\
 		\\
 		P1NN & Probabilistic One Nearest Neighbor \\
+		PCA & Principal Component Analysis \\
 		PDF & Probability Distribution Function \\
 		PIE & Predictive Information Entropy \\
 		PLS & Probabilistic Least Squares \\
