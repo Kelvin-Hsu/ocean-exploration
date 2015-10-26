@@ -15,6 +15,8 @@
 	-Besides the standard Python numerical libraries (numpy, scipy, etc), you must install 'nlopt' from 'http://ab-initio.mit.edu/wiki/index.php/NLopt'
 	-Due to the large file sizes of the Scott Reef dataset, please contact the author separately for access to these datasets
 
+	The main script which performs the informative path planning algorithm proposed in the paper and thesis is
+		informative-seafloor-exploration/scott_reef_analysis.py
 
 ***Acknowledgements***:
 
