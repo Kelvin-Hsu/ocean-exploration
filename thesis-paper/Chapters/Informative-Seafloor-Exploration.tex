@@ -26,7 +26,7 @@
 		\subsection{Binary Classification}
 		\label{InformativeSeafloorExploration:MCPIE:Binary}
 		
-			Suppose a Gaussian process classifier has been trained under \textit{any} approximation technique with respect to a training set $\mathcal{D} = \{X, \bvec{y}\} = \{[ \bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]^{T}\}$ with $n$ training points. It is known that the latent function $f(\bvec{x})$ is distributed as a GP with a particular predictive mean $m(\bvec{x})$ and covariance $k(\bvec{x}, \bvec{x}')$ once conditioned on the training data \eqref{Equation:PredictiveLatentBinaryGP}. Note that this chapter will omit explicitly notating the training data and query data that was conditioned upon, as well as the learned hyperparameters $\vec{\uptheta}$, unless otherwise stated. \begin{equation}
+			Suppose a Gaussian process classifier has been trained under \textit{any} approximation with respect to a training set $\mathcal{D} = \{X, \bvec{y}\} = \{[ \bvec{x}_{1}, \bvec{x}_{2}, \dots, \bvec{x}_{n}]^{T}, [y_{1}, y_{2}, \dots, y_{n}]^{T}\}$ with $n$ training points. It is known that the latent function $f(\bvec{x})$ is distributed as a GP with a particular predictive mean $m(\bvec{x})$ and covariance $k(\bvec{x}, \bvec{x}')$ once conditioned on the training data \eqref{Equation:PredictiveLatentBinaryGP}. Note that this chapter will omit explicitly notating the training data and query data that was conditioned upon, as well as the learned hyperparameters $\vec{\uptheta}$, unless otherwise stated. \begin{equation}
 				f(\bvec{x}) \sim \mathcal{GP}(m(\bvec{x}), k(\bvec{x}, \bvec{x}'))
 			\label{Equation:PredictiveLatentBinaryGP}
 			\end{equation}
