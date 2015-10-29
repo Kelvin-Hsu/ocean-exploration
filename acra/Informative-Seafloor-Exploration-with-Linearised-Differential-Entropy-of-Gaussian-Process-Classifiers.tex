@@ -42,9 +42,10 @@
 	
 	Thus, practical seafloor exploration must employ an inference model that allows the AUV to quantify the expected amount of information at a given region or location. To perform such an inference, we model the habitat classes onto bathymetric features that summarises the local depth and seafloor structure using a Gaussian process classifier.
 
-	Gaussian process (GP) models are non-parametric, Bayesian inference models which make relatively few assumptions onto the type of phenomena to be inferenced as compared to parametric models. In contrast to non-Bayesian methods, GPs handles uncertainty inherently in its model and is thus an excellent framework for informative inference. Under the class of radial basis function (RBF) kernels, the primary inference philosophy behind GP models are that the proximity of observations in feature space determines their corresponding correlation. In the benthic context, this translates to the underlying assumption that the type of habitat at a particular location depends strongly on the local bathymetric structure.
+	Gaussian process (GP) models are non-parametric, Bayesian inference models which make relatively few assumptions onto the type of phenomena to be inferenced as compared to parametric models. In contrast to non-Bayesian methods, GPs handles uncertainty inherently in its model and is thus an excellent framework for informative inference. In contrast to support vector machines (SVMs) or logistic regressors, Gaussian process based approach inferences directly on the predictions itself instead of on the model parameters in a principled manner. Under the class of radial basis function (RBF) kernels, the primary inference philosophy behind GP models are that the proximity of observations in feature space determines their corresponding correlation. In the benthic context, this translates to the underlying assumption that the type of habitat at a particular location depends strongly on the local bathymetric structure.
 		
-	Once the AUV is able to quantify the expected amount of information at a given location, it is natural to consider the paths the AUV could take to maximise information gain over its mission, thus achieving efficient habitat mapping. As such, we employ an informative path-planning policy to navigate through paths that contain the most valuable information regarding the ROI. 
+	Once the AUV is able to quantify the expected amount of information at given regions, it is natural to consider the paths the AUV could take to maximise information gain over its mission, thus achieving efficient mapping. 
+	% As such, we employ an informative path-planning policy to navigate through paths that contain the most valuable information regarding the ROI. 
 	
 	This paper addresses the informative path-planning problem for benthic habitat mapping. Due to the limited computational resources available for \textit{in-situ} exploration with AUVs, we propose a method that is computationally tractable and straightforward for an online implementation. While GPs are typically $O(n^{3})$ algorithms, online tractability can be achieved through finite receding horizon methods if the overall path is not required to be strictly optimal.
 	
@@ -291,13 +292,6 @@
 	\subsection{Formulation and Structure}
 
 		The receding horizon approach requires the selection of a horizon length and the number of control points (query points) for which the path is to be defined upon. The horizon length plays a significant role in the performance of the method. A short horizon length tends to produce paths that are similar to a myopic approach. A horizon length that is too long, however, can be both inefficient and destabilising. For an informative path-planning scenario, looking ahead too far can have diminishing returns in its informativeness, as the vehicle's belief space would be significantly altered by the time it was supposed to follow the original proposed path.
-
-%		\begin{figure}[!htbp]
-%		\centering
-%			\includegraphics[width = \linewidth]{Figures/receding_horizon_informative_path_planning.png}
-%		\caption{Basic Receding Horizon Structure}
-%		\label{Figure:Results:RecedingHorizonMethodOutline}
-%		\end{figure}
 	
 		\begin{figure}[!htbp]
 			\begin{center}
