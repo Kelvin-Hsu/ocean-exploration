@@ -9,7 +9,7 @@ import matplotlib.ticker as ticker
 
 def main():
 
-    main_directory = "../../../Results/scott-reef/"
+    main_directory = "../../../Thesis/Results/scott-reef/"
 
     # Comparing different starting locations
     def compare_starting_locations():

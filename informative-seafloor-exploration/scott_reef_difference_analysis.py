@@ -129,7 +129,7 @@ def main():
 
     """Initialise Result Logging"""
     if SAVE_RESULTS:
-        home_directory = "../../../Results/scott-reef/"
+        home_directory = "../../../Thesis/Results/scott-reef/"
         save_directory = "t%d_q%d_ts%d_qs%d_method_%s%s%s_start%.1f%.1f_"\
         "hsteps%d_horizon%.1f/" % (N_TRAIN, N_QUERY, T_SEED, Q_SEED, 
                 METHOD, '_GREEDY' if GREEDY else '', 
@@ -203,7 +203,7 @@ def main():
     logging.info(model_options)
     
     """File Locations"""
-    directory_data = '../../../Data/'
+    directory_data = '../../../Thesis/Data/'
     filename_training_data = 'training_data_unmerged.npz'
     filename_query_points = 'query_points.npz'
     filename_truth = directory_data + 'truthmodel_t800_q100000_ts250_qs500.npz'

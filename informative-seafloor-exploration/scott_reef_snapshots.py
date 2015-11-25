@@ -25,7 +25,7 @@ def main():
 
     logging.basicConfig(level = logging.DEBUG)
 
-    main_directory = "../../../Results/scott-reef/"
+    main_directory = "../../../Thesis/Results/scott-reef/"
     directory = main_directory + "loc1_new_20150827_072830__method_MCJE_start_377500_8440000_hsteps30_horizon5000/"
     trials = np.arange(25, 201, 25)
     logging.info(trials)
@@ -44,7 +44,7 @@ def main():
 def load_data():
 
     """File Locations"""
-    directory_data = '../../../Data/'
+    directory_data = '../../../Thesis/Data/'
     filename_training_data = 'training_data_unmerged.npz'
     filename_query_points = 'query_points.npz'
     filename_truth = directory_data + 'truthmodel_t800_q100000_ts250_qs500.npz'
